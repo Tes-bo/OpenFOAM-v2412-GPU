@@ -1,0 +1,71 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    object      T;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 0 0 1 0 0 0];
+
+internalField   uniform 293;
+
+boundaryField
+{
+    "(roof|floor|sideWall)"
+    {
+        type            zeroGradient;
+    }
+
+    humanBody
+    {
+        type            externalWallHeatFluxTemperature;
+        mode            flux;
+        q               uniform 58; // W/m^2
+        value           uniform 310;
+        kappaMethod     fluidThermo;
+        kappa           none;
+        Qr              none;
+    }
+
+    inlet
+    {
+        type            fixedValue;
+        value           uniform 293;
+    }
+
+    mouth
+    {
+        type            fixedValue;
+        value           uniform 310;
+    }
+
+    outlet
+    {
+        type            inletOutlet;
+        value           $internalField;
+        inletValue      $internalField;
+    }
+
+    "(intake1|intake2|intake3|intake4)"
+    {
+        type            zeroGradient;
+    }
+
+    "(exhaust_maxX|exhaust_minX|exhaust_maxY|exhaust_minY)"
+    {
+        type            fixedValue;
+        value           uniform 293;
+    }
+}
+
+
+// ************************************************************************* //

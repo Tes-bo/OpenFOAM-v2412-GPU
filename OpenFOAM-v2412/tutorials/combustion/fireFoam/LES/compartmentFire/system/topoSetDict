@@ -1,0 +1,180 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      topoSetDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+actions
+(
+    {
+        name    slot_bottom;
+        type    faceSet;
+        action  new;
+        source  boxToFace;
+        box     (-0.201 -0.001 -0.201)(-0.199 0.031 0.201);
+    }
+
+    {
+        name    slot_bottom;
+        type    faceZoneSet;
+        action  new;
+        source  setToFaceZone;
+        faceSet slot_bottom;
+    }
+    {
+        name    slot_top;
+        type    faceSet;
+        action  new;
+        source  boxToFace;
+        box     (-0.201 0.369 -0.201)(-0.199 0.401 0.201);
+    }
+
+    {
+        name    slot_top;
+        type    faceZoneSet;
+        action  new;
+        source  setToFaceZone;
+        faceSet slot_top;
+    }
+
+    {
+        name    inletFace;
+        type    faceSet;
+        action  new;
+        source  patchToFace;
+        patch   inlet;
+    }
+
+    {
+        name    compartment_fire;
+        type    cellSet;
+        action  new;
+        source  boxToCell;
+        box     (-0.201 -0.001 -0.201)(0.201 0.401 0.201);
+    }
+
+    {
+        name    compartment_fire;
+        type    cellZoneSet;
+        action  new;
+        source  setToCellZone;
+        set     compartment_fire;
+    }
+
+    {
+        name    internalWallPanel;
+        type    faceSet;
+        action  new;
+        source  boxToFace;
+        box     (-0.2001 0.0301 -0.2001)(-0.1999 0.3701 0.2001);
+    }
+
+    {
+        name    internalWallPanel;
+        type    faceZoneSet;
+        action  new;
+        source  setToFaceZone;
+        faceSet internalWallPanel;
+    }
+
+    {
+        name    wallFaces_back;
+        type    faceSet;
+        action  new;
+        source  boxToFace;
+        box     (-0.2001 -0.0001 -0.2001)(0.2001 0.4001 -0.1999);
+    }
+
+    {
+        name    wallFaces_front;
+        type    faceSet;
+        action  new;
+        source  boxToFace;
+        box     (-0.2001 -0.0001 0.1999)(0.2001 0.4001 0.2001);
+    }
+
+    {
+        name    wallFaces_top;
+        type    faceSet;
+        action  new;
+        source  boxToFace;
+        box     (-0.2001 0.3999 -0.2001)(0.2001 0.4001 0.2001);
+    }
+
+    {
+        name    wallFaces_side;
+        type    faceSet;
+        action  new;
+        source  boxToFace;
+        box     (0.1999 -0.0001 -0.2001)(0.2001 0.4001 0.2001);
+    }
+
+    {
+        name    wallPanel;
+        type    faceZoneSet;
+        action  new;
+        source  setToFaceZone;
+        faceSet wallFaces_back;
+    }
+
+    {
+        name    wallPanel;
+        type    faceZoneSet;
+        action  add;
+        source  setToFaceZone;
+        faceSet wallFaces_front;
+    }
+
+    {
+        name    wallPanel;
+        type    faceZoneSet;
+        action  add;
+        source  setToFaceZone;
+        faceSet wallFaces_top;
+    }
+
+    {
+        name    wallPanel;
+        type    faceZoneSet;
+        action  add;
+        source  setToFaceZone;
+        faceSet wallFaces_side;
+    }
+
+    {
+        name    baseFace;
+        type    faceSet;
+        action  new;
+        source  boxToFace;
+        box     (-0.2001 -0.001 -0.2001)(0.2001 0.001 0.2001);
+    }
+
+    {
+        name    wallPanel;
+        type    faceZoneSet;
+        action  add;
+        source  setToFaceZone;
+        faceSet baseFace;
+    }
+
+    {
+        name    wallPanel;
+        type    faceZoneSet;
+        action  subtract;
+        source  setToFaceZone;
+        faceSet inletFace;
+    }
+);
+
+
+// ************************************************************************* //

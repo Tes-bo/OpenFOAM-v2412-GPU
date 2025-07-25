@@ -1,0 +1,15 @@
+#------------------------------------------------------------------------------
+include $(DEFAULT_RULES)/rpath
+
+LINK_LIBS   = $(c++DBUG)
+
+LINKLIBSO   = $(CC) $(c++FLAGS) \
+    $(PROJECT_RPATH) -dynamiclib \
+    -install_name @rpath/$(notdir $(LIB)$(EXT_SO)) \
+    -Wl,-dylib,-undefined,dynamic_lookup
+
+LINKEXE     = $(CC) $(c++FLAGS) \
+    $(subst @loader_path,@executable_path/../lib,$(PROJECT_RPATH)) \
+    -Wl,-execute,-undefined,dynamic_lookup
+
+#------------------------------------------------------------------------------

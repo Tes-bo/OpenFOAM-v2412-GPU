@@ -1,0 +1,211 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      createPatchDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+pointSync false;
+
+__settings
+{
+    patchInfo { type patch; }
+    constructFrom set;
+}
+
+
+patches
+(
+    {
+        name p1;
+        ${__settings};
+        set  p1;
+    }
+    {
+        name p2;
+        ${__settings};
+        set  p2;
+    }
+    {
+        name p3;
+        ${__settings};
+        set  p3;
+    }
+    {
+        name p4;
+        ${__settings};
+        set  p4;
+    }
+    {
+        name p5;
+        ${__settings};
+        set  p5;
+    }
+    {
+        name p6;
+        ${__settings};
+        set  p6;
+    }
+    {
+        name p7;
+        ${__settings};
+        set  p7;
+    }
+    {
+        name p8;
+        ${__settings};
+        set  p8;
+    }
+    {
+        name p9;
+        ${__settings};
+        set  p9;
+    }
+    {
+        name p10;
+        ${__settings};
+        set  p10;
+    }
+    {
+        name p11;
+        ${__settings};
+        set  p11;
+    }
+    {
+        name p12;
+        ${__settings};
+        set  p12;
+    }
+    {
+        name p13;
+        ${__settings};
+        set  p13;
+    }
+    {
+        name p14;
+        ${__settings};
+        set  p14;
+    }
+    {
+        name p15;
+        ${__settings};
+        set  p15;
+    }
+    {
+        name p16;
+        ${__settings};
+        set  p16;
+    }
+    {
+        name p17;
+        ${__settings};
+        set  p17;
+    }
+    {
+        name p18;
+        ${__settings};
+        set  p18;
+    }
+    {
+        name p19;
+        ${__settings};
+        set  p19;
+    }
+    {
+        name p20;
+        ${__settings};
+        set  p20;
+    }
+    {
+        name p21;
+        ${__settings};
+        set  p21;
+    }
+    {
+        name p22;
+        ${__settings};
+        set  p22;
+    }
+    {
+        name p23;
+        ${__settings};
+        set  p23;
+    }
+    {
+        name p24;
+        ${__settings};
+        set  p24;
+    }
+    {
+        name p25;
+        ${__settings};
+        set  p25;
+    }
+    {
+        name p26;
+        ${__settings};
+        set  p26;
+    }
+    {
+        name p27;
+        ${__settings};
+        set  p27;
+    }
+    {
+        name p28;
+        ${__settings};
+        set  p28;
+    }
+    {
+        name p29;
+        ${__settings};
+        set  p29;
+    }
+    {
+        name p30;
+        ${__settings};
+        set  p30;
+    }
+    {
+        name p31;
+        ${__settings};
+        set  p31;
+    }
+    {
+        name p32;
+        ${__settings};
+        set  p32;
+    }
+    {
+        name p33;
+        ${__settings};
+        set  p33;
+    }
+    {
+        name p34;
+        ${__settings};
+        set  p34;
+    }
+    {
+        name p35;
+        ${__settings};
+        set  p35;
+    }
+    {
+        name p36;
+        ${__settings};
+        set  p36;
+    }
+);
+
+
+// ************************************************************************* //

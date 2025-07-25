@@ -1,0 +1,96 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+application     reactingParcelFoam;
+
+startFrom       latestTime;
+
+startTime       0;
+
+stopAt          endTime;
+
+endTime         0.5;
+
+deltaT          1e-05;
+
+writeControl    adjustable;
+
+writeInterval   1e-02;
+
+purgeWrite      0;
+
+writeFormat     ascii;
+
+writePrecision  10;
+
+writeCompression off;
+
+timeFormat      general;
+
+timePrecision   6;
+
+runTimeModifiable true;
+
+adjustTimeStep  yes;
+
+maxCo           5;
+
+maxDeltaT       1e-03;
+
+functions
+{
+    avgInlets
+    {
+        type            surfaceFieldValue;
+        libs            (fieldFunctionObjects);
+        enabled         yes;
+        writeControl    writeTime;
+        log             yes;
+        writeFields     off;
+        surfaceFormat   vtk;
+        regionType      patch;
+        // name            inlet;
+        names           (inlet "inlet.*");
+        operation       weightedAverage;
+        weightField     phi;
+        fields
+        (
+            T
+        );
+    }
+
+    avgOutlets
+    {
+        type            surfaceFieldValue;
+        libs            (fieldFunctionObjects);
+        writeControl    writeTime;
+        log             yes;
+        writeFields     no;
+        regionType      patch;
+        name            outlet;
+        operation       weightedAverage;
+        weightField     phi;
+
+        fields
+        (
+            H2O
+            T
+        );
+    }
+}
+
+
+// ************************************************************************* //

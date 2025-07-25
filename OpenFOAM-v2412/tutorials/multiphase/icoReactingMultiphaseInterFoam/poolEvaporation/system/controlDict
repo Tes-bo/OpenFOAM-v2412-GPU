@@ -1,0 +1,99 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+application     icoReactingMultiphaseInterFoam;
+
+startFrom       startTime;
+
+startTime       0;
+
+stopAt          endTime;
+
+endTime         100;
+
+deltaT          1e-3;
+
+writeControl    adjustableRunTime;
+
+writeInterval   5;
+
+purgeWrite      4;
+
+writeFormat     ascii;
+
+writePrecision  6;
+
+compression     off;
+
+timeFormat      general;
+
+timePrecision   6;
+
+runTimeModifiable yes;
+
+adjustTimeStep  yes;
+
+maxDeltaT       1e-1;
+
+maxCo           3;
+maxAlphaCo      2;
+maxAlphaDdt     1;
+
+functions
+{
+    mass
+    {
+        type            volFieldValue;
+        libs            (fieldFunctionObjects);
+
+        writeControl    timeStep;
+        writeInterval   10;
+        writeFields     false;
+        log             true;
+
+        operation       volIntegrate;
+
+        fields
+        (
+            dmdt.liquidToGas
+        );
+    }
+    htc
+    {
+        type            multiphaseInterHtcModel;
+        libs            (fieldFunctionObjects);
+
+        field           T;
+        writeControl    writeTime;
+        writeInterval   1;
+        htcModel        fixedReferenceTemperature;
+        patches         (bottom);
+        TRef            373;
+    }
+
+    wallHeatFlux
+    {
+        type            wallHeatFlux;
+        libs            (fieldFunctionObjects);
+
+        patches         (bottom);
+        writeControl    writeTime;
+        writeInterval   1;
+    }
+}
+
+
+// ************************************************************************* //

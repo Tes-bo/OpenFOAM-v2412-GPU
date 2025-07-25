@@ -1,0 +1,61 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    object      T;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 0 0 1 0 0 0];
+
+internalField   uniform 300;
+
+boundaryField
+{
+    "floor.*"
+    {
+        type            fixedValue;
+        value           uniform 700;
+    }
+
+    "ceiling.*"
+    {
+        type                compressible::thermalShell;
+        active              true;
+        T                   T;
+
+        thermo
+        {
+            W               50;
+            rho             1000;
+            kappa           200;
+            Cp              600;
+            Hf              0;
+            emissivity      0;
+        }
+
+        region              ceilingShell;
+        thermalShellModel   thermalShell;
+
+        qr                  qr;
+        thickness           1e-3;
+
+        value               uniform 300;
+    }
+
+    "fixedWall.*"
+    {
+        type            zeroGradient;
+    }
+}
+
+
+// ************************************************************************* //

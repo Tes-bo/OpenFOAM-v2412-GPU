@@ -1,0 +1,14 @@
+sinclude $(GENERAL_RULES)/module-path-user
+
+/* Failsafe - user location */
+ifeq (,$(strip $(FOAM_MODULE_LIBBIN)))
+    FOAM_MODULE_LIBBIN = $(FOAM_USER_LIBBIN)
+endif
+
+EXE_INC = \
+    ${c++LESSWARN} \
+    -I$(PARAVIEW_INC_DIR) \
+    -I$(PARAVIEW_INC_DIR)/vtkkwiml
+
+LIB_LIBS = \
+    $(GLIBS)

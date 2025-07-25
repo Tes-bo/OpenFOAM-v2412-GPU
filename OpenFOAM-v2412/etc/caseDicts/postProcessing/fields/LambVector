@@ -1,0 +1,23 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Version:  v2412
+    \\  /    A nd           | Website:  www.openfoam.com
+     \\/     M anipulation  |
+-------------------------------------------------------------------------------
+Description
+    Calculates Lamb vector, i.e. the cross product of vorticity and velocity.
+    Calculation of the divergence of the Lamb vector can be performed by using
+    \c div function object on this \c LambVector function object.
+
+\*---------------------------------------------------------------------------*/
+
+type            LambVector;
+libs            (fieldFunctionObjects);
+
+field           U;
+
+executeControl  writeTime;
+writeControl    writeTime;
+
+// ************************************************************************* //

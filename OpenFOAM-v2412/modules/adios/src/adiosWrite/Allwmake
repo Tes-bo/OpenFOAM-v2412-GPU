@@ -1,0 +1,14 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. "${WM_PROJECT_DIR:?}"/wmake/scripts/AllwmakeParseArguments
+. "${WM_PROJECT_DIR:?}"/wmake/scripts/have_adios2
+#------------------------------------------------------------------------------
+
+if have_adios2
+then
+    wmake libso
+else
+    echo "==> skip adiosFoam library"
+fi
+
+# -----------------------------------------------------------------------------

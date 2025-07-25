@@ -1,0 +1,77 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      boundaryRadiationProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+".*"
+{
+    type            transparent;
+    wallAbsorptionEmissionModel
+    {
+        type            multiBandAbsorption;
+        emissivity      (1 1);
+        absorptivity    (0 0);
+    };
+}
+
+body_bottom
+{
+    type    opaqueDiffusive;
+    wallAbsorptionEmissionModel
+    {
+        type            multiBandAbsorption;
+        absorptivity    (0.3 0.7);
+        emissivity      (0.3 0.7);
+    };
+}
+
+"(solarpanel.*)"
+{
+    type    opaqueDiffusive;
+    wallAbsorptionEmissionModel
+    {
+        type            multiBandAbsorption;
+        absorptivity    (0.3 0.7);
+        emissivity      (0.3 0.7);
+    };
+}
+
+ref_wall
+{
+    type   opaqueReflective;
+
+    // Fraction of the reflected is diffussive
+   fd          0.0; // 0: all specular 1: all diffusive
+
+    wallAbsorptionEmissionModel
+    {
+        type   multiBandAbsorption;
+        absorptivity   (0.03 0.07);
+        emissivity     (0.03 0.07);
+    };
+}
+
+ZMin
+{
+    type   opaqueDiffusive;
+    wallAbsorptionEmissionModel
+    {
+        type            multiBandAbsorption;
+        absorptivity    (0.3 0.7);
+        emissivity      (0.3 0.7);
+    };
+}
+
+
+// ************************************************************************* //

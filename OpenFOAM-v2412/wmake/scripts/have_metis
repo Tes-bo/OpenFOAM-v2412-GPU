@@ -1,0 +1,198 @@
+#----------------------------------*-sh-*--------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2018-2021 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     have_metis
+#
+# Description
+#     Detection/setup of METIS
+#
+# Requires
+#     config.sh/metis
+#
+# Functions provided
+#     have_metis, no_metis, echo_metis, query_metis, search_metis
+#
+# Variables set on success
+#     HAVE_METIS
+#     METIS_ARCH_PATH
+#     METIS_INC_DIR
+#     METIS_LIB_DIR
+#     METIS_LIBNAME_SUFFIX [optional]
+#
+#------------------------------------------------------------------------------
+. ${WM_PROJECT_DIR:?}/wmake/scripts/sysFunctions    # General system functions
+
+#------------------------------------------------------------------------------
+
+# Reset
+no_metis()
+{
+    unset HAVE_METIS METIS_ARCH_PATH METIS_INC_DIR METIS_LIB_DIR
+    unset METIS_VERSION METIS_LIBNAME_SUFFIX
+}
+
+
+# Report
+echo_metis()
+{
+    echo "metis=${HAVE_METIS:-false}"
+    echo "root=\"$METIS_ARCH_PATH\""
+    echo "include=\"$METIS_INC_DIR\""
+    echo "library=\"$METIS_LIB_DIR\""
+    if [ -n "$METIS_LIBNAME_SUFFIX" ]
+    then
+        echo "libsuffix=\"$METIS_LIBNAME_SUFFIX\""
+    fi
+}
+
+
+# Search
+# $1 : prefix (*_ARCH_PATH, system, ...)
+#
+# On success, return 0 and export variables
+# -> HAVE_METIS, METIS_ARCH_PATH, METIS_INC_DIR, METIS_LIB_DIR
+search_metis()
+{
+    local warn="==> skip metis"
+    local incName="metis.h"
+    local libName="libmetis"
+
+    local prefix="${1:-system}"
+    local header library
+
+    # ----------------------------------
+    if isNone "$prefix"
+    then
+        [ -n "$warn" ] && echo "$warn (disabled)"
+        return 1
+    elif hasAbsdir "$prefix"
+    then
+        header=$(findFirstFile "$prefix/include/$incName")
+        library="-extlib"  # Delay search...
+    elif isSystem "$prefix"
+    then
+        header=$(findSystemInclude -name="$incName")
+        prefix=$(sysPrefix "$header")
+    else
+        unset prefix
+    fi
+    # ----------------------------------
+
+    # Header
+    [ -n "$header" ] || {
+        [ -n "$warn" ] && echo "$warn (no header)"
+        return 2
+    }
+
+    # ----------------------------------
+    # Extract IDXTYPEWIDTH from metis.h: regex as per ThirdParty makeMETIS
+    # - ensure consistent size between OpenFOAM and metis header
+
+    local label
+    if [ -f "$header" ]
+    then
+        label=$(sed -ne \
+            's/^.*#define  *IDXTYPEWIDTH  *\([1-9][0-9]\).*/\1/p' \
+            "$header")
+    fi
+    : "${label:=unknown}"  # Safety
+
+    # Transform (32 | 64) -> (int32 | int64)
+    case "$label" in (32|64) label="int${label}" ;; esac
+
+    if [ "$library" = "-extlib" ]
+    then
+        library=$(findExtLib "${libName}-${label}" "$libName")
+    fi
+
+    # Library
+    [ -n "$library" ] \
+    || library=$(findLibrary -prefix="$prefix" -name="$libName") \
+    || {
+        [ -n "$warn" ] && echo "$warn (no library)"
+        return 2
+    }
+
+    # Library name suffix (-int32 | -int64)
+    case "${library##*/}" in
+    (*-int32.*) export METIS_LIBNAME_SUFFIX="-int32" ;;
+    (*-int64.*) export METIS_LIBNAME_SUFFIX="-int64" ;;
+    esac
+
+    # OK
+    echo "metis (${label}) - $prefix"
+    export HAVE_METIS=true
+    export METIS_ARCH_PATH="$prefix"
+    export METIS_INC_DIR="${header%/*}"     # Basename
+    export METIS_LIB_DIR="${library%/*}"    # Basename
+
+    ##echo "DEBUG: header=$header" 1>&2
+    ##echo "DEBUG: library=$library" 1>&2
+}
+
+
+# Output as per search_* function
+have_metis()
+{
+    local warn="==> skip metis"
+    local config="config.sh/metis"
+    local file
+
+    if file="$("$WM_PROJECT_DIR"/bin/foamEtcFile "$config")"
+    then
+        . "$file"
+    else
+        [ -n "$warn" ] && echo "$warn (no $config)"
+        return 2
+    fi
+
+    search_metis "$METIS_ARCH_PATH"
+}
+
+
+# Query settings
+query_metis()
+{
+    local config="config.sh/metis"
+    local file
+
+    if file="$("$WM_PROJECT_DIR"/bin/foamEtcFile -mode=o "$config")"
+    then
+        . "$file"
+        _process_query metis "$METIS_ARCH_PATH"
+    else
+        echo "(no $config)" 1>&2
+        echo "metis=unknown"
+    fi
+}
+
+
+#------------------------------------------------------------------------------
+
+# Reset variables
+no_metis
+
+# Test/query
+case "$1" in
+-test | -debug-test)
+    [ "$1" = "-debug-test" ] && set -x
+    have_metis
+    [ "$1" = "-debug-test" ] && set +x
+    echo_metis
+    ;;
+-query)
+    query_metis
+    ;;
+esac
+
+#------------------------------------------------------------------------------

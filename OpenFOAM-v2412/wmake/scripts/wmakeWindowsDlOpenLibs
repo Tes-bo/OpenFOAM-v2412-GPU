@@ -1,0 +1,89 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2011-2017 blueCAPE Lda
+#     Copyright (C) 2019 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     wmakeWindowsDlOpenLibs
+#
+# Usage
+#     wmakeWindowsDlOpenLibs <build/applications/.../options>
+#
+# Description
+#     Extract library dependencies from the EXE_LIBS entry for Windows
+#     applications and emit as FOAM_DLOPEN_LIBS for use with setRootCase.H
+#     Forcibly dlOpen'ing these libraries ensures that they are truly loaded
+#     for the windows application binary.
+#
+#     An alternative means is to define external entry points into particular
+#     libraries and linking with '-u symbol', which would possibly have a lower
+#     overhead but is more code-intrusive and somewhat ad hoc.
+#
+#------------------------------------------------------------------------------
+optionsFile="$1"
+
+[ "$#" -gt 0 ] || exit 1
+[ -f "$optionsFile" ] || exit 2
+[ -r "$optionsFile" ] || exit 2
+
+# Representative exeName from the build path (for messages only)
+# Eg, build/.../basic/laplacianFoam/options -> laplacianFoam
+
+exeName="${optionsFile%/options}"   # Strip trailing '/options'
+exeName="${exeName##*/}"            # Strip leading path
+
+# Use only OpenFOAM-related libraries that we will can actually find
+hasLib()
+{
+    libFile="lib${1}.dll"   # NB: Windows only (.dll)
+
+    [ -e "$FOAM_LIBBIN/$libFile" ] || \
+    [ -e "$FOAM_USER_LIBBIN/$libFile" ] || \
+    [ -e "$FOAM_LIBBIN/$FOAM_MPI/$libFile" ]
+}
+
+
+# After the cpp stage, the EXE_LIBS (if they exist) will be on a single line
+# Extract EXE_LIBS = -labc ..., ignoring -L and .o entries
+#
+# The libNames output comprises comma-separated quoted strings
+#     "lib1","lib2","libN"
+# these are suitable for C-code or a std::initializer_list<fileName> etc.
+
+# The $() sub-shell is unquoted to ensure we get whitespace splitting
+# and read individual words, not lines.
+unset libNames
+for lib in $(sed -ne 's@^.*EXE\_LIBS.*=[ ]*@@p' "$optionsFile")
+do
+    case "$lib" in
+    (*.o | *')'*)
+        ;;
+
+    (-l[0-9A-Za-z]*)
+        lib="${lib#-l}"
+        hasLib "$lib" && libNames="$libNames${libNames:+,}\"$lib\""
+        ;;
+    esac
+done
+
+## Debugging: echo "$exeName: libNames=$libNames" 1>&2
+
+# Emit define for using with Foam::dlOpen()
+if [ -n "$libNames" ]
+then
+    echo "Adding dlOpen(dll) list for $exeName" 1>&2
+    echo "EXE_INC += -DFOAM_DLOPEN_LIBS='$libNames'"
+fi
+
+exit 0 # clean exit
+
+#------------------------------------------------------------------------------

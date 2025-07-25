@@ -1,0 +1,48 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      thermophysicalProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+thermoType
+{
+    type            heRhoThermo;
+    mixture         reactingMixture;
+    transport       polynomial;
+    thermo          hPolynomial;
+    energy          sensibleEnthalpy;
+    equationOfState icoPolynomial;
+    specie          specie;
+}
+
+chemistryReader foamChemistryReader;
+
+foamChemistryFile "<constant>/reactions";
+
+foamChemistryThermoFile "<constant>/thermo.incompressiblePoly";
+
+inertSpecie     air;
+
+liquids
+{
+    H2O;
+}
+
+solids
+{}
+
+// de-activate the pressure-work term when running local time-stepping
+dpdt            no;
+
+
+// ************************************************************************* //

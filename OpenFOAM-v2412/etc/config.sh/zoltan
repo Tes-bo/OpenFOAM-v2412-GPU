@@ -1,0 +1,34 @@
+#----------------------------------*-sh-*--------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2024 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# File
+#     etc/config.sh/zoltan
+#     - sourced during wmake process only.
+#
+# Description
+#     Setup for ZOLTAN include/libraries (usually ThirdParty installation).
+#
+#     To disable its use:               ZOLTAN_VERSION=zoltan-none
+#     For system-wide installations:    ZOLTAN_VERSION=zoltan-system
+#
+# Note
+#     A csh version is not needed, since the values here are only sourced
+#     during the wmake process
+#
+#------------------------------------------------------------------------------
+# USER EDITABLE PART: Changes made here may be lost with the next upgrade
+
+export ZOLTAN_VERSION=Zoltan-3.901
+export ZOLTAN_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER$WM_PRECISION_OPTION$WM_LABEL_OPTION/$ZOLTAN_VERSION
+
+# END OF (NORMAL) USER EDITABLE PART
+#------------------------------------------------------------------------------

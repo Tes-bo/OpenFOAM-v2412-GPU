@@ -1,0 +1,7 @@
+SUFFIXES += .y
+
+ytoo = $E $(call QUIET_MESSAGE,byacc,$(<F)) \
+    byacc -v $(YYPREFIX) -d $< && \
+    mv y.tab.c $(@D)/$(<F).C && \
+    mv y.tab.h $(@D)/$(<F).H && \
+    $(WM_SCHEDULER) $(CC) $(c++FLAGS) -c $(@D)/$(<F).C -o $@

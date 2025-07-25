@@ -1,0 +1,74 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      topoSetDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+newFromPatch
+{
+    type    faceSet;
+    action  new;
+    source  patchToFace;
+    patch   outer;
+}
+
+subsetNormal
+{
+    type    faceSet;
+    action  subset;
+    source  normalToFace;
+    cos     0.1;
+}
+
+actions
+(
+    // outerx
+    {
+        name  outerx;
+        $newFromPatch
+    }
+
+    {
+        name  outerx;
+        $subsetNormal;
+        normal (-1 0 0);
+    }
+
+    // outery
+    {
+        name  outery;
+        $newFromPatch
+    }
+
+    {
+        name  outery;
+        $subsetNormal;
+        normal (0 -1 0);
+    }
+
+    // outerz
+    {
+        name  outerz;
+        $newFromPatch
+    }
+
+    {
+        name  outerz;
+        $subsetNormal;
+        normal (0 0 -1);
+    }
+
+);
+
+
+// ************************************************************************* //

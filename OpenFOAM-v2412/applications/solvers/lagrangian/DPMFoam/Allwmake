@@ -1,0 +1,13 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/wmake/scripts/AllwmakeParseArguments
+#------------------------------------------------------------------------------
+
+wmake $targetType DPMTurbulenceModels
+
+wmake $targetType
+wmake $targetType MPPICFoam
+wmake $targetType DPMDyMFoam
+wmake $targetType DPMDyMFoam/MPPICDyMFoam
+
+#------------------------------------------------------------------------------

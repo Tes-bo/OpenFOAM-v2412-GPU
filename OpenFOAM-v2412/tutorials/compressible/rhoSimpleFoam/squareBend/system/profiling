@@ -1,0 +1,10 @@
+// -*- C++ -*-
+
+profiling
+{
+    #includeEtc "caseDicts/profiling/parallel.cfg"
+    detail  2;
+}
+
+
+// ************************************************************************* //

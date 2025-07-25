@@ -1,0 +1,277 @@
+#----------------------------------*-sh-*--------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2017-2023 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# File
+#     etc/config.sh/bash_completion
+#     - sourced by OpenFOAM-*/etc/bashrc
+#
+# Description
+#     Bash completion handler for OpenFOAM applications and automatic
+#     generation of completion associations
+#
+# Provides
+#     foamAddCompletion
+#     _of_complete_
+#
+# Uses
+#     _of_complete_cache_
+#
+# Requires
+#     bash 4.2 or newer
+#
+#------------------------------------------------------------------------------
+
+# Remove old completions (skip for tcsh wrapper), which look like:
+#     "complete ... -F _of_complete_ APPNAME
+if [ -z "$_of_complete_tcsh" ]
+then
+    # For economy, obtain list first
+    foamOldDirs="$(complete 2>/dev/null | sed -ne 's/^.*-F _of_.* \(..*\)$/\1/p')"
+    for cleaned in $foamOldDirs
+    do
+        complete -r "$cleaned" 2>/dev/null
+    done
+fi
+
+
+# Add completion for commands, directories of commands
+# -clear
+# -list
+# -quiet
+# -verbose
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+unset -f foamAddCompletion 2>/dev/null
+foamAddCompletion()
+{
+    [ "$#" -gt 0 ] || \
+        echo "Usage: foamAddCompletion -clear | -list | dir(s) | app(s)" 1>&2
+
+    local appName choices
+    local verboseOnMissing=true
+
+    for appName
+    do
+        if [ "$appName" = "-quiet" ]
+        then
+           # No message for missing applications
+           unset verboseOnMissing
+
+        elif [ "$appName" = "-verbose" ]
+        then
+           # Report for missing applications
+           verboseOnMissing="true"
+
+        elif [ "$appName" = "-clear" ]
+        then
+           # Clear cached values
+           echo "Clear cached values" 1>&2
+           _of_complete_cache_=()
+
+        elif [ "$appName" = "-list" ]
+        then
+           # List cached keys
+           choices="${#_of_complete_cache_[@]}"
+           echo "$choices cached values:" 1>&2
+           [ "$choices" = 0 ] || echo ${!_of_complete_cache_[@]}  # keys
+
+        elif [ -d "$appName" ]
+        then
+            # Process directory for applications
+            choices="$(find "$appName" -maxdepth 1 -executable -type f 2>/dev/null)"
+            for appName in $choices
+            do
+                complete -o filenames -F _of_complete_ "${appName##*/}"
+                # echo "complete ${appName##*/}" 1>&2
+            done
+
+        elif command -v "$appName" >/dev/null
+        then
+            complete -o filenames -F _of_complete_ "${appName##*/}"
+            # echo "complete ${appName##*/}" 1>&2
+
+        elif [ -n "$appName" ] && [ -n "$verboseOnMissing" ]
+        then
+            echo "No completions for $appName" 1>&2
+            echo "[ignore if OpenFOAM is not yet compiled]" 1>&2
+        fi
+    done
+}
+
+
+# Generic completion handler for OpenFOAM applications
+#
+# Dispatch via "complete ... -F _of_complete_ APPNAME
+# - arg1 = command-name
+# - arg2 = current word
+# - arg3 = previous word
+#
+# The respective options are generated on-the-fly from the application's
+# -help-full output and cached to the _of_complete_cache_ global associative
+# array with entries formatted as "argOpts.. | boolOpts ..".
+# The '|' character separates options with/without arguments.
+#
+unset -f _of_complete_ 2>/dev/null
+_of_complete_()
+{
+    local appName=$1
+    local cur=$2
+    local prev=$3
+    local choices
+
+    case ${prev} in
+    -help | -help-compat | -help-full | -help-man | -doc | -doc-source)
+        # These options are usage - we can stop now.
+        COMPREPLY=()
+        return 0
+        ;;
+    -case)
+        COMPREPLY=($(compgen -d -- ${cur}))
+        ;;
+    -time)
+        # Could use "foamListTimes -withZero", but still doesn't address ranges
+        COMPREPLY=($(compgen -d -X '![-0-9]*' -- ${cur}))
+        ;;
+    -region)
+        # Or: $(find system -mindepth 1 -maxdepth 1 -type d 2>/dev/null | sed -e 's%.*/%%')
+        choices=$(\ls -d system/*/ 2>/dev/null | sed -e 's%/$%%; s%^.*/%%')
+        COMPREPLY=($(compgen -W "$choices" -- ${cur}))
+        ;;
+    -fileHandler)
+        choices="collated uncollated hostCollated hostUncollated masterUncollated"
+        COMPREPLY=($(compgen -W "$choices" -- ${cur}))
+        ;;
+    *)
+        # All options
+        choices="${_of_complete_cache_[$appName]}"
+
+        # Not in cache, obtain by parsing application -help-full
+        # Extract all options of the format
+        #   -opt1         descrip
+        #   -opt2 <arg>   descrip
+        #   -help-full
+        # Ignore -help-man (internal option).
+        # Begin parsing after first appearance of "^[Oo]ptions:"
+        # Terminate parsing on first appearance of "-help-full"
+        # - options with '=' (eg, -mode=ugo) are not handled very well at all.
+        # - alternatives (eg, -a, -all) are not handled nicely either,
+        #   for these treat ',' like a space to catch the worst of them.
+        #
+        # Remove anything that starts with more than 8 spaces to avoid parsing
+        # any of the option description text
+        if [ -z "$choices" ]
+        then
+            local helpText
+            helpText=$("$appName" -help-full 2>/dev/null | \
+                sed -ne '1,/^[Oo]ptions:/d' \
+                    -e '/^ \{8\}/d;' \
+                    -e 's/^ *//; /^$/d; /^[^-]/d; /^--/d; /^-help-man/d;' \
+                    -e 'y/,/ /; s/=.*$/=/;' \
+                    -e '/^-[^ ]* </{ s/^\(-[^ ]* <\).*$/\1/; p; d }' \
+                    -e 's/^\(-[^ ]*\).*$/\1/; p; /^-help-full/q;' \
+                    )
+
+            # After this bit of sed, we have "-opt1" or "-opt2 <"
+            # for entries without or with arguments.
+
+            if [ -z "$helpText" ]
+            then
+                echo "Error calling $appName" 1>&2
+                choices="false"  # Mark failure to prevent repeating again
+            else
+                # Array of options with args
+                local argOpts=($(awk '/</ {print $1}' <<< "$helpText"))
+
+                # Array of options without args
+                local boolOpts=($(awk '!/</ {print $1}' <<< "$helpText"))
+
+                choices="${argOpts[@]} | ${boolOpts[@]}"
+            fi
+            _of_complete_cache_[$appName]="$choices"
+            ## echo "generated $appName = $choices" 1>&2   # Debugging
+        fi
+        if [ "${choices:-false}" = false ]
+        then
+            COMPREPLY=($(compgen -f -- ${cur}))
+        else
+            # Everything before the '|' ==> options with args.
+            local argOpts="${choices%|*}"
+
+            if [ "${argOpts/${prev} /}" != "${argOpts}" ]
+            then
+                # Option with unknown type of arg - set to files.
+                # Not always correct but can still navigate path if needed...
+                COMPREPLY=($(compgen -f -- ${cur}))
+            elif [ -n "$cur" ] && [ "${cur#-}" = "${cur}" ]
+            then
+                # Already started a (non-empty) word that isn't an option,
+                # in which case revert to filenames.
+                COMPREPLY=($(compgen -f -- ${cur}))
+            else
+                # Catchall
+                # - Present remaining options (not already seen in $COMP_LINE)
+                choices=$(
+                    for o in ${choices}
+                    do
+                        [ "${COMP_LINE/$o/}" = "${COMP_LINE}" ] && echo "${o#|}"
+                    done
+                )
+
+                COMPREPLY=($(compgen -W "$choices" -- ${cur}))
+            fi
+        fi
+        ;;
+    esac
+
+    return 0
+}
+
+
+#------------------------------------------------------------------------------
+
+# Uses 'declare -gA' for the implementation
+# The '-A' requires bash >= 4.0 and the '-g' requires bash >= 4.2
+if [ "${BASH_VERSINFO[0]:-0}${BASH_VERSINFO[1]:-0}" -ge 42 ]
+then
+    # Global associative array (cached options for OpenFOAM applications)
+    declare -gA _of_complete_cache_;
+
+    # Clear existing cache and reassign bash completions.
+    # But for tcsh wrapper make use of caching and avoid this overhead.
+    if [ -z "$_of_complete_tcsh" ]
+    then
+        _of_complete_cache_=()
+
+        # Completions for predefined directories
+        foamAddCompletion "$FOAM_APPBIN"
+
+        # Completions for a few common scripts (allowed to be missing)
+        foamAddCompletion -quiet paraFoam wmake
+    fi
+else
+    # Bash version is too old.
+    ## echo "No bash completions - requires bash >= 4.2" 1>&2
+
+    unset -f foamAddCompletion 2>/dev/null
+    foamAddCompletion()
+    {
+        echo "foamAddCompletion disabled - requires bash >= 4.2" 1>&2
+    }
+
+    unset -f _of_complete_ 2>/dev/null
+fi
+
+#------------------------------------------------------------------------------
+# Intermediate variables (do as last for a clean exit code)
+
+unset cleaned foamOldDirs
+
+#------------------------------------------------------------------------------

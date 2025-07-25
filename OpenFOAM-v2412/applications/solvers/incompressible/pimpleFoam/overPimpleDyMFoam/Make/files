@@ -1,0 +1,3 @@
+overPimpleDyMFoam.C
+
+EXE = $(FOAM_APPBIN)/overPimpleDyMFoam

@@ -1,0 +1,141 @@
+#----------------------------------*-sh-*--------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2017-2021 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     cmakeFunctions
+#
+# Description
+#     Helper functions for CMake
+#
+# Environment
+#     Consider CMAKE_INSTALL_PREFIX as a reserved name, although it is not
+#     set/unset here.
+#
+# Files
+#     Uses etc/config.sh/cmake (if it exists) for the
+#     CMAKE_ARCH_PATH that may specify a possible cmake/bin directory.
+#
+#------------------------------------------------------------------------------
+. ${WM_PROJECT_DIR:?}/wmake/scripts/have_cmake
+. ${WM_PROJECT_DIR:?}/wmake/scripts/wmakeFunctions  # Require wmake functions
+
+# Export compiler information for cmake
+export CC="$(wmake -show-c)"
+export CXX="$(wmake -show-cxx)"
+
+export CFLAGS="$(wmake -show-cflags)"
+export CXXFLAGS="$(wmake -show-cxxflags)"
+
+#------------------------------------------------------------------------------
+
+
+# Resolve the location of cmake (if needed) and call with output
+# suppressed according to WM_QUIET
+call_cmake()
+{
+    if have_cmake
+    then
+        if [ -n "$WM_QUIET" ]
+        then
+            echo "cmake..."
+            "$CMAKE_EXE" -DCMAKE_RULE_MESSAGES=OFF $@ >/dev/null
+        else
+            echo "cmake $@"
+            "$CMAKE_EXE" $@
+        fi
+    else
+        return 1
+    fi
+}
+
+
+# CMake into objectsDir with external dependency
+# - use sentinel file(s) to handle paraview/vtk version changes
+#
+# 1 - depend
+# 2 - sourceDir
+# 3... optional cmake defines
+#
+cmakeVersioned()
+{
+    local depend="$1"
+    local sourceDir="$2"
+    shift 2
+    local objectsDir sentinel
+
+    # Where generated files are stored
+    objectsDir=$(findObjectDir "$sourceDir") || exit 1 # Fatal
+
+    # Version changed
+    sentinel=$(sameDependency "$sourceDir" "$depend" "MPLIB=$WM_MPLIB" "MPI=$FOAM_MPI" "$@") || \
+        rm -rf "$objectsDir" 2>/dev/null
+
+    mkdir -p "$objectsDir" \
+    && ( cd "$objectsDir" && call_cmake "$@" "$sourceDir" && make ) \
+    && storeDependency "$sentinel" "$depend" "MPLIB=$WM_MPLIB" "MPI=$FOAM_MPI" "$@"
+}
+
+
+# CMake into objectsDir with external dependency
+#
+# 1 - depend
+# 2 - sourceDir
+# 3... optional cmake defines
+#
+cmakeVersionedInstall()
+{
+    local depend="$1"
+    local sourceDir="$2"
+    shift 2
+    local objectsDir sentinel
+
+    # Where generated files are stored
+    objectsDir=$(findObjectDir "$sourceDir") || exit 1 # Fatal
+
+    # Version changed
+    sentinel=$(sameDependency "$sourceDir" "$depend" "MPLIB=$WM_MPLIB" "MPI=$FOAM_MPI" "$@") || \
+        rm -rf "$objectsDir" 2>/dev/null
+
+    mkdir -p "$objectsDir" \
+    && ( cd "$objectsDir" && call_cmake "$@" "$sourceDir" && make install ) \
+    && storeDependency "$sentinel" "$depend" "MPLIB=$WM_MPLIB" "MPI=$FOAM_MPI" "$@"
+}
+
+
+# wmake with tracking of external dependency as per cmakeVersioned
+# - use sentinel file(s) to handle paraview/vtk version changes
+#
+# 1 - depend
+# 2 - sourceDir
+# 3... wmake arguments
+#
+wmakeVersioned()
+{
+    local depend="$1"
+    local sourceDir="$2"
+    shift 2
+    local objectsDir sentinel
+
+    # Where generated files are stored
+    objectsDir=$(findObjectDir "$sourceDir") || exit 1 # Fatal
+
+    # Version changed
+    sentinel=$(sameDependency "$sourceDir" "$depend" "MPLIB=$WM_MPLIB" "MPI=$FOAM_MPI" "$@") || \
+        rm -rf "$objectsDir" 2>/dev/null
+
+    mkdir -p "$objectsDir" \
+    && wmake "$@" \
+    && storeDependency "$sentinel" "$depend" "MPLIB=$WM_MPLIB" "MPI=$FOAM_MPI" "$@"
+}
+
+
+#------------------------------------------------------------------------------

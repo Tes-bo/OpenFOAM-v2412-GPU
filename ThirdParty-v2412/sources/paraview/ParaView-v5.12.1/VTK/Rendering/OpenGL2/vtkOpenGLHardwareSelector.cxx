@@ -1,0 +1,247 @@
+// SPDX-FileCopyrightText: Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
+// SPDX-License-Identifier: BSD-3-Clause
+#include "vtkOpenGLHardwareSelector.h"
+
+#include "vtk_glew.h"
+
+#include "vtkDataObject.h"
+#include "vtkObjectFactory.h"
+#include "vtkOpenGLRenderUtilities.h"
+#include "vtkOpenGLRenderWindow.h"
+#include "vtkOpenGLState.h"
+#include "vtkRenderWindow.h"
+#include "vtkRenderer.h"
+
+#include "vtkOpenGLError.h"
+
+//#define vtkOpenGLHardwareSelectorDEBUG
+#ifdef vtkOpenGLHardwareSelectorDEBUG
+#include "vtkImageImport.h"
+#include "vtkNew.h"
+#include "vtkPNMWriter.h"
+#include "vtkWindows.h" // OK on UNix etc
+#include <sstream>
+#endif
+
+#define ID_OFFSET 1
+
+VTK_ABI_NAMESPACE_BEGIN
+namespace
+{
+void annotate(const std::string& str)
+{
+  vtkOpenGLRenderUtilities::MarkDebugEvent(str);
+}
+}
+
+//------------------------------------------------------------------------------
+vtkStandardNewMacro(vtkOpenGLHardwareSelector);
+
+//------------------------------------------------------------------------------
+#ifdef vtkOpenGLHardwareSelectorDEBUG
+vtkOpenGLHardwareSelector::vtkOpenGLHardwareSelector()
+{
+  cerr << "=====vtkOpenGLHardwareSelector::vtkOpenGLHardwareSelector" << endl;
+}
+
+//------------------------------------------------------------------------------
+vtkOpenGLHardwareSelector::~vtkOpenGLHardwareSelector()
+{
+  cerr << "=====vtkOpenGLHardwareSelector::~vtkOpenGLHardwareSelector" << endl;
+}
+#else
+vtkOpenGLHardwareSelector::vtkOpenGLHardwareSelector() = default;
+vtkOpenGLHardwareSelector::~vtkOpenGLHardwareSelector() = default;
+#endif
+
+//------------------------------------------------------------------------------
+void vtkOpenGLHardwareSelector::PreCapturePass(int pass)
+{
+  annotate(std::string("Starting pass: ") + this->PassTypeToString(static_cast<PassTypes>(pass)));
+
+  // Disable blending
+  auto rwin = vtkOpenGLRenderWindow::SafeDownCast(this->Renderer->GetRenderWindow());
+  vtkOpenGLState* ostate = rwin->GetState();
+
+  this->OriginalBlending = ostate->GetEnumState(GL_BLEND);
+  ostate->vtkglDisable(GL_BLEND);
+}
+
+//------------------------------------------------------------------------------
+void vtkOpenGLHardwareSelector::PostCapturePass(int pass)
+{
+  // Restore blending.
+  auto rwin = vtkOpenGLRenderWindow::SafeDownCast(this->Renderer->GetRenderWindow());
+  vtkOpenGLState* ostate = rwin->GetState();
+
+  ostate->SetEnumState(GL_BLEND, this->OriginalBlending);
+  annotate(std::string("Pass complete: ") + this->PassTypeToString(static_cast<PassTypes>(pass)));
+}
+
+//------------------------------------------------------------------------------
+void vtkOpenGLHardwareSelector::BeginSelection()
+{
+  auto rwin = vtkOpenGLRenderWindow::SafeDownCast(this->Renderer->GetRenderWindow());
+
+  this->OriginalMultiSample = rwin->GetMultiSamples();
+  rwin->SetMultiSamples(0);
+
+  vtkOpenGLState* ostate = rwin->GetState();
+  ostate->Reset();
+  ostate->Push();
+
+  // render normally to set the zbuffer
+  if (this->FieldAssociation == vtkDataObject::FIELD_ASSOCIATION_POINTS)
+  {
+    vtkOpenGLState::ScopedglEnableDisable bsaver(ostate, GL_BLEND);
+    ostate->vtkglDisable(GL_BLEND);
+
+    rwin->Render();
+    this->Renderer->PreserveDepthBufferOn();
+  }
+
+  return this->Superclass::BeginSelection();
+}
+
+//------------------------------------------------------------------------------
+void vtkOpenGLHardwareSelector::EndSelection()
+{
+  // render normally to set the zbuffer
+  if (this->FieldAssociation == vtkDataObject::FIELD_ASSOCIATION_POINTS)
+  {
+    this->Renderer->PreserveDepthBufferOff();
+  }
+
+  auto rwin = vtkOpenGLRenderWindow::SafeDownCast(this->Renderer->GetRenderWindow());
+  rwin->SetMultiSamples(this->OriginalMultiSample);
+  vtkOpenGLState* ostate = rwin->GetState();
+  ostate->Pop();
+
+  return this->Superclass::EndSelection();
+}
+
+//------------------------------------------------------------------------------
+// just add debug output if compiled with vtkOpenGLHardwareSelectorDEBUG
+void vtkOpenGLHardwareSelector::SavePixelBuffer(int passNo)
+{
+  this->Superclass::SavePixelBuffer(passNo);
+
+#ifdef vtkOpenGLHardwareSelectorDEBUG
+
+  vtkNew<vtkImageImport> ii;
+  ii->SetImportVoidPointer(this->PixBuffer[passNo], 1);
+  ii->SetDataScalarTypeToUnsignedChar();
+  ii->SetNumberOfScalarComponents(3);
+  ii->SetDataExtent(this->Area[0], this->Area[2], this->Area[1], this->Area[3], 0, 0);
+  ii->SetWholeExtent(this->Area[0], this->Area[2], this->Area[1], this->Area[3], 0, 0);
+
+  // change this to somewhere on your system
+  // hardcoded as with MPI/parallel/client server it can be hard to
+  // find these images sometimes.
+  std::string fname = "C:/Users/ken.martin/Documents/pickbuffer_";
+
+#if defined(_WIN32)
+  std::ostringstream toString;
+  toString.str("");
+  toString.clear();
+  toString << GetCurrentProcessId();
+  fname += toString.str();
+  fname += "_";
+#endif
+  fname += ('0' + passNo);
+  fname += ".pnm";
+  vtkNew<vtkPNMWriter> pw;
+  pw->SetInputConnection(ii->GetOutputPort());
+  pw->SetFileName(fname.c_str());
+  pw->Write();
+  cerr << "=====vtkOpenGLHardwareSelector wrote " << fname << "\n";
+#endif
+}
+
+//------------------------------------------------------------------------------
+void vtkOpenGLHardwareSelector::BeginRenderProp(vtkRenderWindow*)
+{
+#ifdef vtkOpenGLHardwareSelectorDEBUG
+  cerr << "=====vtkOpenGLHardwareSelector::BeginRenderProp" << endl;
+#endif
+}
+
+//------------------------------------------------------------------------------
+void vtkOpenGLHardwareSelector::BeginRenderProp()
+{
+  this->InPropRender++;
+  if (this->InPropRender != 1)
+  {
+    return;
+  }
+
+  // device specific prep
+  vtkRenderWindow* renWin = this->Renderer->GetRenderWindow();
+  this->BeginRenderProp(renWin);
+
+  if (this->CurrentPass == ACTOR_PASS)
+  {
+    int propid = this->PropID;
+    if (propid >= 0xfffffe)
+    {
+      vtkErrorMacro("Too many props. Currently only " << 0xfffffe << " props are supported.");
+      return;
+    }
+    // Since 0 is reserved for nothing selected, we offset propid by 1.
+    propid = propid + ID_OFFSET;
+    this->SetPropColorValue(propid);
+  }
+  else if (this->CurrentPass == PROCESS_PASS)
+  {
+    this->SetPropColorValue(this->ProcessID + 1);
+  }
+}
+
+//------------------------------------------------------------------------------
+void vtkOpenGLHardwareSelector::EndRenderProp(vtkRenderWindow*)
+{
+#ifdef vtkOpenGLHardwareSelectorDEBUG
+  cerr << "=====vtkOpenGLHardwareSelector::EndRenderProp" << endl;
+#endif
+}
+
+//------------------------------------------------------------------------------
+void vtkOpenGLHardwareSelector::EndRenderProp()
+{
+  this->Superclass::EndRenderProp();
+}
+
+//------------------------------------------------------------------------------
+void vtkOpenGLHardwareSelector::RenderCompositeIndex(unsigned int index)
+{
+  if (this->CurrentPass == COMPOSITE_INDEX_PASS)
+  {
+    if (index > 0xffffff)
+    {
+      vtkErrorMacro("Indices > 0xffffff are not supported.");
+      return;
+    }
+    this->SetPropColorValue(static_cast<vtkIdType>(0xffffff & index));
+  }
+}
+
+//------------------------------------------------------------------------------
+void vtkOpenGLHardwareSelector::RenderProcessId(unsigned int processid)
+{
+  if (this->CurrentPass == PROCESS_PASS && this->UseProcessIdFromData)
+  {
+    if (processid >= 0xffffff)
+    {
+      vtkErrorMacro("Invalid id: " << processid);
+      return;
+    }
+    this->SetPropColorValue(static_cast<vtkIdType>(processid + 1));
+  }
+}
+
+//------------------------------------------------------------------------------
+void vtkOpenGLHardwareSelector::PrintSelf(ostream& os, vtkIndent indent)
+{
+  this->Superclass::PrintSelf(os, indent);
+}
+VTK_ABI_NAMESPACE_END

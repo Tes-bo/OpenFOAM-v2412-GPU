@@ -1,0 +1,66 @@
+#-------------------------------*- makefile -*---------------------------------
+WM_VERSION = OPENFOAM=2412
+
+AR         = ar
+ARFLAGS    = cr
+RANLIB     = ranlib
+CPP        = cpp
+LD         = ld
+
+GFLAGS     = -D$(WM_VERSION) \
+             -DWM_$(WM_PRECISION_OPTION) -DWM_LABEL_SIZE=$(WM_LABEL_SIZE)
+GINC       =
+GLIBS      = -lm
+GLIB_LIBS  =
+
+
+ARCHITECTURE_RULES = $(WM_DIR)/rules/$(WM_ARCH)
+COMPILER_FAMILY = $(shell echo "$(WM_COMPILER)" | sed -e 's/[-+.0-9~].*//')
+DEFAULT_RULES   = $(ARCHITECTURE_RULES)$(COMPILER_FAMILY)
+RULES           = $(ARCHITECTURE_RULES)$(WM_COMPILER)
+WMAKE_BIN       = $(WM_PROJECT_DIR)/platforms/tools/$(WM_ARCH)$(WM_COMPILER)
+
+# --------
+# Extract compiler version suffix.
+# Most (all?) compilers use the convention <compiler>-<version>
+#
+# Thus (for example) version=11 -> gcc-11
+# --------
+ifneq (,$(findstring version=,$(WM_COMPILE_CONTROL)))
+    COMPILER_VERSION := $(shell echo "$(WM_COMPILE_CONTROL)" | sed -ne 's/^.*version=-*\([0-9][.0-9]*\).*/-\1/p')
+else
+    COMPILER_VERSION :=
+endif
+
+# Enable additional compile-time checks
+ifneq (,$(findstring +strict,$(WM_COMPILE_CONTROL)))
+    GFLAGS += -DFOAM_COMPILE_STRICT
+endif
+
+# Default compilation is 'Opt' - never permit an empty value
+ifeq (,$(strip $(WM_COMPILE_OPTION)))
+    WM_COMPILE_OPTION := Opt
+endif
+
+# Older macro for (shell) branching
+AND := &&
+
+include $(DEFAULT_RULES)/general
+sinclude $(DEFAULT_RULES)/override
+ifneq ("$(COMPILER_FAMILY)","$(WM_COMPILER)")
+sinclude $(RULES)/general
+sinclude $(RULES)/c++
+endif
+
+# Compile flags for openmp
+# - if enabled (+openmp) and not disabled (~openmp).
+# - disable has higher precedence
+ifeq  (,$(findstring ~openmp,$(WM_COMPILE_CONTROL)))
+ifneq (,$(findstring +openmp,$(WM_COMPILE_CONTROL)))
+    c++FLAGS  += $(COMP_OPENMP)
+endif
+endif
+
+include $(GENERAL_RULES)/transform
+
+#------------------------------------------------------------------------------

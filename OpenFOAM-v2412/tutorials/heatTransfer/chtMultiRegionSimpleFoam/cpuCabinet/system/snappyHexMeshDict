@@ -1,0 +1,197 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      snappyHexMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// Which of the steps to run
+castellatedMesh true;
+snap            true;
+addLayers       false;
+
+
+geometry
+{
+    Cabinet_withMesh.obj
+    {
+        type    triSurfaceMesh;
+        name    Cabinet_withMesh;
+        regions
+        {
+            FAN_SHROUD
+            {
+                name    FAN_SHROUD;
+            }
+            OUTLET_01
+            {
+                name    OUTLET_01;
+            }
+            OUTLET_02
+            {
+                name    OUTLET_02;
+            }
+            CABINET
+            {
+                name    CABINET;
+            }
+            FINS
+            {
+                name    FINS;
+            }
+            PROCESSOR
+            {
+                name    PROCESSOR;
+            }
+            FAN
+            {
+                name    FAN;
+            }
+        }
+    }
+};
+
+castellatedMeshControls
+{
+    maxLocalCells   200000000;
+    maxGlobalCells  300000000;
+    minRefinementCells 20;
+    nCellsBetweenLevels 4;
+    maxLoadUnbalance 0.1;
+    allowFreeStandingZoneFaces true;
+    resolveFeatureAngle      30;
+    features
+    (
+        {
+            file "MRF_region.eMesh";
+            level 0;
+        }
+    );
+
+    refinementSurfaces
+    {
+        Cabinet_withMesh
+        {
+            level (0 0);
+            regions
+            {
+                FAN_SHROUD
+                {
+                    level (2 2);
+                }
+                OUTLET_01
+                {
+                    level (0 0);
+                }
+                OUTLET_02
+                {
+                    level (0 0);
+                }
+                CABINET
+                {
+                    level (0 0);
+                }
+                FINS
+                {
+                    level (3 3);
+                }
+                PROCESSOR
+                {
+                    level (3 3);
+                }
+                FAN
+                {
+                    level (3 3);
+                }
+            }
+        }
+
+        MRF_region
+        {
+            level (0 0);
+            regions
+            {
+                MRF_region
+                {
+                    level (2 2);
+                }
+            }
+        }
+    }
+
+    refinementRegions
+    {
+    }
+
+    locationsInMesh
+    (
+        (( 0.11725 0.0395251 -0.21545548 ) domain0 )
+        (( 0.1063594 0.0040546151 -0.12500001 ) v_CPU )
+        (( 0.1055988 0.0081817387 -0.11700001 ) v_fins )
+        //(( -0.0041739814 0.029459859 -0.038183494 ) v_MRF )
+    );
+}
+
+
+snapControls
+{
+    tolerance       2;
+    implicitFeatureSnap true;
+    explicitFeatureSnap false;
+    multiRegionFeatureSnap true;
+    detectNearSurfacesSnap true;
+    nSmoothPatch    3;
+    nSolveIter      50;
+    nRelaxIter      5;
+    nFeatureSnapIter 10;
+    nSmoothInternal 3;
+    nFaceSplitInterval -1;
+}
+
+
+addLayersControls
+{
+    layers
+    {
+    }
+    relativeSizes    true;
+    expansionRatio    1.2;
+    firstLayerThickness   0.1;
+    featureAngle    85;
+    slipFeatureAngle 30;
+    nGrow           0;
+    nBufferCellsNoExtrude 0;
+    minMedialAxisAngle 90;
+    maxFaceThicknessRatio 0.2;
+    maxThicknessToMedialRatio 0.3;
+    minThickness    1e-06;
+    nLayerIter      50;
+    nRelaxIter      5;
+    nSmoothSurfaceNormals 10;
+    nSmoothNormals  3;
+    nSmoothThickness 10;
+    nRelaxedIter    10;
+    nMedialAxisIter 10;
+}
+
+
+meshQualityControls
+{
+    #include "meshQualityDict"
+}
+
+
+debug           0;
+
+mergeTolerance  1e-08;
+
+// ************************************************************************* //

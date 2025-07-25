@@ -1,0 +1,13 @@
+#!/bin/sh
+exec "@PROJECT_DIR@"/etc/openfoam "$@"
+#------------------------------------------------------------------------------
+# This file is part of OpenFOAM (www.openfoam.com)
+#
+# Copyright (C) 2020-2021 OpenCFD Ltd.
+# SPDX-License-Identifier: (GPL-3.0-or-later)
+#
+# Description
+#     Forward to OpenFOAM etc/openfoam bash session script.
+#     Uses hard-coded directory path.
+#
+#------------------------------------------------------------------------------

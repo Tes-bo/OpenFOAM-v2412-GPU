@@ -1,0 +1,48 @@
+NAME
+  VTK::RenderingParallel
+LIBRARY_NAME
+  vtkRenderingParallel
+KIT
+  VTK::Parallel
+SPDX_LICENSE_IDENTIFIER
+  LicenseRef-BSD-3-Clause-Sandia-USGov
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
+  Copyright Sandia Corporation
+SPDX_CUSTOM_LICENSE_FILE
+  LICENSE
+SPDX_CUSTOM_LICENSE_NAME
+  BSD-3-Clause-Sandia-USGov
+LICENSE_FILES
+  LICENSE
+DEPENDS
+  VTK::CommonCore
+  VTK::RenderingCore
+  VTK::RenderingOpenGL2
+PRIVATE_DEPENDS
+  VTK::CommonDataModel
+  VTK::CommonMath
+  VTK::CommonSystem
+  VTK::FiltersParallel
+  VTK::IOImage
+  VTK::ImagingCore
+  VTK::ParallelCore
+  VTK::glew
+  VTK::opengl
+TEST_DEPENDS
+  VTK::FiltersGeometry
+  VTK::FiltersParallel
+  VTK::FiltersSources
+  VTK::ImagingCore
+  VTK::ImagingSources
+  VTK::IOImage
+  VTK::IOImport
+  VTK::IOLegacy
+  VTK::InteractionStyle
+  VTK::ParallelCore
+  VTK::RenderingOpenGL2
+  VTK::TestingCore
+  VTK::TestingRendering
+TEST_OPTIONAL_DEPENDS
+  VTK::FiltersParallelMPI
+  VTK::ParallelMPI

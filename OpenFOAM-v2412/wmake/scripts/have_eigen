@@ -1,0 +1,159 @@
+#----------------------------------*-sh-*--------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2021 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     have_eigen
+#
+# Description
+#     Detection/setup of EIGEN (Eigen3)
+#
+# Expects
+#     config.sh/eigen
+#
+# Functions provided
+#     have_eigen, no_eigen, echo_eigen, query_eigen, search_eigen
+#
+# Variables set on success
+#     HAVE_EIGEN
+#     EIGEN_INC_DIR
+#
+#------------------------------------------------------------------------------
+. ${WM_PROJECT_DIR:?}/wmake/scripts/sysFunctions    # General system functions
+
+#------------------------------------------------------------------------------
+
+# Reset
+no_eigen()
+{
+    unset HAVE_EIGEN EIGEN_INC_DIR EIGEN_LIB_DIR
+}
+
+
+# Report
+echo_eigen()
+{
+    echo "eigen=${HAVE_EIGEN:-false}"
+    echo "include=\"$EIGEN_INC_DIR\""
+}
+
+
+# Search
+# $1 : prefix (*_ARCH_PATH, system, ...)
+#
+# On success, return 0 and export variables
+# -> HAVE_EIGEN, EIGEN_INC_DIR
+search_eigen()
+{
+    local warn # warn="==> skip eigen"
+    local incName="Eigen/Eigen"
+    local pkgName="eigen3"
+    local sentinel="signature_of_eigen3_matrix_library"
+
+    local prefix="${1:-system}"
+    local header incdir
+
+    # ----------------------------------
+    if isNone "$prefix"
+    then
+        [ -n "$warn" ] && echo "$warn (disabled)"
+        return 1
+    elif hasAbsdir "$prefix"
+    then
+        header=$(findFirstFile "$prefix/include/$incName")
+    elif isSystem "$prefix"
+    then
+        header=$(findSystemInclude -name="eigen3/$incName")
+
+        # No system header, attempt discovery with pkg-config
+        if [ -z "$header" ] && pkg-config --exists "$pkgName" 2>/dev/null
+        then
+            includeDirs=$(pkg-config --cflags-only-I "$pkgName" | sed -e 's/^-[IL]//; s/[ ]-[IL]/ /;')
+            header="${includeDirs% *}/$incName"   # First entry (ie, split on space)
+        fi
+    else
+        unset prefix
+    fi
+    # ----------------------------------
+
+    # Header
+    [ -n "$header" ] || {
+        [ -n "$warn" ] && echo "$warn (no header)"
+        return 2
+    }
+
+    # ----------------------------------
+
+    header="${header%/*}"   # Strip one-level (include/Eigen/...)
+
+    # OK
+    export HAVE_EIGEN=true
+    export EIGEN_INC_DIR="${header%/*}"     # Basename
+}
+
+
+# Output as per search_* function
+have_eigen()
+{
+    local warn # warn="==> skip eigen"
+    local config="config.sh/eigen"
+    local path="$EIGEN_ARCH_PATH"
+    local file
+
+    # Setup - current environment if set
+    if [ -z "$path" ]
+    then
+        if file="$("$WM_PROJECT_DIR"/bin/foamEtcFile "$config")"
+        then
+            . "$file"
+            path="$EIGEN_ARCH_PATH"
+        fi
+    fi
+
+    search_eigen "${path:-system}"
+}
+
+
+# Query settings
+query_eigen()
+{
+    local config="config.sh/eigen"
+    local file
+
+    if file="$("$WM_PROJECT_DIR"/bin/foamEtcFile -mode=o "$config")"
+    then
+        . "$file"
+        _process_query eigen "${EIGEN_ARCH_PATH:-system}"
+    else
+        echo "(no $config)" 1>&2
+        echo "eigen=unknown"
+        _process_query eigen "system"
+    fi
+}
+
+
+#------------------------------------------------------------------------------
+
+# Reset
+no_eigen
+
+# Test/query
+case "$1" in
+-test)
+    have_eigen
+    echo_eigen
+    ;;
+-query)
+    query_eigen
+    ;;
+esac
+
+#------------------------------------------------------------------------------

@@ -1,0 +1,98 @@
+// SPDX-FileCopyrightText: Copyright (c) Kitware Inc.
+// SPDX-FileCopyrightText: Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
+// SPDX-License-Identifier: BSD-3-Clause
+#include "vtkImageCompressor.h"
+#include "vtkObjectFactory.h"
+
+#include "vtkCommand.h"
+#include "vtkMultiProcessStream.h"
+#include "vtkUnsignedCharArray.h"
+#include <sstream>
+#include <string>
+
+//-----------------------------------------------------------------------------
+vtkCxxSetObjectMacro(vtkImageCompressor, Output, vtkUnsignedCharArray);
+
+//-----------------------------------------------------------------------------
+vtkCxxSetObjectMacro(vtkImageCompressor, Input, vtkUnsignedCharArray);
+
+//-----------------------------------------------------------------------------
+vtkImageCompressor::vtkImageCompressor()
+  : Output(nullptr)
+  , Input(nullptr)
+  , LossLessMode(0)
+  , Configuration(nullptr)
+{
+  // Always allocate output array as a convenience.
+  vtkUnsignedCharArray* data = vtkUnsignedCharArray::New();
+  this->SetOutput(data);
+  data->Delete();
+}
+
+//-----------------------------------------------------------------------------
+vtkImageCompressor::~vtkImageCompressor()
+{
+  this->SetOutput(nullptr);
+  this->SetInput(nullptr);
+  this->SetConfiguration(nullptr);
+}
+
+//-----------------------------------------------------------------------------
+void vtkImageCompressor::SetImageResolution(int, int) {}
+
+//-----------------------------------------------------------------------------
+void vtkImageCompressor::SaveConfiguration(vtkMultiProcessStream* stream)
+{
+  *stream << this->GetClassName() << this->GetLossLessMode();
+}
+
+//-----------------------------------------------------------------------------
+const char* vtkImageCompressor::SaveConfiguration()
+{
+  std::ostringstream oss;
+  oss << this->GetClassName() << " " << this->GetLossLessMode();
+
+  this->SetConfiguration(oss.str().c_str());
+
+  return this->Configuration;
+}
+
+//-----------------------------------------------------------------------------
+bool vtkImageCompressor::RestoreConfiguration(vtkMultiProcessStream* stream)
+{
+  std::string typeStr;
+  *stream >> typeStr;
+  if (typeStr == this->GetClassName())
+  {
+    int mode;
+    *stream >> mode;
+    this->SetLossLessMode(mode);
+    return true;
+  }
+  return false;
+}
+
+//-----------------------------------------------------------------------------
+const char* vtkImageCompressor::RestoreConfiguration(const char* stream)
+{
+  std::istringstream iss(stream);
+  std::string typeStr;
+  iss >> typeStr;
+  if (typeStr == this->GetClassName())
+  {
+    int mode;
+    iss >> mode;
+    this->SetLossLessMode(mode);
+    return stream + iss.tellg();
+  }
+  return nullptr;
+}
+
+//-----------------------------------------------------------------------------
+void vtkImageCompressor::PrintSelf(ostream& os, vtkIndent indent)
+{
+  this->Superclass::PrintSelf(os, indent);
+  os << indent << "Input:          " << this->Input << endl
+     << indent << "Output:         " << this->Output << endl
+     << indent << "LossLessMode: " << this->LossLessMode << endl;
+}

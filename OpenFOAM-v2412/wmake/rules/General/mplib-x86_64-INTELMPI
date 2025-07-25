@@ -1,0 +1,18 @@
+#------------------------------------------------------------------------------
+# INTELMPI rules (x86_64)
+# - <root>/intel64/{include,lib}
+# - <root>/{include,lib}
+
+intelmpi_subdir := $(shell test -d "$(MPI_ARCH_PATH)/intel64" && echo /intel64)
+
+PFLAGS  = -DMPICH_SKIP_MPICXX -DOMPI_SKIP_MPICXX
+PINC    = -isystem $(MPI_ARCH_PATH)$(intelmpi_subdir)/include
+PLIBS   = -L$(MPI_ARCH_PATH)$(intelmpi_subdir)/lib/release -lmpi
+
+# DEBUG
+# -----
+## $(info MPI_ARCH_PATH: $(MPI_ARCH_PATH))
+## $(info PINC  $(PINC))
+## $(info PLIBS $(PLIBS))
+
+#------------------------------------------------------------------------------

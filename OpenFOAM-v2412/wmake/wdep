@@ -1,0 +1,103 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2014-2015 OpenFOAM Foundation
+#     Copyright (C) 2017-2022 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     wdep
+#
+# Usage
+#     wdep <file>
+#     cat `wdep <file>`
+#
+# Description
+#     Find the .dep file corresponding to <file> and print the path.
+#     If <file> is not in the current directory the tree is searched for
+#     the first occurrence.
+#
+#------------------------------------------------------------------------------
+Script=${0##*/}             # Use 'Script' for error messages in wmakeFunctions
+. "${0%/*}"/scripts/wmakeFunctions      # Source wmake functions
+
+usage() {
+    exec 1>&2
+    while [ "$#" -ge 1 ]; do echo "$1"; shift; done
+    cat<<USAGE
+
+Usage: $Script <file>
+
+Find the dep-file corresponding to <file> in the current directory
+and print the path.
+
+USAGE
+    exit 1
+}
+
+
+#------------------------------------------------------------------------------
+# Parse arguments and options
+#------------------------------------------------------------------------------
+
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    ('') ;;
+    (- | --) shift; break ;;  # Stop option parsing
+
+    -h | -help*)
+        usage
+        ;;
+    -*)
+        usage "unknown option: '$*'"
+        ;;
+    *)
+        break
+        ;;
+    esac
+done
+
+if [ $# -eq 0 ]
+then
+    echo "$Script: no source file specified" 1>&2
+    exit 1
+fi
+
+# Check environment variables
+checkEnv
+
+sourceFile="$1"
+
+#------------------------------------------------------------------------------
+# Check <file> is in the current directory,
+# otherwise search tree for first occurrance
+#------------------------------------------------------------------------------
+
+if [ ! -e "$sourceFile" ]
+then
+    sourceFile=$(find . -name "$sourceFile" -print -quit)
+    if [ -z "$sourceFile" ]
+    then
+        echo "$Script: cannot find source file $1" 1>&2
+        exit 1
+    fi
+fi
+
+#------------------------------------------------------------------------------
+# Search up directories tree for the Make sub-directory containing dep files
+# and echo path for the dep file corresponding to the specified source file
+#------------------------------------------------------------------------------
+
+echo "$(findObjectDir $sourceFile)/${sourceFile##*/}.dep"
+
+exit 0 # clean exit
+
+#------------------------------------------------------------------------------

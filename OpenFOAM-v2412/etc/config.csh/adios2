@@ -1,0 +1,40 @@
+#----------------------------------*-sh-*--------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2017-2024 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# File
+#     etc/config.csh/adios2
+#     - sourced by OpenFOAM-*/etc/cshrc
+#
+# Description
+#     Setup for ADIOS2 include/libraries (usually ThirdParty installation).
+#
+#------------------------------------------------------------------------------
+# USER EDITABLE PART: Changes made here may be lost with the next upgrade
+
+set adios2_version=ADIOS2-2.10.1
+setenv ADIOS2_ARCH_PATH "$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$adios2_version"
+
+# END OF (NORMAL) USER EDITABLE PART
+#------------------------------------------------------------------------------
+if ($?FOAM_VERBOSE && $?prompt) then
+    echo "Using adios ($adios2_version)  ->  $ADIOS2_ARCH_PATH"
+endif
+
+# Only add to PATH if the directory really exists
+_foamAddLibAuto $ADIOS2_ARCH_PATH
+if ($status == 0) then
+    _foamAddPath $ADIOS2_ARCH_PATH/bin
+endif
+
+unset adios2_version
+
+#------------------------------------------------------------------------------

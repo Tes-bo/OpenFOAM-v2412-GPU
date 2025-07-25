@@ -1,0 +1,54 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "templates";
+    object      inletOptions;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+flowSpecification
+{
+    fixedTotalPressure
+    {
+        U
+        {
+            type        pressureInletVelocity;
+            value       ${:VALUE.U};
+        }
+        p
+        {
+            type        totalPressure;
+            U           U;
+            phi         phi;
+            rho         none;
+            psi         none;
+            gamma       1;
+            p0          ${:VALUE.p};
+            value       ${:VALUE.p};
+        }
+    }
+    flowRate
+    {
+        U
+        {
+            type        flowRateInletVelocity;
+            volumetricFlowRate ${:VALUE.volumetricFlowRate};
+            value       ${:VALUE.U};
+        }
+        p
+        {
+            type        zeroGradient;
+        }
+    }
+}
+
+// ************************************************************************* //

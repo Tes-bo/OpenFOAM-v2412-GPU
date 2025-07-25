@@ -1,0 +1,105 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+scale   1;
+
+X_MIN_TUNNEL        -1.84;
+Y_MIN_TUNNEL        -2.1;
+Z_MIN_TUNNEL        -3.0616171e-17;
+X_MAX_TUNNEL        1.085;
+Y_MAX_TUNNEL        2.4;
+Z_MAX_TUNNEL        3.25;
+NCELLS_X            11;
+NCELLS_Y            17;
+NCELLS_Z            12;
+
+
+vertices
+(
+    ( $X_MIN_TUNNEL  $Y_MIN_TUNNEL  $Z_MIN_TUNNEL )    //Node 0
+    ( $X_MAX_TUNNEL  $Y_MIN_TUNNEL  $Z_MIN_TUNNEL )    //Node 1
+    ( $X_MAX_TUNNEL  $Y_MAX_TUNNEL  $Z_MIN_TUNNEL )    //Node 2
+    ( $X_MIN_TUNNEL  $Y_MAX_TUNNEL  $Z_MIN_TUNNEL )    //Node 3
+    ( $X_MIN_TUNNEL  $Y_MIN_TUNNEL  $Z_MAX_TUNNEL )    //Node 4
+    ( $X_MAX_TUNNEL  $Y_MIN_TUNNEL  $Z_MAX_TUNNEL )    //Node 5
+    ( $X_MAX_TUNNEL  $Y_MAX_TUNNEL  $Z_MAX_TUNNEL )    //Node 6
+    ( $X_MIN_TUNNEL  $Y_MAX_TUNNEL  $Z_MAX_TUNNEL )    //Node 7
+);
+
+blocks
+(
+    hex (0 1 2 3 4 5 6 7) ( $NCELLS_X  $NCELLS_Y  $NCELLS_Z)
+    simpleGrading (1 1 1)
+);
+
+edges
+(
+);
+
+boundary
+(
+    XMin
+    {
+        type patch;
+        faces
+        (
+            (0 4 7 3)
+        );
+    }
+    XMax
+    {
+        type patch;
+        faces
+        (
+            (1 2 6 5)
+        );
+    }
+    YMin
+    {
+        type patch;
+        faces
+        (
+            (0 1 5 4)
+        );
+    }
+    YMax
+    {
+        type patch;
+        faces
+        (
+            (3 7 6 2)
+        );
+    }
+    ZMin
+    {
+        type wall;
+        faces
+        (
+            (0 3 2 1)
+        );
+    }
+    ZMax
+    {
+        type patch;
+        faces
+        (
+            (4 5 6 7)
+        );
+    }
+);
+
+
+// ************************************************************************* //

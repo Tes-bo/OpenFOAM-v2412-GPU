@@ -1,0 +1,66 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+setControlDict()
+{
+    local dict=system/controlDict
+
+    foamDictionary $dict -entry deltaT -set 1e-05
+    foamDictionary $dict -entry endTime -set 0.015
+    foamDictionary $dict -entry writeInterval -set 50
+}
+
+setCombustionProperties()
+{
+    local dict=constant/combustionProperties
+
+    foamDictionary $dict -entry laminarFlameSpeedCorrelation -set RaviPetersen
+    foamDictionary $dict -entry fuel -set HydrogenInAir
+}
+
+
+# Do moriyoshiHomogeneous
+( cd moriyoshiHomogeneous && foamRunTutorials )
+
+if notTest "$@"
+then
+    # Clone case for second phase
+    cloneCase moriyoshiHomogeneous moriyoshiHomogeneousPart2
+
+    # Modify and execute
+    (
+        cd moriyoshiHomogeneousPart2 || exit
+
+        # The following 2 command lines are a generic implementation of the
+        # following command:
+        #     cp -r ../moriyoshiHomogeneous/0.005 .
+
+        lastTimeStep=$(foamListTimes -case ../moriyoshiHomogeneous -latestTime)
+        cp -rf ../moriyoshiHomogeneous/"$lastTimeStep" .
+
+        setControlDict
+        runApplication $(getApplication)
+    )
+
+    # Clone case for hydrogen
+    cloneCase moriyoshiHomogeneous moriyoshiHomogeneousHydrogen
+
+    # Modify and execute
+    (
+        cd moriyoshiHomogeneousHydrogen || exit
+
+        setCombustionProperties
+
+        mv -f constant/thermophysicalProperties \
+           constant/thermophysicalProperties.propane
+
+        mv -f constant/thermophysicalProperties.hydrogen \
+           constant/thermophysicalProperties
+
+        runApplication $(getApplication)
+    )
+fi
+
+#------------------------------------------------------------------------------

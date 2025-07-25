@@ -1,0 +1,130 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+scale 1;
+
+geom
+{
+    r0          1;
+    r1          2;
+
+    nr          40;
+    ntheta      40;
+
+    g           10;
+
+    mr0         #eval{ - $r0 };
+    mr1         #eval{ - $r1 };
+    invG        #eval{ 1./$g };
+}
+
+vertices
+(
+    ( $/geom/r0         0 0)
+    (         0  $/geom/r0 0)
+    ($/geom/mr0         0 0)
+    (         0 $/geom/mr0 0)
+    ( $/geom/r1         0 0)
+    (         0  $/geom/r1 0)
+    ($/geom/mr1         0 0)
+    (         0 $/geom/mr1 0)
+
+    ( $/geom/r0         0 1)
+    (         0  $/geom/r0 1)
+    ($/geom/mr0         0 1)
+    (         0 $/geom/mr0 1)
+    ( $/geom/r1         0 1)
+    (         0  $/geom/r1 1)
+    ($/geom/mr1         0 1)
+    (         0 $/geom/mr1 1)
+);
+
+blockInfo
+all
+($/geom/ntheta $/geom/nr 1)
+simpleGrading (1 ((0.5 0.5 $/geom/g)(0.5 0.5 $/geom/invG)) 1);
+
+blocks
+(
+    hex (1 0 4 5  9  8 12 13) $blockInfo
+    hex (2 1 5 6 10  9 13 14) $blockInfo
+    hex (3 2 6 7 11 10 14 15) $blockInfo
+    hex (0 3 7 4  8 11 15 12) $blockInfo
+);
+
+edges
+(
+    arc 0 1 origin (0 0 0)
+    arc 1 2 origin (0 0 0)
+    arc 2 3 origin (0 0 0)
+    arc 3 0 origin (0 0 0)
+    arc 8 9 origin (0 0 1)
+    arc 9 10 origin (0 0 1)
+    arc 10 11 origin (0 0 1)
+    arc 11 8 origin (0 0 1)
+
+    arc 4 5 origin (0 0 0)
+    arc 5 6 origin (0 0 0)
+    arc 6 7 origin (0 0 0)
+    arc 7 4 origin (0 0 0)
+    arc 12 13 origin (0 0 1)
+    arc 13 14 origin (0 0 1)
+    arc 14 15 origin (0 0 1)
+    arc 15 12 origin (0 0 1)
+);
+
+defaultPatch
+{
+    name    frontAndBack;
+    type    empty;
+}
+
+boundary
+(
+    innerWall
+    {
+        type wall;
+        faces
+        (
+            (1 0  8  9)
+            (2 1  9 10)
+            (3 2 10 11)
+            (0 3 11 8)
+        );
+    }
+
+    outerWall
+    {
+        type wall;
+        faces
+        (
+            (5 13 12 4)
+            (6 14 13 5)
+            (7 15 14 6)
+            (4 12 15 7)
+        );
+    }
+);
+
+mergePatchPairs
+(
+);
+
+
+// Cleanup
+#remove ( geom blockInfo )
+
+// ************************************************************************* //

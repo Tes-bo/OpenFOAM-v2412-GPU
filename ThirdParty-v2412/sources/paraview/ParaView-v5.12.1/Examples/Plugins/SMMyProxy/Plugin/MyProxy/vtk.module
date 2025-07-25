@@ -1,0 +1,7 @@
+NAME
+  MyProxy
+DEPENDS
+  ParaView::RemotingServerManager
+PRIVATE_DEPENDS
+  ParaView::RemotingCore
+  VTK::CommonCore

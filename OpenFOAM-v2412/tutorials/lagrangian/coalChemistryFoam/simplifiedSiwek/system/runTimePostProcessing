@@ -1,0 +1,119 @@
+// -*- C++ -*-
+
+postPro1
+{
+    #includeEtc "caseDicts/postProcessing/visualization/runTimePostPro.cfg"
+
+    // parallel    false;
+    // debug  true;
+
+    output
+    {
+        name        image;
+        width       1200;
+        height      800;
+    }
+
+    camera
+    {
+        // If camera is moving, optionally provide start and end times
+        // startPosition    0.2;
+        // endPosition      0.75;
+
+        // Total number of frames to generate
+        nFrameTotal 1;
+
+        parallelProjection  yes;
+
+        focalPoint  (0.25 0.42 0.05);
+        position    (0.15 0.42 2.5);
+        up          (0 1 0);
+        zoom        1.5;
+    }
+
+    // Default colours
+    // - If select to colourBy colour, these values are used unless
+    // they are locally overridden
+    colours
+    {
+        ${../colourScheme/greyGradient};
+    }
+
+    // Points (cloud) data
+    points
+    {
+        cloud1
+        {
+            type            geometryCloud;
+            cloud           coalCloud1;
+            colourMap       coolToWarm;
+            representation  sphere;
+            maxGlyphLength  0.025;
+            featureEdges    no;
+            colourBy        field;
+            colourField     T;
+            field           T;
+            range           (290 410);
+            opacity         1;
+
+            scalarBar
+            {
+                visible         true;
+                vertical        yes;
+                position        (0.8 0.1);
+                fontSize        12;
+                titleSize       24;
+                title           "Temperature [K]";
+                labelFormat     "%.0f";
+                numberOfLabels  9;
+                bold            false;
+            }
+        }
+    }
+
+    // Surface data
+    surfaces
+    {
+        patches
+        {
+            type            patches;
+            patches         (".*");
+            renderMode      phong;
+            representation  surface;
+            colourBy        colour;
+            field           U;
+            range           (0 40);
+            featureEdges    yes;
+            edgeColour      (0 0 0);
+            // Fails in parallel:  opacity         0.25;
+        }
+
+        k
+        {
+            type            isoSurface;
+            renderMode      phong;
+            representation  surface;
+            field           k;
+            values          ( 100 );
+            colourField     T;
+            colourBy        field;
+            range           (290 410);
+            smooth          true;
+        }
+    }
+
+    // Text data
+    text
+    {
+        text1
+        {
+            string      "simplifiedSiwek";
+            position    (0.1 0.05);
+            size        24;
+            bold        no;
+        }
+    }
+}
+
+
+// ************************************************************************* //

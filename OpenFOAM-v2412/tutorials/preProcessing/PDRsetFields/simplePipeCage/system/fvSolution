@@ -1,0 +1,162 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      fvSolution;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+solvers
+{
+    rho
+    {
+        solver          PCG;
+        preconditioner  DIC;
+        tolerance       1e-09;
+        relTol          0.0;
+    }
+
+    rhoFinal
+    {
+        $rho;
+    }
+
+    p
+    {
+        solver          PBiCG;
+        preconditioner  DILU;
+        tolerance       1e-9;
+        relTol          0.01;
+    }
+
+    pFinal
+    {
+        $p;
+        relTol          0;
+    }
+
+    /*
+    "(b|Xi|Xp|Ep|GRxp|GRep|ft|ha|hau|k|epsilon|H2OPS)"
+    {
+        solver          PBiCG;
+        preconditioner  DILU;
+        tolerance       1e-09;
+        relTol          0.01;
+    }
+
+    "(b|Xi|Xp|Ep|GRxp|GRep|ft|ha|hau|k|epsilon|H2OPS)Final"
+    {
+        solver          PBiCG;
+        preconditioner  DILU;
+        tolerance       1e-09;
+        relTol          0;
+    }
+*/
+    "(b|Xi|Xp|Ep|GRxp|GRep|ft|h|hu|ha|hau|k|epsilon)"
+    {
+        solver          smoothSolver;
+        smoother        GaussSeidel;
+        tolerance       1e-09;
+        relTol          0.05;
+     }
+    "(b|Xi|Xp|Ep|GRxp|GRep|ft|h|hu|ha|hau|k|epsilon)Final"
+    {
+        solver          smoothSolver;
+        smoother        GaussSeidel;
+        tolerance       1e-09;
+        relTol          0.0;
+    }
+}
+
+PIMPLE
+{
+    nCorrectors         1;
+    nOuterCorrectors    10;
+    nNonOrthogonalCorrectors 3;
+    momentumPredictor   true;
+    transonic           true;
+
+    residualControl
+    {
+        b
+        {
+            tolerance   1e-5;
+            relTol      0;
+        }
+        p
+        {
+            tolerance   1e-5;
+            relTol      0;
+        }
+        Xi
+        {
+            tolerance   1e-5;
+            relTol      0;
+        }
+        Xp
+        {
+            tolerance   1e-5;
+            relTol      0;
+        }
+        Ep
+        {
+            tolerance   1e-5;
+            relTol      0;
+        }
+        ft
+        {
+            tolerance   1e-5;
+            relTol      0;
+        }
+        h
+        {
+            tolerance   1e-5;
+            relTol      0;
+        }
+        hu
+        {
+            tolerance   1e-5;
+            relTol      0;
+        }
+        k
+        {
+            tolerance   1e-5;
+            relTol      0;
+        }
+        epsilon
+        {
+            tolerance   1e-5;
+            relTol      0;
+        }
+        U
+        {
+            tolerance   1e-5;
+            relTol      0;
+        }
+    }
+}
+
+relaxationFactors
+{
+    fields
+    {
+    }
+    equations
+    {
+        U       0.9;
+        UFinal  1.0;
+        "(b|Xi|Xp|Ep|GRxp|GRep|ft|ha|hau|k|epsilon|H2OPS)" 0.9;
+        "(b|Xi|Xp|Ep|GRxp|GRep|ft|ha|hau|k|epsilon|H2OPS)Final" 1.0;
+    }
+}
+
+
+// ************************************************************************* //

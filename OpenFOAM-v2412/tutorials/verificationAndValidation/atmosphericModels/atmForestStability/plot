@@ -1,0 +1,436 @@
+#!/bin/bash
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+# settings
+
+    # operand setups
+    setups="
+    veryStable
+    stable
+    slightlyStable
+    neutral
+    slightlyUnstable
+    unstable
+    "
+
+    # reference tree height
+    treeHeightRef="20"
+
+    # reference z height
+    zRef="40"
+
+
+# Benchmark dataset:
+#  Arnqvist, J., Segalini, A., Dellwik, E., & Bergström, H. (2015).
+#  Wind statistics from a forested landscape.
+#  Boundary-Layer Meteorology, 156(1), 53-71.
+#  DOI:10.1007/s10546-015-0016-x
+#------------------------------------------------------------------------------
+
+# Simple linear interpolation on an ascending table
+linear_interp() {
+
+    inputFile="$1"
+    zRef="$2"
+
+    yi=($( \
+        awk \
+        -v zRef="$zRef" \
+        '
+            BEGIN \
+            {
+                x1=0;  y1=0;
+                x2=$1; y2=$2;
+            }
+            {
+                if((x1 < zRef) && (x2 < zRef) && (getline != 0))
+                {
+                    x1=x2; y1=y2; x2=$1; y2=$2
+                }
+            }
+            END \
+            {
+                yi = (y2-y1)/(x2-x1)*(zRef-x1) + y1;
+                print yi
+            }
+        ' $inputFile ))
+
+    echo "$yi"
+}
+
+
+plot_u_vs_z() {
+
+    echo "  # Plots for the ground-normal normalised streamwise flow speed profile"
+
+    treeHeightRef="$1"
+    zRef="$2"
+    shift 2
+    setups=$@
+
+    benchmarkFile="resources/dataset/uNorm-zNorm.dat"
+
+    i=0
+    for setup in $setups
+    do
+        endTime=$(foamDictionary results/$setup/system/controlDict -disableFunctionEntries -entry endTime -value)
+
+        sampleFile="results/$setup/postProcessing/sampleU/$endTime/lineZ1_U.xy"
+
+        # Store the ground-normal height
+        z=($(awk '{ printf "%.16f\n", $1 }' $sampleFile))
+
+        # Compute velocity magnitude by excluding the ground-normal component
+        magU=($(awk '{ printf "%.16f\n", sqrt($2*$2 + $3*$3) }' $sampleFile))
+
+        file="plots/dats/z_magU_$i.dat"
+        [ ! -f $file ] && for ((j = 0; j < "${#magU[@]}"; j++)) \
+            do printf "%.16f %.16f\n" "${z[$j]}" "${magU[$j]}" \
+            >> $file; done
+
+        # Find velocity magnitude at zRef height by linear interpolation
+        uRef=$(linear_interp "$file" "$zRef")
+
+        # Find z normalised by the reference tree height
+        zNorm=($(awk -v tRef="$treeHeightRef" '
+        {
+            zNorm = $1/tRef; printf "%.16f\n", zNorm
+        }' $file))
+
+        # Find U normalised by uRef
+        uNorm=($(awk -v uRef="$uRef" '
+        {
+            uNorm = $2/uRef; printf "%.16f\n", uNorm
+        }' $file))
+
+        file0="plots/dats/zNorm_uNorm_$i.dat"
+        [ ! -f $file0 ] && for ((j = 0; j < "${#zNorm[@]}"; j++)) \
+            do printf "%.16f %.16f\n" "${zNorm[$j]}" "${uNorm[$j]}" \
+            >> $file0; done
+
+        i=$(($i+1))
+    done
+
+    image="plots/uNorm_vs_zNorm.png"
+
+    gnuplot<<PLT_U
+    set terminal pngcairo font "helvetica,20" size 1000, 800
+    set xrange [0:3.5]
+    set yrange [0:7]
+    set grid
+    set key bottom right
+    set key samplen 2
+    set key spacing 0.75
+    set xlabel "u/u_{ref} [-]"
+    set ylabel "z/z_{ref} [-]"
+    set offset .05, .05
+    set output "$image"
+
+    # Benchmark - experimental
+        benchmark="$benchmarkFile"
+
+    # OpenFOAM
+        base="plots/dats/zNorm_uNorm_"
+        veryStable=base."0.dat"
+        stable=base."1.dat"
+        slightlyStable=base."2.dat"
+        neutral=base."3.dat"
+        slightlyUnstable=base."4.dat"
+        unstable=base."5.dat"
+
+    plot \
+        benchmark every ::0::5 u ((\$1)/13.8953):2 t "Very stable (exp)" w p ps 2 pt 6 lc rgb "#000000", \
+        benchmark every ::6::11 u ((\$1)/8.13953):2 t "Stable (exp)" w p ps 2 pt 5 lc rgb "#000000", \
+        benchmark every ::12::17 u ((\$1)/6.36047):2 t "Slightly stable (exp)" w p ps 2 pt 4 lc rgb "#000000", \
+        benchmark every ::18::23 u ((\$1)/5.62791):2 t "Neutral (exp)" w p ps 2 pt 3 lc rgb "#000000", \
+        benchmark every ::24::29 u ((\$1)/5.31395):2 t "Slightly unstable (exp)" w p ps 2 pt 2 lc rgb "#000000", \
+        benchmark every ::30::35 u ((\$1)/5.06977):2 t "Unstable (exp)" w p ps 2 pt 1 lc rgb "#000000", \
+        veryStable u 2:1 t "Very stable" w l lw 2 lc rgb "#009E73", \
+        stable u 2:1 t "Stable" w l lw 2 lc rgb "#F0E440", \
+        slightlyStable u 2:1 t "Slightly stable" w l lw 2 lc rgb "#0072B2", \
+        neutral u 2:1 t "Neutral" w l lw 2 lc rgb "#D55E00", \
+        slightlyUnstable u 2:1 t "Slightly unstable" w l lw 2 lc rgb "#CC79A7", \
+        unstable u 2:1 t "Unstable" w l lw 2 lc rgb "#440154"
+PLT_U
+}
+
+
+plot_k_vs_z() {
+
+    echo "  # Plots for the ground-normal normalised turbulent kinetic energy profile"
+
+    treeHeightRef="$1"
+    zRef="$2"
+    shift 2
+    setups=$@
+
+    benchmarkFile="resources/dataset/kNorm-zNorm.dat"
+
+    i=0
+    for setup in $setups
+    do
+        endTime=$(foamDictionary results/$setup/system/controlDict -disableFunctionEntries -entry endTime -value)
+
+        sampleFile="results/$setup/postProcessing/sampleScalars/$endTime/lineZ1_ObukhovLength_T_Ustar_k_p_rgh.xy"
+
+        # Store the ground-normal height profile
+        z=($(awk '{ printf "%.16f\n", $1 }' $sampleFile))
+
+        # Store the turbulent kinetic energy profile
+        k=($(awk '{ printf "%.16f\n", $5 }' $sampleFile))
+
+        file="plots/dats/z_k_$i.dat"
+        [ ! -f $file ] && for ((j = 0; j < "${#k[@]}"; j++)) \
+            do printf "%.16f %.16f\n" "${z[$j]}" "${k[$j]}" \
+            >> $file; done
+
+        # Find k at zRef height by linear interpolation
+        kRef=$(linear_interp "$file" "$zRef")
+
+        # Find z normalised by the reference tree height
+        zNorm=($(awk -v tRef="$treeHeightRef" '
+        {
+            zNorm = $1/tRef; printf "%.16f\n", zNorm
+        }' $file))
+
+        # Find k normalised by kRef
+        kNorm=($(awk -v kRef="$kRef" '
+        {
+            kNorm = $2/kRef; printf "%.16f\n", kNorm
+        }' $file))
+
+        file0="plots/dats/zNorm_kNorm_$i.dat"
+        [ ! -f $file0 ] && for ((j = 0; j < "${#zNorm[@]}"; j++)) \
+            do printf "%.16f %.16f\n" "${zNorm[$j]}" "${kNorm[$j]}" \
+            >> $file0; done
+
+        i=$(($i+1))
+    done
+
+    image="plots/kNorm_vs_zNorm.png"
+
+    gnuplot<<PLT_K
+    set terminal pngcairo font "helvetica,20" size 1000, 800
+    set xrange [0:2]
+    set yrange [0:7]
+    set grid
+    set key bottom right
+    set key samplen 2
+    set key spacing 0.75
+    set xlabel "k/k_{ref} [-]"
+    set ylabel "z/z_{ref} [-]"
+    set offset .05, .05
+    set output "$image"
+
+    # Benchmark - experimental
+        benchmark="$benchmarkFile"
+
+    # OpenFOAM
+        base="plots/dats/zNorm_kNorm_"
+        veryStable=base."0.dat"
+        stable=base."1.dat"
+        slightlyStable=base."2.dat"
+        neutral=base."3.dat"
+        slightlyUnstable=base."4.dat"
+        unstable=base."5.dat"
+
+    plot \
+        benchmark every ::0::5 u ((\$1)/5.050476682):2 t "Very stable (exp)" w p ps 2 pt 6 lc rgb "#000000", \
+        benchmark every ::6::11 u ((\$1)/4.24970097):2 t "Stable (exp)" w p ps 2 pt 5 lc rgb "#000000", \
+        benchmark every ::12::17 u ((\$1)/3.897762917):2 t "Slightly stable (exp)" w p ps 2 pt 4 lc rgb "#000000", \
+        benchmark every ::18::23 u ((\$1)/3.788680963):2 t "Neutral (exp)" w p ps 2 pt 3 lc rgb "#000000", \
+        benchmark every ::24::29 u ((\$1)/4.038160328):2 t "Slightly unstable (exp)" w p ps 2 pt 2 lc rgb "#000000", \
+        benchmark every ::30::35 u ((\$1)/4.198358216):2 t "Unstable (exp)" w p ps 2 pt 1 lc rgb "#000000", \
+        veryStable u 2:1 t "Very stable" w l lw 2 lc rgb "#009E73", \
+        stable u 2:1 t "Stable" w l lw 2 lc rgb "#F0E440", \
+        slightlyStable u 2:1 t "Slightly stable" w l lw 2 lc rgb "#0072B2", \
+        neutral u 2:1 t "Neutral" w l lw 2 lc rgb "#D55E00", \
+        slightlyUnstable u 2:1 t "Slightly unstable" w l lw 2 lc rgb "#CC79A7", \
+        unstable u 2:1 t "Unstable" w l lw 2 lc rgb "#440154"
+PLT_K
+}
+
+
+print_Obukhov_length() {
+
+    echo "  # Prints the Obukhov length at a given reference height"
+
+    treeHeightRef="$1"
+    zRef="$2"
+    shift 2
+    setups=$@
+
+    i=0
+    for setup in $setups
+    do
+        endTime=$(foamDictionary results/$setup/system/controlDict -disableFunctionEntries -entry endTime -value)
+
+        sampleFile="results/$setup/postProcessing/sampleScalars/$endTime/lineZ1_ObukhovLength_T_Ustar_k_p_rgh.xy"
+
+        # Store the ground-normal height profile
+        z=($(awk '{ printf "%.16f\n", $1 }' $sampleFile))
+
+        # Store the Obukhov length profile
+        ObukhovL=($(awk '{ printf "%.16f\n", $2 }' $sampleFile))
+
+        file="plots/dats/z_ObukhovL_$i.dat"
+        [ ! -f $file ] && for ((j = 0; j < "${#ObukhovL[@]}"; j++)) \
+            do printf "%.16f %.16f\n" "${z[$j]}" "${ObukhovL[$j]}" \
+            >> $file; done
+
+        # Find the Obukhov length at zRef height by linear interpolation
+        ObukhovLRef=$(linear_interp "$file" "$zRef")
+
+        echo "$setup = $ObukhovLRef" >> "plots/ObukhovLength.dat"
+
+        i=$(($i+1))
+    done
+}
+
+
+plot_alpha_vs_z() {
+
+    echo "  # Plots for the ground-normal normalised veer profile"
+
+    treeHeightRef="$1"
+    zRef="$2"
+    shift 2
+    setups=$@
+
+    benchmarkFile="resources/dataset/veer-zNorm.dat"
+
+    i=0
+    for setup in $setups
+    do
+        endTime=$(foamDictionary results/$setup/system/controlDict -disableFunctionEntries -entry endTime -value)
+
+        sampleFile="results/$setup/postProcessing/sampleU/$endTime/lineZ1_U.xy"
+
+        # Store the ground-normal height
+        z=($(awk '{ printf "%.16f\n", $1 }' $sampleFile))
+
+        # Store streamwise and spanwise velocity components
+        u=($(awk '{ printf "%.16f\n", $2 }' $sampleFile))
+        v=($(awk '{ printf "%.16f\n", $3 }' $sampleFile))
+
+        fileu="plots/dats/z_u_$i.dat"
+        [ ! -f $fileu ] && for ((j = 0; j < "${#z[@]}"; j++)) \
+            do printf "%.16f %.16f\n" "${z[$j]}" "${u[$j]}"  \
+            >> $fileu; done
+
+        filev="plots/dats/z_v_$i.dat"
+        [ ! -f $filev ] && for ((j = 0; j < "${#z[@]}"; j++)) \
+            do printf "%.16f %.16f\n" "${z[$j]}" "${v[$j]}"  \
+            >> $filev; done
+
+        # Find u and v at zRef height by linear interpolation
+        uRef=$(linear_interp "$fileu" "$zRef")
+        vRef=$(linear_interp "$filev" "$zRef")
+
+        # Find z normalised by the reference tree height
+        zNorm=($(awk -v tRef="$treeHeightRef" '
+        {
+            zNorm = $1/tRef; printf "%.16f\n", zNorm
+        }' $fileu))
+
+        # Find veer
+        veer=($(awk -v uRef="$uRef" -v vRef="$vRef" '
+        {
+            x = $2/sqrt($2*$2 + $3*$3);
+            xR = uRef/sqrt(uRef*uRef + vRef*vRef);
+            veer = -1*(atan2(sqrt(1 - x*x), x) - atan2(sqrt(1 - xR*xR), xR))*180/atan2(0, -1);
+            printf "%.16f\n", veer
+        }' $sampleFile))
+
+        file0="plots/dats/zNorm_veer_$i.dat"
+        [ ! -f $file0 ] && for ((j = 0; j < "${#zNorm[@]}"; j++)) \
+            do printf "%.16f %.16f\n" "${zNorm[$j]}" "${veer[$j]}" \
+            >> $file0; done
+
+        i=$(($i+1))
+    done
+
+    image="plots/alpha_vs_zNorm.png"
+
+    gnuplot<<PLT_VEER
+    set terminal pngcairo font "helvetica,20" size 1000, 800
+    set xrange [-5:20]
+    set yrange [0:7]
+    set grid
+    set key bottom right
+    set key samplen 2
+    set key spacing 0.75
+    set xlabel "{/Symbol a}/{/Symbol a}_{ref} [-]"
+    set ylabel "z/z_{ref} [-]"
+    set offset .05, .05
+    set output "$image"
+
+    # Benchmark - experimental
+        benchmark="$benchmarkFile"
+
+    # OpenFOAM
+        # OpenFOAM
+        base="plots/dats/zNorm_veer_"
+        veryStable=base."0.dat"
+        stable=base."1.dat"
+        slightlyStable=base."2.dat"
+        neutral=base."3.dat"
+        slightlyUnstable=base."4.dat"
+        unstable=base."5.dat
+
+    plot \
+        benchmark every ::0::5 u 1:2 t "Very stable (exp)" w p ps 2 pt 6 lc rgb "#000000", \
+        benchmark every ::6::11 u 1:2 t "Stable (exp)" w p ps 2 pt 5 lc rgb "#000000", \
+        benchmark every ::12::17 u 1:2 t "Slightly stable (exp)" w p ps 2 pt 4 lc rgb "#000000", \
+        benchmark every ::18::23 u 1:2 t "Neutral (exp)" w p ps 2 pt 3 lc rgb "#000000", \
+        benchmark every ::24::29 u 1:2 t "Slightly unstable (exp)" w p ps 2 pt 2 lc rgb "#000000", \
+        benchmark every ::30::35 u 1:2 t "Unstable (exp)" w p ps 2 pt 1 lc rgb "#000000", \
+        veryStable u 2:1 t "Very stable" w l lw 2 lc rgb "#009E73", \
+        stable u 2:1 t "Stable" w l lw 2 lc rgb "#F0E440", \
+        slightlyStable u 2:1 t "Slightly stable" w l lw 2 lc rgb "#0072B2", \
+        neutral u 2:1 t "Neutral" w l lw 2 lc rgb "#D55E00", \
+        slightlyUnstable u 2:1 t "Slightly unstable" w l lw 2 lc rgb "#CC79A7", \
+        unstable u 2:1 t "Unstable" w l lw 2 lc rgb "#440154"
+PLT_VEER
+}
+
+
+#------------------------------------------------------------------------------
+
+# Requires gnuplot
+command -v gnuplot >/dev/null || {
+    echo "gnuplot not found - skipping graph creation" 1>&2
+    exit 1
+}
+
+# Requires awk
+command -v awk >/dev/null || {
+    echo "awk not found - skipping graph creation" 1>&2
+    exit 1
+}
+
+# Check "results" directory
+[ -d "results" ] || {
+    echo "No results directory found - skipping graph creation" 1>&2
+    exit 1
+}
+
+
+#------------------------------------------------------------------------------
+
+dirPlots="plots/dats"
+[ -d "$dirPlots" ] || rm -rf "plots" && mkdir -p "$dirPlots"
+
+
+plot_u_vs_z "$treeHeightRef" "$zRef" $setups
+
+plot_k_vs_z "$treeHeightRef" "$zRef" $setups
+
+print_Obukhov_length "$treeHeightRef" "$zRef" $setups
+
+plot_alpha_vs_z "$treeHeightRef" "$zRef" $setups
+
+
+#------------------------------------------------------------------------------

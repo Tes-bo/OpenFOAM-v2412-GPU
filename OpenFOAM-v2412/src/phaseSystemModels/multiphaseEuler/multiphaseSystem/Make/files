@@ -1,0 +1,29 @@
+phaseModel/phaseModel.C
+
+multiphaseSystem/multiphaseSystem.C
+
+diameter = diameterModels
+$(diameter)/diameterModel/diameterModel.C
+$(diameter)/constantDiameter/constantDiameter.C
+$(diameter)/isothermalDiameter/isothermalDiameter.C
+
+drag = interfacialModels/dragModels
+$(drag)/dragModel/dragModel.C
+$(drag)/Ergun/Ergun.C
+$(drag)/GidaspowErgunWenYu/GidaspowErgunWenYu.C
+$(drag)/GidaspowSchillerNaumann/GidaspowSchillerNaumann.C
+$(drag)/SchillerNaumann/SchillerNaumann.C
+$(drag)/Gibilaro/Gibilaro.C
+$(drag)/WenYu/WenYu.C
+$(drag)/SyamlalOBrien/SyamlalOBrien.C
+$(drag)/blended/blended.C
+$(drag)/interface/interface.C
+
+heatTransfer = interfacialModels/heatTransferModels
+$(heatTransfer)/heatTransferModel/heatTransferModel.C
+$(heatTransfer)/RanzMarshall/RanzMarshall.C
+
+derivedFvPatchFields/alphaContactAngle/alphaContactAngleFvPatchScalarField.C
+
+
+LIB = $(FOAM_LIBBIN)/libmultiphaseSystem

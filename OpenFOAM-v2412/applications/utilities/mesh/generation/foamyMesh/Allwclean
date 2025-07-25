@@ -1,0 +1,12 @@
+#!/bin/sh
+cd "${0%/*}" || exit    # Run from this directory
+
+wclean conformalVoronoiMesh
+wclean conformalVoronoi2DMesh
+wclean foamyQuadMesh
+wclean foamyHexMesh
+wclean foamyHexMeshSurfaceSimplify
+wclean foamyHexMeshBackgroundMesh
+wclean cellSizeAndAlignmentGrid
+
+#------------------------------------------------------------------------------

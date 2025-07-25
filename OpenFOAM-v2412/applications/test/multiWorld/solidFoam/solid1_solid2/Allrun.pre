@@ -1,0 +1,10 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+restore0Dir
+runApplication -s solid1 blockMesh -region solid1
+runApplication -s solid2 blockMesh -region solid2
+
+#------------------------------------------------------------------------------

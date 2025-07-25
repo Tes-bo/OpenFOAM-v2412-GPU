@@ -1,0 +1,23 @@
+// -*- C++ -*-
+//
+// Averaging of volume fields or fields on an externally loaded surface.
+avg-tracer0-0.25
+{
+    ${__settings_avg}
+    subRegion   sampled.plane-0.25;
+}
+
+avg-tracer0-0.45
+{
+    ${__settings_avg}
+    subRegion   sampled.plane-0.45;
+}
+
+avg-tracer0-0.55
+{
+    ${__settings_avg}
+    subRegion   sampled.plane-0.55;
+}
+
+
+// ************************************************************************* //

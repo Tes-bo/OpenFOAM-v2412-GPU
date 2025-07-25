@@ -1,0 +1,95 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+cavityCases="
+cavity
+cavityFine
+cavityGrade
+cavityHighRe
+cavityClipped
+"
+
+runMapFields()
+{
+    echo "Running mapFields from $1 to $2"
+    mapFields "$1" -case "$2" -sourceTime latestTime > "$2"/log.mapFields 2>&1
+}
+
+runMapFieldsConsistent()
+{
+    echo "Running mapFields from $1 to $2"
+    mapFields "$1" -case "$2" -sourceTime latestTime -consistent > "$2"/log.mapFields 2>&1
+}
+
+copySolutionDirs()
+{
+    echo "Copying $2/0* directory to $1"
+    cp -rf "$2"/0* "$1"
+}
+
+setCavityFine()
+{
+    blockMeshDict="$caseName/system/blockMeshDict"
+    controlDict="$caseName/system/controlDict"
+    sed s/"20 20 1"/"41 41 1"/g "$blockMeshDict" > temp.$$
+    mv -f temp.$$ "$blockMeshDict"
+    sed \
+        -e s/"\(startTime[ \t]*\) 0;"/"\1 0.5;"/g \
+        -e s/"\(endTime[ \t]*\) 0.5;"/"\1 0.7;"/g \
+        -e s/"\(deltaT[ \t]*\) 0.005;"/"\1 0.0025;"/g \
+        -e s/"\(writeControl[ \t]*\) timeStep;"/"\1 runTime;"/g \
+        -e s/"\(writeInterval[ \t]*\) 20;"/"\1 0.1;"/g \
+        "$controlDict" > temp.$$
+    mv -f temp.$$ "$controlDict"
+}
+
+setCavityHighRe()
+{
+    echo "Setting cavityHighRe to generate a secondary vortex"
+    controlDict="$caseName/system/controlDict"
+    transportProperties="$caseName/constant/transportProperties"
+    sed \
+        -e s/"\(startFrom[ \t]*\) startTime;"/"\1 latestTime;"/g \
+        -e s/"\(endTime[ \t]*\) 0.5;"/"\1 2.0;"/g \
+        "$controlDict" > temp.$$
+    mv -f temp.$$ "$controlDict"
+    sed s/"0.01"/"0.001"/g "$transportProperties" > temp.$$
+    mv -f temp.$$ "$transportProperties"
+}
+
+
+unset previousCase
+for caseName in $cavityCases
+do
+    case "$caseName" in
+    cavityFine)
+        cloneCase cavity "$caseName"
+        setCavityFine
+        ;;
+
+    cavityHighRe)
+        cloneCase cavity "$caseName"
+        setCavityHighRe
+        copySolutionDirs "$caseName" cavity
+        ;;
+    esac
+
+    ( cd "$caseName" && runApplication blockMesh )
+
+    case "$caseName" in
+    cavityFine | cavityGrade)
+        runMapFieldsConsistent "$previousCase" "$caseName"
+        ;;
+    cavityClipped)
+        cp -rf "$caseName"/0 "$caseName"/0.5
+        runMapFields cavity "$caseName"
+        ;;
+    esac
+
+    previousCase="$caseName"
+    ( cd "$caseName" && runApplication $(getApplication) )
+done
+
+#------------------------------------------------------------------------------

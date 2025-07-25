@@ -1,0 +1,27 @@
+#include "@_paraview_proxy_NAME@ServerManagerModelImplementation.h"
+#include "vtkSMProxy.h"
+#include <QRegularExpression>
+
+@_paraview_proxy_includes@
+//-----------------------------------------------------------------------------
+@_paraview_proxy_NAME@ServerManagerModelImplementation::@_paraview_proxy_NAME@ServerManagerModelImplementation(QObject* parentObject)
+  : QObject(parentObject)
+{
+  setObjectName("@_paraview_proxy_NAME@");
+}
+
+//-----------------------------------------------------------------------------
+@_paraview_proxy_NAME@ServerManagerModelImplementation::~@_paraview_proxy_NAME@ServerManagerModelImplementation() = default;
+
+//-----------------------------------------------------------------------------
+pqProxy* @_paraview_proxy_NAME@ServerManagerModelImplementation::createPQProxy(
+  const QString& regGroup, const QString& regName, vtkSMProxy* proxy, pqServer* server) const
+{
+  if (!proxy || !proxy->GetXMLGroup() || !proxy->GetXMLName())
+  {
+    return nullptr;
+  }
+
+@_paraview_proxy_body@
+  return nullptr;
+}

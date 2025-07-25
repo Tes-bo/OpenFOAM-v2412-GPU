@@ -1,0 +1,119 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+scale   0.001;
+
+vertices
+(
+    // Block d
+    ( 50 -17 -12.5)
+    (100 -17 -12.5)
+    (100  -2 -12.5)
+    ( 50  -2 -12.5)
+    ( 50 -17  12.5)
+    (100 -17  12.5)
+    (100  -2  12.5)
+    ( 50  -2  12.5)
+
+    // Block e
+    (  0 -17  -12.5)
+    ( 50 -17  -12.5)
+    ( 50  -2  -12.5)
+    (  0  -2  -12.5)
+    (  0 -17   12.5)
+    ( 50 -17   12.5)
+    ( 50  -2   12.5)
+    (  0  -2   12.5)
+
+    // Block f
+    (  0 -19 -12.5)
+    ( 50 -19 -12.5)
+    ( 50 -17 -12.5)
+    (  0 -17 -12.5)
+    (  0 -19  12.5)
+    ( 50 -19  12.5)
+    ( 50 -17  12.5)
+    (  0 -17  12.5)
+);
+
+blocks
+(
+    // Block d
+    hex (0 1 2 3 4 5 6 7) block-d (4 5 4) grading (1 1 1)
+
+    // Block e
+    hex (8 9 10 11 12 13 14 15) block-e (4 4 4) grading (1 1 1)
+
+    // Block f
+    hex (16 17 18 19 20 21 22 23) block-f (5 4 4) grading (1 1 1)
+);
+
+
+edges
+(
+);
+
+
+boundary
+(
+    mid6
+    {
+        type patch;
+        faces
+        (
+            (0 0) // Block d
+        );
+    }
+    mid7
+    {
+        type patch;
+        faces
+        (
+            (1 1) // Block e
+        );
+    }
+    mid8
+    {
+        type patch;
+        faces
+        (
+            (1 2) // Block e
+        );
+    }
+    mid9
+    {
+        type patch;
+        faces
+        (
+            (2 3) // Block e
+        );
+    }
+
+    defaultFaces
+    {
+        type    patch;
+        faces   ();
+    }
+);
+
+
+mergePatchPairs
+(
+    (mid6 mid7)
+    (mid8 mid9)
+);
+
+// ************************************************************************* //

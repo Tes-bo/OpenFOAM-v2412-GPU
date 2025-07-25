@@ -1,0 +1,4 @@
+velocityQuadratureNode/volVelocityNode.C
+velocityQuadratureNode/surfaceVelocityNode.C
+
+LIB = $(FOAM_MODULE_LIBBIN)/libquadratureNode

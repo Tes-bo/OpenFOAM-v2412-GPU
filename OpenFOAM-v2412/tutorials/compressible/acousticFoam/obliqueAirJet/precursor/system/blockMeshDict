@@ -1,0 +1,231 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+scale       1;
+
+x_up        2.5;
+x_down      3.5;
+y_pad       4.0;
+z_pad       1.0;
+
+x0          0.0;
+x1          $x_up;
+x2          #eval{ $x1 + 1.0 };
+x3          #eval{ $x2 + $x_down };
+
+y0          0.0;
+y1          $y_pad;
+y2          #eval{ $y1 + 1.0 };
+y3          #eval{ $y2 + $y_pad };
+
+z0          0.0;
+z1          1.0;
+z2          #eval{ $z1 + $z_pad };
+
+nx1         40;
+nx2         40;
+nx3         80;
+ny1         30;
+ny2         $nx2;
+ny3         $ny1;
+nz1         $nx2;
+nz2         40;
+
+vertices
+(
+    ($x0 $y0 $z0)  //  0
+    ($x1 $y0 $z0)  //  1
+    ($x2 $y0 $z0)  //  2
+    ($x3 $y0 $z0)  //  3
+    ($x0 $y0 $z1)  //  4
+    ($x1 $y0 $z1)  //  5
+    ($x2 $y0 $z1)  //  6
+    ($x3 $y0 $z1)  //  7
+    ($x0 $y0 $z2)  //  8
+    ($x1 $y0 $z2)  //  9
+    ($x2 $y0 $z2)  // 10
+    ($x3 $y0 $z2)  // 11
+
+    ($x0 $y1 $z0)  // 12
+    ($x1 $y1 $z0)  // 13
+    ($x2 $y1 $z0)  // 14
+    ($x3 $y1 $z0)  // 15
+    ($x0 $y1 $z1)  // 16
+    ($x1 $y1 $z1)  // 17
+    ($x2 $y1 $z1)  // 18
+    ($x3 $y1 $z1)  // 19
+    ($x0 $y1 $z2)  // 20
+    ($x1 $y1 $z2)  // 21
+    ($x2 $y1 $z2)  // 22
+    ($x3 $y1 $z2)  // 23
+
+    ($x0 $y2 $z0)  // 24
+    ($x1 $y2 $z0)  // 25
+    ($x2 $y2 $z0)  // 26
+    ($x3 $y2 $z0)  // 27
+    ($x0 $y2 $z1)  // 28
+    ($x1 $y2 $z1)  // 29
+    ($x2 $y2 $z1)  // 30
+    ($x3 $y2 $z1)  // 31
+    ($x0 $y2 $z2)  // 32
+    ($x1 $y2 $z2)  // 33
+    ($x2 $y2 $z2)  // 34
+    ($x3 $y2 $z2)  // 35
+
+    ($x0 $y3 $z0)  // 36
+    ($x1 $y3 $z0)  // 37
+    ($x2 $y3 $z0)  // 38
+    ($x3 $y3 $z0)  // 39
+    ($x0 $y3 $z1)  // 40
+    ($x1 $y3 $z1)  // 41
+    ($x2 $y3 $z1)  // 42
+    ($x3 $y3 $z1)  // 43
+    ($x0 $y3 $z2)  // 44
+    ($x1 $y3 $z2)  // 45
+    ($x2 $y3 $z2)  // 46
+    ($x3 $y3 $z2)  // 47
+);
+
+edges
+(
+);
+
+x_up     ((0.4 0.25 0.5)(0.3 0.25 0.75)(0.3 0.5 0.2));
+x_down   ((0.15 0.45 3)(0.25 0.35 1.5)(0.6 0.2 5));
+z_top    ((0.2 0.25 4)(0.6 0.5 1)(0.2 0.25 0.25));
+z_bottom ((0.2 0.25 4)(0.6 0.5 1)(0.2 0.25 0.25));
+y_side1  ((0.4 0.1 0.5)(0.4 0.2 0.5)(0.3 0.7 0.1));
+y_side2  ((0.3 0.7 10)(0.4 0.2 2)(0.4 0.1 2));
+
+blocks
+(
+    hex ( 0  1 13 12  4  5 17 16) ($nx1 $ny1 $nz1) simpleGrading ( $x_up $y_side1  $z_bottom)
+    hex ( 1  2 14 13  5  6 18 17) ($nx2 $ny1 $nz1) simpleGrading ( 1   $y_side1  $z_bottom)
+    hex ( 2  3 15 14  6  7 19 18) ($nx3 $ny1 $nz1) simpleGrading ($x_down   $y_side1  $z_bottom)
+    hex ( 4  5 17 16  8  9 21 20) ($nx1 $ny1 $nz2) simpleGrading ( $x_up $y_side1 $z_top)
+    hex ( 5  6 18 17  9 10 22 21) ($nx2 $ny1 $nz2) simpleGrading ( 1   $y_side1 $z_top)
+    hex ( 6  7 19 18 10 11 23 22) ($nx3 $ny1 $nz2) simpleGrading ($x_down   $y_side1 $z_top)
+
+    hex (12 13 25 24 16 17 29 28) ($nx1 $ny2 $nz1) simpleGrading ($x_up 1 $z_bottom)
+    hex (14 15 27 26 18 19 31 30) ($nx3 $ny2 $nz1) simpleGrading ($x_down 1 $z_bottom)
+    hex (16 17 29 28 20 21 33 32) ($nx1 $ny2 $nz2) simpleGrading ($x_up 1 $z_top)
+    hex (17 18 30 29 21 22 34 33) ($nx2 $ny2 $nz2) simpleGrading (1 1 $z_top)
+    hex (18 19 31 30 22 23 35 34) ($nx3 $ny2 $nz2) simpleGrading ($x_down 1 $z_top)
+
+    hex (24 25 37 36 28 29 41 40) ($nx1 $ny3 $nz1) simpleGrading ($x_up $y_side2 $z_bottom)
+    hex (25 26 38 37 29 30 42 41) ($nx2 $ny3 $nz1) simpleGrading (1 $y_side2 $z_bottom)
+    hex (26 27 39 38 30 31 43 42) ($nx3 $ny3 $nz1) simpleGrading ($x_down $y_side2 $z_bottom)
+    hex (28 29 41 40 32 33 45 44) ($nx1 $ny3 $nz2) simpleGrading ($x_up $y_side2 $z_top)
+    hex (29 30 42 41 33 34 46 45) ($nx2 $ny3 $nz2) simpleGrading (1 $y_side2 $z_top)
+    hex (30 31 43 42 34 35 47 46) ($nx3 $ny3 $nz2) simpleGrading ($x_down $y_side2 $z_top)
+);
+
+boundary
+(
+    cube
+    {
+        type    wall;
+        faces
+        (
+            (13 17 18 14)
+            (14 18 30 26)
+            (25 29 30 26)
+            (13 25 29 17)
+            (17 29 30 18)
+        );
+    }
+    topAndBottom
+    {
+        type    wall;
+        faces
+        (
+            // floor
+            ( 0 12 13  1)
+            ( 1 13 14  2)
+            ( 2 14 15  3)
+            (12 24 25 13)
+            (14 26 27 15)
+            (24 36 37 25)
+            (25 37 38 26)
+            (26 38 39 27)
+
+            // top
+            ( 8  9 21 20)
+            ( 9 10 22 21)
+            (10 11 23 22)
+            (20 21 33 32)
+            (21 22 34 33)
+            (22 23 35 34)
+            (32 33 45 44)
+            (33 34 46 45)
+            (34 35 47 46)
+        );
+    }
+
+    sides
+    {
+        type    patch;
+        faces
+        (
+            // minY
+            ( 0  1  5  4)
+            ( 1  2  6  5)
+            ( 2  3  7  6)
+            ( 4  5  9  8)
+            ( 5  6 10  9)
+            ( 6  7 11 10)
+
+            // maxY
+            (36 40 41 37)
+            (37 41 42 38)
+            (38 42 43 39)
+            (40 44 45 41)
+            (41 45 46 42)
+            (42 46 47 43)
+        );
+    }
+
+    inlet
+    {
+        type    patch;
+        faces
+        (
+            ( 0  4 16 12)
+            (12 16 28 24)
+            (24 28 40 36)
+            ( 4  8 20 16)
+            (16 20 32 28)
+            (28 32 44 40)
+        );
+    }
+
+    outlet
+    {
+        type    patch;
+        faces
+        (
+            ( 3 15 19  7)
+            (15 27 31 19)
+            (27 39 43 31)
+            ( 7 19 23 11)
+            (19 31 35 23)
+            (31 43 47 35)
+        );
+    }
+);
+
+
+// ************************************************************************* //

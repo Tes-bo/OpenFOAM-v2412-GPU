@@ -1,0 +1,61 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      dictionary;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// message from a word
+#message message-word
+
+// message from a string
+#message "message string [] from ${FOAM_API:-unset}"
+
+// message from a braced-block string
+#message { message block string from ${FOAM_API:-unset} }
+
+
+// word in primitive entry
+
+foamApi using #word "_ ${FOAM_API:-unset}" version;
+
+
+// word as dictionary entry (string syntax)
+
+#word "dict1entry_ ${FOAM_API:-unset}"
+{
+    value1 10;
+}
+
+
+// word as dictionary entry (braced-block string)
+
+#word { dict2entry_ ${FOAM_API:-unset} }
+{
+    value1 20;
+}
+
+#word
+{
+    dict3entry
+    ${FOAM_API:+_}  // Use '_' separator
+    ${FOAM_API}     // The value (if any)
+}
+{
+    // This is a funny corner-case for #eval.
+    // It also accepts a single word ... not that many make sense though
+
+    value1 #eval pi();
+}
+
+
+// ************************************************************************* //

@@ -1,0 +1,3 @@
+lumpedPointZones.C
+
+EXE = $(FOAM_APPBIN)/lumpedPointZones

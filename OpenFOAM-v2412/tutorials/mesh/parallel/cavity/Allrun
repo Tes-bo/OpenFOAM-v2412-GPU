@@ -1,0 +1,50 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+restore0Dir
+
+runApplication blockMesh
+
+decompDict5="-decomposeParDict system/decomposeParDict.5"
+fileHandler="-fileHandler uncollated"
+
+# redistributePar to do decomposition
+runParallel -s decompose redistributePar -decompose $fileHandler
+
+# Bit of renumbering and running
+runParallel -s CuthillMcKee renumberMesh -overwrite $fileHandler
+runParallel -s CuthillMcKee icoFoam $fileHandler
+
+# Bit of bad renumbering and running
+runParallel -s random renumberMesh -renumber-method random -overwrite $fileHandler
+runParallel -s random icoFoam $fileHandler
+
+# Pick up last result
+cp system/controlDict-latestTime system/controlDict
+
+# Redistribute to 5 processors.
+# Note that new processors only get written with a mesh at the current time.
+# Use -overwrite instead to write the mesh to constant
+runParallel -s 5 $decompDict5 redistributePar -cellDist $fileHandler
+
+latestTime=$(foamListTimes -processor -latestTime)
+
+echo "New mesh distribution. Time = $latestTime"
+
+# Run a bit more
+runParallel -s 5 $decompDict5 icoFoam $fileHandler
+
+# Reconstruct mesh and results.
+# The time argument to make sure we only pick up the new decomposition
+if [ -n "$latestTime" ]
+then
+    runParallel -s reconstruct -np 5 redistributePar -reconstruct \
+        -time "${latestTime}:" $fileHandler
+else
+    runParallel -s reconstruct -np 5 redistributePar -reconstruct \
+        -latestTime $fileHandler
+fi
+
+#------------------------------------------------------------------------------

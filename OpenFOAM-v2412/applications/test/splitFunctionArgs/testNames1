@@ -1,0 +1,47 @@
+# -----------------------------------------------------------------------------
+# Test names for splitting.  Comment character as per -*- sh -*- mode
+#
+# Prefix with "function: " to test with function name splitting
+
+function: basic
+
+function: func1( a  ,  b );
+
+function: func2(a, value=10);
+
+# discard or flag bad/missing parameters?
+function: func3(a , , , value=10);
+
+function: func4();
+
+function: func5( abc );
+
+start=1, end=2
+
+start=1, end=2,
+
+start=100, end=  200, abc
+
+value=100
+
+start=1, end=2
+
+origin=(0 0 0), scale=2, normal=(0 0 1)
+
+
+# Canonical with named args
+function: patchAverage(patch=inlet, p)
+
+# Canonical with unnamed and named args
+function: patchAverage(other, patch=inlet, pval)
+
+
+function: patchAverage(patch=(inlet|outlet), p)
+
+# General
+(a, b)
+
+allow=(inlet|outlet), deny=false, regular(value)
+
+
+# -----------------------------------------------------------------------------

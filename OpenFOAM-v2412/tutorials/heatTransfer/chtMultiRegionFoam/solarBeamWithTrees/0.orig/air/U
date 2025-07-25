@@ -1,0 +1,80 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volVectorField;
+    object      U;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [ 0 1 -1 0 0 0 0 ];
+
+internalField   uniform ( 0.1 0 0 );
+
+boundaryField
+{
+    maxY
+    {
+        type            pressureInletOutletVelocity;
+        value           uniform ( 0 0 0 );
+        phi             phi;
+    }
+
+    minX
+    {
+        type            pressureInletOutletVelocity;
+        value           uniform ( 0 0 0 );
+        phi             phi;
+    }
+
+    maxX
+    {
+        type            pressureInletOutletVelocity;
+        value           uniform ( 0 0 0 );
+        phi             phi;
+    }
+
+    minY
+    {
+        type            pressureInletOutletVelocity;
+        value           uniform ( 0 0 0 );
+        phi             phi;
+    }
+
+    maxZ
+    {
+        type            pressureInletOutletVelocity;
+        value           uniform ( 0 0 0 );
+        phi             phi;
+    }
+
+    air_to_floor
+    {
+        type            fixedValue;
+        value           uniform ( 0 0 0 );
+        phi             phi;
+    }
+
+    air_to_solid
+    {
+        type            fixedValue;
+        value           uniform ( 0 0 0 );
+        phi             phi;
+    }
+
+    region0_to_floor_floor_zone
+    {
+        type            fixedValue;
+        value           uniform ( 0 0 0 );
+    }
+}
+
+
+// ************************************************************************* //

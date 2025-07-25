@@ -1,0 +1,35 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      dictionary;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+calc1 #calc #{    degToRad() *
+        constant::mathematical::pi *
+        cos(100.0) * mag(19) + 1 * constant::mathematical::pi
+            +
+        // Skip comments
+        constant::mathematical::pi * 15 + hypot(3.0,4.0) #};
+
+calc3   (#calc"hypot(3.0,4.0)", #calc"sqrt(2.0)", #calc"constant::mathematical::pi");
+
+calc4   #calc"$calc1 * 10";
+
+pi()    #calc #{ constant::mathematical::pi #};
+
+sinh(0.1)  #calc #{ sinh(0.1) #};
+cosh(0.1)  #calc #{ cosh(0.1) #};
+
+sqrt100    #calc #{((sqrt(100.0)))#};
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

@@ -1,0 +1,29 @@
+NAME
+  VTK::IOParallelXdmf3
+LIBRARY_NAME
+  vtkIOParallelXdmf3
+KIT
+  VTK::Parallel
+IMPLEMENTS
+  VTK::IOXdmf3
+SPDX_LICENSE_IDENTIFIER
+  BSD-3-Clause
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
+DEPENDS
+  VTK::CommonCore
+  VTK::CommonDataModel
+  VTK::CommonExecutionModel
+  VTK::IOLegacy
+  VTK::IOXdmf3
+  VTK::ParallelCore
+PRIVATE_DEPENDS
+  VTK::FiltersExtraction
+  VTK::mpi
+  VTK::vtksys
+  VTK::xdmf3
+TEST_DEPENDS
+  VTK::FiltersGeneral
+  VTK::ParallelMPI
+  VTK::TestingCore
+  VTK::TestingRendering

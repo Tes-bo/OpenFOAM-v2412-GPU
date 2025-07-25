@@ -1,0 +1,53 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta app="Cinema:View" version="2.2">
+    <meta charset="utf-8">
+    <link rel='stylesheet' href='cinema/lib/2.2/common.css'>
+    <link rel="stylesheet" href="cinema/view/2.2/css/select-css.css">
+    <link rel="stylesheet" href="cinema/view/2.2/css/range-css.css">
+
+    <!-- Begin: Cinema Local File Install -->
+    <!--
+    <script src='cinema/lib/d3.v4.min.js'></script>
+    -->
+    <!-- End:   Cinema Local File Install -->
+    <!-- Begin: Cinema External Access Install -->
+	<script src="https://d3js.org/d3.v4.min.js"></script>
+    <!-- End:   Cinema External Access Install -->
+</head>
+
+<body>
+<div class="container">
+<header>
+    <!-- Begin: Cinema Viewer Title -->
+    Cinema:View
+    <!-- End:   Cinema Viewer Title -->
+</header>
+
+<div id="resultsArea">
+    <div class="imageArea flex-container" id="imageArea"></div>
+    <div class="sliderArea">
+        <div id="delectDB">
+            <p> Select Dataset:
+                <select id="dbList" class="select-css" onchange="optionSelected();">
+                </select>
+            </p>
+        </div>
+        <div id="imgSize">
+                <p>Image Size:</p>
+                <input type="range" min="1" max="100" id="imageSize" class="slidecontainer" step="1">
+        </div>
+        <div id="sliderContainer" class="sliderContainer">
+        </div>
+    </div>
+</div>
+
+<footer><img src="cinema/lib/2.2/img/cinema_logo_filmreel_named_100px_white.png" height=30px></img></footer>
+
+</div>
+<script src="cinema/lib/2.2/databases.js"></script>
+<script src="cinema/view/2.2/main.js"></script>
+</body>
+</html>

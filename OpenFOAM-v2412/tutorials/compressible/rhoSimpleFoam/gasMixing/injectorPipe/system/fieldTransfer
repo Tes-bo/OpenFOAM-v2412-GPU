@@ -1,0 +1,71 @@
+// -*- C++ -*-
+
+// Sample volume fields to surfaces and hold on registry.
+sampled
+{
+    type    surfaces;
+    libs    (sampling);
+    log     true;
+    verbose true;
+
+    executeControl  timeStep;
+    executeInterval 1;
+    writeControl    none;
+    surfaceFormat   none;
+
+    sampleOnExecute true;
+
+    // Includes a rhoU derived field
+    fields  (rho U tracer0 rhoU);
+
+    // Remove derived fields we created prior
+    removeFieldsOnExecute   (pTotal);
+
+    _sampleMesh
+    {
+        type    meshedSurface;
+        source  cells;
+        store   true;
+    }
+
+    surfaces
+    {
+        plane-0.25
+        {
+            ${_sampleMesh}
+            surface     plane-0.25.stl;
+        }
+        plane-0.45
+        {
+            ${_sampleMesh}
+            surface     plane-0.45.stl;
+        }
+        plane-0.55
+        {
+            ${_sampleMesh}
+            surface     plane-0.55.stl;
+        }
+
+        outerplane-0.45
+        {
+            type        distanceSurface;
+            // defaults:
+            distance    0;
+            signed      true;
+            isoMethod   topo;
+
+            surfaceType disk;
+
+            origin      (0.45 0 0);
+            normal      (1 0 0);
+            radius      0.09;
+            innerRadius 0.05;
+
+            topology    largestRegion;
+            store       true;
+        }
+    }
+}
+
+
+// ************************************************************************* //

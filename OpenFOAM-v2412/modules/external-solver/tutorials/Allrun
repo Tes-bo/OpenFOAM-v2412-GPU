@@ -1,0 +1,28 @@
+#!/bin/sh
+cd "${0%/*}" || exit                            # Run from this directory
+## . ${WM_PROJECT_DIR:?}/bin/tools/LogFunctions    # Tutorial logfile functions
+#------------------------------------------------------------------------------
+
+# Test for petscFoam
+if command -v foamHasLibrary >/dev/null \
+&& ! foamHasLibrary -verbose petscFoam
+then
+    /bin/cat<<INFORMATION 1>&2
+
+==> petsc not found?
+Define manually, enable in OpenFOAM etc/bashrc, or try the following [POSIX]:
+
+    eval \$(foamEtcFile -sh -config petsc -- -force)
+
+==
+INFORMATION
+
+    echo "Skip petscFoam tutorials"
+    exit 1
+fi
+
+foamRunTutorials -skipFirst $*          # Run tutorials recursively
+
+## collectLogs
+
+#------------------------------------------------------------------------------

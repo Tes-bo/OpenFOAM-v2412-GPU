@@ -1,0 +1,294 @@
+#!/bin/bash
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#-------------------------------------------------------------------------------
+#   Copyright (C) 2019-2021 OpenCFD Ltd.
+#-------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     wrap-lemon
+#
+# Usage
+#     wrap-lemon [options] [lemon options/args]
+#
+# Description
+#     A wrapper to use lemon compiled with OpenFOAM with the appropriate
+#     parser template.
+#
+#     When called with m4 wrapping, it sets the m4 -I include to have
+#     the following:
+#     - the directory of the parser.
+#     - include/ in the top-level source tree of the current target
+#       (eg, src/finiteVolume/include/ when compiling libfiniteVolume)
+#     - include/ from OpenFOAM
+#
+#------------------------------------------------------------------------------
+
+binDir="${WMAKE_BIN:-$WM_PROJECT_DIR/platforms/tools/$WM_ARCH$WM_COMPILER}"
+etcDir="${WM_DIR:-$WM_PROJECT_DIR/wmake}/etc"
+
+# Executable and skeleton locations
+lemon="${binDir}/lemon"
+skel="-T${etcDir}/lempar.c"
+
+printHelp() {
+    cat<<USAGE
+
+Usage: ${0##*/} [options] [lemon args/options]
+
+options:
+  -header           Generate header only, suppressing other output
+  -dry-run          Process m4 only (output on stdout)
+  -grammar          Output grammar tables (stdout)
+  -no-tmp           Do not retain temporary m4 processed files
+  -h, -help         Print the usage
+
+A lemon wrapper using predefined executable and skeleton locations.
+Files ending with 'm4' (eg, .lyym4, .lyy-m4) will be filtered through
+the m4(1) macro processor and lemon will be called with 'm4' as a macro
+definition, which can be used in conditions (%ifdef m4, %ifndef m4)
+
+USAGE
+    exit 0  # Clean exit
+}
+
+#------------------------------------------------------------------------------
+# Parse arguments and options
+#------------------------------------------------------------------------------
+
+# Eg, wrap-lemon -header
+unset optDryRun optHeader optGrammar optRemoveTmp m4Flags
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    (-h | -help*)   printHelp ;;
+
+    (-dry-run)      optDryRun=true ;;
+    (-head*)        optHeader=true ;;
+    (-gram*)        optGrammar=true ;;
+    (-no-tmp)       optRemoveTmp=true ;;
+
+    (*) break ;;
+    esac
+    shift
+done
+
+
+#------------------------------------------------------------------------------
+
+# Additional m4Flags (for includes etc)
+#
+# $1 : path-qualified name of the parser
+#
+# Set includes accordingly to
+# - the directory containing the parser
+# - include/ in the top-level source tree of the current target
+# - include/ from OpenFOAM
+
+defineM4Flags()
+{
+    # Always include the directory containing the parser file
+    m4Flags="$m4Flags${m4Flags:+ }-I$(dirname ${1:-.})"
+
+    local proj="$WM_PROJECT_DIR/src/${WM_PROJECT:-OpenFOAM}"
+    local curr="$PWD"
+
+    # Called from the Makefile (PWD contains the parser source)
+    # or from elsewhere (eg, createCode)?
+    if [ ! -f "$curr/Make/options" ]
+    then
+        # No Make/options (eg createCode) - discover with "wmake -pwd"
+        curr="$(wmake -pwd 2>/dev/null)"
+    fi
+
+    # Avoid examining twice
+    [ "$curr" != "$proj" ] || unset curr
+
+    if [ -n "$curr" ] && [ -d "$curr/include" ]
+    then
+        m4Flags="$m4Flags -I$curr/include"
+    fi
+
+    if [ -n "$proj" ] && [ -d "$proj/include" ]
+    then
+        m4Flags="$m4Flags -I$proj/include"
+    fi
+}
+
+
+#------------------------------------------------------------------------------
+# Get some information based on the lemon options
+# * '-dXX' for the output directory
+# * '-eXX' for the output extension
+# The last argument is the input file
+
+unset tmpDir tmpFile outputDir parser extCode
+findLemonOptions()
+{
+    while [ "$#" -gt 1 ]
+    do
+        case "$1" in
+        (-d*) outputDir="${1#-d}" ;;
+        (-e*) extCode="${1#-e}" ;;
+        esac
+        shift
+    done
+
+    if [ "$#" -eq 1 ]
+    then
+        parser="$1"
+    fi
+}
+
+findLemonOptions "$@"
+
+unset parserFlags extParser usingM4
+
+# Detect m4 use (defines parser macro too) and get extension without m4
+case "$parser" in
+(*.*m4)
+    usingM4=true
+    parserFlags="-Dm4"
+    defineM4Flags "$parser"
+
+    extParser=".${parser##*.}"      # The extension (with dot)
+    extParser="${extParser%m4}"     # Without trailing m4
+    extParser="${extParser/%[-_]/}" # Without - or _ separators
+    ;;
+esac
+
+if [ -n "$optGrammar" ]
+then
+    parserFlags="${parserFlags}${parserFlags:+ }-g"
+fi
+
+
+exitCode=0  # No failures
+
+#------------------------------------------------------------------------------
+# Dry-run
+
+if [ "$optDryRun" = true ]
+then
+    if [ "$usingM4" = true ]
+    then
+        echo "m4 flags: $m4Flags" 1>&2
+        m4 $m4Flags "$parser"; exitCode=$?
+    else
+        echo "Nothing to do - not using m4" 2>/dev/null
+    fi
+    [ "$exitCode" -eq 0 ] || echo "m4 failed" 2>/dev/null
+    exit "$exitCode"  # Done
+fi
+
+
+#------------------------------------------------------------------------------
+
+unset tmpFile tmpDir
+
+if [ -n "$optHeader" ]
+then
+    ## echo "${0##*/} : generate header" 1>&2
+
+    # Drop last argument (the parser input file)
+    set -- "${@:1:${#}-1}"
+
+    # Header only, which means we create a temp directory for the output
+    tmpDir="lemonWrapper-$$"
+    rm -rf "$tmpDir" 2>/dev/null
+    mkdir "$tmpDir" 2>/dev/null
+
+    trap 'rm -rf $tmpDir; exit $exitCode' EXIT TERM INT
+
+    if [ "$usingM4" = true ]
+    then
+        # Using m4 - redirect to a temporary file
+        tmpFile="$tmpDir/${parser##*/}"
+        tmpFile="${tmpFile%.*}$extParser"   # Eg, from .lyy-m4 -> .lyy
+
+        if m4 $m4Flags "$parser" > "$tmpFile" && [ -f "$tmpFile" ]
+        then
+            parser="$tmpFile"
+        else
+            echo "m4 stage failed on $parser" 2>/dev/null
+            exitCode=1
+        fi
+    fi
+
+    if [ "$exitCode" -eq 0 ]
+    then
+        "$lemon" "$skel" "-d$tmpDir" "$@" $parserFlags "$parser"
+        exitCode=$?
+    fi
+
+    if [ "$exitCode" -eq 0 ]
+    then
+        for src in "$tmpDir"/*.h
+        do
+            dst="${src##*/}"
+            if [ -f "$src" ]
+            then
+                if ! cmp "$src" "$dst" 2>/dev/null
+                then
+                    mv "$src" "$dst"
+                    echo "Updating $dst" 1>&2
+                fi
+            fi
+        done
+    fi
+
+elif [ "$usingM4" = true ]
+then
+    ## echo "${0##*/} : generate code (with m4 filtering)" 1>&2
+
+    # Drop last argument (the parser input file)
+    set -- "${@:1:${#}-1}"
+
+    # Filter via m4
+    if [ -n "$outputDir" ]
+    then
+        tmpFile="$outputDir/${parser##*/}"
+    else
+        tmpFile="${parser}"
+    fi
+    tmpFile="${tmpFile%.*}$extParser"   # Eg, from .lyy-m4 -> .lyy
+
+    if [ -n "$optRemoveTmp" ]
+    then
+        trap 'rm -f $tmpFile; exit $exitCode' EXIT TERM INT
+    fi
+
+    if m4 $m4Flags "$parser" > "$tmpFile" && [ -f "$tmpFile" ]
+    then
+        "$lemon" "$skel" "$@" $parserFlags "$tmpFile"
+        exitCode=$?
+    else
+        echo "m4 stage failed on $parser" 2>/dev/null
+        exitCode=1
+    fi
+
+    if [ -z "$optRemoveTmp" ]
+    then
+        echo 2>/dev/null
+        echo "Retaining intermediate: $tmpFile" 2>/dev/null
+    fi
+
+else
+
+    # No special handling
+    ## echo "${0##*/} : generate code" 1>&2
+
+    "$lemon" "$skel" "$@"
+    exitCode=$?
+fi
+
+
+exit "$exitCode"   # Exit with lemon return code
+
+#------------------------------------------------------------------------------

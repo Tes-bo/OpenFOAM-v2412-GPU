@@ -1,0 +1,37 @@
+phaseSystem = $(LIB_SRC)/phaseSystemModels/multiphaseInter
+
+EXE_INC = \
+    -I${phaseSystem}/phasesSystem/lnInclude \
+    -I${phaseSystem}/compressibleMultiPhaseTurbulenceModels/lnInclude \
+    -I$(LIB_SRC)/finiteVolume/lnInclude \
+    -I$(LIB_SRC)/fvOptions/lnInclude\
+    -I$(LIB_SRC)/meshTools/lnInclude \
+    -I$(LIB_SRC)/sampling/lnInclude \
+    -I$(LIB_SRC)/dynamicFvMesh/lnInclude \
+    -I$(LIB_SRC)/transportModels/compressible/lnInclude \
+    -I$(LIB_SRC)/TurbulenceModels/turbulenceModels/lnInclude \
+    -I$(LIB_SRC)/TurbulenceModels/compressible/lnInclude \
+    -I$(LIB_SRC)/thermophysicalModels/radiation/lnInclude \
+    -I$(LIB_SRC)/thermophysicalModels/basic/lnInclude \
+    -I$(LIB_SRC)/thermophysicalModels/specie/lnInclude \
+    -I$(LIB_SRC)/thermophysicalModels/reactionThermo/lnInclude \
+    -I$(FOAM_SOLVERS)/multiphase/interFoam
+
+EXE_LIBS = \
+    -lfiniteVolume \
+    -lfvOptions \
+    -lmeshTools \
+    -lsampling \
+    -ldynamicFvMesh \
+    -lturbulenceModels \
+    -lcompressibleTurbulenceModels \
+    -lthermoTools \
+    -lcompressibleTransportModels \
+    -lradiationModels \
+    -lfluidThermophysicalModels \
+    -lsolidThermo \
+    -lsolidSpecie \
+    -ltwoPhaseProperties \
+    -llaserDTRM \
+    -lincompressibleMultiphaseSystems \
+    -lcompressibleMultiPhaseTurbulenceModels

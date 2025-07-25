@@ -1,0 +1,46 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+#- Run blockMesh with projection
+runApplication blockMesh
+
+# Optional
+
+    ##- Extrude very thin cells to make it harder. Note: requires a
+    ##- pointSmoother first before doing the displacementLaplacian
+    #runApplication extrudeMesh
+
+    #- Refine some cells
+    runApplication topoSet
+    runApplication refineHexMesh c0 -overwrite
+
+
+#- Generate pointMesh with additional feature patches
+#  (in constant/pointMesh/boundary). Extracted outside of mesh is not used.
+runApplication surfaceMeshExtract -featureAngle 45 \
+    constant/triSurface/blockMesh.obj
+
+#- Set the initial field
+restore0Dir
+
+#- TBD. move triSurfaces to resources
+#mkdir -p constant/triSurface
+#cp -f \
+#    "$FOAM_TUTORIALS"/resources/geometry/box222.obj \
+#    constant/triSurface/
+
+#- Extract features from surface. Writes .eMesh
+runApplication surfaceFeatureExtract
+
+##- Morph mesh to the surface (.obj file) and feature-edges (.eMesh file)
+#runApplication moveDynamicMesh
+
+runApplication decomposePar
+
+runParallel moveDynamicMesh
+
+runApplication reconstructPar
+
+#------------------------------------------------------------------------------

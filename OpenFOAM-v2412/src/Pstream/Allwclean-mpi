@@ -1,0 +1,9 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/wmake/scripts/wmakeFunctions  # Require wmake functions
+
+#------------------------------------------------------------------------------
+
+wcleanLibMpi mpi
+
+#------------------------------------------------------------------------------

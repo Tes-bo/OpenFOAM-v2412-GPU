@@ -1,0 +1,5 @@
+scalarTransport/scalarTransport.C
+energyTransport/energyTransport.C
+electricPotential/electricPotential.C
+
+LIB = $(FOAM_LIBBIN)/libsolverFunctionObjects

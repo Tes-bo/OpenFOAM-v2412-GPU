@@ -1,0 +1,16 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+#------------------------------------------------------------------------------
+
+BASE="parcelInBox"
+
+for cont in "pure" "slight" "full"
+do
+    cp -rf "$BASE" "$BASE-$cont"
+
+    (cd ./$BASE-$cont && ./Allrun $cont)
+done
+
+./plot
+
+#------------------------------------------------------------------------------

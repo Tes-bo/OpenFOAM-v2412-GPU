@@ -1,0 +1,18 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+#- Run in multi-region mode using chtMultiRegionFoam
+(   cd solid1_solid2 && ./Allrun )
+
+#- Run in multi-world mode
+#  Could run chtMultiRegionFoam with single solid instead of solidFoam
+(cd solid1 && runApplication blockMesh)
+(cd solid2 && runApplication blockMesh)
+mpirun -app mpirun.schema
+
+#- Run in multi-region mode using implicit-coupled chtMultiRegionFoam
+(   cd solid1_solid2 && ./Allrun.coupled )
+
+#------------------------------------------------------------------------------

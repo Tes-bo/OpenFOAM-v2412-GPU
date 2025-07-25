@@ -1,0 +1,51 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      fvOptions;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+airDeflection
+{
+    type            directionalPressureGradientExplicitSource;
+    active          true;
+
+    directionalPressureGradientExplicitSourceCoeffs
+    {
+        selectionMode   cellZone;
+        cellZone        c1Zone;
+
+        fields      (U);
+        flowDir     (1 2 0);        // flow direction
+        relaxationFactor    0.3;
+
+        faceZone    f1Zone;
+
+        //Pressure drop model [Pa]
+        model       DarcyForchheimer;//volumetricFlowRateTable/constant
+
+        //DarcyForchheimer
+        D           5e7;
+        I           0;
+        length      0.01;
+
+        //constant
+        //pressureDrop    8;
+
+        //volumetricFlowRateTable
+        //outOfBounds     clamp;
+        //file            "volFlowRateTable";
+    }
+}
+
+
+// ************************************************************************* //

@@ -1,0 +1,125 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      fvSchemes;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+ddtSchemes
+{
+    default         Euler;
+}
+
+gradSchemes
+{
+    default         Gauss linear;
+    grad(p)         Gauss linear;
+    grad(b)         Gauss pointLinear;
+}
+
+divSchemes
+{
+    default none;
+
+    div(phi,U)      Gauss limitedLinearV 1;
+
+    div(phiU,p)     Gauss limitedLinear 1;
+    div(phid,p)     Gauss limitedLinear 1;
+    div(phi,k)      Gauss limitedLinear 1;
+    div(phi,epsilon) Gauss limitedLinear 1;
+
+    div(phiXi,Xi)   Gauss limitedLinear 1;
+    div(phiXi,Xp)   Gauss limitedLinear 1;
+
+    div(phi,Ep)     Gauss limitedLinear 1;
+    div(phi,Xp)     Gauss limitedLinear 1;
+
+    div(phiXi,GRxp) Gauss limitedLinear 1;
+    div(phiXi,GRep) Gauss limitedLinear 1;
+    div(phiXi,Ep)   Gauss limitedLinear 1;
+    div(phiSt,b)    Gauss limitedLinear 1;
+
+    div(phi,K)      Gauss limitedLinear 1;
+
+    div(phi,ft_b_ha_hau_H2OPS_Y) Gauss multivariateSelection
+    {
+        ft          limitedLinear01 1;
+        b           limitedLinear01 1;
+        Xi          limitedLinear 1;
+        Xp          limitedLinear 1;
+        Ep          limitedLinear 1;
+        h           limitedLinear 1;
+        hu          limitedLinear 1;
+        ha          limitedLinear 1;
+        hau         limitedLinear 1;
+        H2OPS       limitedLinear 1;
+        water       limitedLinear 1;
+        Y           limitedLinear 1;
+        AIR         limitedLinear 1;
+    };
+
+    div(phi,ft_b_h_hu) Gauss multivariateSelection
+    {
+        ft          limitedLinear01 1;
+        b           limitedLinear01 1;
+        Xi          limitedLinear 1;
+        Xp          limitedLinear 1;
+        Ep          limitedLinear 1;
+        h           limitedLinear 1;
+        hu          limitedLinear 1;
+        ha          limitedLinear 1;
+        hau         limitedLinear 1;
+    };
+
+    div(phi,ft_b_ha_hau) Gauss multivariateSelection
+    {
+        ft          limitedLinear01 1;
+        b           limitedLinear01 1;
+        Xi          limitedLinear 1;
+        Xp          limitedLinear 1;
+        Ep          limitedLinear 1;
+        h           limitedLinear 1;
+        hu          limitedLinear 1;
+        ha          limitedLinear 1;
+        hau         limitedLinear 1;
+    };
+
+    div((Su*grad(b)))                   Gauss linear;
+    div((U+((Su*Xi)*grad(b))))          Gauss linear;
+    div((muEff*dev2(T(grad(U)))))       Gauss linear;
+    div(((rho*nuEff)*dev2(T(grad(U))))) Gauss linear;
+    div(Ud)                             Gauss linear;
+}
+
+laplacianSchemes
+{
+    default         Gauss linear uncorrected;
+}
+
+interpolationSchemes
+{
+    default         linear;
+}
+
+snGradSchemes
+{
+    default         uncorrected;
+}
+
+fluxRequired
+{
+    default         no;
+    p;
+}
+
+
+// ************************************************************************* //

@@ -1,0 +1,126 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// block definition for a porosity with an angled inlet/outlet
+// the porosity is not aligned with the main axes
+
+scale   0.001;
+
+transform
+{
+    origin (0 0 0);
+    rotation axisAngle;
+    axis   (0 0 1);
+    angle  45;
+}
+
+// Geometric parameters
+lenInlet    150;
+lenPoro     100;
+lenOutlet   100;
+h2          25;     // Channel half-height (in y)
+w2          25;     // Channel half-height (in z)
+bendAngle   135;    // Bend: inclusive angle [approx 120..240 deg]
+
+// Divisions
+cellWidth 5;
+nInlet  #eval #{ round($lenInlet / $cellWidth) #};
+nPoro   #eval #{ round($lenPoro / $cellWidth) #};
+nOutlet #eval #{ round($lenOutlet / $cellWidth) #};
+nHeight #eval #{ round(4 * $h2 / $cellWidth) #};  // finer in cross direction
+nWidth  #eval #{ round(4 * $w2 / $cellWidth) #};  // finer in cross direction
+
+
+// Calculations:
+cosBend #eval #{ cos(degToRad($bendAngle)) #};
+sinBend #eval #{ sin(degToRad($bendAngle)) #};
+
+// Ensure inlet walls remain parallel
+shrink  #eval #{ sin(mag(degToRad($bendAngle - 90))) #};
+
+x0  #eval #{ ($lenInlet)*$cosBend -  ($h2 * $shrink) * $sinBend #};
+x1  #eval #{ ($lenInlet)*$cosBend - (-$h2 * $shrink) * $sinBend #};
+y0  #eval #{ ($lenInlet)*$sinBend +  ($h2 * $shrink) * $cosBend #};
+y1  #eval #{ ($lenInlet)*$sinBend + (-$h2 * $shrink) * $cosBend #};
+
+xOutlet #eval #{ $lenPoro + $lenOutlet #};
+
+vertices
+(
+    // inlet region
+    ( $x0      $y0    -$w2 )
+    (  0      -$h2    -$w2 )
+    (  0       $h2    -$w2 )
+    ( $x1      $y1    -$w2 )
+
+    ( $x0      $y0     $w2 )
+    (  0      -$h2     $w2 )
+    (  0       $h2     $w2 )
+    ( $x1      $y1     $w2 )
+
+    // End of porosity
+    ( $lenPoro  -$h2  -$w2 )
+    ( $lenPoro   $h2  -$w2 )
+    ( $lenPoro  -$h2   $w2 )
+    ( $lenPoro   $h2   $w2 )
+
+    // End of outlet
+    ( $xOutlet  -$h2  -$w2 )
+    ( $xOutlet   $h2  -$w2 )
+    ( $xOutlet  -$h2   $w2 )
+    ( $xOutlet   $h2   $w2 )
+);
+
+blocks
+(
+    hex (0 1 2 3 4 5 6 7) inlet
+    ($nInlet $nHeight $nWidth) grading (1 1 1)
+
+    hex (1 8 9 2  5 10 11 6) porosity
+    ($nPoro $nHeight $nWidth) grading (1 1 1)
+
+    hex (8 12 13 9  10 14 15 11) outlet
+    ($nPoro $nHeight $nWidth) grading (1 1 1)
+);
+
+boundary
+(
+    inlet
+    {
+        type  patch;
+        faces ( (0 0) );
+    }
+
+    outlet
+    {
+        type  patch;
+        faces ( (2 1) );
+    }
+
+    porosityWall
+    {
+        type  wall;
+        faces ( (1 2) (1 3) (1 4) (1 5) );
+    }
+);
+
+// The defaultFaces == outside "walls"
+defaultPatch
+{
+    type wall;
+    name walls;
+}
+
+// ************************************************************************* //

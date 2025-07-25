@@ -1,0 +1,25 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// Pattern, String
+(
+    ( true  "(U|k|epsilon)"  "U" )
+    ( false "(U|k|epsilon)"  "alpha" )
+    ( true  "(?!)(U|k|epsilon)"  "alpha" )
+    ( true  "(?! *&)(U|k|epsilon)"  "alpha" )   // Ignore unknown content
+    ( true  "ab.*"  "abc" )
+    ( true  ".*"  "abc" )
+
+    ( true "div\(phi,alpha.*)"   "div(phi,alpha.gas)" )   // quoting error
+    ( true "div\(phi,alpha.*\)"   "div(phi,alpha.gas)" )
+    ( true "div\(phi,alpha\..*\)" "div(phi,alpha.gas)" )
+)
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

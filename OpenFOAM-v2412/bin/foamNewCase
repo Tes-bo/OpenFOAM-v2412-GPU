@@ -1,0 +1,217 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2011 OpenFOAM Foundation
+#     Copyright (C) 2018-2019 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     foamNewCase
+#
+# Description
+#     Create a new case from a template for particular applications
+#     - requires rsync
+#
+# Environment
+#     FOAM_API
+#     WM_PROJECT_DIR
+#     WM_PROJECT_SITE
+#
+#------------------------------------------------------------------------------
+groupDir="${WM_PROJECT_SITE:-${WM_PROJECT_DIR:-<unknown>}/site}"
+userDir="$HOME/.OpenFOAM"
+projectApi="${FOAM_API:-unknown}"
+
+templateDir="appTemplates"
+
+#------------------------------------------------------------------------------
+usage() {
+    exec 1>&2
+    while [ "$#" -ge 1 ]; do echo "$1"; shift; done
+    cat<<USAGE
+
+Usage: ${0##*/} [OPTION]
+options:
+  -app NAME         specify the application to use
+  -case DIR         specify alternative case directory, default is the cwd
+  -list             list the applications available
+  -with-api=NUM     specify alternative api to use (default: \$FOAM_API)
+  -version VER      [obsolete]
+  -help             Print the usage
+
+clone initial application settings to the specified case from
+    $userDir/$templateDir/{$projectApi,}/APP
+    $groupDir/$templateDir/{$projectApi,}/APP
+
+USAGE
+    exit 1
+}
+#------------------------------------------------------------------------------
+unset appName caseName optList
+
+# parse options
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    -h | -help*)
+        usage
+        ;;
+    -app)
+        [ "$#" -ge 2 ] || usage "'$1' option requires an argument"
+        appName="$2"
+        shift
+        ;;
+    -case)
+        [ "$#" -ge 2 ] || usage "'$1' option requires an argument"
+        caseName="$2"
+        shift
+        ;;
+    -l | -list)
+        optList=true
+        ;;
+    -v | -ver | -version)
+        [ "$#" -ge 2 ] || usage "'$1' option requires an argument"
+        echo "ignored defunct option -version" 1>&2
+        shift
+        ;;
+    -with-api=*)
+        projectApi="${1#*=}"
+        ;;
+    -*)
+        usage "unknown option: '$*'"
+        ;;
+    *)
+        usage "unexpected argument: '$*'"
+        ;;
+    esac
+    shift
+done
+
+# need rsync, except for when listing
+command -v rsync >/dev/null 2>&1 || \
+   [ "$optList" = true ] || usage "Error: 'rsync' seems to be missing"
+
+
+#------------------------------------------------------------------------------
+
+#
+# find apps in current directory
+# considered an app if it has constant/ and system/ directories
+#
+findApps()
+{
+    for app in $(/bin/ls -d * 2>/dev/null)
+    do
+        [ -d "$app/constant" -a -d "$app/system" ] && echo "$app"
+    done
+}
+
+
+appList=$(
+    for dir in "$userDir/$templateDir" "$groupDir/$templateDir"
+    do
+        if cd "$dir" 2>/dev/null
+        then
+            findApps                              ## generic
+
+            ## version-specific
+            if [ -n "$projectApi" ]
+            then
+                cd "$projectApi" 2>/dev/null && findApps
+            fi
+        fi
+    done | sort | uniq
+)
+
+
+listApps()
+{
+    echo
+    echo "applications available:"
+    for i in $appList
+    do
+        echo "    $i"
+    done
+    echo
+}
+
+
+if [ "$optList" = true ]
+then
+    listApps
+    exit 0
+elif [ "$(echo $appList | wc -w)" -eq 0 ]
+then
+    echo "Error: no applications available"
+    exit 1
+elif [ -z "$appName" ]
+then
+    echo "Error: no -app specified"
+    listApps
+    exit 1
+fi
+
+
+# get the corresponding srcDir name
+srcDir=$(
+    for dir in "$userDir/$templateDir" "$groupDir/$templateDir"
+    do
+        if [ -d $dir ]
+        then
+            for appDir in "$dir/$projectApi/$appName" "$dir/$appName"
+            do
+                if [ -d $appDir -a -d $appDir/constant -a -d $appDir/system ]
+                then
+                    echo "$appDir"
+                    break 2
+                fi
+            done
+        fi
+    done
+)
+
+
+[ -d "$srcDir" ] || {
+    echo "Error: could not find template for $appName"
+    listApps
+    exit 1
+}
+
+
+# adjust for caseName as required
+if [ -n "$caseName" ]
+then
+    [ -d "$caseName" ] || mkdir -p "$caseName"
+    cd "$caseName" 2>/dev/null || usage "directory does not exist:  '$caseName'"
+fi
+newDir=$PWD
+
+
+[ -d "$newDir" -a -w "$newDir" ] || {
+    echo "Error: target directory does not exist or is unwritable"
+    echo "    $newDir"
+    exit 1
+}
+
+# add some useful subdirs:
+mkdir -p $newDir/postPro
+
+
+echo "    application   $appName"
+echo "    source        $srcDir"
+echo "    target        $newDir"
+
+echo "    syncing ..."
+# sync updated files only, itemize changes so we know what is going on
+rsync -aui $srcDir/ $newDir
+
+echo Done
+
+#------------------------------------------------------------------------------

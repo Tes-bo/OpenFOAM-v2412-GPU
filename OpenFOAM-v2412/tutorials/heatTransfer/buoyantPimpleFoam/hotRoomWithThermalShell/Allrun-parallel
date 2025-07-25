@@ -1,0 +1,20 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+runApplication blockMesh
+
+runApplication topoSet
+
+runApplication createPatch -overwrite
+
+runParallel -s decompose redistributePar -decompose
+
+runParallel makeFaMesh
+
+runParallel $(getApplication)
+
+runParallel -s reconstruct redistributePar -reconstruct
+
+#------------------------------------------------------------------------------

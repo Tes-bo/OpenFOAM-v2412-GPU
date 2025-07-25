@@ -1,0 +1,17 @@
+phaseSystem = $(LIB_SRC)/phaseSystemModels/reactingEuler
+
+EXE_INC = \
+    -I${phaseSystem}/multiphaseSystem/lnInclude \
+    -I$(LIB_SRC)/meshTools/lnInclude \
+    -I$(LIB_SRC)/finiteVolume/lnInclude \
+    -I$(LIB_SRC)/thermophysicalModels/basic/lnInclude \
+    -I$(LIB_SRC)/transportModels/compressible/lnInclude \
+    -I$(LIB_SRC)/functionObjects/field/lnInclude \
+    -I$(LIB_SRC)/dynamicMesh/lnInclude
+
+LIB_LIBS = \
+    -lfiniteVolume \
+    -lfieldFunctionObjects \
+    -lreactingMultiphaseSystem \
+    -ldynamicMesh \
+    -lmeshTools

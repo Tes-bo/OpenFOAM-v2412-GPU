@@ -1,0 +1,24 @@
+/*
+ * NOTE: make any changes to this file in ThirdParty etc/makeFiles/
+*/
+
+libadf/ADF_interface.c
+libadf/ADF_internals.c
+
+libccmio/ccmio.c
+libccmio/ccmiocore.c
+libccmio/ccmioprivate.c
+libccmio/ccmioutility.c
+libccmio/ccmioversion.c
+
+/*
+ * CGNS library not needed by ccmio, retain for documentation purposes only
+ *
+ libcgns/adf_cond.c
+ libcgns/adf_ftoc.c
+ libcgns/cgns_error.c
+ libcgns/cgns_internals.c
+ libcgns/cgnslib.c
+*/
+
+LIB = $(CCMIO_LIB_DIR)/libccmio

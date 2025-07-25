@@ -1,0 +1,19 @@
+NAME
+  VTK::ViewsContext2D
+LIBRARY_NAME
+  vtkViewsContext2D
+KIT
+  VTK::Views
+GROUPS
+  Rendering
+  Views
+SPDX_LICENSE_IDENTIFIER
+  BSD-3-Clause
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
+DEPENDS
+  VTK::CommonCore
+  VTK::RenderingCore
+  VTK::ViewsCore
+PRIVATE_DEPENDS
+  VTK::RenderingContext2D

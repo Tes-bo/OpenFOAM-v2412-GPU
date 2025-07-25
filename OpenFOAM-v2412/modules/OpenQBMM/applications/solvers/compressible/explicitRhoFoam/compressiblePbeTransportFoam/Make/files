@@ -1,0 +1,3 @@
+compressiblePbeTransportFoam.C
+
+EXE = $(FOAM_MODULE_APPBIN)/compressiblePbeTransportFoam

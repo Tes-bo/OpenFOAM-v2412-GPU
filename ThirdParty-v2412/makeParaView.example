@@ -1,0 +1,27 @@
+#!/bin/sh
+# An example for building particular combinations of ParaView with
+# - mpi (0 = no upper-limit on processes)
+# - mesa
+# - python (required for Catalyst)
+# - has VTK_PYTHON_OPTIONAL_LINK=OFF to avoid
+#       undefined symbol: PyExc_ValueError
+#
+# NOTE: must modify etc/config.*/paraview to use this particular version
+# and combination, or use chaining as per etc/config.*/example/paraview
+
+# mesa=mesa-11.2.2
+# mesa=mesa-13.0.3
+# mesa=mesa-17.1.1
+mesa=mesa-18.3.4
+
+set -x
+./makeParaView \
+    -mpi \
+    -mesa-prefix $WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$mesa \
+    -python \
+    -suffix mesa-mpi-py \
+    -DPARAVIEW_ENABLE_FFMPEG=ON \
+    -DVTK_PYTHON_OPTIONAL_LINK=OFF \
+    "$@"
+
+#------------------------------------------------------------------------------

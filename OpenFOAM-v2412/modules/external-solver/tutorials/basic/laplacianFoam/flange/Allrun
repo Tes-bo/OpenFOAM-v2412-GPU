@@ -1,0 +1,17 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+#------------------------------------------------------------------------------
+
+./Allrun.init
+
+dst=run
+
+if [ -d "$dst" ]
+then
+    (cd "$dst" && foamRunTutorials)
+
+    # Copy back log files
+    cp -f "$dst"/log.* .
+fi
+
+#------------------------------------------------------------------------------

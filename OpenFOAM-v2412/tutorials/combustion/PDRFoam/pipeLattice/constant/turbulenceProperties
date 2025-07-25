@@ -1,0 +1,107 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      turbulenceProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+simulationType      RAS;
+
+RAS
+{
+    RASModel        PDRkEpsilon;
+
+    PDRkEpsilonCoeffs
+    {
+        Cmu             0.09;
+        C1              1.44;
+        C2              1.92;
+        C3              -0.33;//0; (Original : -0.33)
+        C4              0.1;
+        alphah          1;
+        alphak          1;
+        alphaEps        0.76923;
+    }
+
+    PDRkEpsilonFiltCoeffs
+    {
+        Cmu             0.09;
+        C1              1.44;
+        C2              1.92;
+        C3              -0.33;
+        C5              1.5;
+        C6              1.0;
+        alphah          1;
+        alphak          1;
+        alphaEps        0.76923;
+        noTurbUntil     0.0;
+        LOverLobs       0.2;
+        LOverMobs       0.0;
+        maxLOverCellW   2.0;
+        lCoef           0.35;
+        resCoef         0.0;
+        maxResFac       1.0;
+        filtRadMult     6.0;
+        bFilt           0.85;
+        flameFilteredG  1;
+    }
+
+    PDRRNGkEpsilonCoeffs
+    {
+        Cmu             0.0845;
+        C1              1.42;
+        C2              1.68;
+        C3              -0.33;
+        sigmak          0.71942;
+        sigmaEps        0.71942;
+        eta0            4.38;
+        beta            0.012;
+        LOverLobs       0.5;
+        LOverMobs       0.5;
+        maxLOverCellW   2.0;
+        lCoef           0.35;
+        C5              1.5;
+        C6              1.0;
+        alphah          1;
+        alphak          1;
+        alphaEps        0.76923;
+    }
+
+
+    PDRrealkEpsilonCoeffs
+    {
+        Cmu             0.09;
+        A0              4.0;
+        C2              1.9;
+        C3              -0.33;
+        sigmak          1;
+        sigmaEps        0.71942;
+        eta0            4.38;
+        beta            0.012;
+        LOverLobs       0.5;
+        LOverMobs       0.5;
+        maxLOverCellW   2.0;
+        lCoef           0.35 ;
+        C5              1.5;
+        C6              1.0;
+        alphah          1;
+        alphak          1;
+        alphaEps        0.76923;
+    }
+
+    turbulence      on;
+
+    printCoeffs     on;
+}
+
+
+// ************************************************************************* //

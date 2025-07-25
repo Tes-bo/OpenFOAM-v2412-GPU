@@ -1,0 +1,22 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Version:  v2412
+    \\  /    A nd           | Website:  www.openfoam.com
+     \\/     M anipulation  |
+-------------------------------------------------------------------------------
+Description
+    Computes the min/max/average arbitrary mesh interface (AMI) weights, and
+    optionally reports to a text file or writes VTK surfaces of the sum of
+    the weights and mask fields for arbitrarily coupled mesh interface (ACMI)
+    patches.
+
+\*---------------------------------------------------------------------------*/
+
+type            AMIWeights;
+libs            (fieldFunctionObjects);
+
+writeFields     yes;
+writeControl    writeTime;
+
+// ************************************************************************* //

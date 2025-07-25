@@ -1,0 +1,90 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+## ./Allclean
+
+rootDir="test-distributed"
+caseName="${PWD##*/}"
+
+#not yet: fileHandler="-fileHandler collated"
+unset fileHandler
+
+restore0Dir
+
+runApplication blockMesh
+
+if [ -d "$rootDir" ]
+then
+    echo "Directory already exists: $rootDir"
+fi
+
+masterDecompParDict="$rootDir/machineA/$caseName/system/decomposeParDict"
+caseOption="-case $rootDir/machineA/$caseName"
+
+for subdir in machineA machineB machineC machineD
+do
+    mkdir -p "$rootDir/$subdir/$caseName"
+done
+
+# Master
+masterCase="$rootDir/machineA/$caseName"
+
+for instance in 0 constant system
+do
+    if [ -d "$masterCase/$instance" ]
+    then
+        echo "    Directory exists: $targetDir/$instance"
+    else
+        echo "Copy $instance/ to master root: $masterCase"
+        cp -R "$instance" "$masterCase"
+    fi
+done
+
+# others (nothing to copy)
+
+
+# Add distributed roots
+# - seems to be fine with relative root
+## rootDir="$PWD/$rootDir"
+
+cat<< CASE_ROOTS >> "$masterCase/system/decomposeParDict"
+
+distributed true;
+
+roots
+(
+    //master: "$rootDir/machineA"
+    "$rootDir/machineA"
+    "$rootDir/machineA"
+
+    "$rootDir/machineB"
+    "$rootDir/machineB"
+    "$rootDir/machineB"
+
+    "$rootDir/machineC"
+    "$rootDir/machineC"
+    "$rootDir/machineC"
+
+    "$rootDir/machineD"
+    "$rootDir/machineD"
+    "$rootDir/machineD"
+);
+CASE_ROOTS
+
+#------------------------------------------------------------------------------
+
+#export FOAM_ABORT=true
+
+runParallel -s decompose redistributePar -decompose -overwrite \
+    -no-finite-area $caseOption $fileHandler
+
+runParallel checkMesh $caseOption $fileHandler
+
+runParallel makeFaMesh $caseOption $fileHandler
+
+runParallel $(getApplication) $caseOption $fileHandler
+
+
+#------------------------------------------------------------------------------

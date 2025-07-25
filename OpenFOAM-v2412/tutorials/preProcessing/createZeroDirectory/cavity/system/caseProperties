@@ -1,0 +1,55 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      caseProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+initialConditions
+{
+    U           uniform (0 0 0);
+    p           uniform 0;
+}
+
+boundaryConditions
+{
+    topWall
+    {
+        category        wall;
+        patches         (movingWall);
+        type            noSlip;
+        options
+        {
+            wallFunction    highReynolds;
+            motion          moving;
+        };
+        values
+        {
+            U           uniform (1 0 0);
+        }
+    }
+
+    walls
+    {
+        category        wall;
+        patches         (fixedWalls);
+        type            noSlip;
+        options
+        {
+            wallFunction    highReynolds;
+            motion          stationary;
+        };
+    }
+}
+
+
+// ************************************************************************* //

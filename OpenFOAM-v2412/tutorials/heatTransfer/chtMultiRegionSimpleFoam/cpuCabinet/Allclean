@@ -1,0 +1,19 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/CleanFunctions      # Tutorial run functions
+#------------------------------------------------------------------------------
+
+cleanCase0
+
+foamCleanPolyMesh -region domain0
+foamCleanPolyMesh -region v_CPU
+foamCleanPolyMesh -region v_fins
+
+# Remove surfaces and features
+rm -rf constant/triSurface
+rm -rf constant/extendedFeatureEdgeMesh > /dev/null 2>&1
+
+rm -rf constant/cellToRegion
+rm -rf constant/*/polyMesh  # region meshes
+
+#------------------------------------------------------------------------------

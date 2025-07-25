@@ -1,0 +1,99 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      createPatchDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// This application/dictionary controls:
+// - optional: create new patches from boundary faces (either given as
+//   a set of patches or as a faceSet)
+// - always: order faces on coupled patches such that they are opposite. This
+//   is done for all coupled faces, not just for any patches created.
+// - optional: synchronise points on coupled patches.
+// - always: remove zero-sized (non-coupled) patches (that were not added)
+
+// 1. Create cyclic:
+// - specify where the faces should come from
+// - specify the type of cyclic. If a rotational specify the rotationAxis
+//   and centre to make matching easier
+// - always create both halves in one invocation with correct 'neighbourPatch'
+//   setting.
+// - optionally pointSync true to guarantee points to line up.
+
+// 2. Correct incorrect cyclic:
+// This will usually fail upon loading:
+//  "face 0 area does not match neighbour 2 by 0.0100005%"
+//  " -- possible face ordering problem."
+// - in polyMesh/boundary file:
+//      - loosen matchTolerance of all cyclics to get case to load
+//      - or change patch type from 'cyclic' to 'patch'
+//        and regenerate cyclic as above
+
+// Do a synchronisation of coupled points after creation of any patches.
+// Note: this does not work with points that are on multiple coupled patches
+//       with transformations (i.e. cyclics).
+pointSync false;
+
+// Patches to create.
+patches
+(
+    {
+        // Dictionary to construct new patch from
+        patchInfo
+        {
+            type            mappedPatch;
+            inGroups        (group_fluid);
+            sampleMode      nearestPatchFaceAMI;
+
+            AMIMethod       faceAreaWeightAMI;
+            maxDistance2    1e-6;   // max (square) distance
+            minCosAngle     0.5;    // min alignment
+
+            // Overwritten
+            //sampleRegion    otherRegion;
+            //samplePatch     otherPatch;
+
+            //- Optional override of added patchfields. If not specified
+            //  any added patchfields are of type calculated.
+            patchFields
+            {
+                //- Problem is with patch fields that need additional
+                //  state. Patches get created with 0 faces and
+                //  then mapped to the correct size. The autoMap genrally
+                //  does not know value to give the new faces.
+                //T
+                //{
+                //    type    compressible::turbulentTemperatureRadCoupledMixed;
+                //    Tnbr    T;
+                //    kappaMethod solidThermo;
+                //    value   uniform 300;
+                //}
+            }
+        }
+
+        // How to select the faces:
+        //  - set : specify faceSet in 'set'
+        //  - patches : specify names in 'patches'
+        //  - autoPatch : attempts automatic patching of the specified
+        //                candidates in 'patches'.
+        //      - single region : match in the region itself
+        //      - multi regions : match in between regions only
+        constructFrom autoPatch;
+
+        // If constructFrom = patches or autoPatch: names of patches.
+        // Wildcards&patchGroups allowed.
+        patches (group_fluid);
+    }
+);
+
+// ************************************************************************* //

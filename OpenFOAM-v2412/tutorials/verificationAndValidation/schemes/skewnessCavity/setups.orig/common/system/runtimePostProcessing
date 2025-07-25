@@ -1,0 +1,77 @@
+// -*- C++ -*-
+
+postPro1
+{
+    #includeEtc "caseDicts/postProcessing/visualization/runTimePostPro.cfg"
+
+    camera
+    {
+        // If camera is moving, optionally provide start and end times
+        // startPosition    0.2;
+        // endPosition      0.75;
+
+        // Total number of frames to generate
+        nFrameTotal         1;
+
+        // Parallel projection flag
+        parallelProjection  yes;
+
+        // Camera mode:
+        // - flightPath: define flight path
+        // - static: fixed position
+        mode                static;
+        staticCoeffs
+        {
+            clipBox         (0.1 0.1 0)(0.9 0.9 0.1); // optional
+            focalPoint      (0 0.05 0);
+            up              (0 1 0);
+            lookDir         (0 0 -1);
+        }
+    }
+
+    // Default colours
+    // - If select to colourBy colour, these values are used unless
+    // they are locally overriden
+    colours
+    {
+        background      (1 1 1);
+        text            (0 0 0);
+        edge            (0 0 0);
+        surface         (0.5 0.5 0.5);
+        line            (1 0 0);
+    }
+
+    // Line data
+    lines
+    {}
+
+    // Surface data
+    surfaces
+    {
+        plane1
+        {
+            type            functionObject;
+            functionObject  cuttingPlane;
+            colourMap       blueWhiteRed;
+            representation  surfaceWithEdges;
+            maxGlyphLength  0.1;
+            visible         yes;
+            featureEdges    yes;
+            colourBy        field;
+            fieldName       error-grad(Cc);
+            range           (-10 10);
+            opacity         1;
+            scalarBar
+            {
+                visible         no;
+            }
+        }
+    }
+
+    // Text data
+    text
+    {}
+}
+
+
+// ************************************************************************* //

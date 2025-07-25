@@ -1,0 +1,29 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+# Generate mesh if required
+[ -d constant/polyMesh ] || ./Allrun.pre
+
+restore0Dir
+
+runApplication decomposePar
+
+runParallel $(getApplication)
+
+targetCase="../main"
+dataDir="postProcessing/surfaces"
+
+targetDir="$targetCase"/constant/boundaryData
+mkdir -p "$targetDir"
+rm -rf "$targetDir"/window
+cp -rf "$dataDir/window" "$targetDir"/window
+
+targetDir="$targetCase"/constant/sampled
+mkdir -p "$targetDir"
+rm -rf "$targetDir"/window
+cp -rf "$dataDir/windowPatch" "$targetDir"/window
+
+
+# -----------------------------------------------------------------------------

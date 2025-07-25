@@ -1,0 +1,12 @@
+// -*- C++ -*-
+
+stdmd51
+{
+    ${stdmd01}
+
+    field          UMean_movingAverageWindow;
+    region         coarseMesh;
+}
+
+
+// ************************************************************************* //

@@ -1,0 +1,26 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+#------------------------------------------------------------------------------
+
+( cd flange && ./Allrun $* )
+( cd addLayersToFaceZone && ./Allrun )
+( cd gap_detection && ./Allrun )
+( cd aerofoilNACA0012_directionalRefinement && ./Allrun )
+( cd iglooWithFridgesDirectionalRefinement && ./Allrun )
+( cd distributedTriSurfaceMesh && ./Allrun )
+( cd faceZoneRegions && ./Allrun )
+( cd motorBike_leakDetection && ./Allrun )
+( cd opposite_walls && ./Allrun )
+( cd airfoilWithLayers && ./Allrun )
+( cd sphere_gapClosure && ./Allrun )
+( cd block_with_curvature && ./Allrun )
+( cd insidePoints && ./Allrun )
+
+exit 0
+
+# These cases are links to solver test cases and are run when the Allrun
+# scripts of those solvers are run.
+
+# This dummy Allrun script avoids meshing these cases twice.
+
+#------------------------------------------------------------------------------

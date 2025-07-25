@@ -1,0 +1,45 @@
+#----------------------------*- makefile-gmake -*------------------------------
+
+# The dependency generation program
+# 1. wmkdepend  : Ragel-based
+# 2. wmkdep     : Flex-based (slower, ulimit problem)
+# 3. makeDepend : cpp -M (for testing only)
+
+WMKDEP  := $(WMAKE_BIN)/wmkdepend
+# WMKDEP  := $(WMAKE_BIN)/wmkdep
+# WMKDEP  := $(WM_SCRIPTS)/makeDepend
+
+WMKDEP_FLAGS := -eWM_PROJECT_DIR -eWM_THIRD_PARTY_DIR
+
+ifneq (,$(strip $(WM_QUIET)))
+    E=@
+    define QUIET_MESSAGE
+        @echo "    $1: $2";
+    endef
+    define VERBOSE_MESSAGE
+    endef
+    WMKDEP_FLAGS += -q
+else
+    E=
+    define QUIET_MESSAGE
+    endef
+    define VERBOSE_MESSAGE
+        @echo "$1 $2";
+    endef
+endif
+
+define DEFINE_TRANSFORM
+$(OBJECTS_DIR)/%.o : %$1
+	$(call QUIET_MESSAGE,$(subst .,,$(1))too,$(value <F))
+	$E $$($(subst .,,$(1))too)
+endef
+
+$(foreach s,$(SUFFIXES),$(eval $(call DEFINE_TRANSFORM,$(s))))
+
+$(OBJECTS_DIR)/%.dep : %
+	$(call QUIET_MESSAGE,dep,$(<F))
+	$(call VERBOSE_MESSAGE,Making dependencies:,$(<F))
+	@$(WM_SCRIPTS)/makeTargetDir $@
+	@$(WMKDEP) $(WMKDEP_FLAGS) -o$@ -I$(*D) $(LIB_HEADER_DIRS) $<
+
+#------------------------------------------------------------------------------

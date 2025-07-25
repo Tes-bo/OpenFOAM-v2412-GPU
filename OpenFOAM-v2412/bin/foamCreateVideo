@@ -1,0 +1,246 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2015-2016 OpenFOAM Foundation
+#     Copyright (C) 2018-2020 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     foamCreateVideo
+#
+# Description
+#     Creates a video file from PNG images
+#     - requires one of avconv, ffmpeg, mencoder
+#
+#------------------------------------------------------------------------------
+
+# Input defaults
+inputDir='.'
+prefix='image.'
+inputMask='%04d'    # (avconv only)
+unset startNumber   # (avconv only)
+
+# Output defaults
+outputPrefix=video
+outputFormat=mp4
+frameRate=10
+unset converter
+
+#------------------------------------------------------------------------------
+printHelp () {
+    cat<<USAGE
+
+Usage: ${0##*/} [OPTIONS] ...
+options:
+  -d | -dir <dir>       input directory with png images  (default: '.')
+  -f | -fps <fps>       frames per second  (default: 10)
+  -i | -image <name>    input image sequence prefix  (default: 'image.')
+  -o | -out <name>      output video name  (default: 'video')
+  -tool=NAME            Specify avconv, ffmpeg, mencoder...
+  -mask <width>         avconv input mask width (default: 4)
+  -start <frame>        avconv start frame number
+  -webm                 WebM output video file format (avconv only)
+  -h | -help            Print the usage
+
+Creates a video file from a sequence of PNG images.
+With the default prefix ('image.'), from image.0000.png, image.0001.png, ...
+- The output format is MPEG4
+- The output name (with mp4 format), is "video.mp4"
+- By default the video codec is high resolution
+
+MPEG4 output requires avconv, mencoder, ffmpeg, ...
+WebM  output requires avconv.
+
+By default will attempt avconv, ffmpeg, mencoder.
+Use the -tool option to specify a particular converter.
+
+USAGE
+    exit 0  # A clean exit
+}
+
+
+# Report error and exit
+die()
+{
+    exec 1>&2
+    echo
+    echo "Error encountered:"
+    while [ "$#" -ge 1 ]; do echo "    $1"; shift; done
+    echo
+    echo "See '${0##*/} -help' for usage"
+    echo
+    exit 1
+}
+
+#-------------------------------------------------------------------------------
+
+# Parse options
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    -h | -help*)
+        printHelp
+        ;;
+
+    -d | -dir)
+        [ "$#" -ge 2 ] || die "'-dir' requires an argument"
+        inputDir=$2
+        shift
+       ;;
+    -f | -fps)
+        [ "$#" -ge 2 ] || die "'-fps' requires an argument"
+        frameRate=$2
+        shift
+        ;;
+    -i | -image)
+        [ "$#" -ge 2 ] || die "'-image' requires an argument"
+        prefix=$2
+        shift
+        ;;
+    -o | -out)
+        [ "$#" -ge 2 ] || die "'-out' requires an argument"
+        outputPrefix=$2
+        shift
+        ;;
+    -mask)
+        [ "$#" -ge 2 ] || die "'-mask' requires an argument"
+        digits="$(( $2 + 0 ))"
+        if [ "$digits" -gt 0 ]
+        then
+            inputMask="%0${digits}d"
+            echo "using input mask $inputMask"
+        else
+            echo "input mask unchanged $inputMask"
+        fi
+        shift
+        ;;
+    -start)
+        [ "$#" -ge 2 ] || die "'-start' requires an argument"
+        startNumber="-start_number $2"
+        shift
+        ;;
+    -webm)
+        outputFormat=webm
+        ;;
+    -tool=*)
+        converter="${1#*=}"
+        [ -n "$converter" ] || die "Missing value for -tool= option"
+        ;;
+    -*)
+        die "invalid option '$1'"
+        ;;
+    *)
+        break
+        ;;
+    esac
+    shift
+done
+
+#------------------------------------------------------------------------------
+# Sanity checks
+
+if [ "$outputFormat" = webm ]
+then
+    command -v avconv >/dev/null || \
+        die "webm format requires avconv, which was not found."
+
+elif [ -z "$converter" ]
+then
+    # No converter specified, go on discovery...
+    for candiate in avconv mencoder ffmpeg
+    do
+        if command -v "$candiate" >/dev/null
+        then
+            converter="$candiate"
+            break
+        fi
+    done
+
+    [ -n "$converter" ] || \
+        die "No suitable converter found (avconv, ffmpeg, mencoder)" \
+            "Cannot create video."
+
+else
+    command -v "$converter" >/dev/null || \
+        die "No converter found: '$converter'"
+fi
+
+
+#------------------------------------------------------------------------------
+# Check if input files exist
+
+nFiles="$(\ls $inputDir/$prefix*.png 2>/dev/null | wc -l)"
+
+echo "=============="
+echo "Output file:  $outputPrefix.$outputFormat"
+echo "Input files:  $prefix*.png"
+echo "Detected:     $nFiles files"
+echo "=============="
+if [ "$nFiles" = 0 ]
+then
+    echo "No input files found. Stopping"
+    exit 1
+fi
+
+
+#------------------------------------------------------------------------------
+# Conversion
+
+if [ "$outputFormat" = webm ]
+then
+    echo "Creating video with avconv..."
+    echo
+    avconv \
+        -framerate $frameRate $startNumber \
+        -i "$inputDir/$prefix$inputMask.png" \
+        -c:v libvpx -crf 15 -b:v 1M \
+        "$outputPrefix.$outputFormat"
+
+else
+
+    # Dispatch
+    case "$converter" in
+    (avconv | */avconv)
+        echo "Creating video with avconv ..."
+        echo
+        "$converter" \
+            -framerate $frameRate $startNumber \
+            -i "$inputDir/$prefix$inputMask.png" \
+            -c:v libx264 -pix_fmt yuv420p \
+            "$outputPrefix.$outputFormat"
+        ;;
+
+    (ffmpeg | */ffmpeg)
+        echo "Creating video with ffmpeg ..."
+        echo
+        "$converter" \
+            -r $frameRate \
+            -i "$inputDir/$prefix$inputMask.png" \
+            -vcodec libx264 -pix_fmt yuv420p \
+            "$outputPrefix.$outputFormat"
+        ;;
+
+    (mencoder | */mencoder)
+        echo "Creating video with mencoder ..."
+        echo
+        "$converter" \
+            "mf://$inputDir/$prefix*.png" \
+            -mf fps=$frameRate \
+            -o "$outputPrefix.$outputFormat" \
+            -ovc x264
+        ;;
+
+    (*)
+        die "Unknown converter: '$converter'"
+        ;;
+    esac
+fi
+
+#------------------------------------------------------------------------------

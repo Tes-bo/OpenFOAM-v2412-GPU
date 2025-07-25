@@ -1,0 +1,15 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/wmake/scripts/AllwmakeParseArguments
+. ${WM_PROJECT_DIR:?}/wmake/scripts/have_mgridgen
+
+#------------------------------------------------------------------------------
+
+if have_mgridgen
+then
+    wmake $targetType MGridGenGamgAgglomeration
+fi
+
+wmake $targetType pairPatchAgglomeration
+
+#------------------------------------------------------------------------------

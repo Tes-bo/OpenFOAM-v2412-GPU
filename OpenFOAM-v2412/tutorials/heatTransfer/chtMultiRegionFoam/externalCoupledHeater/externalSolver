@@ -1,0 +1,176 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+# Dummy external solver to communicate with OpenFOAM via externalCoupled
+# functionObject
+#
+# Functionality is hard-coded for this particular test case
+# - patch temperatures increased by 1K on each step
+#
+# -----------------------------------------------------------------------------
+
+# Check for unassigned variables
+set -u
+
+echo "Executing dummy external solver"
+
+commsDir="comms"
+patchDir="heater_topAir/coupleGroup"
+fieldName="T"
+
+lockFile="${commsDir}/OpenFOAM.lock"
+dataFile="${commsDir}/${patchDir}/${fieldName}"
+waitSec=5
+timeOut=100
+nSteps=1000 # maximum number of time steps. Note: should be more than
+            # number of iterations on the OpenFOAM side
+
+stopAt=600  # external solver signals OpenFOAM to stop
+
+refGrad=0
+valueFraction=1
+
+# Remove any old junk
+rm -f "$lockFile"
+
+log()
+{
+    echo "External: $@"
+}
+
+
+# Create lock file to pass control to OpenFOAM
+useMaster()
+{
+    log "creating lock file '${lockFile}'"
+    echo "status=openfoam" >| ${lockFile}
+}
+
+# Lock file with special content to stop OpenFOAM master
+stopMasterNow()
+{
+    log "writeNow terminate via lock file '${lockFile}'"
+    echo "action=writeNow" >| ${lockFile}
+}
+
+
+# Patch size (heater/minY)
+nFaces1=$(getNumberOfPatchFaces minY heater) || exit $?
+
+# Patch size (topAir/minX)
+nFaces2=$(getNumberOfPatchFaces minX topAir) || exit $?
+
+
+init()
+{
+    log "init - creating ${dataFile}.in"
+    cat /dev/null >| "${dataFile}.in"
+
+    # Local face counter, Local refValue
+    local nFaces refValue
+
+    # Patch (heater/minY)
+    nFaces="$nFaces1"
+    refValue=500
+
+    log "init - adding $nFaces data elements with refValue $refValue"
+
+    while [ "$nFaces" -gt 0 ]
+    do
+        nFaces=$((nFaces - 1))
+        echo "$refValue $refGrad $valueFraction"
+    done >> "${dataFile}.in"
+
+
+    # Patch (topAir/minX)
+    nFaces="$nFaces2"
+    refValue=300
+
+    log "init - adding $nFaces data elements with refValue $refValue"
+
+    while [ "$nFaces" -gt 0 ]
+    do
+        nFaces=$((nFaces - 1))
+        echo "$refValue $refGrad $valueFraction"
+    done >> "${dataFile}.in"
+
+    # Verify line count?
+    # log "init ($(wc -l ${dataFile}.in))"
+
+    # Give time for T.in file to flush
+    sleep 1
+
+    useMaster
+}
+
+
+# Create the comms directory
+mkdir -p ${commsDir}/${patchDir}
+
+# Tutorial case uses 'initByExternal' option, so we must provide initial values
+init
+
+
+totalWait=0
+step=0
+while [ $step -lt $nSteps ]
+do
+    if [ -f $lockFile ]
+    then
+        if grep -q "status=done" ${lockFile}
+        then
+             log "found lock file '${lockFile}' with 'status=done' - finished"
+             break
+        elif [ -s $lockFile ]
+        then
+             log "found lock file '${lockFile}' containing '$(< $lockFile)' - waiting"
+        else
+             log "found lock file '${lockFile}' - waiting"
+        fi
+
+        totalWait=$(expr $totalWait + $waitSec)
+        if [ $totalWait -gt $timeOut ]
+        then
+            log "timeout"
+            break
+        else
+            sleep $waitSec
+        fi
+    else
+        totalWait=0
+        step=$(expr $step + 1)
+        log "step $step"
+        log "lock not present - taking control"
+
+        log "sleeping for $waitSec secs to simulate external process"
+        sleep $waitSec
+
+        log "updating ${dataFile}.in from ${dataFile}.out"
+
+        if [ -f "${dataFile}.out" ]
+        then
+            awk '{if( $1 != "#" ){print $1+1 " 0 1"}}' \
+                ${dataFile}.out >| ${dataFile}.in
+        else
+            log "Warning: no such file ${dataFile}.out"
+        fi
+
+        if [ "${stopAt:-0}" -eq $step ]
+        then
+            stopMasterNow
+        else
+            useMaster
+        fi
+    fi
+done
+
+log "done"
+
+# Remove the lock file too
+rm -f "$lockFile"
+
+# For log collector:
+echo "End"
+
+#------------------------------------------------------------------------------

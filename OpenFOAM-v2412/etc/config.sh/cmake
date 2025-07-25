@@ -1,0 +1,35 @@
+#----------------------------------*-sh-*--------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2020 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# File
+#     etc/config.sh/cmake
+#     - possibly sourced during make process only.
+#
+# Description
+#     CMAKE location (ThirdParty or otherwise) when not found via the PATH
+#     Does not affect the PATH, that is left for the caller
+#
+#     For system-wide installations:
+#         cmake_version=cmake-system
+#         define CMAKE_ARCH_PATH
+#
+# Note
+#     No csh version. This file is only used during make processes.
+#
+#------------------------------------------------------------------------------
+# USER EDITABLE PART: Changes made here may be lost with the next upgrade
+
+cmake_version=cmake-system
+export CMAKE_ARCH_PATH="$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$cmake_version"
+
+# END OF (NORMAL) USER EDITABLE PART
+#------------------------------------------------------------------------------

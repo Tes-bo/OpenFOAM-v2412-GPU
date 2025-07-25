@@ -1,0 +1,84 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+inletMassFlowRate
+{
+    type    surfaceFieldValue;
+    libs    (fieldFunctionObjects);
+
+    fields
+    (
+        alphaRhoPhi.gas
+        alphaRhoPhi.liquid
+    );
+
+    writeFields     false;
+    log             true;
+    surfaceFormat   null;
+
+    regionType      patch;
+    name            inlet;
+
+    operation       sum;
+
+    writeControl   timeStep;
+}
+
+outletMassFlowRate
+{
+    type    surfaceFieldValue;
+    libs    (fieldFunctionObjects);
+
+    fields
+    (
+        alphaRhoPhi.gas
+        alphaRhoPhi.liquid
+    );
+
+    writeFields     false;
+    log             true;
+    surfaceFormat   null;
+
+    regionType      patch;
+    name            outlet;
+
+    operation       sum;
+
+    writeControl   timeStep;
+}
+
+totalMass
+{
+    name    error;
+    type    coded;
+    libs    (utilityFunctionObjects);
+
+    code
+    #{
+        const auto& alphaGas =
+            mesh().lookupObject<volScalarField>("alpha.gas");
+        const auto& alphaLiquid =
+            mesh().lookupObject<volScalarField>("alpha.liquid");
+
+        const auto& rhoGas =
+            mesh().lookupObject<volScalarField>("thermo:rho.gas");
+        const auto& rhoLiquid =
+            mesh().lookupObject<volScalarField>("thermo:rho.liquid");
+
+        const scalarField& v = mesh().V();
+
+        Info<< "coded totalMass output:" << endl
+            << "    volIntegrate(all) for alpha.gas*rho.gas = "
+            << gSum(alphaGas*rhoGas*v) << endl
+            << "    volIntegrate(all) for alpha.liquid*rho.liquid = "
+            << gSum(alphaLiquid*rhoLiquid*v) << endl;
+    #};
+}
+
+
+// ************************************************************************* //

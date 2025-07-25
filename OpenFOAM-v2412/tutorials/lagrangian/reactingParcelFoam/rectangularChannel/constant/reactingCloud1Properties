@@ -1,0 +1,174 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      reactingCloud1Properties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+solution
+{
+    active          yes;
+    coupled         true;
+    transient       yes;
+
+    maxCo           0.3;
+    cellValueSourceCorrection off;
+
+    sourceTerms
+    {
+        resetOnStartup  false;
+        schemes
+        {
+            rho             explicit 1;
+            U               explicit 1;
+            Yi              explicit 1;
+            h               explicit 1;
+            radiation       explicit 1;
+        }
+    }
+
+    interpolationSchemes
+    {
+        rho             cell;
+        U               cellPoint;
+        thermo:mu       cell;
+        T               cell;
+        Cp              cell;
+        kappa           cell;
+        p               cell;
+    }
+
+    integrationSchemes
+    {
+        U               Euler;
+        T               analytical;
+    }
+}
+
+
+constantProperties
+{
+    //Initial particle density, used if defined, if not  by composition
+    //rho0            5100;
+    T0              310; //Initial particle temperature
+    Cp0             850; //Initial particle Cp (overwritten by composition)
+
+    hRetentionCoeff 0;
+    volumeUpdateMethod  updateRhoAndVol; //constantRho, constantVolume,
+}
+
+
+subModels
+{
+    particleForces
+    {
+        //sphereDrag;
+        //gravity;
+    }
+
+    injectionModels
+    {
+        model1
+        {
+            type            patchInjection;
+            patch           inlet;
+            parcelBasisType mass;
+            U0              (0.4 0 0);
+            massTotal        1.38;
+            parcelsPerSecond 123;
+            SOI              0;
+            duration         1;
+            flowRateProfile  constant 1;
+
+            sizeDistribution
+            {
+                type        fixedValue;
+                fixedValueDistribution
+                {
+                    value       0.011;
+                }
+            }
+        }
+    }
+
+    dispersionModel none;
+
+    patchInteractionModel standardWallInteraction;
+
+    heatTransferModel RanzMarshall;
+
+    compositionModel singleMixtureFraction;
+
+    phaseChangeModel liquidEvapFuchsKnudsen;
+
+    liquidEvapFuchsKnudsenCoeffs
+    {
+        gamma               6.8e-8;     // Mean gas free path
+        alpham              1;          // The mass thermal accomodation
+        solution            (H2O NaCl); // Solution (liquid solid)
+
+        activityCoefficient Hoff;
+        ic                  1.85;
+        enthalpyTransfer    enthalpyDifference;
+    }
+
+    devolatilisationModel none;
+
+    surfaceReactionModel none;
+
+    stochasticCollisionModel none;
+
+    surfaceFilmModel none;
+
+    radiation       off;
+
+    standardWallInteractionCoeffs
+    {
+        type            rebound;
+    }
+
+    RanzMarshallCoeffs
+    {
+        BirdCorrection  off;
+    }
+
+    heterogeneousReactingModel  none;
+
+    singleMixtureFractionCoeffs
+    {
+        phases
+        (
+            gas
+            {
+            }
+            liquid
+            {
+                H2O  1;
+            }
+            solid
+            {
+                NaCl 1;
+            }
+        );
+        YGasTot0        0;
+        YLiquidTot0     0.0;
+        YSolidTot0      1;
+    }
+}
+
+
+cloudFunctions
+{
+}
+
+
+// ************************************************************************* //

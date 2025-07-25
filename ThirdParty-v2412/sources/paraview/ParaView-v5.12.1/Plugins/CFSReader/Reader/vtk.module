@@ -1,0 +1,16 @@
+NAME
+  CFSReader::Reader
+LIBRARY_NAME
+  vtkCFSReader
+SPDX_LICENSE_IDENTIFIER
+  BSD-3-Clause AND MIT
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Kitware Inc.
+  Copyright (c) 2020 Verein zur Förderung der Software openCFS
+DEPENDS
+  VTK::CommonCore
+  VTK::CommonMisc
+  VTK::CommonExecutionModel
+  VTK::hdf5
+PRIVATE_DEPENDS
+  VTK::vtksys

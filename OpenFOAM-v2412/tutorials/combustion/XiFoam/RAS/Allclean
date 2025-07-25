@@ -1,0 +1,19 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/CleanFunctions      # Tutorial clean functions
+#------------------------------------------------------------------------------
+
+keepCases="moriyoshiHomogeneous"
+loseCases="moriyoshiHomogeneousPart2 moriyoshiHomogeneousHydrogen"
+
+for caseName in $keepCases
+do
+    ( cd $caseName && foamCleanTutorials )
+done
+
+for caseName in $loseCases
+do
+    removeCase $caseName
+done
+
+#------------------------------------------------------------------------------

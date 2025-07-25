@@ -1,0 +1,20 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+resourcesDir="$FOAM_TUTORIALS"/incompressible/adjointOptimisationFoam/resources
+
+restore0Dir
+
+cp -f "$resourcesDir"/param/sbend/* 0/
+
+cp -rf "$resourcesDir"/meshes/sbend/polyMesh/ constant/
+
+runApplication writeMorpherCPs
+
+runApplication decomposePar
+
+runParallel $(getApplication)
+
+#------------------------------------------------------------------------------

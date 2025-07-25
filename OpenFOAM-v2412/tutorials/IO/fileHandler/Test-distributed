@@ -1,0 +1,58 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+# ./Allclean
+
+if isTest "$@"
+then
+    # Reset the controlDict
+    if [ -f system/controlDict.orig ]
+    then
+        echo "$0: restoring the controlDict from controlDict.orig"
+        mv -f system/controlDict.orig system/controlDict
+    fi
+fi
+
+restore0Dir
+runApplication blockMesh
+
+rm -rf test-distribute
+masterDecompParDict="test-distribute/machineA/testcase/system/decomposeParDict"
+
+for subdir in machineA machineB machineC machineD
+do
+    mkdir -p test-distribute/"$subdir"/testcase
+done
+
+# master
+cp -R 0 constant system test-distribute/machineA/testcase
+# others (nothing to copy)
+
+
+cat<< CASE_ROOTS >> "$masterDecompParDict"
+
+distributed true;
+
+roots
+(
+    //master: "$PWD/test-distribute/machineA"
+    "$PWD/test-distribute/machineB"
+    "$PWD/test-distribute/machineC"
+    "$PWD/test-distribute/machineD"
+);
+CASE_ROOTS
+
+#export FOAM_ABORT=true
+
+runParallel -s decompose redistributePar \
+    -decompose \
+    -case test-distribute/machineA/testcase \
+    -fileHandler masterUncollated
+
+runParallel checkMesh -case test-distribute/machineA/testcase
+
+exit 0
+
+#------------------------------------------------------------------------------

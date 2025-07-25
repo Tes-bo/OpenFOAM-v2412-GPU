@@ -1,0 +1,23 @@
+#!/bin/sh
+# An example for building particular combinations of VTK with
+# - mesa (off-screen only)
+
+vtk=VTK-8.2.0
+# mesa=mesa-11.2.2
+# mesa=mesa-13.0.3
+# mesa=mesa-17.1.1
+mesa=mesa-18.3.4
+
+# Module_vtkAcceleratorsVTKm    : Request building vtkAcceleratorsVTKm
+#
+# -mpi implies VTK_Group_MPI    : Request building MPI modules
+
+set -x
+./makeVTK \
+    -mpi \
+    -osmesa \
+    -mesa-prefix $WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$mesa \
+    $vtk "$@" \
+    Module_vtkAcceleratorsVTKm=ON
+
+#------------------------------------------------------------------------------

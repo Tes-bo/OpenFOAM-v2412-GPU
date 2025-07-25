@@ -1,0 +1,21 @@
+MSwindows.C
+
+cpuInfo/cpuInfo.C
+memInfo/memInfo.C
+
+signals/sigFpe.C
+signals/sigInt.C
+signals/sigQuit.C
+signals/sigSegv.C
+signals/sigStopAtWriteNow.C
+signals/sigWriteNow.C
+signals/timer.C
+
+fileStat/fileStat.C
+
+/* Without inotify */
+fileMonitor/fileMonitor.C
+
+printStack/dummyPrintStack.C
+
+LIB = $(FOAM_LIBBIN)/libOSspecific

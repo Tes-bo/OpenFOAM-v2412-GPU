@@ -1,0 +1,69 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      createPatchDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+geometry
+{
+    box
+    {
+        type    searchableRotatedBox;
+
+        // box rotated 45 degrees around z axis
+        span    (1 1 1);
+        origin  (0 0 0);
+        e1      (1 1 0);
+        e3      (0 0 1);
+    }
+
+    singleTri.obj
+    {
+        type triSurfaceMesh;
+    }
+
+    unitCube_me.stl
+    {
+        type triSurfaceMesh;
+    }
+};
+
+
+
+surfaces
+{
+    unitCube_me.stl
+    {
+        regions
+        {
+            // Divide region 'maxZ' into multiple regions according to
+            // a geometric feature angle
+            maxZ
+            {
+                type            autoPatch;
+                featureAngle    60;
+            }
+        }
+    }
+
+    singleTri.obj
+    {
+        // Regionise surface according to triangles (after cutting) being
+        // inside or outside the 'box' geometry
+        type        cut;
+        cutters     (box);
+    }
+}
+
+
+// ************************************************************************* //

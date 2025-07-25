@@ -1,0 +1,27 @@
+#------------------------------------------------------------------------------
+# Intel compiler
+#------------------------------------------------------------------------------
+SUFFIXES   += .C .cc .cpp .cxx
+
+CC         := icpx$(COMPILER_VERSION) -std=c++17
+
+c++ARCH    :=
+c++DBUG    :=
+c++OPT     := -O2
+ptFLAGS    := -DNoRepository
+
+c++WARN     = \
+    -Wall -Wextra \
+    -Wnon-virtual-dtor -Wno-unused-parameter -Wno-invalid-offsetof \
+    -Wno-unknown-pragmas \
+    -Wno-undefined-var-template \
+    -diag-disable 327,654,1125,1292,2289,2304,11062,11074,11076
+
+# Less restrictive warnings (eg, for flex++, CGAL, etc.)
+c++LESSWARN = \
+    -diag-disable 1224,2026,2305
+
+# Tuning
+sinclude $(GENERAL_RULES)/common/c++$(WM_COMPILE_OPTION)
+
+#------------------------------------------------------------------------------

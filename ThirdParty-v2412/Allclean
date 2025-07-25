@@ -1,0 +1,233 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2011 OpenFOAM Foundation
+#     Copyright (C) 2016-2021 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     Allclean
+#
+# Description
+#     Clean script for ThirdParty applications/libraries
+#
+# ----------------------------------------------
+# NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
+#------------------------------------------------------------------------------
+# Run from third-party directory only
+cd "${0%/*}" || exit
+wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
+    echo "Error (${0##*/}) : not located in \$WM_THIRD_PARTY_DIR"
+    echo "    Check your OpenFOAM environment and installation"
+    exit 1
+}
+. "${WM_THIRD_PARTY_DIR:?}"/etc/tools/ThirdPartyFunctions
+#------------------------------------------------------------------------------
+printHelp() {
+    cat<<USAGE
+Usage: ${0##*/} [OPTION]
+options:
+  -build            Remove all 'build' directories
+  -current          Clean the current platform ($WM_OPTIONS)
+  -platform=NAME    Clean the named platform
+  -src | -sources   Clean sources (eg, with make distclean)
+  -full             Same as -build -src -current
+  -n | -dry-run     Do not perform actions
+  -help             Display usage help
+
+Cleanup intermediate build directories.
+Optionally remove specified platform(s) from the ThirdParty platforms
+directory \$WM_THIRD_PARTY_DIR/platforms
+
+USAGE
+    exit 0  # Clean exit
+}
+
+#------------------------------------------------------------------------------
+unset optDryRun optCleanType optPlatformName
+
+# Parse options
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    '') ;;      # Ignore empty
+    --) shift; break;; # End option processing
+    (-h | -help*) printHelp ;;
+    (-n | -dry-run) optDryRun="(dry-run) " ;;
+
+    (-build)
+        optCleanType="${optCleanType}:build"
+        ;;
+
+    (-src | -source*)
+        optCleanType="${optCleanType}:sources"
+        ;;
+
+    (-full)
+        optCleanType="full"
+        ;;
+
+    (-current)
+        optCleanType="${optCleanType}:current"
+        ;;
+
+    (-platform=*)
+        optCleanType="${optCleanType}:platform"
+        optPlatformName="${1#*=}"
+        ;;
+
+    *) echo "Ignore unknown option/argument" 1>&2 ;;
+    esac
+    shift
+done
+
+#------------------------------------------------------------------------------
+[ -n "$optCleanType" ] || die "No clean operation specified"
+
+# sources
+case "$optCleanType" in (*full* | *source*)
+
+    # Clean various packages via 'distclean'
+    for dir in \
+    $(etc/list-available -dirs \
+        gcc \
+        gmp \
+        gperftools \
+        llvm \
+        metis \
+        mpc \
+        mpfr \
+        openmpi \
+        qt \
+    )
+    do
+        if [ -n "$optDryRun" ]
+        then
+            echo "$dir : ${optDryRun}make distclean"
+        elif [ -d "$dir" ]
+        then
+        (
+            cd "$dir" 2>/dev/null || exit
+            echo
+            echo "$dir : make distclean"
+            echo
+            make distclean || true
+        )
+        fi
+    done
+
+    # Clean scotch (src) with 'realclean'
+    for dir in $(etc/list-available -dirs scotch)
+    do
+        dir="$dir/src"  # Within the src directory!
+
+        if [ -n "$optDryRun" ]
+        then
+            echo "$dir : ${optDryRun}make realclean"
+        elif [ -d "$dir" ]
+        then
+        (
+            cd "$dir" 2>/dev/null || exit
+            echo
+            echo "$dir : make realclean"
+            echo
+            make realclean || true
+        )
+        fi
+    done
+
+    # Clean various packages via 'wclean'
+    for dir in $(etc/list-available -dirs ccmio libccmio)
+    do
+        if [ -n "$optDryRun" ]
+        then
+            echo "$dir : ${optDryRun}wclean"
+        elif [ -f "$dir/Make/files" ]
+        then
+        (
+            cd "$dir" 2>/dev/null || exit
+            echo
+            echo "${dir}: wclean"
+            echo
+            wclean || true
+        )
+        fi
+    done
+
+    # Clean various packages via 'wclean'
+    for dir in $(etc/list-available -dirs kahip)
+    do
+        dir="$dir/lib"
+        if [ -n "$optDryRun" ]
+        then
+            echo "$dir : ${optDryRun}wclean"
+        elif [ -f "$dir/Make/files" ]
+        then
+        (
+            cd "$dir" 2>/dev/null || exit
+            echo
+            echo "${dir}: wclean"
+            echo
+            wclean || true
+        )
+        fi
+    done
+esac
+
+# -----------------------------------------------------------------------------
+
+# build
+case "$optCleanType" in (*full* | *build*)
+    # Clean out-of-source build directories
+    if [ -d build ]
+    then
+        echo
+        echo "${optDryRun}Remove build/ directory contents"
+        [ -z "$optDryRun" ] && rm -rf build/*
+    fi
+esac
+
+
+# -----------------------------------------------------------------------------
+
+#
+# Clean platforms directories
+#
+removePlatform()
+{
+    local platform="$1"
+    if [ -n "$platform" ] && [ -d "platforms/$platform" ]
+    then
+        echo
+        echo "${optDryRun}Cleaning platform '$platform'"
+        [ -z "$optDryRun" ] && "platforms/$platform"
+    else
+        echo
+        echo "${optDryRun}Platform '$platform' not built"
+    fi
+}
+
+
+# -----------------------------------------------------------------------------
+
+# current platform
+case "$optCleanType" in (*full* | *current*)
+    echo "${optDryRun}Remove current platform: '$WM_OPTIONS'"
+    removePlatform "$WM_OPTIONS"
+esac
+
+
+# named platform
+case "$optCleanType" in (*platform*)
+    echo "${optDryRun}Remove platform: '$optPlatformName'"
+    removePlatform "$optPlatformName"
+esac
+
+#------------------------------------------------------------------------------

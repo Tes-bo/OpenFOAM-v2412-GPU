@@ -1,0 +1,105 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    object      alphat.liquid;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [1 -1 -1 0 0 0 0];
+
+internalField   uniform 1e-8;
+
+boundaryField
+{
+    #includeEtc "caseDicts/setConstraintTypes"
+
+    ".*"
+    {
+        type            compressible::alphatPhaseChangeJayatillekeWallFunction;
+        Prt             0.85;
+        Cmu             0.09;
+        kappa           0.41;
+        E               9.8;
+
+        dmdt            uniform 0;
+        value           uniform 1e-8;
+    }
+
+    water_to_solid
+    {
+        type            compressible::alphatWallBoilingWallFunction;
+        otherPhase      gas;
+        phaseType       liquid;
+        Prt             0.85;
+        Cmu             0.09;
+        kappa           0.41;
+        E               9.8;
+        relax           constant 1;
+        dmdt            uniform 0;
+        partitioningModel
+        {
+            type        Lavieville;
+            alphaCrit   0.2;
+        }
+        nucleationSiteModel
+        {
+            type        LemmertChawla;
+            Cn          185;
+        }
+        departureDiamModel
+        {
+            type        TolubinskiKostanchuk;
+        }
+        departureFreqModel
+        {
+            type        Cole;
+        }
+        LeidenfrostModel
+        {
+            type        Spiegler;
+            Tcrit       647;
+        }
+        CHFModel
+        {
+            type        Zuber;
+        }
+        CHFSubCoolModel
+        {
+            type        HuaXu;
+            Kburn       0.5;
+        }
+        MHFModel
+        {
+            type        Jeschar;
+            Kmhf        1;
+        }
+        TDNBModel
+        {
+            type        Schroeder;
+        }
+        filmBoilingModel
+        {
+            type        Bromley;
+            L           1e-3;
+        }
+        value           uniform 1e-8;
+    }
+
+    maxY
+    {
+        type            calculated;
+        value           uniform 1e-8;
+    }
+}
+
+
+// ************************************************************************* //

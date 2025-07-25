@@ -1,0 +1,578 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2019-2021 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     makeSCOTCH
+#
+# Description
+#     Build the SCOTCH and PTSCOTCH libraries, optionally build binaries
+#
+# ----------------------------------------------
+# NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
+#------------------------------------------------------------------------------
+if :    # Run from third-party directory
+then
+    cd "${0%/*}" || exit
+    wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
+        echo "Error (${0##*/}) : not located in \$WM_THIRD_PARTY_DIR"
+        echo "    Check your OpenFOAM environment and installation"
+        exit 1
+    }
+fi
+. "${WM_THIRD_PARTY_DIR:?}"/etc/tools/ThirdPartyFunctions
+#------------------------------------------------------------------------------
+_foamConfig scotch  # Get SCOTCH_ARCH_PATH, SCOTCH_VERSION
+
+PACKAGE="${SCOTCH_VERSION:-system}"
+
+unset withMPI
+case "$WM_MPLIB" in (*MPI*) [ "$FOAM_MPI" = dummy ] || withMPI=true ;; esac
+
+if nonStandardPlatforms  # Possibly unreliable inherited values
+then
+    unset SCOTCH_ARCH_PATH
+fi
+
+#------------------------------------------------------------------------------
+printVersions() { listPackageVersions scotch; exit 0; }
+printHelp() {
+    /bin/cat<<USAGE
+
+Usage: ${0##*/} [OPTION] [libso] [scotch-VERSION]
+options:
+  -force        Force compilation, even if include/library already exists
+                Also force build attempt of pt-scotch (mingw)
+  -gcc          Force use of gcc/g++
+  -int32        Use SCOTCH_Num 32
+  -int64        Use SCOTCH_Num 64
+  -bin          Create scotch binaries as well
+  -no-bin       Suppress creation of scotch binaries (default)
+  -no-mpi       Suppress build of pt-scotch
+  -list         List available unpacked source versions
+  -help         Display usage help
+
+* Build SCOTCH (default: -int${WM_LABEL_SIZE:-32}) with
+      ${PACKAGE:-[unspecified]}
+
+USAGE
+    showDownloadHint scotch
+    exit 0  # Clean exit
+}
+#------------------------------------------------------------------------------
+
+unset optForce optNoExtlib
+optBinaries=false
+optLabelSize="${WM_LABEL_SIZE:-32}"
+
+# Parse options
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    '') ;;      # Ignore empty
+    -h | -help*) printHelp;;
+    -list)      printVersions;;
+    -gcc)       useGcc  ;;
+    -force)     optForce=true ;;
+    -int32 | -int64) optLabelSize="${1#-int}" ;;
+    -bin)       optBinaries=true ;;
+    -no-bin)    optBinaries=false ;;
+    -no-mpi)    unset withMPI ;;
+    -no-extlib) optNoExtlib=true ;;  # Hidden option
+
+    scotch/ | sources/scotch* |\
+    scotch-[0-9]* | scotch-v[0-9]* | scotch-git | scotch_* )
+        PACKAGE="${1%%/}"
+        unset SCOTCH_ARCH_PATH  # Avoid inconsistency
+        ;;
+    *)
+        die "unknown option/argument: '$1'"
+        ;;
+    esac
+    shift
+done
+
+if [ -z "$PACKAGE" ]
+then
+    die "The SCOTCH package/version not specified"
+elif _foamIsNone "$PACKAGE" || _foamIsSystem "$PACKAGE"
+then
+    echo "Using none/system (skip ThirdParty build of SCOTCH)"
+    exit 0
+fi
+
+if [ "$optNoExtlib" = true ]
+then
+    unset FOAM_EXT_LIBBIN
+else
+    requireExtLibBin
+fi
+
+#------------------------------------------------------------------------------
+#
+# Build SCOTCH
+#   SCOTCH_ARCH_PATH : installation directory (as per config file)
+#
+#   *PACKAGE : name-version of the package
+#   *SOURCE  : location of original sources
+#   *PREFIX  : installation directory
+
+PKG_SOURCE="$(findSourceDir "$PACKAGE")"
+PACKAGE="$(basename "$PACKAGE")"
+PKG_PREFIX="$installBASE$WM_SIZE_OPTIONS/$PACKAGE"
+export GIT_DIR="$PKG_SOURCE/.git"
+
+# Override as per config file (if any)
+[ -n "$SCOTCH_ARCH_PATH" ] && PKG_PREFIX="$SCOTCH_ARCH_PATH"
+
+[ -d "$PKG_SOURCE/src" ] || {
+    echo "Missing sources: '$PACKAGE'"
+    showDownloadHint scotch
+    exit 2
+}
+
+
+#------------------------------------------------------------------------------
+
+# Select a Makefile.inc for the scotch build
+# - could use more generalizing, but works fairly well
+
+unset MakefileInc
+for ending in \
+    "$(uname -s)-${WM_COMPILER}".shlib \
+    "$(uname -s)".shlib \
+    Linux.shlib \
+;
+do
+    # Fully resolve path
+    file="$WM_THIRD_PARTY_DIR/etc/makeFiles/scotch/Makefile.inc.$ending"
+    if [ -f "$file" ]
+    then
+        MakefileInc="$file"
+        break
+    fi
+done
+
+
+# - copy OpenFOAM-specific Makefile include files into the scotch dir.
+# - place a full copy into an 'openfoam/' directory (for documentation)
+# - make symlink from the openfoam/Makefile.inc.XXX -> src/Makefile.inc
+
+createMakefileLinks()
+{
+    # Sanity checks
+    if [ -z "$MakefileInc" ]
+    then
+        echo "Did not define a Makefile.inc for"
+        echo "    $PACKAGE/src"
+        return 1
+    elif [ ! -f "$MakefileInc" ]
+    then
+        echo "No such file to include:"
+        echo "    $MakefileInc"
+        return 1
+    fi
+
+    if [ ! -d "$PKG_SOURCE"/src ] || [ ! -w "$PKG_SOURCE"/src ]
+    then
+        echo "Directory missing or not writable:"
+        echo "    $PKG_SOURCE/src"
+        return 1
+    fi
+
+
+    # Copy files and make links
+    mkdir -p "$PKG_SOURCE"/openfoam
+    cp -p "$(dirname "$MakefileInc")"/* "$PKG_SOURCE"/openfoam
+    rm -f "$PKG_SOURCE"/src/Makefile.inc
+    (
+        cd "$PKG_SOURCE/src" && \
+        ln -sf ../openfoam/"$(basename "$MakefileInc")" Makefile.inc
+    )
+}
+
+
+#------------------------------------------------------------------------------
+
+#
+# Manual installation of serial libraries
+# from libdir to -> $FOAM_EXT_LIBBIN
+#
+install_serial()
+{
+    local libdir_source="$1"
+    local libdir_target="$FOAM_EXT_LIBBIN"
+    local libname_suffix="-int$WM_LABEL_SIZE"
+
+    [ -n "$FOAM_EXT_LIBBIN" ] || unset libdir_target
+    [ -n "$WM_LABEL_SIZE" ] || unset libname_suffix
+
+    echo
+    echo "Adjusting installation"
+
+    # Rename lib as xxx-intNN qualified library names (non-windows)
+    if [ -n "$libname_suffix" ] && [ "${EXT_SO:-.dll}" != ".dll" ]
+    then
+    (
+        cd "$libdir_source" || exit
+        echo "Tagging libraries with $libname_suffix"
+        for name in libscotch
+        do
+            if [ -f "$name$EXT_SO" ]
+            then
+                mv "$name$EXT_SO" "$name$libname_suffix$EXT_SO"
+                ln -sf "$name$libname_suffix$EXT_SO" "$name$EXT_SO"
+            fi
+        done
+    )
+    fi
+
+    if [ -n "$libdir_target" ]
+    then
+        # Remove old libraries and links
+        for name in libscotch
+        do
+            rm -f "$libdir_target/$name$EXT_SO"
+            rm -f "$libdir_target/$name$libname_suffix$EXT_SO"
+        done
+        mkdir -p "$libdir_target"
+        echo "Relocating serial libraries"
+
+        # echo "Installing: $libdir_target/libscotch$libname_suffix"
+        mv -f "$libdir_source"/lib* "$libdir_target"
+    fi
+
+    rmdir "$libdir_source" 2>/dev/null  # Failed rmdir is uncritical
+    return 0
+}
+
+
+#
+# Manual installation of parallel libraries
+# from libdir to -> $FOAM_EXT_LIBBIN/$FOAM_MPI
+#
+install_parallel()
+{
+    local libdir_source="$1"
+    local libdir_target="$FOAM_EXT_LIBBIN/$FOAM_MPI"
+    local libname_suffix="-int$WM_LABEL_SIZE"
+    local link_serial=false
+
+    [ -n "$FOAM_EXT_LIBBIN" ] || unset libdir_target
+    [ -n "$WM_LABEL_SIZE" ] || unset libname_suffix
+
+    echo
+    echo "Adjusting installation"
+
+    # Rename lib as xxx-intNN qualified library names (non-windows)
+    if [ -n "$libname_suffix" ] && [ "${EXT_SO:-.dll}" != ".dll" ]
+    then
+    (
+        cd "$libdir_source" || exit
+        echo "Tagging libraries with $libname_suffix"
+
+        # When linked, remove generated serial libraries
+        if [ "$link_serial" = true ]
+        then
+            rm -f libscotch*
+        fi
+
+        for name in libscotch libptscotch
+        do
+            if [ -f "$name$EXT_SO" ]
+            then
+                mv "$name$EXT_SO" "$name$libname_suffix$EXT_SO"
+                ln -sf "$name$libname_suffix$EXT_SO" "$name$EXT_SO"
+            fi
+        done
+    )
+    fi
+
+    if [ -n "$libdir_target" ]
+    then
+        # Remove old libraries and links
+        for name in libscotch libptscotch
+        do
+            rm -f "$libdir_target/$name$EXT_SO"
+            rm -f "$libdir_target/$name$libname_suffix$EXT_SO"
+        done
+        mkdir -p "$libdir_target"
+        echo "Relocating parallel libraries"
+
+        # echo "Installing: $libdir_target/libptscotch$libname_suffix"
+        mv -f "$libdir_source"/lib* "$libdir_target"
+    fi
+
+    # Create symlinks to serial versions?
+    if [ -n "$link_serial" ] && [ "${EXT_SO:-.dll}" != ".dll" ]
+    then
+    (
+        if [ -n "$libdir_target" ]
+        then
+            cd "$libdir_target" || exit
+        else
+            cd "$libdir_source" || exit
+        fi
+
+        for name in libscotch"$libname_suffix" libscotcherr*
+        do
+            if [ -f ../"$name$EXT_SO" ]
+            then
+                ln -sf ../"$name$EXT_SO" "$name$EXT_SO"
+            fi
+        done
+
+        for name in libscotch
+        do
+            if [ -f "$name$libname_suffix$EXT_SO" ]
+            then
+                ln -sf "$name$libname_suffix$EXT_SO" "$name$EXT_SO"
+            fi
+        done
+    )
+    fi
+
+    rmdir "$libdir_source" 2>/dev/null  # Failed rmdir is uncritical
+    return 0
+}
+
+
+echo
+echo ========================================
+echo "scotch decomposition ($PACKAGE)"
+echo "    Makefile.inc  : ${customMakefileInc##*/}"
+
+# (serial) scotch
+bindir="$PKG_PREFIX"/bin
+includedir="$PKG_PREFIX"/include
+libdir="$FOAM_EXT_LIBBIN"
+if [ -z "$FOAM_EXT_LIBBIN" ]
+then
+    libdir="$PKG_PREFIX"/lib
+fi
+
+if [ "$optLabelSize" != "$WM_LABEL_SIZE" ]
+then
+    echo "Using int-$optLabelSize instead of int-$WM_LABEL_SIZE"
+fi
+export WM_LABEL_SIZE="$optLabelSize"
+
+# Test installation. May or may not have libscotcherrexit.so
+if [ -z "$optForce" ] \
+&& [ -f "$includedir"/scotch.h ] \
+&& haveLibso "$libdir"/libscotch
+then
+    echo "    scotch include: $includedir"
+    echo "    scotch library: $libdir"
+elif [ -d "$PKG_SOURCE" ]
+then
+(
+    # Older versions ok, but scotch-6.0.5a cannot build in parallel.
+    # Force serial build
+    export WM_NCOMPPROCS=1
+    echo "*** building scotch in serial ***"
+    echo
+
+    cd "$PKG_SOURCE/src" || exit
+
+    applyPatch "$PACKAGE" ..      # patch at parent-level
+    createMakefileLinks || exit
+
+    # Verify
+    [ -f Makefile.inc ] || {
+        echo " Error: scotch needs an appropriate Makefile.inc"
+        exit 1
+    }
+
+    # Fresh install
+    rm -rf "$PKG_PREFIX"
+    mkdir -p "$bindir" "$includedir" "$libdir"
+
+    # Temporary location for library install
+    libdir_tmp="$libdir"
+    if [ -n "$FOAM_EXT_LIBBIN" ]
+    then
+        libdir_tmp="$PKG_PREFIX"/lib-tmp
+    fi
+
+    export CCS="$(whichCC)"         # CCS (serial compiler)
+    export CCP="$(whichMpicc)"      # CCP (parallel compiler) default=mpicc
+
+    # Consistency for Intel-MPI and non-icc compilers
+    [ -n "$I_MPI_CC" ] || export I_MPI_CC="$(whichCC)"
+
+    # The make targets.
+    # - according to docs, cannot make binaries with suffix renaming
+    make_targets="libscotch"
+    if [ "$optBinaries" = true ]
+    then
+        make_targets="$make_targets scotch"
+    fi
+
+    make realclean 2>/dev/null  # Extra safety
+    make -j $WM_NCOMPPROCS $make_targets \
+     && make \
+        prefix="$PKG_PREFIX" \
+        bindir="$bindir" \
+        includedir="$includedir" \
+        libdir="$libdir_tmp" \
+        install
+
+    install_serial "$libdir_tmp"
+
+    sharedir="$PKG_PREFIX/share"
+    if [ "$optBinaries" = false ]
+    then
+        rm -rf "$sharedir/man"                  # No bins -> no manpages
+    fi
+
+    rmdir "$bindir" 2>/dev/null || true         # Remove empty bin/
+    rmdir "${bindir%/*}" 2>/dev/null || true    # ... and empty parent
+    rmdir "$sharedir" 2>/dev/null || true       # Remove empty share/
+    make realclean 2>/dev/null || true          # Failed cleanup is uncritical
+) || warnBuildIssues SCOTCH
+else
+    warnNotFound SCOTCH
+fi
+
+
+# Build ptscotch when MPI (ThirdParty or system) is available
+
+if [ "${withMPI}" != true ]
+then
+    # Report that the above tests failed and pass-through the failure
+    echo "Skipping pt-scotch (no mpi)"
+    exit 0
+fi
+
+# Known build issues for mingw (MS-MPI source code annotations)
+case "$WM_COMPILER" in
+(Mingw*)
+    if [ -z "$optForce" ]
+    then
+        echo "Skipping pt-scotch - known compilation issues with $WM_COMPILER"
+        exit 0
+    else
+        echo "Warning: pt-scotch - known compilation issues with $WM_COMPILER"
+    fi
+    ;;
+esac
+
+
+# Build ptscotch if normal scotch was built (has include and library)
+# (reuse prefix/include/lib dirs set above)
+if [ -f "$includedir"/scotch.h ] \
+&& haveLibso "$libdir"/libscotch
+then
+    echo
+    echo ========================================
+    echo "pt-scotch decomposition ($PACKAGE with $FOAM_MPI)"
+else
+    # Report that the above tests failed and pass-through the failure
+    echo "Skipping pt-scotch - no <scotch.h> found"
+    exit 2
+fi
+
+# (parallel) pt-scotch
+bindir="$PKG_PREFIX/bin/$FOAM_MPI"
+includedir="$PKG_PREFIX/include/$FOAM_MPI"
+libdir="$FOAM_EXT_LIBBIN/$FOAM_MPI"
+if [ -z "$FOAM_EXT_LIBBIN" ]
+then
+    libdir="$PKG_PREFIX/lib/$FOAM_MPI"
+fi
+
+if [ -z "$optForce" ] \
+&& [ -f "$includedir"/ptscotch.h ] \
+&& haveLibso "$libdir"/libptscotch
+then
+    echo "    ptscotch include: $includedir"
+    echo "    ptscotch library: $libdir"
+else
+(
+    # Older versions ok, but scotch-6.0.5a cannot build in parallel.
+    # Force serial build
+    export WM_NCOMPPROCS=1
+    echo "*** building pt-scotch in serial ***"
+    echo
+
+    cd "$PKG_SOURCE/src" || exit
+    createMakefileLinks || exit
+
+    # Verify
+    [ -f Makefile.inc ] || {
+        echo " Error: ptscotch needs an appropriate Makefile.inc"
+        exit 1
+    }
+
+    # Install into existing prefix
+    mkdir -p "$bindir" "$includedir" "$libdir"
+
+    # Temporary location for library install
+    libdir_tmp="$libdir"
+    if [ -n "$FOAM_EXT_LIBBIN" ]
+    then
+        libdir_tmp="$PKG_PREFIX"/lib-tmp
+    fi
+
+    export CCS="$(whichCC)"     # CCS (serial compiler)
+    export CCP="$(whichMpicc)"  # CCP (parallel compiler) default=mpicc
+
+    # Consistency for Intel-MPI and non-icc compilers
+    [ -n "$I_MPI_CC" ] || export I_MPI_CC="$(whichCC)"
+
+    # The make targets.
+    # - no simple means of handling mpi-specific binaries
+    # - according to docs, cannot make binaries with suffix renaming
+    make_targets="libptscotch"
+    if [ "$optBinaries" = true ]
+    then
+        make_targets="$make_targets ptscotch"
+    fi
+
+    # Remove any old symlinks etc
+    rm -rf "$includedir"/scotch*.h 2>/dev/null
+    rm -rf "$libdir"/libscotch*.so 2>/dev/null
+
+    make realclean 2>/dev/null  # Extra safety
+    make -j $WM_NCOMPPROCS $make_targets \
+     && make \
+        prefix="$PKG_PREFIX" \
+        bindir="$bindir" \
+        includedir="$includedir" \
+        libdir="$libdir_tmp" \
+        install
+
+    install_parallel "$libdir_tmp"
+
+    sharedir="$PKG_PREFIX/share"
+    if [ "$optBinaries" = false ]
+    then
+        rm -rf "$sharedir/man"                  # No bins -> no manpages
+    fi
+
+    rmdir "$bindir" 2>/dev/null || true         # Remove empty bin/
+    rmdir "${bindir%/*}" 2>/dev/null || true    # ... and empty parent
+    rmdir "$sharedir" 2>/dev/null || true       # Remove empty share/
+    make realclean 2>/dev/null || true          # Failed cleanup is uncritical
+) || warnBuildIssues PTSCOTCH
+fi
+
+# Verify existence of ptscotch include
+[ -f "$PKG_PREFIX/include/$FOAM_MPI/ptscotch.h" ] || {
+    echo
+    echo "    WARNING: required include file 'ptscotch.h' not found!"
+}
+
+# Could remove $PKG_SOURCE/src/Makefile.inc, but leave for documentation
+
+#------------------------------------------------------------------------------

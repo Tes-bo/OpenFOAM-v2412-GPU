@@ -1,0 +1,15 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/CleanFunctions      # Tutorial clean functions
+#------------------------------------------------------------------------------
+
+cleanTimeDirectories
+cleanAuxiliary
+cleanPostProcessing
+
+cleanFaMesh
+
+rm -rf processor*
+rm -rf 0
+
+#------------------------------------------------------------------------------

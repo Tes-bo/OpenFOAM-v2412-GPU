@@ -1,0 +1,33 @@
+// ParaView Catalyst function object for OpenFOAM (-*- C++ -*-)
+
+catalyst
+{
+    #includeEtc "caseDicts/insitu/catalyst/catalyst.cfg"
+
+    scripts
+    (
+        "<system>/scripts/slice1.py"
+        // "<etc>/caseDicts/insitu/catalyst/writeAll.py"
+    );
+
+    // Calculate a few iterations before starting processing
+    timeStart 0.05;
+
+    // For testing: force endTime of catalyst and simulation
+    // timeEnd   0.1;
+    // "/endTime"    0.15;
+
+    inputs
+    {
+        region
+        {
+            internal    true;
+            boundary    false;
+
+            // Selected fields (words or regex)
+            fields  (U p);
+        }
+    }
+}
+
+// ************************************************************************* //

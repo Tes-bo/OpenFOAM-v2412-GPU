@@ -1,0 +1,28 @@
+sinclude $(GENERAL_RULES)/module-path-user
+
+/* Failsafe - user location */
+ifeq (,$(strip $(FOAM_MODULE_LIBBIN)))
+    FOAM_MODULE_LIBBIN = $(FOAM_USER_LIBBIN)
+endif
+
+EXE_INC = \
+    -I$(LIB_SRC)/finiteVolume/lnInclude \
+    -I$(LIB_SRC)/meshTools/lnInclude \
+    -I../../mappedList \
+    -I../../mappedPtrList \
+    -I../quadratureNode/lnInclude \
+    -I../moments \
+    -I../momentSets/lnInclude \
+    -I../momentInversion/lnInclude \
+    -I../fieldMomentInversion/lnInclude \
+    -I../quadratureApproximations/lnInclude
+
+LIB_LIBS = \
+    -lfiniteVolume \
+    -lmeshTools \
+    -L$(FOAM_MODULE_LIBBIN) \
+    -lquadratureNode \
+    -lmomentSets \
+    -lmomentInversion \
+    -lfieldMomentInversion \
+    -lquadratureApproximation

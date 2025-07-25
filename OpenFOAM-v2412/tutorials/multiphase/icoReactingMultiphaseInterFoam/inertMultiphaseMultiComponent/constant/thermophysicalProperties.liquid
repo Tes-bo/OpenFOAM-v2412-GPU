@@ -1,0 +1,85 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      thermophysicalProperties.liquid;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+thermoType
+{
+    type            heRhoThermo;
+    mixture         multiComponentMixture;
+    transport       polynomial;
+    thermo          hPolynomial;
+    equationOfState icoPolynomial;
+    specie          specie;
+    energy          sensibleEnthalpy;
+}
+
+species
+(
+    water
+    O2
+);
+
+inertSpecie  water;
+
+water
+{
+    specie
+    {
+        nMoles          1;
+        molWeight       18.9;
+    }
+    equationOfState
+    {
+        rhoCoeffs<8>     (1000 0 0 0 0 0 0 0);
+    }
+    thermodynamics
+    {
+        CpCoeffs<8>     (4181 0 0 0 0 0 0 0);
+        Hf              -1.5833e7;//deltaHv 2.45e6; //[J/Kg]
+        Sf              0;
+    }
+    transport
+    {
+        muCoeffs<8>     (959e-6 0 0 0 0 0 0 0);
+        kappaCoeffs<8>  (0.001 0 0 0 0 0 0 0);
+    }
+}
+
+O2
+{
+    specie
+    {
+        nMoles          1;
+        molWeight       31.9988;
+    }
+    equationOfState
+    {
+        rhoCoeffs<8>    (0.5 0 0 0 0 0 0 0);
+    }
+    thermodynamics
+    {
+        CpCoeffs<8>     (4181 0 0 0 0 0 0 0);
+        Hf              0;
+        Sf              0;
+    }
+    transport
+    {
+        muCoeffs<8>     (959e-6 0 0 0 0 0 0 0);
+        kappaCoeffs<8>  (0.016 0 0 0 0 0 0 0);
+    }
+}
+
+
+// ************************************************************************* //

@@ -1,0 +1,26 @@
+#------------------------------------------------------------------------------
+# Additional rules for handling CUDA files
+
+SUFFIXES += .cu
+
+ifeq (,$(strip $(NVARCH)))
+    NVARCH  = 70
+endif
+
+NVCC        = nvcc -std=c++17 --compiler-options='-fPIC'
+
+cuARCH      = -arch=sm_$(NVARCH)
+cuOPT       = -O3
+cuDBUG      =
+
+# Similar to c++FLAGS
+cuFLAGS     = $(GFLAGS) -DNoRepository $(cuARCH) $(cuOPT) $(cuDBUG) $(LIB_HEADER_DIRS)
+
+cutoo       = $(WM_SCHEDULER) $(NVCC) $(cuFLAGS) -c $< -o $@
+
+$(OBJECTS_DIR)/%.o : %.cu
+	$(cutoo)
+
+CUDA_LINKLIBSO  = $(NVCC) -shared
+
+#------------------------------------------------------------------------------

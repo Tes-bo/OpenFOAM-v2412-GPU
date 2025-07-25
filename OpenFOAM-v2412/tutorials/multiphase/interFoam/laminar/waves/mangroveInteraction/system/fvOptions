@@ -1,0 +1,62 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      fvOptions;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+Mangroves
+{
+    type            multiphaseMangrovesSource;
+    active          yes;
+
+    multiphaseMangrovesSourceCoeffs
+    {
+        regions
+        {
+            region1
+            {
+                cellZone        c0;
+                a               0.01;
+                N               560;
+                Cm              1;
+                Cd              1.52;
+            }
+        }
+    }
+}
+
+
+TurbulenciaMangroves
+{
+    type            multiphaseMangrovesTurbulenceModel;
+    active          yes;
+
+    multiphaseMangrovesTurbulenceModelCoeffs
+    {
+        regions
+        {
+            region1
+            {
+                cellZone        c0;
+                a               0.01;
+                N               560;
+                Ckp             1;
+                Cep             3.5;
+                Cd              1.52;
+            }
+        }
+    }
+}
+
+
+// ************************************************************************* //

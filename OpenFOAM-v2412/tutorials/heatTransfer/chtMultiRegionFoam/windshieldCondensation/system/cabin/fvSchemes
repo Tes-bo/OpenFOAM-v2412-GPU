@@ -1,0 +1,74 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      fvSchemes;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+ddtSchemes
+{
+    default         Euler;
+}
+
+gradSchemes
+{
+    default         Gauss linear;
+    grad(p_rgh)     Gauss linear;
+}
+
+divSchemes
+{
+    default         none;
+
+    div(phi,U)      Gauss linearUpwind grad(U);
+
+    div(phi,K)      Gauss linear;
+    div(phi,h)      Gauss limitedLinear 1;
+
+    turbulence      Gauss limitedLinear 1;
+    div(phi,k)      $turbulence;
+    div(phi,omega)  $turbulence;
+
+    div(phi,H2O)    Gauss upwind;
+    div(((rho*nuEff)*dev2(T(grad(U))))) Gauss linear;
+}
+
+laplacianSchemes
+{
+    default         none;
+    laplacian((rho*nuEff),U) Gauss linear corrected;
+    laplacian((rho*DkEff),k) Gauss linear corrected;
+    laplacian((rho*DomegaEff),omega) Gauss linear corrected;
+    laplacian(rhorAUf,p_rgh) Gauss linear corrected;
+    laplacian(alphaEff,h) Gauss linear corrected;
+    laplacian(((rho*nut)+thermo:mu),H2O) Gauss linear corrected;
+    laplacian(DH2O,H2O) Gauss linear corrected;
+}
+
+interpolationSchemes
+{
+    default         linear;
+    directionalPressureGradient::Uf     upwind  phi;
+}
+
+snGradSchemes
+{
+    default         corrected;
+}
+
+wallDist
+{
+    method          meshWave;
+}
+
+
+// ************************************************************************* //

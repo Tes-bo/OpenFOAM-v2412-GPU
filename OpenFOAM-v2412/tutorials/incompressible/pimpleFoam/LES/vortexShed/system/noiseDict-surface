@@ -1,0 +1,70 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      noiseDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+noiseModel      surfaceNoise;
+
+surfaceNoiseCoeffs
+{
+    windowModel     Hanning;
+
+    HanningCoeffs
+    {
+        // Window overlap percentage
+        overlapPercent  50;
+        symmetric       yes;
+        extended        yes;
+
+        // Optional number of windows, default = all available
+        //nWindow         5;
+    }
+
+
+    // Input file
+    file        "postProcessing/curleSurface/surface/surface.case";
+
+    areaAverage yes;
+
+    // commsType   scheduled;  // nonBlocking
+    // broadcast   false;
+
+    // Surface reader
+    reader      ensight;
+
+    // Surface writer
+    writer      ensight;
+
+    // Collate times for ensight output - ensures geometry is only written once
+    writeOptions
+    {
+        ensight
+        {
+            collateTimes    1;
+            format          binary;
+        }
+    }
+
+    // Pressure field
+    p               pCurle;
+
+    // Number of samples in sampling window
+    // default = 2^16 (=65536)
+    N               4096;
+
+    rhoRef          1;
+}
+
+
+// ************************************************************************* //

@@ -1,0 +1,52 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      FOelectricPotential;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+electricPotential
+{
+    // Mandatory entries
+    type            electricPotential;
+    libs            (solverFunctionObjects);
+    phases
+    {
+        alpha.air
+        {
+            epsilonr      1.12940906737;
+            sigma         1e-10;
+        }
+        alpha.water
+        {
+            epsilonr      3.38822720212;
+            sigma         0.14;
+        }
+    }
+
+    // Optional entries
+    nCorr                 1;
+    writeDerivedFields    true;
+
+    // Inherited entries
+    region          region0;
+    enabled         true;
+    log             true;
+    timeStart       0;
+    timeEnd         100;
+    executeControl  timeStep;
+    executeInterval 1;
+    writeControl    writeTime;
+    writeInterval   -1;
+}
+
+
+// ************************************************************************* //

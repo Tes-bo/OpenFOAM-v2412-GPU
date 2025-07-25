@@ -1,0 +1,4 @@
+c++DBUG     =
+c++OPT      = -march=knl -O3
+
+ROUNDING_MATH = -frounding-math

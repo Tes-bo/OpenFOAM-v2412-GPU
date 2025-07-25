@@ -1,0 +1,132 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+scale           1;
+
+nx              10;
+ny              45;
+nz              100;
+x0Min           -4000;
+x0Max           4000;
+x               1.76104;
+x1Min           #eval{ $x*$x0Min };
+x1Max           #eval{ $x*$x0Max };
+y0Min           $x0Min;
+y0Max           $x0Max;
+y1Min           $x1Min;
+y1Max           $x1Max;
+zMin            20;
+zMax            6020;
+R               9961.94698092;
+Rin             5000;
+zG              10;
+
+vertices
+(
+    ($x0Max $y0Min $zMin)
+    ($x0Min $y0Min $zMin)
+    ($x0Min $y0Max $zMin)
+    ($x0Max $y0Max $zMin)
+    ($x1Max $y1Min $zMin)
+    ($x1Min $y1Min $zMin)
+    ($x1Min $y1Max $zMin)
+    ($x1Max $y1Max $zMin)
+    ($x0Max $y0Min $zMax)
+    ($x0Min $y0Min $zMax)
+    ($x0Min $y0Max $zMax)
+    ($x0Max $y0Max $zMax)
+    ($x1Max $y1Min $zMax)
+    ($x1Min $y1Min $zMax)
+    ($x1Min $y1Max $zMax)
+    ($x1Max $y1Max $zMax)
+);
+
+blocks
+(
+    hex (1 0 3 2 9 8 11 10) ($ny $ny $nz) simpleGrading (1 1 $zG)
+    hex (0 4 7 3 8 12 15 11) ($nx $ny $nz) simpleGrading (1 1 $zG)
+    hex (3 7 6 2 11 15 14 10) ($nx $ny $nz) simpleGrading (1 1 $zG)
+    hex (2 6 5 1 10 14 13 9) ($nx $ny $nz) simpleGrading (1 1 $zG)
+    hex (1 5 4 0 9 13 12 8) ($nx $ny $nz) simpleGrading (1 1 $zG)
+);
+
+edges
+(
+    arc 7 4   ($R     0     $zMin)
+    arc 4 5   (0     -$R    $zMin)
+    arc 5 6   (-$R    0     $zMin)
+    arc 6 7   (0      $R    $zMin)
+    arc 15 12 ($R     0     $zMax)
+    arc 12 13 (0     -$R    $zMax)
+    arc 13 14 (-$R    0     $zMax)
+    arc 14 15 (0      $R    $zMax)
+    arc 3 0   ($Rin   0     $zMin)
+    arc 0 1   (0     -$Rin  $zMin)
+    arc 1 2   (-$Rin  0     $zMin)
+    arc 2 3   (0      $Rin  $zMin)
+    arc 11 8  ($Rin   0     $zMax)
+    arc 8 9   (0     -$Rin  $zMax)
+    arc 9 10  (-$Rin  0     $zMax)
+    arc 10 11 (0      $Rin  $zMax)
+);
+
+boundary
+(
+    terrain
+    {
+        type    wall;
+        faces
+        (
+            (3 0 1 2)
+            (3 7 4 0)
+            (2 6 7 3)
+            (1 5 6 2)
+            (0 4 5 1)
+        );
+    }
+
+    top
+    {
+        type    patch;
+        faces
+        (
+            (11 10 9 8)
+            (11 8 12 15)
+            (10 11 15 14)
+            (9 10 14 13)
+            (8 9 13 12)
+        );
+    }
+
+    sides
+    {
+        type    patch;
+        faces
+        (
+            (4 7 15 12)
+            (5 4 12 13)
+            (6 5 13 14)
+            (7 6 14 15)
+        );
+    }
+);
+
+mergePatchPairs
+(
+);
+
+
+// ************************************************************************* //

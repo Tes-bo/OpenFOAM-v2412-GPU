@@ -1,0 +1,136 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      snappyHexMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+castellatedMesh true;
+snap            true;
+addLayers       false;
+
+geometry
+{
+    "window_box.stl"
+    {
+        type triSurfaceMesh;
+        name window_box;
+        regions
+        {
+            window    {name window;}
+            box       {name box;}
+            wall      {name fixedWall;}
+        }
+    }
+    rbox_f
+    {
+        type box;
+        min (0.7  0   0.7);
+        max (1.3  0.5  1.3);
+    }
+    rbox_c
+    {
+        type box;
+        min (0 0 0);
+        max (2 1 2);
+    }
+};
+
+
+castellatedMeshControls
+{
+    maxLocalCells 300000000;
+    maxGlobalCells 300000000;
+    minRefinementCells 10;
+    maxLoadUnbalance 0.10;
+    nCellsBetweenLevels 1;
+
+    features
+    (
+    );
+
+    refinementSurfaces
+    {
+        window_box
+        {
+            level (2 2);
+            regions
+            {
+                window{ level (3 3); }
+            }
+        }
+    }
+
+    resolveFeatureAngle 30;
+
+    refinementRegions
+    {
+        rbox_f
+        {
+            mode inside;
+            levels ((3 3));
+        }
+        rbox_c
+        {
+            mode inside;
+            levels ((2 2));
+        }
+    }
+
+    locationInMesh (1.0134 0.543 1.0765);
+
+    allowFreeStandingZoneFaces false;
+}
+
+
+snapControls
+{
+    nSmoothPatch 3;
+    tolerance 4.0;
+    nSolveIter 10;
+    nRelaxIter 5;
+    nFeatureSnapIter 10;
+
+    explicitFeatureSnap false;
+    implicitFeatureSnap true;
+}
+
+
+addLayersControls
+{}
+
+
+meshQualityControls
+{
+    maxNonOrtho 65;
+    maxBoundarySkewness 20;
+    maxInternalSkewness 4;
+    maxConcave 80;
+    minVol 1e-13;
+    minTetQuality -1;
+    minArea -1;
+    minTwist 0.02;
+    minDeterminant 0.001;
+    minFaceWeight 0.05;
+    minVolRatio 0.01;
+    minTriangleTwist -1;
+
+    nSmoothScale 4;
+    errorReduction 0.75;
+}
+
+debug 0;
+
+mergeTolerance 1e-8;
+
+
+// ************************************************************************* //

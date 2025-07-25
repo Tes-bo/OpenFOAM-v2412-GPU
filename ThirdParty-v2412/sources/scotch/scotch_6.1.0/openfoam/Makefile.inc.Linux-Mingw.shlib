@@ -1,0 +1,85 @@
+#-------------------------------*- makefile -*---------------------------------
+#
+# Prior to OpenFOAM-v1906, these were always part of the environment
+#
+# - WM_CFLAGS   : with -m32 / -m64 and -fPIC
+# - WM_LDFLAGS  : with -m32 / -m64
+#
+# With OpenFOAM-v1906 and later
+#
+# - wmake -show-cflags        : with -m32 / -m64
+# - wmake -show-cflags-arch   : with -m32 / -m64
+#
+# Pass these in via the environment since using '$(shell ...)' here does not
+# always work well.
+#
+# Notes:
+# - compiled without pthread
+#
+# Normally set CCS, CCP by caller
+#------------------------------------------------------------------------------
+
+EXE         =
+LIB         = .dll
+OBJ         = .o
+
+# Separate the cross-compilation flags from regular CFLAGS to ensure that
+# system gcc does not use them for the scotch build toolchain
+
+# cross-compile broken for scotch-v7
+CFLAGS_CROSS = -DCOMMON_STUB_FORK -DCOMMON_WINDOWS
+
+# Flags for including windows MPI information (MSMPI)
+CFLAGS_WINMPI = -I$(MPI_ARCH_PATH)/include \
+    -DMSMPI_NO_SAL -DMSMPI_NO_DEPRECATE_20 \
+    -D_MPICH_DLL_
+
+AR          = x86_64-w64-mingw32-gcc
+ARFLAGS     = $(CFLAGS) -shared -Wl,--output-def,libscotch.def,--out-implib,libscotch.a,--enable-auto-import,--strip-all -o
+CC          = x86_64-w64-mingw32-gcc $(CFLAGS_CROSS)
+CCS         = x86_64-w64-mingw32-gcc $(CFLAGS_WINMPI)
+CCP         = x86_64-w64-mingw32-gcc $(CFLAGS_WINMPI)
+CCD         = gcc $(CFLAGS_WINMPI)
+CFLAGS      = $(WM_CFLAGS) -fPIC -O3 \
+    -DCOMMON_PTHREAD_FILE -DSCOTCH_PTHREAD \
+    -UCOMMON_FILE_COMPRESS \
+    -DCOMMON_RANDOM_FIXED_SEED \
+    -DSCOTCH_DETERMINISTIC \
+    -DSCOTCH_RENAME \
+    -DIDXSIZE64 \
+    -Drestrict=__restrict
+
+# Use 32/64-bit integers
+# ---------------
+# Unfortunately -DINT32 seems to fail when openmpi is build without
+# Fortran! The MPI_INT32_T is interpreted as MPI_INTEGER4 which does
+# not exist
+# ---------------
+# ifeq ($(WM_LABEL_SIZE),32)
+# CFLAGS     += -DINTSIZE32
+# endif
+ifeq ($(WM_LABEL_SIZE),64)
+CFLAGS     += -DINTSIZE64
+endif
+
+# Non-standard "__stdcall" in MSMPI <mpi.h>
+CCDFLAGS    = $(CFLAGS) -D__stdcall=''
+
+
+CLIBFLAGS   = -shared
+LDFLAGS     =
+
+MAKE        = make
+CP          = cp
+CAT         = cat
+LN          = ln
+MKDIR       = mkdir
+MV          = mv
+RANLIB      = echo
+
+FLEX        = flex "-Pscotchyy$(SCOTCH_NAME_SUFFIX)" -olex.yy.c
+BISON       = bison "-pscotchyy$(SCOTCH_NAME_SUFFIX)" -y -b y
+LEX         = $(FLEX)
+YACC        = $(BISON)
+
+#------------------------------------------------------------------------------

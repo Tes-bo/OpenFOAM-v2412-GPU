@@ -1,0 +1,30 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      dictionary;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#ifeq $WM_PROJECT_VERSION plus
+    // Get version number as dictionary entry
+    versionNo ${FOAM_API};
+    // Do comparison
+    #if #calc "$versionNo<1812";
+        version "pre-1812";
+    #else
+        version "post-1812";
+    #endif
+#else
+    version "other";
+#endif
+
+// ************************************************************************* //

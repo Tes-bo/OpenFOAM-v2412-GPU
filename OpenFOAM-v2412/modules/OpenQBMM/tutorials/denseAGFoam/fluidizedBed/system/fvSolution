@@ -1,0 +1,114 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  dev
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      fvSolution;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+solvers
+{
+    "alpha.*"
+    {
+        nAlphaCorr      2;
+        nAlphaSubCycles 2;
+
+        implicitPhasePressure yes;
+        solver          GAMG;
+        smoother        DILU;
+        tolerance       1e-10;
+        relTol          0;
+        minIter         1;
+    }
+
+    p
+    {
+        solver          GAMG;
+        smoother        DIC;
+        nPreSweeps      0;
+        nPostSweeps     2;
+        nFinestSweeps   2;
+        cacheAgglomeration true;
+        nCellsInCoarsestLevel 10;
+        agglomerator    faceAreaPair;
+        mergeLevels     2;
+        tolerance       1e-10;
+        maxIter         1000;
+    }
+
+    pFinal
+    {
+        $p;
+        relTol          0;
+    }
+
+    "U.*"
+    {
+        solver          smoothSolver;
+        smoother        symGaussSeidel;
+        tolerance       1e-6;
+        relTol          0;
+        minIter         1;
+    }
+
+    "(Theta.*|Sigma.*)"
+    {
+        solver          PBiCGStab;
+        preconditioner  DILU;
+        tolerance       1e-6;
+        relTol          0;
+        minIter         1;
+    }
+
+    "(k|epsilon).*"
+    {
+        solver          smoothSolver;
+        smoother        symGaussSeidel;
+        tolerance       1e-5;
+        relTol          0;
+        minIter         1;
+    }
+}
+
+PIMPLE
+{
+    nOuterCorrectors            15;
+    nCorrectors                 2;
+    nNonOrthogonalCorrectors    0;
+    pRefCell    0;
+    pRefValue   1e5;
+
+    outerCorrectorResidualControl
+    {
+        p
+        {
+            tolerance 1e-5;
+            relTol    0;
+        }
+        alpha.air
+        {
+            tolerance 1e-6;
+            relTol    0;
+        }
+    }
+}
+
+relaxationFactors
+{
+    equations
+    {
+        p           0.3;
+    }
+}
+
+
+// ************************************************************************* //

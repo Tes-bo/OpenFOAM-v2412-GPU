@@ -1,0 +1,97 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      dictionary;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+expr1   "hypot(3,4)";
+
+expr2   hypot(3,4);
+
+expr3   #{  hypot(3,4)  #};
+
+eval1   #eval " pi() * 2 * $expr1";
+
+eval2   #eval " pi() * 2 * $expr2";
+
+eval3   #eval " pi() * 2 * $expr3";
+
+
+factor  "pi()";
+
+factor10  10;
+
+hypot_a 3;
+hypot_b 4;
+
+eval4   #eval "$factor * 2 * hypot(${hypot_xx:-0}, $hypot_b)";
+
+//eval5   #eval " pi() * 2 * ${{ hypot(3,4) * 100 }}";
+
+eval6   #eval " pi() * 2 * ${{ ${factor:-0} * ${{ 15 * 3 }} }} + 5";
+
+eval6a  #eval " pi() * 2 * ${{ ${factor:+-$factor} * ${{ 15 * 3 }} }} + 5";
+
+eval6b  #eval " pi() * 2 * ${{ ${unknown:-0} * ${{ 15 * 3 }} }} + 5";
+
+eval6c  #eval " pi() * 2 * ${{ -${unknown:-0} * ${{ 15 * 3 }} }} + 5";
+
+// Even this work
+eval7a  #eval " pi() * 1 * ${factor${{2*5}}:-100}";
+
+// Even this work
+eval7b  #eval " pi() * 1 * ${factorXYZ${{2*5}}:-100}";
+
+index   10;
+
+eval8a  #eval " pi() * 2 * ${{ ${factor$index} + ${factor10} }}";
+
+eval8b  #eval " pi() * 2 * $factor * ${{ 100 }}";
+
+eval10a #eval "vector(1,2,3) * 5";
+
+
+// Slightly stranger ideas:
+
+axis1   (1 0 0);
+axis2   (0 1 0);
+axis3   (0 0 1);
+index   100;
+
+location #eval #{
+    400 *
+
+    // Numerator: use the index to get relevant suffix [1,2,3]
+    // to form the lookup of axis1,axis2,...
+    // Treat the lookup as a vector within the expression evaluation
+
+    $[(vector)   axis${{
+            ($index % 3) + 1 /* Evaluates: 1,2,3 from index */ }}
+     ]
+
+    // Denominator: divide by index with zero-division protection
+  / ${{max(1, $index)}}
+
+    // Same thing, but using expressions-syntax for variable lookup
+  / ${{max(1, $[index])}}
+#};
+
+
+// This is still a rather clunky syntax
+length #eval{ cbrt(mag($[(vector) location])) };
+
+
+// Remove evidence of some variables
+#remove ("axis[0-9]*" index)
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

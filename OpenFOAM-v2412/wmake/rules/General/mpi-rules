@@ -1,0 +1,39 @@
+#------------------------------------------------------------------------------
+# MPI rules
+
+PFLAGS  =
+PINC    =
+PLIBS   =
+
+# Extract the family name. For example,
+# SYSTEMOPENMPI4 -> SYSTEMOPENMPI
+# OPENMPI-4.0.6 -> OPENMPI
+#
+MPLIB_FAMILY = $(shell echo "$(WM_MPLIB)" | sed -e 's/[-+.0-9~].*//')
+
+# Base rules
+ifneq ("$(MPLIB_FAMILY)","$(WM_MPLIB)")
+    sinclude $(GENERAL_RULES)/mplib$(MPLIB_FAMILY)
+    sinclude $(DEFAULT_RULES)/mplib$(MPLIB_FAMILY)
+    # system-specific
+    ifneq ("$(RULES)","$(DEFAULT_RULES)")
+        sinclude $(RULES)/mplib$(MPLIB_FAMILY)
+    endif
+endif
+
+# Specific rules
+ifneq (,$(strip $(WM_MPLIB)))
+    sinclude $(GENERAL_RULES)/mplib$(WM_MPLIB)
+    sinclude $(DEFAULT_RULES)/mplib$(WM_MPLIB)
+    # system-specific
+    ifneq ("$(RULES)","$(DEFAULT_RULES)")
+        sinclude $(RULES)/mplib$(WM_MPLIB)
+    endif
+endif
+
+# Default target MPI libdir is PROJECT lib/<mpi-name>
+ifeq (,$(strip $(FOAM_MPI_LIBBIN)))
+    FOAM_MPI_LIBBIN := $(FOAM_LIBBIN)/$(FOAM_MPI)
+endif
+
+#------------------------------------------------------------------------------

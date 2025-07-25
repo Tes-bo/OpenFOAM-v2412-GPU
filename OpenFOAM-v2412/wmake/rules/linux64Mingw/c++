@@ -1,0 +1,43 @@
+#------------------------------------------------------------------------------
+# mingw is gcc, but new enough to support c++17
+# NB: gnu++17 (not c++17) to ensure __STRICT_ANSI__ is not defined
+#------------------------------------------------------------------------------
+include $(GENERAL_RULES)/Gcc/c++
+
+CC         := x86_64-w64-mingw32-g++ -std=gnu++17
+c++ARCH    := -m64 -pthread
+
+ifneq (,$(strip $(WM_COMPILE_OPTION)))
+    sinclude $(DEFAULT_RULES)/c++$(WM_COMPILE_OPTION)
+endif
+
+c++FLAGS    = \
+    $(c++ARCH) $(GFLAGS) $(c++WARN) $(c++OPT) $(c++DBUG) $(ptFLAGS) \
+    $(FOAM_EXTRA_CXXFLAGS) $(LIB_HEADER_DIRS)
+
+Ctoo        = $(WM_SCHEDULER) $(CC) $(c++FLAGS) -c $< -o $@
+cctoo       = $(Ctoo)
+cpptoo      = $(Ctoo)
+cxxtoo      = $(Ctoo)
+
+LINK_LIBS   = $(c++DBUG)
+
+# Using "-Wl,--no-undefined,--enable-runtime-pseudo-reloc"
+# does not forgive undefined symbols during linking
+
+LINKLIBSO   = $(CC) $(c++FLAGS) -shared \
+    -Wl,--output-def=$(LIB).def \
+    -Wl,--out-implib=$(LIB).dll.a \
+    -Wl,--no-undefined \
+    -Wl,--enable-runtime-pseudo-reloc \
+    -Wl,--enable-auto-import \
+    -Wl,--enable-auto-image-base \
+    -Wl,--strip-all
+
+LINKEXE     = $(CC) $(c++FLAGS) \
+    -static-libgcc -static-libstdc++ \
+    -Wl,--enable-auto-import \
+    -Wl,--strip-all \
+    -Wl,--force-exe-suffix
+
+#------------------------------------------------------------------------------

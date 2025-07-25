@@ -1,0 +1,12 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+# Copy geometry from resources directory
+# echo "Copy geometry resources"
+
+mkdir -p constant/triSurface/
+cp "$FOAM_TUTORIALS"/resources/geometry/fsi-bridge1.obj constant/triSurface/
+
+#------------------------------------------------------------------------------

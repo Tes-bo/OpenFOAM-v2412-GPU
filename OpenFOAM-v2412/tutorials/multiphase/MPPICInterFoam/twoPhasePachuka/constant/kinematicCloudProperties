@@ -1,0 +1,204 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      kinematicCloudProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+solution
+{
+    active          true;
+    coupled         true;
+    transient       yes;
+    cellValueSourceCorrection no;
+
+    maxCo           0.3;
+
+    interpolationSchemes
+    {
+        rho         cell;
+        U           cellPoint;
+        mu          cell;
+        gradAlpha   cellPoint;
+    }
+
+    averagingMethod dual;
+
+    integrationSchemes
+    {
+        U               Euler;
+    }
+
+    sourceTerms
+    {
+        schemes
+        {
+            U           semiImplicit 1;
+        }
+    }
+}
+
+constantProperties
+{
+    rho0            1200;
+    alphaMax        0.9;
+}
+
+subModels
+{
+    particleForces
+    {
+        WenYuDrag
+        {
+            alphac      alphac;
+        }
+        gravity;
+        interface
+        {
+            C            -10;
+            alpha        alpha.water;
+        }
+    }
+
+    injectionModels
+    {
+        model1
+        {
+            type            patchInjection;
+            massTotal       140e-3;
+            SOI             0;
+            parcelBasisType fixed;//mass;
+            nParticle       1;
+            patch           inlet;
+            duration        1;
+            parcelsPerSecond 1e5;
+            U0              (0 0 0.1);
+            flowRateProfile constant 1;
+            sizeDistribution
+            {
+                type            normal;
+                normalDistribution
+                {
+                    mu              550e-6;
+                    sigma           50e-6;
+                    minValue        400e-6;
+                    maxValue        800e-6;
+                }
+            }
+        }
+    }
+
+    dispersionModel none;
+
+    patchInteractionModel localInteraction;
+
+    localInteractionCoeffs
+    {
+        patches
+        (
+            walls
+            {
+                type rebound;
+                e    0.95;
+                mu   0.09;
+            }
+            base
+            {
+                type rebound;
+                e    0.95;
+                mu   0.09;
+            }
+            inlet
+            {
+                type escape;
+            }
+            outlet
+            {
+                type escape;
+            }
+        );
+    }
+
+    heatTransferModel none;
+
+    surfaceFilmModel none;
+
+    packingModel explicit;
+
+    explicitCoeffs
+    {
+        particleStressModel
+        {
+            type HarrisCrighton;
+            alphaPacked 0.6;
+            pSolid 10.0;
+            beta 2.0;
+            eps 1.0e-7;
+        }
+        correctionLimitingMethod
+        {
+            type absolute;
+            e 0.9;
+        }
+    }
+
+    implicitCoeffs
+    {
+        alphaMin 0.001;
+        rhoMin 1.0;
+        applyGravity false;
+        applyLimiting   false;
+        particleStressModel
+        {
+            type HarrisCrighton;
+            alphaPacked 0.9;
+            pSolid 5.0;
+            beta 2.0;
+            eps 1.0e-2;
+        }
+    }
+
+    dampingModel none;
+
+    relaxationCoeffs
+    {
+        timeScaleModel
+        {
+            type nonEquilibrium;
+            alphaPacked 0.7;
+            e 0.8;
+        }
+    }
+
+    isotropyModel stochastic;
+
+    stochasticCoeffs
+    {
+        timeScaleModel
+        {
+            type isotropic;
+            alphaPacked 0.7;
+            e 0.8;
+        }
+    }
+
+    stochasticCollisionModel none;
+
+    radiation off;
+}
+
+
+cloudFunctions
+{}
+
+
+// ************************************************************************* //

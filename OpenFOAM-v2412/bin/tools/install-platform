@@ -1,0 +1,375 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2020 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     install-platform
+#
+# Example usage
+#     install-platform -prefix=/opt/openfoam/openfoamVER
+#
+# Description
+#     Simple installer to copy OpenFOAM binary bin/, lib/ (platforms)
+#     directories.
+#
+# Note
+#     The platforms/tools directory still must be handled separately
+#
+# Layout of OpenFOAM platforms
+#
+#     platforms
+#     |-- <WM_OPTIONS>
+#         |-- bin
+#         |   |-- ...
+#         `-- lib
+#             |-- ...
+#             |-- dummy
+#             |   `-- ...
+#             |-- sys-openmpi
+#             |   |-- libPstream.so
+#             |   `-- libptscotchDecomp.so
+#             `-- paraview-MAJ.MIN
+#                 `-- ...
+#
+#------------------------------------------------------------------------------
+printHelp() {
+    cat<<USAGE
+
+Usage: ${0##*/} [OPTION]
+
+input options:
+  -source=SOURCE          Source directory
+                          [\$WM_PROJECT_DIR ${WM_PROJECT_DIR:-''}]
+  -platform=PLATFORM      OpenFOAM platform name [\$WM_OPTIONS ${WM_OPTIONS:-''}]
+  -foam-mpi=FOAM_MPI      OpenFOAM mpi name [\$FOAM_MPI ${FOAM_MPI:-''}]
+
+target options:
+  -prefix=PREFIX          Top-level installation directory in PREFIX ['']
+  -exec-prefix=EPREFIX    Architecture-dependent in EPREFIX
+                          [PREFIX/platforms/PLATFORM]
+  -bindir=DIR             bin directory [EPREFIX/bin]
+  -libdir=DIR             lib directory [EPREFIX/lib]
+  -mpi-libdir=DIR         mpi libdir [<libdir>/FOAM_MPI]
+
+tuning options:
+  -no-bin                 Do not install bin directory
+  -no-lib                 Do not install lib directory
+  -no-mpi                 Do not install mpi lib directory
+  -mpi-only               Only install mpi lib directory
+  -mpi-mkdir              Create foam-mpi directory within libdir
+
+general options:
+  -dry-run, -n            Do not perform any operations
+  -force, -f              Ignored
+  -verbose, -v            Additional verbosity
+  -help                   Print the help and exit
+
+
+Simple installer to copy OpenFOAM binary bin/, lib/ (platforms) directories.
+
+Example,
+    ${0##*/} -prefix=/opt/openfoamVER
+
+USAGE
+    exit 0  # A clean exit
+}
+
+unset optDryRun hadError
+# Report error and exit
+die()
+{
+    exec 1>&2
+    echo
+    echo "Error encountered:"
+    while [ "$#" -ge 1 ]; do echo "    $1"; shift; done
+    echo
+    echo "See '${0##*/} -help' for usage"
+    echo
+    exit 1
+}
+
+# Report error and exit
+warnOrDie()
+{
+    if [ -n "$optDryRun" ]
+    then
+        hadError=true
+        while [ "$#" -ge 1 ]; do echo "Error: $1" 1>&2; shift; done
+    else
+        die "$@"
+    fi
+}
+
+
+# Get the option's value (argument), or die on missing or empty value
+# $1 option=value
+getOptionValue()
+{
+    local value="${1#*=}"
+    # Remove any surrounding double quotes
+    value="${value%\"}"
+    value="${value#\"}"
+
+    [ -n "$value" ] || die "'${1%=}' option requires a value"
+    echo "$value"
+}
+
+
+# Test for '-no-' or '-without-' prefix. Return "false" or "true"
+# $1 option
+# [$2] truth value <true>
+getBoolOption()
+{
+    case "$1" in
+    (-no-* | -without-*) echo "false" ;;
+    (*) echo "${2:-true}" ;;
+    esac
+}
+
+
+#-------------------------------------------------------------------------------
+# Defaults from current OpenFOAM environment
+sourceDir="$WM_PROJECT_DIR"
+platform="$WM_OPTIONS"
+foam_mpi="$FOAM_MPI"
+
+unset install_bin install_lib
+unset optMkdir_mpi
+install_mpi=true
+
+unset prefix exec_prefix bindir libdir libdir_mpi optVerbose
+
+# Parse options
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    -h | -help*)    printHelp ;;
+    -n | -dry-run)  optDryRun="(dry-run) " ;;
+    -v | -verbose)  optVerbose=true ;;
+    -f | -force)    echo "Ignored option: ${1%%=*}" 1>&2 ;;
+
+    # Inputs
+    -source=*)      sourceDir="$(getOptionValue "$1")" ;;
+    -platform=*)    platform="$(getOptionValue "$1")" ;;
+    -foam-mpi=*)    foam_mpi="$(getOptionValue "$1")" ;;
+
+    # Targets
+    -prefix=*)      prefix="$(getOptionValue "$1")" ;;
+    -exec-prefix=*) exec_prefix="$(getOptionValue "$1")" ;;
+
+    -bindir=*)      bindir="$(getOptionValue "$1")" ;;
+    -libdir=*)      libdir="$(getOptionValue "$1")" ;;
+    -mpi-libdir=*)  libdir_mpi="$(getOptionValue "$1")" ;;
+
+    -no-bin)        install_bin=false ;;
+    -no-lib)        install_lib=false ;;
+    -no-mpi)        install_mpi=false ;;
+    -mpi-only)      install_mpi=exclusive ;;
+    -mpi-mkdir)     optMkdir_mpi=true ;;
+
+    (*)  die "Unknown option/argument: $1" ;;
+    esac
+    shift
+done
+
+#-------------------------------------------------------------------------------
+
+# Default <exec_prefix> based on <prefix>
+if [ -z "$exec_prefix" ] && [ -n "$prefix" ]
+then
+    exec_prefix="$prefix/platforms/$platform"
+fi
+
+# Default <bindir>, <libdir> based on <exec_prefix>
+if [ -n "$exec_prefix" ]
+then
+    [ -n "$bindir" ] || bindir="$exec_prefix/bin"
+    [ -n "$libdir" ] || libdir="$exec_prefix/lib"
+fi
+
+# Default <mpi-libdir> based on <libdir> and <foam-mpi>
+if [ -z "$libdir_mpi" ] && [ -n "$libdir" ]
+then
+    libdir_mpi="$libdir/$foam_mpi"
+fi
+
+# Exclusions
+if [ "$install_bin" = false ] || [ "$install_mpi" = exclusive ]
+then
+    unset bindir
+fi
+if [ "$install_lib" = false ] || [ "$install_mpi" = exclusive ]
+then
+    unset libdir
+fi
+if [ "$install_mpi" = false ]
+then
+    unset libdir_mpi
+fi
+
+
+# Input checks
+
+sourcePlatform="$sourceDir/platforms/$platform"
+
+[ -d "$sourceDir" ] || warnOrDie "Invalid -source directory: $sourceDir"
+[ -n "$platform" ] || warnOrDie "No -platform detected or specified"
+[ -n "$foam_mpi" ] || warnOrDie "No -foam-mpi detected or specified"
+
+[ -d "$sourcePlatform" ] || \
+    warnOrDie "Missing platforms directory for: $platform"
+
+
+# Installation sanity check
+[ -n "$bindir$libdir$libdir_mpi" ] || \
+    warnOrDie "Must specify at least one of -prefix, -exec-prefix, -bindir, -libdir, -mpi-libdir"
+
+
+if [ -n "$hadError" ]
+then
+    echo "Errors encounters in dry-run. Stopping" 1>&2
+    exit 1
+fi
+
+# Report settings
+echo "Preparing install with the following parameters" 1>&2
+echo "source:" 1>&2
+echo "    directory   $sourceDir" 1>&2
+echo "    platform    $platform" 1>&2
+echo "    foam-mpi    $foam_mpi" 1>&2
+echo 1>&2
+echo "target (mpi-install: $install_mpi)" 1>&2
+echo "    prefix      ${prefix-[]}" 1>&2
+echo "    exec-prefix ${exec_prefix:-[]}" 1>&2
+echo "    bindir      ${bindir:-[]}" 1>&2
+echo "    libdir      ${libdir:-[]}" 1>&2
+echo "    libdir(mpi) ${libdir_mpi:-[]}" 1>&2
+echo 1>&2
+
+
+#------------------------------------------------------------------------------
+# Proper umask
+umask 022
+
+# The commands
+copy_cmd="cp -a ${optVerbose:+-v}"
+mkdir_cmd="mkdir -p"
+
+if [ -n "$optDryRun" ]
+then
+    if [ -n "$optVerbose" ]
+    then
+        copy_cmd="echo cp -a"
+        mkdir_cmd="echo mkdir -p"
+    else
+        copy_cmd="true"
+        mkdir_cmd="true"
+    fi
+fi
+
+
+# bin/
+# ----
+message="${optDryRun}Install bindir:"
+if [ -n "$bindir" ]
+then
+    input="$sourcePlatform/bin"
+
+    echo "From $input" 1>&2
+    echo "${message} $bindir" 1>&2
+
+    $mkdir_cmd "$bindir" 2>/dev/null
+
+    for i in "$input/"*
+    do
+        if [ -e "$i" ]
+        then
+            $copy_cmd "$i" "$bindir"
+        fi
+    done
+else
+    echo "${message} [disabled]" 1>&2
+fi
+# ----
+
+
+# lib/ without mpi
+# ----
+message="${optDryRun}Install libdir(non-mpi):"
+if [ -n "$libdir" ]
+then
+    input="$sourcePlatform/lib"
+
+    echo "From $input" 1>&2
+    echo "${message} $libdir" 1>&2
+
+    $mkdir_cmd "$libdir" 2>/dev/null
+
+    for i in "$input/"*
+    do
+        if [ "${i##*/}" = "$foam_mpi" ]
+        then
+            if [ "$optMkdir_mpi" = true ]
+            then
+                $mkdir_cmd "$libdir/$foam_mpi"
+            fi
+        elif [ -e "$i" ]
+        then
+            $copy_cmd "$i" "$libdir"
+        else
+            echo "bogus lib entry? $i" 1>&2
+        fi
+    done
+else
+    echo "${message} [disabled]" 1>&2
+fi
+# ----
+
+
+# lib/mpi
+# ----
+message="${optDryRun}Install libdir(mpi):"
+if [ -n "$libdir_mpi" ]
+then
+    input="$sourcePlatform/lib/$foam_mpi"
+
+    echo "From $input" 1>&2
+    echo "${message} $libdir_mpi" 1>&2
+
+    $mkdir_cmd "$libdir_mpi" 2>/dev/null
+
+    for i in "$input"/*
+    do
+        if [ -e "$i" ]
+        then
+            # Always verbose (not many files anyhow)
+            $copy_cmd -v "$i" "$libdir_mpi"
+        else
+            echo "bogus mpi-lib entry? $i" 1>&2
+        fi
+    done
+else
+    echo "${message} [disabled]" 1>&2
+fi
+# ----
+
+
+if [ -n "$optDryRun" ]
+then
+    [ -n "$optVerbose" ] && echo 1>&2
+    echo "${optDryRun}Done" 1>&2
+fi
+
+
+exit 0  # A clean exit
+
+#------------------------------------------------------------------------------

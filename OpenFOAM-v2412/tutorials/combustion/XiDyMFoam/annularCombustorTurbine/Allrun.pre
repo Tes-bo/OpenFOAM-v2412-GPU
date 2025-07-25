@@ -1,0 +1,26 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+cp -rf \
+    "$FOAM_TUTORIALS"/resources/geometry/annularCombustorTurbine \
+    constant/triSurface
+
+runApplication blockMesh
+
+runApplication -s cyclic \
+    createPatch -dict system/createPatchDict.cyclic -overwrite
+
+runApplication snappyHexMesh -overwrite
+
+rm -rf 0
+
+runApplication -s ami \
+    createPatch -dict system/createPatchDict.ami -overwrite
+
+runApplication transformPoints -scale 0.01  # Uniform scaling [cm] -> [m]
+
+runApplication mergeOrSplitBaffles -split -overwrite
+
+#------------------------------------------------------------------------------

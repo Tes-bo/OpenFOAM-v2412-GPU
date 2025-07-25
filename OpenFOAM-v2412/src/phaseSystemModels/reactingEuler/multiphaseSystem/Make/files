@@ -1,0 +1,232 @@
+phaseModel/phaseModel/phaseModel.C
+phaseModel/phaseModel/phaseModels.C
+
+phasePair/phasePairKey.C
+phasePair/phasePair.C
+phasePair/orderedPhasePair.C
+
+phaseSystem/phaseSystem.C
+
+multiphaseSystem/multiphaseSystem.C
+multiphaseSystem/multiphaseSystemNew.C
+multiphaseSystem/multiphaseSystems.C
+
+diameter = diameterModels
+$(diameter)/diameterModel/diameterModel.C
+$(diameter)/constantDiameter/constantDiameter.C
+$(diameter)/isothermalDiameter/isothermalDiameter.C
+$(diameter)/linearTsubDiameter/linearTsubDiameter.C
+$(diameter)/velocityGroup/velocityGroup.C
+$(diameter)/velocityGroup/sizeGroup/sizeGroup.C
+
+
+populationBalanceModel/populationBalanceModel/populationBalanceModel.C
+
+coalescence = populationBalanceModel/coalescenceModels
+$(coalescence)/coalescenceModel/coalescenceModel.C
+$(coalescence)/constantCoalescence/constantCoalescence.C
+$(coalescence)/CoulaloglouTavlaridesCoalescence/CoulaloglouTavlaridesCoalescence.C
+$(coalescence)/hydrodynamic/hydrodynamic.C
+$(coalescence)/LehrMilliesMewesCoalescence/LehrMilliesMewesCoalescence.C
+$(coalescence)/Luo/Luo.C
+$(coalescence)/PrinceBlanch/PrinceBlanch.C
+
+binaryBreakup = populationBalanceModel/binaryBreakupModels
+$(binaryBreakup)/binaryBreakupModel/binaryBreakupModel.C
+$(binaryBreakup)/LuoSvendsen/LuoSvendsen.C
+$(binaryBreakup)/LehrMilliesMewes/LehrMilliesMewes.C
+$(binaryBreakup)/powerLawUniformBinary/powerLawUniformBinary.C
+
+breakup = populationBalanceModel/breakupModels
+$(breakup)/breakupModel/breakupModel.C
+$(breakup)/exponential/exponential.C
+$(breakup)/LaakkonenAlopaeusAittamaa/LaakkonenAlopaeusAittamaa.C
+$(breakup)/powerLaw/powerLaw.C
+
+daughterSize = populationBalanceModel/daughterSizeDistributionModels
+$(daughterSize)/daughterSizeDistributionModel/daughterSizeDistributionModel.C
+$(daughterSize)/uniformBinary/uniformBinary.C
+$(daughterSize)/LaakkonenAlopaeusAittamaaDsd/LaakkonenAlopaeusAittamaaDsd.C
+
+drift = populationBalanceModel/driftModels
+$(drift)/driftModel/driftModel.C
+$(drift)/constantDrift/constantDrift.C
+$(drift)/densityChange/densityChange.C
+$(drift)/phaseChange/phaseChange.C
+
+nucleation = populationBalanceModel/nucleationModels
+$(nucleation)/nucleationModel/nucleationModel.C
+$(nucleation)/constantNucleation/constantNucleation.C
+$(nucleation)/wallBoiling/wallBoiling.C
+
+blending = BlendedInterfacialModel/blendingMethods
+$(blending)/blendingMethod/blendingMethod.C
+$(blending)/noBlending/noBlending.C
+$(blending)/linear/linearBlendingMethod.C
+$(blending)/hyperbolic/hyperbolic.C
+
+
+interfacialModels/wallDependentModel/wallDependentModel.C
+
+aspectRatio = interfacialModels/aspectRatioModels
+$(aspectRatio)/aspectRatioModel/aspectRatioModel.C
+$(aspectRatio)/constantAspectRatio/constantAspectRatio.C
+$(aspectRatio)/TomiyamaAspectRatio/TomiyamaAspectRatio.C
+$(aspectRatio)/VakhrushevEfremov/VakhrushevEfremov.C
+$(aspectRatio)/Wellek/Wellek.C
+
+drag = interfacialModels/dragModels
+$(drag)/dragModel/dragModel.C
+$(drag)/Beetstra/Beetstra.C
+$(drag)/segregated/segregated.C
+$(drag)/Ergun/Ergun.C
+$(drag)/Gibilaro/Gibilaro.C
+$(drag)/GidaspowErgunWenYu/GidaspowErgunWenYu.C
+$(drag)/GidaspowSchillerNaumann/GidaspowSchillerNaumann.C
+$(drag)/Lain/Lain.C
+$(drag)/SchillerNaumann/SchillerNaumann.C
+$(drag)/SyamlalOBrien/SyamlalOBrien.C
+$(drag)/TomiyamaCorrelated/TomiyamaCorrelated.C
+$(drag)/TomiyamaAnalytic/TomiyamaAnalytic.C
+$(drag)/Tenneti/Tenneti.C
+$(drag)/TomiyamaKataokaZunSakaguchi/TomiyamaKataokaZunSakaguchi.C
+$(drag)/WenYu/WenYu.C
+$(drag)/IshiiZuber/IshiiZuber.C
+$(drag)/AttouFerschneider/AttouFerschneider.C
+
+lift = interfacialModels/liftModels
+$(lift)/liftModel/liftModel.C
+$(lift)/noLift/noLift.C
+$(lift)/constantLiftCoefficient/constantLiftCoefficient.C
+$(lift)/Moraga/Moraga.C
+$(lift)/LegendreMagnaudet/LegendreMagnaudet.C
+$(lift)/TomiyamaLift/TomiyamaLift.C
+$(lift)/wallDampedLift/wallDampedLift.C
+
+heatTransfer = interfacialModels/heatTransferModels
+$(heatTransfer)/heatTransferModel/heatTransferModel.C
+$(heatTransfer)/constantNu/constantNuHeatTransfer.C
+$(heatTransfer)/RanzMarshall/RanzMarshall.C
+$(heatTransfer)/sphericalHeatTransfer/sphericalHeatTransfer.C
+
+phaseTransfer = interfacialModels/phaseTransferModels
+$(phaseTransfer)/phaseTransferModel/phaseTransferModel.C
+$(phaseTransfer)/deposition/deposition.C
+
+swarm = interfacialModels/swarmCorrections
+$(swarm)/swarmCorrection/swarmCorrection.C
+$(swarm)/noSwarm/noSwarm.C
+$(swarm)/TomiyamaSwarm/TomiyamaSwarm.C
+
+dispersion = interfacialModels/turbulentDispersionModels
+$(dispersion)/turbulentDispersionModel/turbulentDispersionModel.C
+$(dispersion)/noTurbulentDispersion/noTurbulentDispersion.C
+$(dispersion)/constantTurbulentDispersionCoefficient/constantTurbulentDispersionCoefficient.C
+$(dispersion)/Burns/Burns.C
+$(dispersion)/Gosman/Gosman.C
+$(dispersion)/LopezDeBertodano/LopezDeBertodano.C
+
+virtualMass = interfacialModels/virtualMassModels
+$(virtualMass)/virtualMassModel/virtualMassModel.C
+$(virtualMass)/noVirtualMass/noVirtualMass.C
+$(virtualMass)/constantVirtualMassCoefficient/constantVirtualMassCoefficient.C
+$(virtualMass)/Lamb/Lamb.C
+
+damping = interfacialModels/wallDampingModels
+$(damping)/wallDampingModel/wallDampingModel.C
+$(damping)/noWallDamping/noWallDamping.C
+$(damping)/interpolated/interpolatedWallDamping.C
+$(damping)/linear/linearWallDamping.C
+$(damping)/cosine/cosineWallDamping.C
+$(damping)/sine/sineWallDamping.C
+
+lubrication = interfacialModels/wallLubricationModels
+$(lubrication)/wallLubricationModel/wallLubricationModel.C
+$(lubrication)/noWallLubrication/noWallLubrication.C
+$(lubrication)/Antal/Antal.C
+$(lubrication)/Frank/Frank.C
+$(lubrication)/TomiyamaWallLubrication/TomiyamaWallLubrication.C
+
+composition = interfacialCompositionModels/interfaceCompositionModels
+$(composition)/interfaceCompositionModel/interfaceCompositionModel.C
+$(composition)/InterfaceCompositionModel/InterfaceCompositionModels.C
+
+massTransfer = interfacialCompositionModels/massTransferModels
+$(massTransfer)/massTransferModel/massTransferModel.C
+$(massTransfer)/Frossling/Frossling.C
+$(massTransfer)/sphericalMassTransfer/sphericalMassTransfer.C
+
+surfaceTension = interfacialCompositionModels/surfaceTensionModels
+$(surfaceTension)/surfaceTensionModel/surfaceTensionModel.C
+$(surfaceTension)/constantSurfaceTensionCoefficient/constantSurfaceTensionCoefficient.C
+
+
+derivedFvPatchFields/alphaContactAngle/alphaContactAngleFvPatchScalarField.C
+
+derivedFvPatchFields/alphatPhaseChangeWallFunction/alphatPhaseChangeWallFunctionFvPatchScalarField.C
+derivedFvPatchFields/alphatPhaseChangeJayatillekeWallFunction/alphatPhaseChangeJayatillekeWallFunctionFvPatchScalarField.C
+derivedFvPatchFields/alphatFixedDmdtWallBoilingWallFunction/alphatFixedDmdtWallBoilingWallFunctionFvPatchScalarField.C
+derivedFvPatchFields/alphatWallBoilingWallFunction/alphatWallBoilingWallFunctionFvPatchScalarField.C
+derivedFvPatchFields/copiedFixedValue/copiedFixedValueFvPatchScalarField.C
+derivedFvPatchFields/fixedMultiPhaseHeatFlux/fixedMultiPhaseHeatFluxFvPatchScalarField.C
+
+/* wall-boiling */
+
+wallBoilingSubModels = derivedFvPatchFields/wallBoilingSubModels
+
+partitioning = $(wallBoilingSubModels)/partitioningModels
+$(partitioning)/partitioningModel/partitioningModel.C
+$(partitioning)/phaseFraction/phaseFraction.C
+$(partitioning)/Lavieville/Lavieville.C
+$(partitioning)/cosine/cosine.C
+$(partitioning)/linear/linearPartitioningModel.C
+
+nucleationSite = $(wallBoilingSubModels)/nucleationSiteModels
+$(nucleationSite)/nucleationSiteModel/nucleationSiteModel.C
+$(nucleationSite)/LemmertChawla/LemmertChawla.C
+
+departureDiam = $(wallBoilingSubModels)/departureDiameterModels
+$(departureDiam)/departureDiameterModel/departureDiameterModel.C
+$(departureDiam)/TolubinskiKostanchuk/TolubinskiKostanchuk.C
+$(departureDiam)/KocamustafaogullariIshii/KocamustafaogullariIshii.C
+
+departureFreq = $(wallBoilingSubModels)/departureFrequencyModels
+$(departureFreq)/departureFrequencyModel/departureFrequencyModel.C
+$(departureFreq)/Cole/Cole.C
+
+CHFModels = $(wallBoilingSubModels)/CHFModels
+$(CHFModels)/CHFModel/CHFModel.C
+$(CHFModels)/Zuber/Zuber.C
+
+CHFSubCoolModels = $(wallBoilingSubModels)/CHFSubCoolModels
+$(CHFSubCoolModels)/CHFSubCoolModel/CHFSubCoolModel.C
+$(CHFSubCoolModels)/HuaXu/HuaXu.C
+$(CHFSubCoolModels)/Tatsumoto/Tatsumoto.C
+
+filmBoiling = $(wallBoilingSubModels)/filmBoilingModels
+$(filmBoiling)/filmBoilingModel/filmBoilingModel.C
+$(filmBoiling)/Bromley/Bromley.C
+$(filmBoiling)/BreenWestwater/BreenWestwater.C
+
+Leidenfrost = $(wallBoilingSubModels)/LeidenfrostModels
+$(Leidenfrost)/LeidenfrostModel/LeidenfrostModel.C
+$(Leidenfrost)/Spiegler/Spiegler.C
+
+MHFModels = $(wallBoilingSubModels)/MHFModels
+$(MHFModels)/MHFModel/MHFModel.C
+$(MHFModels)/Jeschar/Jeschar.C
+
+TDNBModels = $(wallBoilingSubModels)/TDNBModels
+$(TDNBModels)/TDNBModel/TDNBModel.C
+$(TDNBModels)/Schroeder/Schroeder.C
+$(TDNBModels)/Shirai/Shirai.C
+
+nucleateFluxModels = $(wallBoilingSubModels)/nucleateFluxModels
+$(nucleateFluxModels)/nucleateFluxModel/nucleateFluxModel.C
+$(nucleateFluxModels)/Kutadeladze/Kutadeladze.C
+$(nucleateFluxModels)/exponential/exponential.C
+
+/* Turbulence */
+turbulence/multiphaseCompressibleTurbulenceModels.C
+
+LIB = $(FOAM_LIBBIN)/libreactingMultiphaseSystem

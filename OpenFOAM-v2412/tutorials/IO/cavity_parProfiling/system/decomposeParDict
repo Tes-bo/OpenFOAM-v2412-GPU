@@ -1,0 +1,39 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      decomposeParDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+numberOfSubdomains  20;
+method              scotch;
+coeffs
+{
+    // Divide into 20/10=2 nodes
+    domains (10);
+    // Inside a node the communication weight is 1% of that inbetween nodes
+    domainWeights (0.01);
+}
+
+
+
+//numberOfSubdomains  2;
+//
+//method  hierarchical;
+//
+//coeffs
+//{
+//    n   (2 1 1);
+//}
+
+
+// ************************************************************************* //

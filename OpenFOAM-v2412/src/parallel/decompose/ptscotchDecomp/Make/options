@@ -1,0 +1,32 @@
+/*
+ * NB: PINC must appear after PTSCOTCH_INC_DIR to ensure we do not
+ * accidentally get a ptscotch header from the MPI distribution
+ */
+include $(GENERAL_RULES)/mpi-rules
+
+EXE_INC = \
+    -I$(PTSCOTCH_INC_DIR) \
+    -I$(SCOTCH_INC_DIR) \
+    $(PFLAGS) $(PINC) \
+    -I$(LIB_SRC)/parallel/decompose/decompositionMethods/lnInclude
+
+/*
+ * The '-lscotch' is a slight hack:
+ * ptscotch 6 requires scotch linked in, but does not declare the dependency
+ */
+LIB_LIBS = \
+    -L$(FOAM_LIBBIN) -ldecompositionMethods \
+    -L$(PTSCOTCH_LIB_DIR) \
+    -L$(SCOTCH_LIB_DIR) \
+    -lscotch$(SCOTCH_LIBNAME_SUFFIX) \
+    -lptscotch$(SCOTCH_LIBNAME_SUFFIX)
+
+/* errexit, except for windows compile (already in library) */
+ifeq (,$(findstring windows,$(WM_OSTYPE)))
+    LIB_LIBS += -lptscotcherrexit
+endif
+
+/* May require librt, but scotch does not declare the dependency */
+ifeq (.so,$(EXT_SO))
+    LIB_LIBS += -lrt
+endif

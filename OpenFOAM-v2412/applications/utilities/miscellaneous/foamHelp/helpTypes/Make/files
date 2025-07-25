@@ -1,0 +1,9 @@
+helpType/helpType.C
+helpType/helpTypeNew.C
+helpBoundary/helpBoundary.C
+helpFunctionObject/helpFunctionObject.C
+helpSolver/helpSolver.C
+
+doxygenXmlParser/doxygenXmlParser.C
+
+LIB = $(FOAM_LIBBIN)/libhelpTypes

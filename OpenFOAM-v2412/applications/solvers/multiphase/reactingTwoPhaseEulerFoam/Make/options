@@ -1,0 +1,24 @@
+phaseSystem = $(LIB_SRC)/phaseSystemModels/reactingEuler
+
+EXE_INC = \
+    -I${phaseSystem}/twoPhaseSystem/lnInclude \
+    -I${phaseSystem}/twoPhaseCompressibleTurbulenceModels/lnInclude \
+    -I${phaseSystem}/multiphaseSystem/lnInclude \
+    -I$(LIB_SRC)/finiteVolume/lnInclude \
+    -I$(LIB_SRC)/meshTools/lnInclude \
+    -I$(LIB_SRC)/sampling/lnInclude \
+    -I$(LIB_SRC)/thermophysicalModels/basic/lnInclude \
+    -I$(LIB_SRC)/transportModels/compressible/lnInclude \
+    -I$(LIB_SRC)/TurbulenceModels/turbulenceModels/lnInclude \
+    -I$(LIB_SRC)/TurbulenceModels/compressible/lnInclude \
+    -I$(LIB_SRC)/TurbulenceModels/phaseCompressible/lnInclude
+
+EXE_LIBS = \
+    -lfiniteVolume \
+    -lfvOptions \
+    -lmeshTools \
+    -lsampling \
+    -lreactingMultiphaseSystem \
+    -lreactingTwoPhaseSystem \
+    -ltwoPhaseReactingTurbulenceModels \
+    -lthermoTools

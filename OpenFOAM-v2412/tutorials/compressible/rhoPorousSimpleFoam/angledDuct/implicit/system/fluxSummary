@@ -1,0 +1,25 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+fluxSummary
+{
+    type    fluxSummary;
+    libs    (fieldFunctionObjects);
+
+    scaleFactor     1.205;
+    write           yes;
+    log             yes;
+    mode            cellZoneAndDirection;
+    cellZoneAndDirection
+    (
+        (porosity (1 1 0))
+    );
+}
+
+
+// ************************************************************************* //

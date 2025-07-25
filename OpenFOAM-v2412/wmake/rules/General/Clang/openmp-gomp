@@ -1,0 +1,9 @@
+# Flags for compiling/linking openmp
+# -
+# Clang provides 'omp' and a link for 'gomp'.
+# With 'gomp' we can also use system libs.
+
+COMP_OPENMP = -fopenmp
+LINK_OPENMP = -lgomp
+
+# -----------------------------------------------------------------------------

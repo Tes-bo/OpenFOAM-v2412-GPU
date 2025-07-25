@@ -1,0 +1,14 @@
+common/ccmBase.C
+common/ccmInternal.C
+
+reader/ccmReader.C
+reader/ccmReaderAux.C
+reader/ccmReaderMesh.C
+reader/ccmReaderSolution.C
+reader/ccmReaderOptions.C
+
+writer/ccmWriter.C
+writer/ccmWriterMesh.C
+writer/ccmWriterSolution.C
+
+LIB = $(FOAM_LIBBIN)/libccm

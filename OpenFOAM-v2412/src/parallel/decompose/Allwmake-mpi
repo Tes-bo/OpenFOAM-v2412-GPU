@@ -1,0 +1,24 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/wmake/scripts/AllwmakeParseArguments -no-recursion "$@"
+. ${WM_PROJECT_DIR:?}/wmake/scripts/wmakeFunctions  # Require wmake functions
+. ${WM_PROJECT_DIR:?}/wmake/scripts/have_scotch
+
+#------------------------------------------------------------------------------
+# Environment
+#   - FOAM_MPI_LIBBIN (optional: defaults to FOAM_LIBBIN/FOAM_MPI)
+
+: "${FOAM_EXT_LIBBIN:=/usr/lib$WM_COMPILER_LIB_ARCH}"  # Extra safety?
+export FOAM_EXT_LIBBIN
+
+if have_scotch
+then
+    if have_ptscotch
+    then
+        # Never need/want openmp for MPI interfaces
+        wmakeLibMpi -no-openmp ptscotchDecomp "scotch=$SCOTCH_VERSION"
+    fi
+fi
+
+
+#------------------------------------------------------------------------------

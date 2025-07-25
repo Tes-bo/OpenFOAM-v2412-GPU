@@ -1,0 +1,98 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      phaseProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+type    massTransferMultiphaseSystem;
+
+phases  (gas mercury oil liquid);
+
+oil
+{
+    type            pureMovingPhaseModel;
+}
+
+liquid
+{
+    type            pureMovingPhaseModel;
+}
+
+gas
+{
+    type            pureMovingPhaseModel;
+}
+
+mercury
+{
+    type            pureMovingPhaseModel;
+}
+
+surfaceTension
+(
+    (gas and liquid)
+    {
+        type            constant;
+        sigma           0.005;
+    }
+
+    (gas and mercury)
+    {
+        type            constant;
+        sigma           0.005;
+    }
+
+    (mercury and gas)
+    {
+        type            constant;
+        sigma           0.005;
+    }
+
+    (mercury and oil)
+    {
+        type            constant;
+        sigma           0.005;
+    }
+
+    (mercury and liquid)
+    {
+        type            constant;
+        sigma           0.005;
+    }
+
+    (gas and oil)
+    {
+        type            constant;
+        sigma           0.005;
+    }
+    (oil and liquid)
+    {
+        type            constant;
+        sigma           0.005;
+    }
+);
+
+massTransferModel
+(
+    (liquid to gas)
+    {
+        type                kineticGasEvaporation;
+        C                   0.1;
+        isoAlpha            0.2;
+        Tactivate           370;
+        includeVolChange    false;
+   }
+);
+
+
+// ************************************************************************* //

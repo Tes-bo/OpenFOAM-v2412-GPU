@@ -1,0 +1,185 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      testCsys1;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// Rotate 90 deg around x: y -> z, z -> -y
+
+rot_x90
+{
+    origin  (0 0 0);
+    e1      (1 0 0);
+    e3      (0 -1 0);
+}
+
+rot_x90_axesRotation
+{
+    origin  (0 0 0);
+    rotation
+    {
+        type    axesRotation;
+        e1      (1 0 0);
+        e3      (0 -1 0);
+    }
+}
+
+rot_x90_axisAngle
+{
+    origin  (0 0 0);
+    rotation
+    {
+        type    axisAngle;
+        axis    (1 0 0);        // non-unit also OK
+        angle   90;
+    }
+}
+
+rot_x90_euler
+{
+    origin  (0 0 0);
+    rotation
+    {
+        type    euler;
+        angles  (0 90 0);      // z-x'-z''
+    }
+}
+
+
+// Rotate 45 deg around z: x -> (1 1 0), y = (-1 1 0)
+
+rot_z45_axesRotation
+{
+    origin  (0 0 0);
+    rotation
+    {
+        type    axesRotation;
+        e1      (1 1 0);
+        e3      (0 0 1);
+    }
+}
+
+rot_z45_axisAngle
+{
+    origin  (0 0 0);
+    rotation
+    {
+        type    axisAngle;
+        axis    (0 0 10);       // non-unit also OK
+        angle   45;
+    }
+}
+
+rot_z45_euler
+{
+    origin  (0 0 0);
+    rotation
+    {
+        type    euler;
+        angles  (45 0 0);      // z-x'-z''
+    }
+}
+
+rot_z45_starcd
+{
+    origin  (0 0 0);
+    rotation
+    {
+        type    starcd;
+        angles  (45 0 0);      // z-x'-y''
+    }
+}
+
+
+// Rotate -45 deg around z: x -> (1 -1 0), y = (1 1 0)
+
+rot_zm45_axesRotation
+{
+    origin  (0 0 0);
+    rotation
+    {
+        type    axesRotation;
+        e1      (1 -1 0);
+        e3      (0 0 1);
+    }
+}
+
+rot_zm45_axisAngle
+{
+    origin  (0 0 0);
+    rotation
+    {
+        type    axisAngle;
+        axis    (0 0 10);       // non-unit also OK
+        angle   -45;
+    }
+}
+
+rot_zm45_euler
+{
+    origin  (0 0 0);
+    rotation
+    {
+        type    euler;
+        angles  (-45 0 0);      // z-x'-z''
+    }
+}
+
+
+// Null transforms
+
+null_axesRotation
+{
+    origin  (0 0 0);
+    rotation
+    {
+        type    axesRotation;
+        e1      (1 0 0);
+        e3      (0 0 1);
+    }
+}
+
+null_axisAngle0
+{
+    origin  (0 0 0);
+    rotation
+    {
+        type    axisAngle;
+        axis    (0 0 0);       // non-unit also OK
+        angle   0;
+    }
+}
+
+null_axisAngle1
+{
+    origin  (0 0 0);
+    rotation
+    {
+        type    axisAngle;
+        axis    (1 1 1);       // non-unit also OK
+        angle   0;
+    }
+}
+
+null_euler
+{
+    origin  (0 0 0);
+    rotation
+    {
+        type    euler;
+        angles  (0 0 0);      // z-x'-z''
+    }
+}
+
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

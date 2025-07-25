@@ -1,0 +1,160 @@
+<ServerManagerConfiguration>
+  <ProxyGroup name="sources">
+    <SourceProxy class="vtkGDALVectorReader"
+                 label="GDAL Vector Reader"
+                 name="GDALVectorReader">
+      <Documentation short_help="Reads a vector file using the GDAL
+      library.">GDAL Vector Reader is a source object that reads
+      vector files and uses GDAL as the underlying library for the
+      task. GDAL is required for this reader. The output of the reader
+      is a vtkMultiBlockDataSet</Documentation>
+      <StringVectorProperty animateable="0"
+                            command="SetFileName"
+                            name="FileName"
+                            number_of_elements="1">
+        <FileListDomain name="files" />
+        <Documentation>This property specifies the file name for the
+        GDAL Vector reader.</Documentation>
+      </StringVectorProperty>
+      <DoubleVectorProperty information_only="1"
+                            name="TimestepValues"
+                            repeatable="1">
+        <TimeStepsInformationHelper />
+        <Documentation>Available timestep values.</Documentation>
+      </DoubleVectorProperty>
+      <IntVectorProperty command="GetNumberOfLayers"
+                         information_only="1"
+                         name="NumberOfLayers">
+        <SimpleIntInformationHelper/>
+      </IntVectorProperty>
+      <IntVectorProperty command="GetActiveLayer"
+                         information_only="1"
+                         name="ActiveLayerInfo">
+      </IntVectorProperty>
+      <IntVectorProperty animateable="1"
+                         command="SetActiveLayer"
+                         default_values="0"
+                         information_property="ActiveLayerInfo"
+                         name="ActiveLayer"
+                         number_of_elements="1">
+        <Documentation>Set the active layer.</Documentation>
+      </IntVectorProperty>
+      <IntVectorProperty command="GetAppendFeatures"
+                         information_only="1"
+                         name="AppendFeaturesInfo">
+      </IntVectorProperty>
+      <IntVectorProperty command="SetAppendFeatures"
+                         default_values="0"
+                         information_property="AppendFeaturesInfo"
+                         name="AppendFeatures"
+                         number_of_elements="1">
+        <BooleanDomain name="bool" />
+        <Documentation>Set whether features are appended to a single
+    vtkPolyData. Turning the option on is useful when a shapefile has
+    a number of features which could otherwise lead to a huge
+    multiblock structure.
+        </Documentation>
+      </IntVectorProperty>
+      <IntVectorProperty command="GetAddFeatureIds"
+                         information_only="1"
+                         name="AddFeatureIdsInfo">
+      </IntVectorProperty>
+      <IntVectorProperty command="SetAddFeatureIds"
+                         default_values="0"
+                         information_property="AddFeatureIdsInfo"
+                         name="AddFeatureIds"
+                         number_of_elements="1">
+        <BooleanDomain name="bool" />
+        <Documentation>
+          Set whether feature IDs should be generated.
+          Some GDAL primitives (e.g., a polygon with a hole
+          in its interior) are represented by multiple VTK
+          cells. If you wish to identify the primitive
+          responsible for a VTK cell, turn this on. It is
+          off by default for backwards compatibility.
+          The array of feature IDs will be the active
+          cell-data pedigree IDs.
+        </Documentation>
+      </IntVectorProperty>
+      <Hints>
+        <ReaderFactory extensions="shp faa bnn dxf csv geojson gml gmlas gmt gpx htf vct jml kml dgn mvt pdf pds rec enc segy sua sxf ntf vdv vrt"
+                       file_description="GDAL Vector Files"/>
+      </Hints>
+    <!-- End GDALVectorReaderCore -->
+    </SourceProxy>
+    <SourceProxy class="vtkGDALRasterReader"
+                 label="GDAL Raster Reader"
+                 name="GDALRasterReader">
+      <Documentation short_help="Reads a raster file using the GDAL
+      library.">GDAL Raster Reader is a source object that reads
+      raster files and uses GDAL as the underlying library for the
+      task. GDAL is required for this reader. The output of the reader
+      is a vtkUniformGrid instead of vtkImageData to support
+      blanking.</Documentation>
+      <StringVectorProperty animateable="0"
+                            command="SetFileName"
+                            name="FileName"
+                            number_of_elements="1">
+        <FileListDomain name="files" />
+        <Documentation>This property specifies the file name for the
+        GDAL Raster reader.</Documentation>
+      </StringVectorProperty>
+      <DoubleVectorProperty information_only="1"
+                            name="TimestepValues"
+                            repeatable="1">
+        <TimeStepsInformationHelper />
+        <Documentation>Available timestep values.</Documentation>
+      </DoubleVectorProperty>
+      <IntVectorProperty command="GetTargetDimensions"
+                         information_only="1"
+                         name="TargetDimensionsInfo">
+      </IntVectorProperty>
+      <IntVectorProperty command="SetTargetDimensions"
+                         default_values="-1 -1"
+                         information_property="TargetDimensionsInfo"
+                         name="TargetDimensions"
+                         number_of_elements="2">
+        <Documentation>
+          Set the desired width and height of the image.
+        </Documentation>
+      </IntVectorProperty>
+      <StringVectorProperty information_only="1"
+                            name="CellArrayInfo">
+        <ArraySelectionInformationHelper attribute_name="Cell" />
+      </StringVectorProperty>
+      <StringVectorProperty command="SetCellArrayStatus"
+                            element_types="2 0"
+                            information_property="CellArrayInfo"
+                            name="CellArrayStatus"
+                            number_of_elements="2"
+                            number_of_elements_per_command="2"
+                            repeat_command="1"
+                            panel_visibility="advanced">
+        <ArraySelectionDomain name="array_list">
+          <RequiredProperties>
+            <Property function="ArrayList"
+                      name="CellArrayInfo" />
+          </RequiredProperties>
+        </ArraySelectionDomain>
+        <Documentation>Sets which GDAL bands to load from the file.</Documentation>
+      </StringVectorProperty>
+      <IntVectorProperty command="SetCollateBands"
+                         default_values="1"
+                         name="CollateBands"
+                         number_of_elements="1">
+        <BooleanDomain name="bool" />
+        <Documentation> Sets if bands are collated in one scalar array
+        or not. Currently we collate bands into RGB, RGBA, gray alpha
+        and pallete. The default is true.
+        </Documentation>
+      </IntVectorProperty>
+
+      <Hints>
+        <ReaderFactory extensions="tif gen thf adf arg blx xlb kap bt byn cad cpg ctg doq dt0 dt1 dt2 ers nl hdr gif grb img mpr mpl mem kro l1b lan gis lcp los map mff nat ntf nsf ppm pgm prf x-dem rik rsw mtw grd ter til dem vrt xpm"
+                       file_description="GDAL Raster Files" />
+      </Hints>
+      <!-- End GDALRasterReader -->
+    </SourceProxy>
+    <!-- End of "sources" -->
+  </ProxyGroup>
+</ServerManagerConfiguration>

@@ -1,0 +1,66 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+reference1
+{
+    // Mandatory entries
+    type            reference;
+    libs            (fieldFunctionObjects);
+    field           U;
+
+    refValue        sample;  // Function1 type
+    position        (0 0 0); // Needed by sample Function1
+
+    // Optional entries
+    scale           1.0;
+    offset          (0.0 0.0 0.0);
+    interpolationScheme    cell;
+
+    // Optional (inherited) entries
+    result          diffU;
+    region          region0;
+    enabled         true;
+    log             true;
+    timeStart       0.25;
+    timeEnd         1000;
+    executeControl  timeStep;
+    executeInterval 5;
+    writeControl    timeStep;
+    writeInterval   25;
+}
+
+
+reference2
+{
+    // Mandatory entries
+    type            reference;
+    libs            (fieldFunctionObjects);
+    field           p;
+
+    refValue        sample;  // Function1 type
+    position        (0 0 0); // Needed by sample Function1
+
+    // Optional entries
+    scale           -2.0;
+    offset          1.5;
+    interpolationScheme    cellPoint;
+
+    // Optional (inherited) entries
+    result          diffP;
+    region          region0;
+    enabled         true;
+    log             true;
+    timeStart       0.25;
+    timeEnd         1000;
+    executeControl  timeStep;
+    executeInterval 5;
+    writeControl    timeStep;
+    writeInterval   25;
+}
+
+// ************************************************************************* //

@@ -1,0 +1,121 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#-------------------------------------------------------------------------------
+#    Copyright (C) 2011-2016 OpenFOAM Foundation
+#    Copyright (C) 2021 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     plot
+#
+# Description
+#     Creates .png graphs of OpenFOAM results vs experiment for the buoyant
+#     cavity case
+#
+#------------------------------------------------------------------------------
+cd "${0%/*}" || exit                                # Run from this directory
+#------------------------------------------------------------------------------
+
+# settings
+
+    # stop on first error
+    set -e
+
+
+#------------------------------------------------------------------------------
+
+plot_x_vs_T_U()
+{
+    index="$1"
+    sampleFile="$2"
+    benchmarkDir="$3"
+
+    gnuplot<<PLT_T_U
+    set terminal pngcairo font "helvetica,20" size 1000, 1000
+    set grid
+    set key left top
+    set xrange [0:0.08]
+    set xlabel "Channel width, x [m]"
+
+    # Benchmark - Experimental
+        benchmarkT="$benchmarkDir/mt_z0_${index}0_lo.dat"
+        benchmarkU="$benchmarkDir/mv_z0_${index}0_lo.dat"
+
+    # OpenFOAM
+        samples="$sampleFile"
+
+
+    # plot temperature profiles
+    set yrange [285:310]
+    set ylabel "Temperature [K]"
+    set output "OF_vs_EXPT_T$index.png"
+
+    plot \
+        benchmarkT u (\$1/1000):(\$2+273.15) t "Expt 0.$index" w p lt 1 pt 6, \
+        samples u 1:2 t "OpenFOAM 0.$index" w l lt -1
+
+
+    # plot velocity profiles
+    set yrange [-0.2:0.2]
+    set ylabel "Vertical velocity component, Uy [m/s]"
+    set output "OF_vs_EXPT_U$index.png"
+    plot \
+        benchmarkU u (\$1/1000):(\$2) t "Expt 0.$index" w p lt 1 pt 6, \
+        samples u 1:4 title "OpenFOAM 0.$index" w l lt -1
+
+PLT_T_U
+}
+
+
+#------------------------------------------------------------------------------
+
+# Requires "gnuplot"
+command -v gnuplot >/dev/null || {
+    echo "FOAM FATAL ERROR: gnuplot not found - skipping graph creation" 1>&2
+    exit 1
+}
+
+SETSDIR="../postProcessing/sample"
+
+[ -d "$SETSDIR" ] || {
+    echo "FOAM FATAL ERROR: result sets not available in directory $SETSDIR" 1>&2
+    exit 1
+}
+
+
+#------------------------------------------------------------------------------
+
+echo ""
+echo "# Plot:"
+echo ""
+
+# paths to data
+LATESTTIME=$(ls $SETSDIR)
+OFDATAROOT="$SETSDIR/$LATESTTIME"
+
+EXPTDATAROOT=./exptData
+
+# generate temperature and velocity profiles
+set="1 3 4 5 6 7 9"
+for i in $set
+do
+
+    echo "    processing temperature and velocity profiles at y/yMax of 0.$i"
+
+    OF="$OFDATAROOT/y0.${i}_T_U.xy"
+
+    plot_x_vs_T_U "$i" "$OF" "$EXPTDATAROOT"
+
+done
+
+echo "End"
+
+
+#------------------------------------------------------------------------------

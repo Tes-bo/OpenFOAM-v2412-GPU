@@ -1,0 +1,1 @@
+EXE_INC = -I$(FOAM_UTILITIES)/mesh/generation/foamyMesh/conformalVoronoiMesh/vectorTools

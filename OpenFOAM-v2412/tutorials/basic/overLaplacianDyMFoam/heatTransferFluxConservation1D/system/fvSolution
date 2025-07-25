@@ -1,0 +1,66 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      fvSolution;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+solvers
+{
+    T
+    {
+        tolerance       1e-10;
+        relTol          0;
+
+        solver          PBiCGStab;
+        preconditioner  DILU;
+
+        //// Note: GAMG not supported with fluxCorrection switched on
+        //solver          GAMG;
+        //smoother        GaussSeidel;
+        //nCellsInCoarsestLevel   1;
+        //// Important: overset adds faces so use matrix-based agglomerator
+        //agglomerator        algebraicPair;
+    }
+
+    cellDisplacement
+    {
+        solver          PCG;
+        preconditioner  DIC;
+        tolerance       1e-06;
+        relTol          0;
+        maxIter         100;
+    }
+}
+
+SIMPLE
+{
+    nNonOrthogonalCorrectors 0;
+    oversetPatchErrOutput    true;
+}
+
+relaxationFactors
+{
+    fields
+    {
+        p               0.3;
+    }
+    equations
+    {
+        U               0.7;
+        k               0.7;
+        omega           0.7;
+    }
+}
+
+
+// ************************************************************************* //

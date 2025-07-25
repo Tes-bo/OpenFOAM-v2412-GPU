@@ -1,0 +1,87 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    object      epsilon;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 2 -3 0 0 0 0];
+
+internalField   uniform 10;
+
+boundaryField
+{
+     #includeEtc "caseDicts/setConstraintTypes"
+    FAN_SHROUD
+    {
+        type            epsilonWallFunction;
+        value           $internalField;
+    }
+
+    CABINET
+    {
+        type            epsilonWallFunction;
+        value           $internalField;
+    }
+
+    FINS
+    {
+        type            epsilonWallFunction;
+        value           $internalField;
+    }
+
+    PROCESSOR
+    {
+        type            epsilonWallFunction;
+        value           $internalField;
+    }
+
+    FAN
+    {
+        type            epsilonWallFunction;
+        value           $internalField;
+    }
+
+    MRF_region
+    {
+        type            epsilonWallFunction;
+        value           $internalField;
+    }
+
+    OUTLET_01
+    {
+        type            inletOutlet;
+        inletValue      uniform 0.0377336;
+        value           uniform 0.0377336;
+    }
+
+    OUTLET_02
+    {
+        type            inletOutlet;
+        inletValue      uniform 0.0377336;
+        value           uniform 0.0377336;
+    }
+
+    domain0_to_v_CPU
+    {
+        type            epsilonWallFunction;
+        value           $internalField;
+    }
+
+    domain0_to_v_fins
+    {
+        type            epsilonWallFunction;
+        value           $internalField;
+    }
+}
+
+// ************************************************************************* //

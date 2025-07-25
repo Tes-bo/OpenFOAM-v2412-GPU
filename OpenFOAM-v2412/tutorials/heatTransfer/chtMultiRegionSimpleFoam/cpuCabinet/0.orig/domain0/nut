@@ -1,0 +1,85 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    object      nut;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 2 -1 0 0 0 0];
+
+internalField   uniform 0;
+
+boundaryField
+{
+     #includeEtc "caseDicts/setConstraintTypes"
+    FAN_SHROUD
+    {
+        type            nutkWallFunction;
+        value           $internalField;
+    }
+
+    CABINET
+    {
+        type            nutkWallFunction;
+        value           $internalField;
+    }
+
+    FINS
+    {
+        type            nutkWallFunction;
+        value           $internalField;
+    }
+
+    PROCESSOR
+    {
+        type            nutkWallFunction;
+        value           $internalField;
+    }
+
+    FAN
+    {
+        type            nutkWallFunction;
+        value           $internalField;
+    }
+
+    MRF_region
+    {
+        type            nutkWallFunction;
+        value           $internalField;
+    }
+
+    OUTLET_01
+    {
+        type            calculated;
+        value           $internalField;
+    }
+
+    OUTLET_02
+    {
+        type            calculated;
+        value           $internalField;
+    }
+
+    domain0_to_v_CPU
+    {
+        type            nutkWallFunction;
+        value           $internalField;
+    }
+
+    domain0_to_v_fins
+    {
+        type            nutkWallFunction;
+        value           $internalField;
+    }
+}
+
+// ************************************************************************* //

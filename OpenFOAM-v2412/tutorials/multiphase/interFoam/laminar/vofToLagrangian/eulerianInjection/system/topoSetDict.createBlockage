@@ -1,0 +1,40 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      topoSetDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+actions
+(
+    // Create blockage cellSet
+    {
+        name    blockage;
+        type    cellSet;
+        action  new;
+        // source  boxToCell;
+        // box     (0.015 0.010 0.015) (0.035 0.015 0.035);
+
+        source  cylinderToCell;
+        point1  (0.025 0.02 0.025);
+        point2  (0.025 0.022 0.025);
+        radius  0.01;
+    }
+    {
+        name    blockage;
+        type    cellSet;
+        action  invert;
+    }
+);
+
+
+// ************************************************************************* //

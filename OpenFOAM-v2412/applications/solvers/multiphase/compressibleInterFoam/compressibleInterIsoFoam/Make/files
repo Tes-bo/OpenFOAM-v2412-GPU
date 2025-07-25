@@ -1,0 +1,3 @@
+compressibleInterIsoFoam.C
+
+EXE = $(FOAM_APPBIN)/compressibleInterIsoFoam

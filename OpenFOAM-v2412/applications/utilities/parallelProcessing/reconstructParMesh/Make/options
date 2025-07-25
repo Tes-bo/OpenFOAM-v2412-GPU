@@ -1,0 +1,13 @@
+EXE_INC = \
+    -I$(LIB_SRC)/finiteVolume/lnInclude \
+    -I$(LIB_SRC)/meshTools/lnInclude \
+    -I$(LIB_SRC)/finiteArea/lnInclude \
+    -I$(LIB_SRC)/parallel/reconstruct/faReconstruct/lnInclude \
+    -I$(LIB_SRC)/dynamicMesh/lnInclude
+
+EXE_LIBS = \
+    -lfiniteVolume \
+    -lmeshTools \
+    -lfiniteArea \
+    -lfaReconstruct \
+    -ldynamicMesh

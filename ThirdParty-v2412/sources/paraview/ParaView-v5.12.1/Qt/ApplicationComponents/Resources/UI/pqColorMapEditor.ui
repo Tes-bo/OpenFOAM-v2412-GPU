@@ -1,0 +1,402 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- SPDX-FileCopyrightText: Copyright (c) Kitware Inc. -->
+<!-- SPDX-License-Identifier: BSD-3-Clause -->
+<ui version="4.0">
+ <class>ColorMapEditor</class>
+ <widget class="QWidget" name="ColorMapEditor">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>390</width>
+    <height>149</height>
+   </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>390</width>
+    <height>0</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <layout class="QHBoxLayout" name="SearchBoxLayout">
+     <property name="spacing">
+      <number>2</number>
+     </property>
+     <item>
+      <widget class="pqSearchBox" name="SearchBox" native="true">
+       <property name="advancedSearchEnabled" stdset="0">
+        <bool>true</bool>
+       </property>
+       <property name="settingKey" stdset="0">
+        <string notr="true">showAdvancedPropertiesColorMapEditor</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QToolButton" name="ShowScalarBar">
+       <property name="toolTip">
+        <string>Show/hide color legend</string>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset resource="../../../Components/Resources/pqComponents.qrc">
+         <normaloff>:/pqWidgets/Icons/pqScalarBar.svg</normaloff>:/pqWidgets/Icons/pqScalarBar.svg</iconset>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QToolButton" name="EditScalarBar">
+       <property name="toolTip">
+        <string>Edit color legend properties</string>
+       </property>
+       <property name="text">
+        <string>...</string>
+       </property>
+       <property name="icon">
+        <iconset resource="../../../Components/Resources/pqComponents.qrc">
+         <normaloff>:/pqWidgets/Icons/pqEditScalarBar.svg</normaloff>:/pqWidgets/Icons/pqEditScalarBar.svg</iconset>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QScrollArea" name="scrollArea">
+     <property name="frameShape">
+      <enum>QFrame::NoFrame</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Plain</enum>
+     </property>
+     <property name="widgetResizable">
+      <bool>true</bool>
+     </property>
+     <widget class="QWidget" name="scrollAreaWidgetContents">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>372</width>
+        <height>76</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="ScrollAreaLayout" stretch="0,0,0,1">
+       <item>
+        <layout class="QGridLayout" name="gridLayout" columnstretch="0,0,0,0">
+         <item row="0" column="1">
+          <widget class="QLabel" name="ColorLabel">
+           <property name="text">
+            <string>Color</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLabel" name="Color2Label">
+           <property name="text">
+            <string>Color Y</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QLabel" name="OpacityLabel">
+           <property name="text">
+            <string>Opacity</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <widget class="QToolButton" name="UseSeparateColorArray">
+           <property name="toolTip">
+            <string>Use separate color map</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset resource="../../../Components/Resources/pqComponents.qrc">
+             <normaloff>:/pqWidgets/Icons/pqSeparateColorMap.svg</normaloff>:/pqWidgets/Icons/pqSeparateColorMap.svg</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>20</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QToolButton" name="Use2DTransferFunction">
+           <property name="toolTip">
+            <string>Use a 2D transfer function. Available only for volume rendering.</string>
+           </property>
+           <property name="icon">
+            <iconset resource="../../../Components/Resources/pqComponents.qrc">
+             <normaloff>:/pqWidgets/Icons/pq2DTransferFunction.svg</normaloff>:/pqWidgets/Icons/pq2DTransferFunction.svg</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>20</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QToolButton" name="UseSeparateOpacityArray">
+           <property name="toolTip">
+            <string>Use a separate array to map opacity. Available only for volume rendering.</string>
+           </property>
+           <property name="text">
+            <string>...</string>
+           </property>
+           <property name="icon">
+            <iconset resource="../../../Components/Resources/pqComponents.qrc">
+             <normaloff>:/pqWidgets/Icons/pqOpacityTransferFunction.svg</normaloff>:/pqWidgets/Icons/pqOpacityTransferFunction.svg</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>20</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="2" colspan="2">
+          <widget class="pqDisplayColorWidget" name="DisplayColorWidget" native="true">
+           <property name="toolTip">
+            <string>Select array used to map color.</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="2" colspan="2">
+          <widget class="pqDisplayColor2Widget" name="DisplayColor2Widget" native="true">
+           <property name="toolTip">
+            <string>Select array used to map to the Y-Axis of a 2D transfer function.</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="2" colspan="2">
+          <widget class="pqDisplayOpacityWidget" name="DisplayOpacityWidget" native="true">
+           <property name="toolTip">
+            <string>Select array used to map opacity.</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="QFrame" name="PropertiesFrame">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="frameShape">
+          <enum>QFrame::NoFrame</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Plain</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0,0,0,0,0">
+         <property name="spacing">
+          <number>2</number>
+         </property>
+         <item>
+          <widget class="QPushButton" name="RestoreDefaults">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="toolTip">
+            <string>Restore application default setting values for color map</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset resource="../../../Components/Resources/pqComponents.qrc">
+             <normaloff>:/pqWidgets/Icons/pqReset.svg</normaloff>:/pqWidgets/Icons/pqReset.svg</iconset>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="SaveAsArrayDefaults">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="toolTip">
+            <string>Save current color map settings values as default for arrays of this name</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset resource="../../../Components/Resources/pqComponents.qrc">
+             <normaloff>:/pqWidgets/Icons/pqSaveArray16.png</normaloff>:/pqWidgets/Icons/pqSaveArray16.png</iconset>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="SaveAsDefaults">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="toolTip">
+            <string>Save current color map settings values as default for all arrays</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset resource="../../../Components/Resources/pqComponents.qrc">
+             <normaloff>:/pqWidgets/Icons/pqSave.svg</normaloff>:/pqWidgets/Icons/pqSave.svg</iconset>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QPushButton" name="Update">
+           <property name="toolTip">
+            <string>Update views.</string>
+           </property>
+           <property name="text">
+            <string>Render Views</string>
+           </property>
+           <property name="icon">
+            <iconset resource="../../../Components/Resources/pqComponents.qrc">
+             <normaloff>:/pqWidgets/Icons/pqApply.svg</normaloff>:/pqWidgets/Icons/pqApply.svg</iconset>
+           </property>
+           <property name="default">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="AutoUpdate">
+           <property name="toolTip">
+            <string>Render view(s) automatically.</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset resource="../../../Components/Resources/pqComponents.qrc">
+             <normaloff>:/pqWidgets/Icons/pqAutoApply.svg</normaloff>:/pqWidgets/Icons/pqAutoApply.svg</iconset>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
+           </property>
+           <property name="default">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>pqSearchBox</class>
+   <extends>QWidget</extends>
+   <header>pqSearchBox.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>pqDisplayColorWidget</class>
+   <extends>QWidget</extends>
+   <header>pqDisplayColorWidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>pqDisplayOpacityWidget</class>
+   <extends>QWidget</extends>
+   <header>pqDisplayOpacityWidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>pqDisplayColor2Widget</class>
+   <extends>QWidget</extends>
+   <header>pqDisplayColor2Widget.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources>
+  <include location="../../../Components/Resources/pqComponents.qrc"/>
+ </resources>
+ <connections>
+  <connection>
+   <sender>AutoUpdate</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>Update</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>296</x>
+     <y>74</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>233</x>
+     <y>74</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

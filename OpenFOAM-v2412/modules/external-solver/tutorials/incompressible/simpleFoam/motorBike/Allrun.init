@@ -1,0 +1,72 @@
+#!/bin/sh
+cd "${0%/*}" || exit                            # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions    # Tutorial run functions
+#------------------------------------------------------------------------------
+tutorial="incompressible/simpleFoam/motorBike"
+solution="fvSolution-petsc"
+
+src="$FOAM_TUTORIALS/$tutorial"
+dst=run
+
+if [ -d "$dst" ]
+then
+
+    echo "Already initialized $tutorial -> $dst/"
+
+elif [ -d "$src" ]
+then
+
+    echo "Copying $tutorial -> $dst/"
+
+    mkdir "$dst"
+    cp -r "$src"/constant "$dst"
+    cp -r "$src"/system "$dst"
+
+    # Copy zero directory (0.orig/, or 0/)
+    for i in 0.orig 0
+    do
+        if [ -d "$src/$i" ]
+        then
+            cp -r "$src/$i" "$dst"
+            break
+        fi
+    done
+
+    # Allclean, Allrun etc may not exist
+    for i in "$src"/All*
+    do
+        if [ -f "$i" ]
+        then
+            cp "$i" "$dst"
+        fi
+    done
+
+else
+
+    echo "No OpenFOAM tutorial: $tutorial"
+    exit 2
+fi
+
+
+#------------------------------------------------------------------------------
+
+# Adjust controlDict - needs refinement if controlDict has other libs
+if [ -f "$dst"/system/controlDict ] \
+&& ! grep -q petscFoam "$dst"/system/controlDict
+then
+    echo "Add libs (petscFoam) to controlDict"
+    echo "libs (petscFoam);" >> "$dst"/system/controlDict
+fi
+
+# Use PETSc fvSolution
+if [ -f "$dst"/system/fvSolution ] \
+&& [ -f "$solution" ] \
+&& [ ! -f "$dst"/system/"$solution" ]
+then
+    echo "Rename fvSolution and relink to $solution"
+    mv "$dst"/system/fvSolution "$dst"/system/fvSolution-foam
+    cp -f "$solution" "$dst"/system/"$solution"
+    (cd "$dst"/system && ln -sf "$solution" fvSolution)
+fi
+
+#------------------------------------------------------------------------------

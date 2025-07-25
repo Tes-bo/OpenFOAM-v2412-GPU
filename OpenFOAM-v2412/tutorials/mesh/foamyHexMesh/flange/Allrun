@@ -1,0 +1,22 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+mkdir -p constant/triSurface/
+
+cp -f \
+    "$FOAM_TUTORIALS"/resources/geometry/flange.stl.gz \
+    constant/triSurface
+
+runApplication foamyHexMesh
+
+runApplication -s collapseFaces \
+    collapseEdges -latestTime -collapseFaces
+
+runApplication -s collapseFaceSet \
+    collapseEdges -latestTime -collapseFaceSet indirectPatchFaces
+
+runApplication checkMesh -latestTime -allGeometry -allTopology
+
+#------------------------------------------------------------------------------

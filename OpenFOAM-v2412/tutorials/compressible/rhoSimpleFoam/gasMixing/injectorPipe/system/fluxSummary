@@ -1,0 +1,38 @@
+// -*- C++ -*-
+
+flux
+{
+    // Mandatory entries
+    type            fluxSummary;
+    libs            (fieldFunctionObjects);
+    mode            functionObjectSurface;
+    surfaces
+    (
+        sampled.plane-0.25
+        sampled.plane-0.45
+        sampled.plane-0.55
+    );
+
+    // Optional entries
+    phi             rhoU;
+    scaleFactor     1.0;
+    tolerance       0.8;
+
+    // Optional (inherited) entries
+    writePrecision  10;
+    writeToFile     true;
+    useUserTime     false;
+
+    region          region0;
+    enabled         true;
+    log             true;
+    timeStart       0;
+    timeEnd         1000000;
+    executeControl  none;
+    executeInterval -1;
+    writeControl    timeStep;
+    writeInterval   4;
+}
+
+
+// ************************************************************************* //

@@ -1,0 +1,20 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+./Allrun.pre
+
+runParallel $(getApplication)
+
+# Disable trapping of floating-point exceptions
+FOAM_SIGFPE=false runParallel -s reconstruct redistributePar -reconstruct
+
+# A bit more testing of decomposing
+cp -f system/controlDict_nextWrite system/controlDict
+
+runParallel -s decompose redistributePar -decompose -latestTime
+
+runParallel -s restart $(getApplication)
+
+#------------------------------------------------------------------------------

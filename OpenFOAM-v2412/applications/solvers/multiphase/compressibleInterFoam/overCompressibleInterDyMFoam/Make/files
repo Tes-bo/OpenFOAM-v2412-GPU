@@ -1,0 +1,3 @@
+overCompressibleInterDyMFoam.C
+
+EXE = $(FOAM_APPBIN)/overCompressibleInterDyMFoam

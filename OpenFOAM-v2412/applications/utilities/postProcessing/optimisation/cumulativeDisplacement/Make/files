@@ -1,0 +1,3 @@
+cumulativeDisplacement.C
+
+EXE = $(FOAM_APPBIN)/cumulativeDisplacement

@@ -1,0 +1,88 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+application     simpleFoam;
+
+startFrom       startTime;
+
+startTime       0;
+
+stopAt          endTime;
+
+endTime         1000;
+
+deltaT          1;
+
+writeControl    timeStep;
+
+writeInterval   10;
+
+purgeWrite      3;
+
+writeFormat     ascii;
+
+writePrecision  6;
+
+writeCompression off;
+
+timeFormat      general;
+
+timePrecision   6;
+
+runTimeModifiable true;
+
+functions
+{
+    transform1
+    {
+        type            fieldCoordinateSystemTransform;
+        libs            (fieldFunctionObjects);
+        writeControl    writeTime;
+
+        fields          (U);
+        coordinateSystem
+        {
+            origin      (0 0 0);
+            rotation    none;
+        }
+    }
+
+    sample1
+    {
+        type            sets;
+        libs            (sampling);
+        writeControl    writeTime;
+        fields          (U p U:Transformed);
+        interpolationScheme cellPoint;
+        setFormat       raw;
+
+        sets
+        (
+            centreLine
+            {
+                type        uniform;
+                axis        x;
+                start       (1 0 0);
+                end         (2 0 0);
+                nPoints     20;
+            }
+        );
+    }
+}
+
+
+// ************************************************************************* //

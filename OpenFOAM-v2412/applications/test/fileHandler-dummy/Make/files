@@ -1,0 +1,3 @@
+Test-fileHandler-dummy.C
+
+EXE = $(FOAM_USER_APPBIN)/Test-fileHandler-dummy

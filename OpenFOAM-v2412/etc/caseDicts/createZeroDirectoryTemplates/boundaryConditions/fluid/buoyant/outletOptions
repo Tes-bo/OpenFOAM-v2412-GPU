@@ -1,0 +1,67 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "templates";
+    object      outletOptions;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+returnFlow
+{
+    default
+    {
+        p
+        {
+            type        calculated;
+            value       ${:VALUE.p};
+        }
+        p_rgh
+        {
+            type        fixedValue;
+            value       ${:VALUE.p_rgh};
+        }
+    }
+    wall
+    {
+        p
+        {
+            type        calculated;
+            value       ${:VALUE.p};
+        }
+        p_rgh
+        {
+            type        fixedValue;
+            value       ${:VALUE.p_rgh};
+        }
+    }
+    atmosphere
+    {
+        p
+        {
+            type        calculated;
+            value       ${:VALUE.p};
+        }
+        p_rgh
+        {
+            type        totalPressure;
+            U           U;
+            phi         phi;
+            rho         rho;
+            psi         none;
+            gamma       1;
+            p0          ${:VALUE.p_rgh};
+            value       ${:VALUE.p_rgh};
+        }
+    }
+}
+
+// ************************************************************************* //

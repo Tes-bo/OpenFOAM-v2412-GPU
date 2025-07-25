@@ -1,0 +1,81 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      fvSchemes;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+ddtSchemes
+{
+    default         steadyState;
+}
+
+gradSchemes
+{
+    default         Gauss linear;
+}
+
+divSchemes
+{
+    default         none;
+    div(phi,U)      bounded Gauss limitedLinearV 1;
+    div(phi,k)      bounded Gauss limitedLinear 1;
+    div(phi,epsilon) bounded Gauss limitedLinear 1;
+    div(phi,R)      bounded Gauss limitedLinear 1;
+    div(R)          Gauss linear;
+    div(phi,nuTilda) bounded Gauss limitedLinear 1;
+    div((nuEff*dev(T(grad(U))))) Gauss linear;
+}
+
+laplacianSchemes
+{
+    default         Gauss linear corrected;
+}
+
+interpolationSchemes
+{
+    default         linear;
+}
+
+snGradSchemes
+{
+    default         corrected;
+}
+
+fluxRequired
+{
+    default         no;
+    T;
+}
+
+oversetInterpolation
+{
+    // Interpolation scheme to use for overset calculation
+    method      inverseDistance;
+
+    // The inverseDistance method uses a 'voxel' like search structure.
+    // Optionally specify the extent and number of divisions n.
+    // Note that it will allocate an array of nx*ny*nz. If not specified:
+    // - searchBox          : local mesh bounding box
+    // - searchBoxDivisions : root (2D) or cube-root(3D) of number of cells
+    searchBox           (-0.05 -0.02 0)(1.52 1.05 1);
+    searchBoxDivisions  (120 120 1);
+    tolerance           1e-13;
+}
+
+oversetInterpolationSuppressed
+{
+    // Any additional fields that require overset interpolation
+}
+
+
+// ************************************************************************* //

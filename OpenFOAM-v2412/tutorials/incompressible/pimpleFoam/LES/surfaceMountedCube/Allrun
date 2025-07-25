@@ -1,0 +1,12 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+#------------------------------------------------------------------------------
+
+# Run a precursor channel flow to create a fully developed flow profile for the
+# main case
+(cd initChannel && ./Allrun)
+
+# Run the main case
+(cd fullCase && ./Allrun)
+
+# ------------------------------------------------------------------------------

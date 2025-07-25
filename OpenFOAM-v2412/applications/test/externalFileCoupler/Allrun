@@ -1,0 +1,20 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+#------------------------------------------------------------------------------
+
+# Cleanup old junk that may prevent things from starting
+rm -f comms/OpenFOAM.lock
+
+# If this exits prematurely, trigger the external solver to stop
+trap '[ -e comms/OpenFOAM.lock ] && echo "status=done" > comms/OpenFOAM.lock' EXIT TERM INT
+
+Test-externalFileCoupler -slave -max 50 &
+
+Test-externalFileCoupler -max 25
+
+# Give some time for the slave to find updated file
+sleep 2
+
+[ -d comms ] && echo "status=done" > comms/OpenFOAM.lock
+
+#------------------------------------------------------------------------------

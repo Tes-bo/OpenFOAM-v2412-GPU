@@ -1,0 +1,25 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+./Allrun.pre
+
+unset parallel
+parallel=true
+
+if [ "${parallel:-false}" = false ]
+then
+    # Serial
+
+    runApplication simpleFoam
+
+else
+    # Parallel
+
+    runParallel simpleFoam
+
+fi
+
+
+#------------------------------------------------------------------------------

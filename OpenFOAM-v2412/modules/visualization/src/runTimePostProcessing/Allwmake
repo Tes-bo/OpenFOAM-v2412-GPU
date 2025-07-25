@@ -1,0 +1,88 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+export WM_CONTINUE_ON_ERROR=true                    # Optional unit
+. ${WM_PROJECT_DIR:?}/wmake/scripts/cmakeFunctions  # Cmake functions
+. ${WM_PROJECT_DIR:?}/wmake/scripts/AllwmakeParseArguments
+#------------------------------------------------------------------------------
+# Copyright (C) 2020 OpenCFD Ltd.
+# This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Note
+#     Build into FOAM_USER_{APPBIN,LIBBIN} unless otherwise specified with
+#     -prefix or FOAM_MODULE_{APPBIN,LIBBIN}, CMAKE_INSTALL_PREFIX env varables
+#
+# Note
+#     - can build with VTK or ParaView (preferred) libraries
+#     - MPI detection may not work properly with later VTK/ParaView versions
+#------------------------------------------------------------------------------
+
+# Default to user location
+# - Long form to avoid dash 0.5.8 error (issue #1757)
+[ -n "$FOAM_MODULE_PREFIX" ]   || FOAM_MODULE_PREFIX="${FOAM_USER_LIBBIN%/*}"
+[ -n "$CMAKE_INSTALL_PREFIX" ] || CMAKE_INSTALL_PREFIX="$FOAM_MODULE_PREFIX"
+export FOAM_MODULE_PREFIX CMAKE_INSTALL_PREFIX
+
+cmakeOpts="-DCMAKE_INSTALL_PREFIX=$CMAKE_INSTALL_PREFIX"
+
+#------------------------------------------------------------------------------
+
+echo "======================================================================"
+echo "${PWD##*/} : $PWD"
+
+unset depend runTimePostProDebug
+
+# If available, prefer use of ParaView MESA
+if [ -d "$ParaView_MESA_DIR" ]
+then
+    export ParaView_DIR="$ParaView_MESA_DIR"
+fi
+
+if [ -d "$VTK_DIR" ]
+then
+    depend="VTK_DIR=$VTK_DIR"
+elif [ -d "$ParaView_DIR" ]
+then
+    depend="ParaView_DIR=$ParaView_DIR"
+fi
+
+# Force use of dummy only
+# unset depend
+
+# For rebuilding (on error) instead of dropping back to dummy
+# runTimePostProDebug=true
+
+if [ "$targetType" = objects ]
+then
+    depend=ignore
+elif [ -n "$depend" ]
+then
+    if command -v cmake >/dev/null
+    then
+        cmakeVersionedInstall "$depend" "$PWD" $cmakeOpts || {
+            echo
+            echo "    WARNING: incomplete build of VTK-based post-processing"
+            echo
+            if [ -z "$runTimePostProDebug" ]
+            then
+                depend="dummy"
+            fi
+        }
+    else
+        echo "==> skip runTimePostProcessing (needs cmake)"
+        depend="dummy"
+    fi
+else
+    echo "WARNING: skip runTimePostProcessing (no VTK or ParaView)"
+    echo "    - ParaView  : export the 'ParaView_DIR' variable"
+    echo "    - VTK       : export the 'VTK_DIR'      variable"
+fi
+
+if [ "${depend:-dummy}" = dummy ]
+then
+    echo "==> dummy runTimePostProcessing"
+    wmakeVersioned "vtk=dummy" "$PWD" dummy
+fi
+
+echo "======================================================================"
+
+# -----------------------------------------------------------------------------

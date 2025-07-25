@@ -1,0 +1,123 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// D = 0.57
+scale   0.57;
+
+x0      -3.5;
+x1      1.8;
+x2      15.7;
+x3      21;
+y0      -5.2;
+y1      5.2;
+
+vertices
+(
+    ($x0 $y0 0)
+    ($x1 $y0 0)
+    ($x2 $y0 0)
+    ($x3 $y0 0)
+
+    ($x3 $y1 0)
+    ($x2 $y1 0)
+    ($x1 $y1 0)
+    ($x0 $y1 0)
+
+    ($x0 $y0 0.1)
+    ($x1 $y0 0.1)
+    ($x2 $y0 0.1)
+    ($x3 $y0 0.1)
+
+    ($x3 $y1 0.1)
+    ($x2 $y1 0.1)
+    ($x1 $y1 0.1)
+    ($x0 $y1 0.1)
+);
+
+xSpacing ((0.5 0.5 5)(0.5 0.5 0.2));
+ySpacing ((1 0.5 0.25)(1 1 1)(1 0.5 4));
+
+blocks
+(
+    hex (0 1 6 7 8 9 14 15) (150 200 1) simpleGrading (1 $ySpacing 1)
+    hex (1 2 5 6 9 10 13 14) (150 200 1) simpleGrading ($xSpacing $ySpacing 1)
+    hex (2 3 4 5 10 11 12 13) (150 200 1) simpleGrading (1 $ySpacing 1)
+);
+
+edges
+(
+);
+
+boundary
+(
+    top
+    {
+        type wall;
+        faces
+        (
+            (7 15 14 6)
+            (6 14 13 5)
+            (5 13 12 4)
+        );
+    }
+    bottom
+    {
+        type wall;
+        faces
+        (
+            (1 9 8 0)
+            (2 10 9 1)
+            (3 11 10 2)
+        );
+    }
+    left
+    {
+        type patch;
+        faces
+        (
+            (0 8 15 7)
+        );
+    }
+    right
+    {
+        type patch;
+        faces
+        (
+            (4 12 11 3)
+        );
+    }
+    frontAndBack
+    {
+        type empty;
+        faces
+        (
+            (0 7 6 1)
+            (1 6 5 2)
+            (2 5 4 3)
+
+            (8 9 14 15)
+            (9 10 13 14)
+            (10 11 12 13)
+        );
+    }
+);
+
+mergePatchPairs
+(
+);
+
+
+// ************************************************************************* //

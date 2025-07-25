@@ -1,0 +1,26 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+if ! canCompile
+then
+    echo "skipping tutorial $PWD"
+    exit 0
+fi
+
+restore0Dir
+
+m4 system/blockMeshDict.m4 > system/blockMeshDict
+
+runApplication blockMesh
+
+runApplication makeFaMesh
+
+(cd makePerturbation && wmake)
+
+runApplication makePerturbation
+
+runApplication $(getApplication)
+
+#------------------------------------------------------------------------------

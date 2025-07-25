@@ -1,0 +1,104 @@
+#!bash
+#----------------------------------*-sh-*--------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2017 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# File
+#     etc/config.csh/complete-wrapper
+#
+# Description
+#     A wrapper for using OpenFOAM bash completions with tcsh.
+#
+# Arguments
+#     appName = the application name
+#
+# Environment
+#     The tcsh COMMAND_LINE is passed in via the environment.
+#     This corresponds to the bash COMP_LINE variable
+#
+#------------------------------------------------------------------------------
+[ "$#" -ge 1 ] || exit 1
+
+# Support '-test' option to check bash version
+if [ "$1" = "-test" ]
+then
+    # Uses 'declare -gA' for the implementation
+    # The '-A' requires bash >= 4.0 and the '-g' requires bash >= 4.2
+    [ "${BASH_VERSINFO[0]:-0}${BASH_VERSINFO[1]:-0}" -ge 42 ]
+    exit $?
+fi
+
+# Preload completion cache
+if [ -f "$WM_PROJECT_DIR"/etc/config.sh/completion_cache ]
+then  . "$WM_PROJECT_DIR"/etc/config.sh/completion_cache
+fi
+
+# Use the bash completion function, but retain cache etc.
+_of_complete_tcsh=true
+if [ -f "$WM_PROJECT_DIR"/etc/config.sh/bash_completion ]
+then  . "$WM_PROJECT_DIR"/etc/config.sh/bash_completion
+else
+    # Could warn about missing file, or treat silently
+    echo
+    exit 1
+fi
+
+appName=$1
+
+# Ensure COMP_LINE is available for bash function
+if [ "$#" -eq 2 ]
+then
+    COMP_LINE=$2
+else
+    COMP_LINE=$COMMAND_LINE
+fi
+
+# Remove the colon as a completion separator because tcsh cannot handle it
+COMP_WORDBREAKS=${COMP_WORDBREAKS//:}
+
+# Set COMP_WORDS in a way that can be handled by the bash script.
+COMP_WORDS=($COMP_LINE)
+
+# The cursor is at the end of parameter #1.
+# We must check for a space as the last character which will
+# tell us that the previous word is complete and the cursor
+# is on the next word.
+if [ "${COMP_LINE: -1}" = " " ]
+then
+    # The last character is a space, so our location is at the end
+    # of the command-line array
+    COMP_CWORD=${#COMP_WORDS[@]}
+else
+    # The last character is not a space, so our location is on the
+    # last word of the command-line array, so we must decrement the
+    # count by 1
+    COMP_CWORD=$((${#COMP_WORDS[@]}-1))
+fi
+
+# Call _of_complete_ APPNAME Current Previous
+_of_complete_ \
+    "$appName" "${COMP_WORDS[COMP_CWORD]}" "${COMP_WORDS[COMP_CWORD-1]}"
+
+# Tcsh needs slash on the end of directories
+reply=($(for i in ${COMPREPLY[@]}
+    do
+        if [ -d "$i" -a "${i#/}" = "$i" ]
+        then
+            echo "$i/"
+        else
+            echo "$i"
+        fi
+    done
+))
+
+echo ${reply[@]}
+
+#------------------------------------------------------------------------------

@@ -1,0 +1,40 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+valueAverage1
+{
+    // Mandatory entries
+    type            valueAverage;
+    libs            (fieldFunctionObjects);
+    functionObject  momentum1;
+    fields          (momentum_x momentum_y momentum_z);
+
+
+    // Optional entries
+    resetOnRestart  false;
+    window          1;
+    windowType      exact;
+
+    // Optional (inherited) entries
+    writePrecision  10;
+    writeToFile     true;
+    useUserTime     true;
+
+    region          region0;
+    enabled         true;
+    log             true;
+    timeStart       0;
+    timeEnd         1000;
+    executeControl  timeStep;
+    executeInterval 1;
+    writeControl    writeTime;
+    writeInterval   -1;
+}
+
+
+// ************************************************************************* //

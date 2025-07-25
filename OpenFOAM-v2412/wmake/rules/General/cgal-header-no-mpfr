@@ -1,0 +1,18 @@
+# -----------------------------------------------------------------------------
+# CGAL (header-only version) without mpfr
+
+CGAL_INC  = -DCGAL_HEADER_ONLY
+CGAL_LIBS =
+
+CGAL_INC  += \
+    $(foreach dir,$(BOOST_INC_DIR),-I$(dir)) \
+    $(foreach dir,$(CGAL_INC_DIR),-I$(dir))
+
+CGAL_LIBS += \
+    $(foreach dir,$(BOOST_LIB_DIR),-L$(dir))
+
+# ----
+# Extra failsafe - still needed? (2020-05-15)
+## CGAL_INC  += -I/usr/local/include -I/usr/include
+
+# -----------------------------------------------------------------------------

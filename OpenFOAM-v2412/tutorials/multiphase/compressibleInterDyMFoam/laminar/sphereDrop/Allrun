@@ -1,0 +1,24 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+runApplication blockMesh
+
+runApplication topoSet
+
+# remove empty patches
+runApplication createPatch -overwrite
+
+# split mesh into 2 regions at the AMI coupled patch
+runApplication mergeOrSplitBaffles -overwrite
+
+restore0Dir
+
+runApplication setFields
+
+(cd constant/polyMesh && ln -s ../../include/meshModifiers .)
+
+runApplication $(getApplication)
+
+#------------------------------------------------------------------------------

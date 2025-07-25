@@ -1,0 +1,4 @@
+c++DBUG     =
+c++OPT      = -O3 -floop-optimize -falign-loops -falign-labels -falign-functions -falign-jumps
+
+ROUNDING_MATH = -frounding-math

@@ -1,0 +1,27 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+cp -f system/fvSolution.template system/fvSolution
+
+runApplication blockMesh
+
+runApplication decomposePar
+
+#- Normal solver. Shows that sleep time is not included in profiling
+
+solver="PCG"
+foamDictionary -entry solvers/p/solver -set "$solver" system/fvSolution
+foamDictionary -entry solvers/pFinal/solver -set "$solver" system/fvSolution
+
+runParallel -s "$solver" $(getApplication)
+
+#- Run again with profiling
+solver="parProfiling"
+foamDictionary -entry solvers/p/solver -set "$solver" system/fvSolution
+foamDictionary -entry solvers/pFinal/solver -set "$solver" system/fvSolution
+
+runParallel -s "$solver" $(getApplication)
+
+#------------------------------------------------------------------------------

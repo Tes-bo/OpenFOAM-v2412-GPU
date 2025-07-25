@@ -1,0 +1,22 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+./Allrun.pre
+
+# Run
+runParallel $(getApplication)
+
+# Reconstruct
+reconstructParMesh -allRegions -constant
+reconstructPar -allRegions
+
+# Reconstruct
+#for region in $(foamListRegions)
+#do
+#    runParallel -s reconstruct-$region \
+#        redistributePar -reconstruct -region $region
+#done
+
+#------------------------------------------------------------------------------

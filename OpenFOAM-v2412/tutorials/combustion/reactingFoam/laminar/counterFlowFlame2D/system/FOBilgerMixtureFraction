@@ -1,0 +1,46 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+BilgerMixtureFraction1
+{
+    // Mandatory entries
+    type            BilgerMixtureFraction;
+    libs            (fieldFunctionObjects);
+
+    fuel
+    {
+        composition moleFractions;
+        CH4         1;
+    }
+
+    oxidiser
+    {
+        composition massFractions;
+        O2          0.23;
+        N2          0.77;
+    }
+
+
+    // Optional entries
+    //phase           "";
+    result          f_Bilger;
+
+    // Optional (inherited) entries
+    region          region0;
+    enabled         true;
+    log             true;
+    timeStart       0;
+    timeEnd         1000;
+    executeControl  timeStep;
+    executeInterval 1;
+    writeControl    writeTime;
+    writeInterval   -1;
+}
+
+
+// ************************************************************************* //

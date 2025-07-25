@@ -1,0 +1,26 @@
+// -*- C++ -*-
+// Create additional volume fields (for sampling)
+derivedFields
+{
+    // Mandatory entries
+    type            derivedFields;
+    libs            (fieldFunctionObjects);
+    derived         (rhoU pTotal);
+
+    // Optional entries
+    rhoRef          1.25;
+
+    // Optional (inherited) entries
+    region          region0;
+    enabled         true;
+    log             true;
+    timeStart       0;
+    timeEnd         10000;
+    executeControl  timeStep;
+    executeInterval 1;
+    writeControl    none;
+    writeInterval  -1;
+}
+
+
+// ************************************************************************* //

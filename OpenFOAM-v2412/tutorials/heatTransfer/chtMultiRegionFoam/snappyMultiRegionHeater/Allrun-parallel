@@ -1,0 +1,57 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+mkdir -p constant/triSurface
+
+cp -f "$FOAM_TUTORIALS"/resources/geometry/geom.stl.gz constant/triSurface
+
+rm -rf constant/polyMesh/sets
+
+# For meshing only
+decompDict="-decomposeParDict system/decomposeParDict.6"
+
+runApplication blockMesh
+
+runApplication surfaceFeatureExtract
+
+runApplication $decompDict decomposePar
+
+runParallel $decompDict snappyHexMesh -overwrite
+
+# Restore initial fields
+restore0Dir -processor
+
+runParallel $decompDict splitMeshRegions -cellZones -overwrite
+
+# Remove fluid fields from solid regions (important for post-processing)
+for region in $(foamListRegions solid)
+do
+    rm -f 0/"$region"/{nut,alphat,epsilon,k,U,p_rgh}
+    rm -f processor*/0/"$region"/{nut,alphat,epsilon,k,U,p_rgh}
+done
+
+for region in $(foamListRegions)
+do
+    runParallel $decompDict -s "$region" changeDictionary -region $region
+done
+
+# Redistribute onto fewer processors, with special treatment for heater
+for region in $(foamListRegions)
+do
+    runParallel -np 6 -s redist-"$region" \
+        redistributePar -overwrite -region "$region"
+done
+
+#-- Run in parallel
+runParallel $(getApplication)
+
+# Reconstruct
+for region in $(foamListRegions)
+do
+    runParallel -s reconstruct-"$region" \
+        redistributePar -reconstruct -region "$region"
+done
+
+#------------------------------------------------------------------------------

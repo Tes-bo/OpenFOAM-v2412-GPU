@@ -1,0 +1,152 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      snappyHexMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+castellatedMesh true;
+snap            true;
+addLayers       false;
+
+
+geometry
+{
+    simpleCar.stl
+    {
+        type triSurfaceMesh;
+        name    simpleCar ;
+        regions
+        {
+            body_bottom
+            {
+                name    body_bottom;
+            }
+            solarpanel_body_left
+            {
+                name    solarpanel_body_left;
+            }
+            solarpanel_body_right
+            {
+                name    solarpanel_body_right;
+            }
+            solarpanel_body_top
+            {
+                name    solarpanel_body_top;
+            }
+            solarpanel_body_back
+            {
+                name    solarpanel_body_back;
+            }
+            ref_wall
+            {
+                name    ref_wall;
+            }
+        }
+    }
+};
+
+castellatedMeshControls
+{
+    maxLocalCells       200000000;
+    maxGlobalCells      300000000;
+    minRefinementCells  20;
+    nCellsBetweenLevels 2;
+    maxLoadUnbalance    0.2;
+    allowFreeStandingZoneFaces true;
+    resolveFeatureAngle 30;
+    features
+    (
+        {
+            file "simpleCar.eMesh" ;
+            level 0 ;
+        }
+    );
+
+    refinementSurfaces
+    {
+        simpleCar
+        {
+            level (2 2);
+            regions
+            {
+                body_bottom
+                {
+                    level (2  2);
+                }
+                solarpanel_body_left
+                {
+                    level (3  3);
+                }
+                solarpanel_body_right
+                {
+                    level (3  3);
+                }
+                solarpanel_body_top
+                {
+                    level (3  3);
+                }
+                solarpanel_body_back
+                {
+                    level (3  3);
+                }
+                ref_wall
+                {
+                    level (2  2);
+                }
+            }
+        }
+    }
+
+    refinementRegions
+    {
+    }
+
+    locationInMesh ( 0.695 1.95 2.875 ) ;
+}
+
+snapControls
+{
+    tolerance       2;
+    implicitFeatureSnap false;
+    explicitFeatureSnap true;
+    multiRegionFeatureSnap true;
+    detectNearSurfacesSnap true;
+    nSmoothPatch    3;
+    nSolveIter      100;
+    nRelaxIter      5;
+    nFeatureSnapIter    20;
+}
+
+addLayersControls
+{
+}
+
+// Generic mesh quality settings. At any undoable phase these determine
+// where to undo.
+meshQualityControls
+{
+    #include "meshQualityDict"
+
+
+    // Advanced
+
+    //- Number of error distribution iterations
+    nSmoothScale 4;
+    //- Amount to scale back displacement at error points
+    errorReduction 0.75;
+}
+
+mergeTolerance  1e-06;
+
+
+// ************************************************************************* //

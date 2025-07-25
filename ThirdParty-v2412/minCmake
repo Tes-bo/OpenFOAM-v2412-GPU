@@ -1,0 +1,113 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2016-2021 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     minCmake
+#
+# Description
+#     Scour CMakeLists.txt files to report the cmake_minimum required.
+#
+# ----------------------------------------------
+# NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
+#------------------------------------------------------------------------------
+# Run from third-party directory only
+cd "${0%/*}" || exit
+wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
+    echo "Error (${0##*/}) : not located in \$WM_THIRD_PARTY_DIR"
+    echo "    Check your OpenFOAM environment and installation"
+    exit 1
+}
+#------------------------------------------------------------------------------
+printHelp() {
+    cat<<USAGE
+
+Usage: ${0##*/} [OPTION] [dir1 ... dirN]
+options:
+  -help
+
+* Scour specified directories for CMakeLists.txt and their cmake_minimum.
+* Without any arguments, select all first level directories.
+
+USAGE
+    exit 0  # Clean exit
+}
+#------------------------------------------------------------------------------
+# Parse options
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    -h | -help*) printHelp;;
+    -*)
+        echo "$0: Error unknown option: '$1'" 1>&2
+        exit 1
+        ;;
+    *)
+        break
+        ;;
+    esac
+    shift
+done
+
+# Nothing specified - use first level of unpacked directories
+if [ "$#" -eq 0 ]
+then
+set -- \
+$(
+    echo "searching..." 1>&2
+    find . -mindepth 2 -maxdepth 2 -name CMakeLists.txt
+    for dir in sources/*
+    do
+        [ -d "$dir" ] || continue
+        echo "search <$dir>" 1>&2
+        depth=1
+        # Is sources/pkg/pkg-version ?
+        if [ "$(echo "$dir" | sed -e 's#.*/[a-z][a-z]*##' | wc -w)" = 0 ]
+        then
+            depth=2
+        fi
+        find "$dir" -maxdepth "$depth" -name CMakeLists.txt
+    done
+)
+fi
+
+
+echo "processing..." 1>&2
+for dir
+do
+    dir="${dir#./}" # Remove leading  "./"
+    dir="${dir%/}"  # Remove trailing "/"
+
+    case "$dir" in
+        (*/CMakeLists.txt) file="$dir" ;;
+        (*) file="$dir/CMakeLists.txt" ;;
+    esac
+    dir="$(dirname "$file")"
+    dir="$(basename "$dir")"
+
+    min=$(sed -n \
+        -e 's/^.*cmake_minimum.*VERSION *\([0-9.][0-9.]*\).*/\1/p' \
+        "$file" \
+        2>/dev/null | head -1)
+
+    if [ -n "$min" ]
+    then
+        # Remove trailing ".0" from version
+        echo "${min%.0}" "$dir"
+    fi
+
+done \
+    | sort -n -k 1 \
+    | xargs printf "    %-10s  %s\n"
+    # 4 leading spaces for easy pasting as Markdown
+
+#------------------------------------------------------------------------------

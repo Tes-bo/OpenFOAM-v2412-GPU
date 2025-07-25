@@ -1,0 +1,3 @@
+polynomial-motion.C
+
+EXE = $(PWD)/polynomial-motion

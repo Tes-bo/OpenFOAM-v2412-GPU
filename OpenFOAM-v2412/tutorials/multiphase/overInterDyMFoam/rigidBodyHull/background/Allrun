@@ -1,0 +1,31 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+./Allrun.pre
+
+restore0Dir
+
+runApplication -s 1 \
+    mergeMeshes . ../overset-1 -overwrite
+
+runApplication -s 2 \
+    mergeMeshes  . ../overset-2 -overwrite
+
+runApplication createPatch -overwrite
+
+runApplication -s 1 topoSet
+
+runApplication setFields
+
+runApplication -s 2 \
+    topoSet -dict system/topoSetDict.cHullProp
+
+runApplication decomposePar -force
+
+runParallel $(getApplication)
+
+runParallel redistributePar -reconstruct -overwrite
+
+#------------------------------------------------------------------------------

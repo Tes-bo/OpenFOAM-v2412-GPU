@@ -1,0 +1,16 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+./Allrun.pre
+
+if ! canCompile
+then
+   echo "-- No dynamicCode: replace coded Function1 with constant value"
+   foamDictionary -entry boundaryField/inlet/massFlowRate -set 'constant 5' 0/U
+fi
+
+runApplication $(getApplication)
+
+#------------------------------------------------------------------------------

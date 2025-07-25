@@ -1,0 +1,195 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#-------------------------------------------------------------------------------
+#     Copyright (C) 2019-2022 OpenCFD Ltd.
+#-------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     makeParser
+#
+# Description
+#     Pregenerate ragel code and/or lemon parser headers
+#
+#------------------------------------------------------------------------------
+printHelp() {
+    cat<<USAGE
+
+Usage: ${0##*/} [options]
+
+options:
+  -prefix=NAME      Common prefix for parser and scanner
+  -parser=FILE      Generate lemon parser header
+  -scanner=FILE     Generate ragel scanner code
+  -code             Generate parser code, not header
+  -header           Generate parser header, not code (default)
+  -grammar          Output grammar tables (if supported)
+  -dry-run          Process m4 only (output on stdout)
+  -no-lines         Suppress generation of #line directives
+  -no-tmp           Do not retain temporary m4 processed files
+  -remove           Remove generated code
+  -h, -help         Print the usage
+
+Pregenerate ragel code and/or lemon parser headers
+
+USAGE
+    exit 0 # Clean exit
+}
+
+#------------------------------------------------------------------------------
+# Parse arguments and options
+#------------------------------------------------------------------------------
+
+unset prefix parser scanner optHeader optGrammar optDryRun
+unset optRemoveFile optRemoveTmp optNoLines
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    ('') ;;
+    (- | --) shift; break ;;  # Stop option parsing
+
+    (-h | -help*) printHelp ;;
+
+    (-prefix=*)   prefix="${1#*=}" ;;
+    (-parser=*)   parser="${1#*=}" ;;
+    (-scanner=*)  scanner="${1#*=}" ;;
+
+    (-code)       optHeader=false ;;
+    (-head*)      optHeader=true ;;
+    (-gram*)      optGrammar="-grammar" ;;  # Pass verbatim to wrapper
+    (-dry-run)    optDryRun="-dry-run" ;;   # Pass verbatim to wrapper
+    (-no-lines)   optNoLines=true ;;
+    (-no-tmp)     optRemoveTmp="-no-tmp" ;; # Pass verbatim to wrapper
+    (-remove)     optRemoveFile=true ;;
+
+    (*) break ;;
+    esac
+    shift
+done
+
+#------------------------------------------------------------------------------
+
+# Remove file, with feedback. $1 = file, $2 = message
+removeFile() {
+   if test -f "$1" && rm -f "$1"
+   then
+       echo "Removed generated $2 file" 1>&2
+   else
+       echo "No generated $2 file to remove" 1>&2
+   fi
+}
+
+
+case "$scanner" in
+(*.rl)
+    input="${prefix}${scanner}"
+    output="${prefix}${scanner%.*}.cc"
+
+    if [ "$optRemoveFile" = true ]
+    then
+        removeFile "$output"  "ragel scanner"
+    elif command -v ragel >/dev/null
+    then
+        echo "Generating ragel scanner" 1>&2
+        ragel -G2 ${optNoLines:+-L} -o "$output" "$input"
+    else
+        echo "No ragel, leaving scanner intact" 1>&2
+    fi
+    echo
+    ;;
+esac
+
+
+# The output code extension is .c (default) or .cc, but also possibly .C
+# - mapping here consistent with wmake/rules/General/{bison,lemon}
+
+extCode=c
+case "$parser" in
+    (*.Y) extCode=C ;;
+    (*.yy | *.yy-m4 | *.lyy | *.lyy-m4) extCode=cc ;;
+esac
+
+# Detect m4, any additional messages (eg, using m4 etc)
+unset usingM4 message
+case "$parser" in
+(*m4)
+    usingM4=true
+    message=", using m4 filtering"
+    ;;
+esac
+
+case "$parser" in
+(*.ly | *.lyy | *.ly-m4 | *.lyy-m4)  # Lemon
+    input="${prefix}${parser}"
+    output="${parser%.*}.h"
+
+    if [ "$optRemoveFile" = true ]
+    then
+        removeFile "$output"  "lemon header"
+    else
+
+        # Touch parser file time when using m4.
+        # This ensures that we have a better correspondence between
+        # generated and compiled versions since changes to the m4 macros
+        # may otherwise not be noticed.
+
+        if [ "$usingM4" = true ] && [ -f "$input" ]
+        then
+            message="$message (touching input file time)"
+            touch "$input"
+        fi
+
+        if [ "$optHeader" = false ]
+        then
+            echo "Generating lemon parser code ($extCode)$message" 1>&2
+            "${WM_PROJECT_DIR:?}/wmake/scripts/wrap-lemon" \
+                $optDryRun $optGrammar $optRemoveTmp \
+                -e"$extCode" -p -s "$input"
+        else
+            echo "Generating lemon parser header$message" 1>&2
+            "${WM_PROJECT_DIR:?}/wmake/scripts/wrap-lemon" \
+                $optDryRun $optGrammar $optRemoveTmp -header \
+                -p -s "$input"
+        fi
+    fi
+    echo
+    ;;
+
+(*.[Yy] | *.yy | *.y-m4 | *.yy-m4)  # Bison
+    input="${prefix}${parser}"
+
+    if [ "$optRemoveFile" = true ]
+    then
+        echo "File removal not yet supported for bison" 1>&2
+    else
+        # Touch parser file time when using m4.
+        # This ensures that we have a better correspondence between
+        # generated and compiled versions since changes to the m4 macros
+        # may otherwise not be noticed.
+
+        if [ "$usingM4" = true ] && [ -f "$input" ]
+        then
+            message="$message (touching input file time)"
+            touch "$input"
+        fi
+
+        if [ -n "$optDryRun" ]
+        then
+            echo "Generating bison parser code ($extCode)$message" 1>&2
+            "${WM_PROJECT_DIR:?}/wmake/scripts/wrap-bison" \
+                $optDryRun $optRemoveTmp "$input"
+        else
+            echo "Currently only -dry-run is supported for bison" 1>&2
+        fi
+    fi
+    echo
+    ;;
+esac
+
+#------------------------------------------------------------------------------

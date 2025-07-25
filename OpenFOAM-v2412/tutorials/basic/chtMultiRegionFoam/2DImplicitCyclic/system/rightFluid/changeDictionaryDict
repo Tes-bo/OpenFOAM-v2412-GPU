@@ -1,0 +1,108 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      changeDictionaryDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+T
+{
+    internalField   uniform 300;
+
+    boundaryField
+    {
+        maxX
+        {
+            type            fixedValue;
+            value           uniform 350;
+        }
+
+        "rightFluid_to_.*"
+        {
+            type            compressible::turbulentTemperatureRadCoupledMixed;
+            Tnbr            T;
+            qrNbr           none;
+            qr              none;
+            kappaMethod     fluidThermo;
+            qrNbr           none;
+            qr              none;
+            useImplicit     true;
+            value           uniform 300;
+        }
+
+        "minY|maxY"
+        {
+            type            zeroGradient;
+        }
+    }
+}
+
+U
+{
+    internalField   uniform (0 0 0);
+
+    boundaryField
+    {
+         "minX|maxX|minY|maxY"
+        {
+            type            fixedValue;
+            value           uniform ( 0 0 0 );
+        }
+
+        "rightFluid_to_.*"
+        {
+            type            fixedValue;
+            value           uniform ( 0 0 0 );
+        }
+    }
+}
+
+p_rgh
+{
+    internalField   uniform 1e5;
+
+    boundaryField
+    {
+        "minX|maxX|minY|maxY"
+        {
+            type            fixedFluxPressure;
+            value           uniform 1e5;
+        }
+
+        "rightFluid_to_.*"
+        {
+            type            fixedFluxPressure;
+            value           uniform 1e5;
+        }
+    }
+}
+
+p
+{
+    internalField   uniform 1e5;
+
+    boundaryField
+    {
+        "minX|maxX|minY|maxY"
+        {
+            type            calculated;
+            value           uniform 1e5;
+        }
+        "rightFluid_to_.*"
+        {
+            type            calculated;
+            value           uniform 1e5;
+        }
+    }
+}
+
+// ************************************************************************* //

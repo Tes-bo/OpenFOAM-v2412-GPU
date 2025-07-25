@@ -1,0 +1,17 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+runApplication blockMesh
+
+application=$(getApplication)
+
+#- Test writing collated format
+#runApplication decomposePar -fileHandler collated
+runParallel redistributePar -decompose -fileHandler collated
+runParallel $application -fileHandler collated
+#runApplication reconstructPar -latestTime -fileHandler collated
+runParallel -s reconstruct redistributePar -reconstruct -fileHandler collated
+
+#------------------------------------------------------------------------------

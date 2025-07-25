@@ -1,0 +1,122 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+echo "dictionary input tests"
+
+verbose=false
+npass=0
+nwarn=0
+nfail=0
+
+# Increase verbosity on demand, with the -verbose flag
+for i in "$@"
+do
+    case "$i" in (-verbose*) verbose=true ;; esac
+done
+
+
+foamDictionary -help > /dev/null 2>&1 || {
+    echo "Error: non-functional foamDictionary"
+    exit 2
+}
+
+
+# Some tests may need #calc
+unset noDynamicCode
+canCompile || noDynamicCode=true
+
+for dict in \
+    good*.dict \
+    warn*.dict \
+    fatal*.dict \
+;
+do
+    [ -f "$dict" ] || continue   # protect against bad globs
+
+    if [ "$noDynamicCode" = true ] && grep -q '#calc' "$dict"
+    then
+        continue
+    fi
+
+    # capture stderr, ignore stdout
+    stderr=$(foamDictionary -keywords $dict 2>&1 >/dev/null)
+    exitCode=$?
+
+    case "$dict" in
+        *fatal*)
+        if [ $exitCode -eq 0 ]
+        then
+            echo "NOK did not detect fatal input $dict"
+            nfail=$(($fail + 1))
+        else
+            echo "OK  detected fatal input $dict"
+            npass=$(($npass + 1))
+        fi
+        ;;
+
+        *good*)
+        if [ $exitCode -eq 0 ]
+        then
+            npass=$(($npass + 1))
+            if [ "${#stderr}" -gt 0 ]
+            then
+                # count unexpected warnings
+                nwarn=$(($nwarn + 1))
+                echo "NOK unexpected warnings: $dict"
+            else
+                echo "OK  good input $dict"
+            fi
+        else
+            echo "NOK failed input $dict"
+            nfail=$(($fail + 1))
+        fi
+        ;;
+
+        *warn*)
+        if [ $exitCode -eq 0 ]
+        then
+            npass=$(($npass + 1))
+            if [ "${#stderr}" -gt 0 ]
+            then
+                echo "OK  trapped warnings: $dict"
+            else
+                # count missing warnings
+                nwarn=$(($nwarn + 1))
+                echo "NOK missing expected warnings: $dict"
+            fi
+        else
+            nfail=$(($fail + 1))
+            echo "NOK failed (not warn) input $dict"
+        fi
+        ;;
+
+    esac
+
+    if [ "$verbose" = true ] && [ "${#stderr}" -gt 0 ]
+    then
+        echo "================" 1>&2
+        echo "dictionary = $dict" 1>&2
+        echo "$stderr" 1>&2
+        echo "================" 1>&2
+    fi
+
+done
+
+echo "$npass passed"
+echo "$nwarn warnings"
+echo "$nfail failed"
+
+if test $nfail -eq 0
+then
+    echo
+    echo End
+    echo
+else
+    echo "Found $nfail FatalErrors"
+    exit 1
+fi
+
+
+#------------------------------------------------------------------------------

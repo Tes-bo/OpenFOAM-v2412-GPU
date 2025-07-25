@@ -1,0 +1,7 @@
+# Static analyzer with clang and Opt.
+# Call top-level Allwmake with 'scan-build' and corresponding compiler
+
+sinclude $(GENERAL_RULES)/common/cOpt
+
+c_compiler := $(shell which clang)
+cc         := $(shell echo "$(c_compiler)" | sed -e 's@/bin/[^/]*@/libexec/ccc-analyzer@') -m64

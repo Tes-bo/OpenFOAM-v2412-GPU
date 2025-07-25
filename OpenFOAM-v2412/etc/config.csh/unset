@@ -1,0 +1,242 @@
+#----------------------------------*-sh-*--------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2011-2016 OpenFOAM Foundation
+#     Copyright (C) 2016-2022 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# File
+#     etc/config.csh/unset
+#
+# Description
+#     Clear as many OpenFOAM environment settings as possible
+#
+#------------------------------------------------------------------------------
+
+# Clean standard environment variables (PATH, LD_LIBRARY_PATH, MANPATH)
+
+unset foamClean
+if ( $?WM_PROJECT_DIR ) then
+    set foamClean="$WM_PROJECT_DIR/bin/foamCleanPath"
+    if ( ! -f "$foamClean" || ! -x "$foamClean" ) unset foamClean
+endif
+
+# The old dirs to be cleaned from the environment variables
+set foamOldDirs="$WM_PROJECT_DIR $WM_THIRD_PARTY_DIR $HOME/$WM_PROJECT/$LOGNAME $FOAM_SITE_APPBIN $FOAM_SITE_LIBBIN"
+if ( $?WM_PROJECT_SITE ) then
+    set foamOldDirs="$foamOldDirs $WM_PROJECT_SITE"
+endif
+if ( $?ParaView_DIR ) then
+    set foamOldDirs="$foamOldDirs $ParaView_DIR"
+endif
+if ( $?ParaView_MESA_DIR ) then
+    set foamOldDirs="$foamOldDirs $ParaView_MESA_DIR"
+endif
+
+
+#------------------------------------------------------------------------------
+# Unset WM_* environment variables
+
+unsetenv WM_ARCH
+unsetenv WM_ARCH_OPTION
+unsetenv WM_COMPILER
+unsetenv WM_COMPILER_ARCH
+unsetenv WM_COMPILER_LIB_ARCH
+unsetenv WM_COMPILER_TYPE
+unsetenv WM_COMPILE_CONTROL
+unsetenv WM_COMPILE_OPTION
+unsetenv WM_DIR
+unsetenv WM_LABEL_OPTION
+unsetenv WM_LABEL_SIZE
+unsetenv WM_MPLIB
+unsetenv WM_NCOMPPROCS
+unsetenv WM_OPTIONS
+unsetenv WM_OSTYPE
+unsetenv WM_PRECISION_OPTION
+unsetenv WM_PROJECT
+unsetenv WM_PROJECT_DIR
+unsetenv WM_PROJECT_SITE
+unsetenv WM_PROJECT_USER_DIR
+unsetenv WM_PROJECT_VERSION
+unsetenv WM_QUIET
+unsetenv WM_SCHEDULER
+unsetenv WM_THIRD_PARTY_DIR
+
+# Older, unused variables
+unsetenv WM_PROJECT_INST_DIR
+
+# Before 1906
+unsetenv WM_CC WM_CXX WM_CFLAGS WM_CXXFLAGS WM_LDFLAGS
+
+#------------------------------------------------------------------------------
+# Unset FOAM_* environment variables
+
+unsetenv FOAM_API
+unsetenv FOAM_APPBIN
+unsetenv FOAM_APP
+unsetenv FOAM_CODE_TEMPLATES
+unsetenv FOAM_CONFIG_ETC
+unsetenv FOAM_CONFIG_MODE
+unsetenv FOAM_ETC
+unsetenv FOAM_EXTRA_CFLAGS FOAM_EXTRA_CXXFLAGS FOAM_EXTRA_LDFLAGS
+unsetenv FOAM_EXT_LIBBIN
+unsetenv FOAM_JOB_DIR
+unsetenv FOAM_LIBBIN
+unsetenv FOAM_MODULE_APPBIN
+unsetenv FOAM_MODULE_LIBBIN
+unsetenv FOAM_MODULE_PREFIX
+unsetenv FOAM_MPI
+unsetenv FOAM_MPI_LIBBIN
+unsetenv FOAM_RUN
+unsetenv FOAM_SETTINGS
+unsetenv FOAM_SIGFPE
+unsetenv FOAM_SIGNAN
+unsetenv FOAM_SITE_APPBIN
+unsetenv FOAM_SITE_LIBBIN
+unsetenv FOAM_SOLVERS
+unsetenv FOAM_SRC
+unsetenv FOAM_TUTORIALS
+unsetenv FOAM_USER_APPBIN
+unsetenv FOAM_USER_LIBBIN
+unsetenv FOAM_UTILITIES
+
+# Build related
+unsetenv FOAM_BUILDROOT
+unsetenv FOAM_THIRD_PARTY_BUILDROOT
+unsetenv FOAM_THIRD_PARTY_SOURCES
+
+# Older, unused variables
+
+# Before 1812
+unsetenv FOAM_INST_DIR
+
+#------------------------------------------------------------------------------
+# Unset MPI-related environment variables
+
+unsetenv MPI_ARCH_PATH
+unsetenv MPI_BUFFER_SIZE
+
+# Cleanup mpi prefix values if set to one of the paths on foamOldDirs
+if ( $?foamClean ) then
+    # openmpi:
+    if ( "`$foamClean -env=OPAL_PREFIX $foamOldDirs`" == "" ) unsetenv OPAL_PREFIX
+    # intelmpi:
+    if ( "`$foamClean -env=I_MPI_ROOT $foamOldDirs`" == "" ) unsetenv I_MPI_ROOT
+endif
+
+
+#------------------------------------------------------------------------------
+# Unset ParaView/VTK-related environment variables
+
+unsetenv ParaView_DIR
+unsetenv ParaView_MESA_DIR
+unsetenv ParaView_INCLUDE_DIR
+unsetenv ParaView_VERSION
+unsetenv PV_PLUGIN_PATH
+unsetenv VTK_DIR
+unsetenv Qt5_DIR  # Perhaps only unset if it is in WM_THIRD_PARTY_DIR?
+
+#------------------------------------------------------------------------------
+# Unset other ThirdParty environment variables
+
+unsetenv ADIOS_ARCH_PATH
+unsetenv ADIOS1_ARCH_PATH
+unsetenv ADIOS2_ARCH_PATH
+unsetenv BOOST_ARCH_PATH
+unsetenv CCMIO_ARCH_PATH
+unsetenv CGAL_ARCH_PATH
+unsetenv FFTW_ARCH_PATH
+unsetenv GPERFTOOLS_ARCH_PATH
+unsetenv GMP_ARCH_PATH
+unsetenv MPFR_ARCH_PATH
+unsetenv LLVM_ARCH_PATH
+unsetenv MESA_ARCH_PATH
+unsetenv METIS_ARCH_PATH
+unsetenv SCOTCH_ARCH_PATH
+
+#------------------------------------------------------------------------------
+# Cleanup environment
+# PATH, LD_LIBRARY_PATH, MANPATH
+
+if ( $?foamClean ) then
+    eval `$foamClean -csh-env=PATH "$foamOldDirs"`
+    if ($?MANPATH) then
+        eval `$foamClean -csh-env=MANPATH "$foamOldDirs"`
+    endif
+    if ($?LD_LIBRARY_PATH) then
+        eval `$foamClean -csh-env=LD_LIBRARY_PATH "$foamOldDirs"`
+    endif
+    # Darwin
+    if ($?FOAM_LD_LIBRARY_PATH) then
+        eval `$foamClean -csh-env=FOAM_LD_LIBRARY_PATH "$foamOldDirs"`
+        setenv DYLD_LIBRARY_PATH ${FOAM_LD_LIBRARY_PATH}
+    endif
+endif
+
+if ($?MANPATH) then
+    if ("${MANPATH}" == "") unsetenv MANPATH
+endif
+if ($?LD_LIBRARY_PATH) then
+    if ("${LD_LIBRARY_PATH}" == "") unsetenv LD_LIBRARY_PATH
+endif
+if ($?DYLD_LIBRARY_PATH) then
+    if ("${DYLD_LIBRARY_PATH}" == "") unsetenv DYLD_LIBRARY_PATH
+endif
+
+# Remove shadow env variables
+unsetenv FOAM_LD_LIBRARY_PATH
+
+#------------------------------------------------------------------------------
+# Cleanup aliases
+
+unalias wmSet
+unalias wmInt32
+unalias wmInt64
+unalias wmDP
+unalias wmSP
+unalias wmSPDP
+
+unalias wmUnset
+
+unalias wmSchedOn
+unalias wmSchedOff
+
+unalias foam
+
+unalias src
+unalias lib
+unalias app
+unalias sol
+unalias util
+unalias tut
+unalias run
+
+unalias ufoam
+unalias uapp
+unalias usol
+unalias uutil
+
+unalias wmRefresh
+unalias foamVersion
+unalias foamPV
+
+# Remove old completions, which look like:
+#   complete APPNAME 'p,*,`bash $WM_PROJECT_DIR/etc/ ...
+if ($?prompt && $?tcsh) then  # Interactive tcsh only
+    foreach cleaned (`complete | sed -ne '/WM_PROJECT/s/\t.*$//p'`)
+        uncomplete $cleaned
+    end
+endif
+
+#------------------------------------------------------------------------------
+# Intermediate variables (do as last for a clean exit code)
+
+unset cleaned foamClean foamOldDirs _foamFoundDir
+
+#------------------------------------------------------------------------------

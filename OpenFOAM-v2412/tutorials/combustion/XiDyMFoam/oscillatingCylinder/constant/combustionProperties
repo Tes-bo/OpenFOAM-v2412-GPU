@@ -1,0 +1,72 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      combustionProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+laminarFlameSpeedCorrelation Gulders;
+
+fuel            Methane;
+
+Su              Su [ 0 1 -1 0 0 0 0 ] 0;
+
+SuModel         unstrained;
+
+equivalenceRatio equivalenceRatio [ 0 0 0 0 0 0 0 ] 1;
+
+sigmaExt        sigmaExt [ 0 0 -1 0 0 0 0 ] 100000;
+
+XiModel         transport;
+
+XiCoef          XiCoef [ 0 0 0 0 0 0 0 ] 0.62;
+
+XiShapeCoef     XiShapeCoef [ 0 0 0 0 0 0 0 ] 1;
+
+uPrimeCoef      uPrimeCoef [ 0 0 0 0 0 0 0 ] 1;
+
+GuldersCoeffs
+{
+    Methane
+    {
+        W               0.422;
+        eta             0.15;
+        xi              5.18;
+        alpha           2;
+        beta            -0.5;
+        f               2.3;
+    }
+}
+
+ignite          yes;
+
+ignitionSites
+(
+    {
+        location        (0.006 0 0.0005);
+        diameter        0.001;
+        start           0.02;
+        duration        0.04;
+        strength        5;
+    }
+);
+
+ignitionSphereFraction 1;
+
+ignitionThickness ignitionThickness [ 0 1 0 0 0 0 0 ] 0.001;
+
+ignitionCircleFraction 0.5;
+
+ignitionKernelArea ignitionKernelArea [ 0 2 0 0 0 0 0 ] 0.001;
+
+
+// ************************************************************************* //

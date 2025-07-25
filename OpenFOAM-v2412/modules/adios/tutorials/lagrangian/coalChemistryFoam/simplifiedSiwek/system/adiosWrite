@@ -1,0 +1,31 @@
+// ADIOS functionObject (OpenFOAM, -*-C++-*-)
+
+adiosData
+{
+    #includeEtc "caseDicts/insitu/adios/adiosWrite.cfg";
+
+    debug   1;
+
+    // Take over the normal output control
+
+    writeControl        ${/writeControl};
+    writeInterval       ${/writeInterval};
+
+    // restartFrom     (none|restartTime|latestTime);
+    // restartTime     25;
+
+    // Would we also want a termination control?
+    //
+    // Or just disable the standard write on-end?
+}
+
+
+// Effectively disable normal output
+"/writeControl"     clockTime;
+"/writeInterval"    86400;
+
+// Alternative
+// "/writeControl"     none;
+
+
+// ************************************************************************* //

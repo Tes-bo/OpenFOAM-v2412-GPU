@@ -1,0 +1,3 @@
+acousticFoam.C
+
+EXE = $(FOAM_APPBIN)/acousticFoam

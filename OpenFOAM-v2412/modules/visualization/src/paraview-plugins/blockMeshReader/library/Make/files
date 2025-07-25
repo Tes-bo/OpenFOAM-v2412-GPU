@@ -1,0 +1,4 @@
+vtkPVblockMesh.C
+vtkPVblockMeshConvert.C
+
+LIB = $(FOAM_MODULE_LIBBIN)/libvtkPVblockReader-pv${PARAVIEW_API}

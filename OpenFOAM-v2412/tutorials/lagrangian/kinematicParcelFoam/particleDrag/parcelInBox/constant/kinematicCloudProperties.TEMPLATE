@@ -1,0 +1,106 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      kinematicCloudProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+solution
+{
+    active          true;
+    coupled         no;
+    transient       yes;
+    cellValueSourceCorrection no;
+    maxCo           0.3;
+
+    sourceTerms
+    {
+        schemes
+        {
+            U               semiImplicit 1;
+        }
+    }
+
+    interpolationSchemes
+    {
+        rho             cell;
+        U               cellPoint;
+        muc             cell;
+        p               cell;
+        curlUcDt        cellPoint;
+    }
+
+    integrationSchemes
+    {
+        U               Euler;
+    }
+}
+
+constantProperties
+{
+    rho0            1.2;
+}
+
+subModels
+{
+    particleForces
+    {
+        gravity;
+        TomiyamaDrag
+        {
+            sigma   0.07;
+            contamination CONTAMINATION;
+        }
+    }
+
+    injectionModels
+    {
+        model1
+        {
+            type            manualInjection;
+            massTotal       1; // unused - calculated by number of particles
+            parcelBasisType fixed;
+            nParticle       1;
+            SOI             0;
+            positionsFile   "parcelPositions";
+            U0              (0 0 0);
+            sizeDistribution
+            {
+                type fixedValue;
+                fixedValueDistribution
+                {
+                    value        DIAMETER;
+                }
+            }
+        }
+    }
+
+    dispersionModel none;
+
+    patchInteractionModel none;
+
+    stochasticCollisionModel none;
+
+    surfaceFilmModel none;
+}
+
+
+cloudFunctions
+{
+    FreezeParticles
+    {
+        type    FreezeParticles;
+    }
+}
+
+
+// ************************************************************************* //

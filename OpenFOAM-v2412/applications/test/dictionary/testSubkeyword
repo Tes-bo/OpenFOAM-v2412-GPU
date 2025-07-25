@@ -1,0 +1,119 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      dictionary;
+    note        "test with foamDictionary -expand";
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// #inputMode  overwrite
+
+key1 val1;
+val1 val1;
+val2 val2;
+
+subdict
+{
+    key1 a;
+    key2 b;
+}
+
+// This parses as a variable without a name (== plain word)
+// followed by a string
+
+keyXYZ   $"test";
+
+update
+{
+    key1 val1b;
+    key2 val2;
+
+    subdict
+    {
+        key2 $key1;
+        key3 val3;
+        key2b ${..key2};
+        key3b $^key1;
+        key100 100;
+        key200 200;
+        key300 300;
+        key400 400;
+    }
+}
+
+
+// expands update into top-level
+$update
+
+
+_cleanup
+{
+    #remove    "/subdict/key300"
+    "/subdict/key400"    400000;
+
+    // Self-destruct not possible
+    // #remove "/_cleanup"
+}
+
+#remove "/_cleanup"
+
+// Can use a leading '^' or  ':' as anchor for scoping, but slashes are clearer
+key3dot   ${^subdict.key1};
+key3slash ${/subdict/key1};
+key3 ${^update.subdict.key3};
+key4 ${:update.subdict...subdict.key1};
+
+key3_a   ${/subdict/key1};
+key3_b   $/subdict/key1;
+
+// This will not work, but globs would be interesting:
+#remove "/update/subdict/key*"
+
+// This is okay, uses a regexp directly
+#remove "val.*"
+
+#remove "/update/subdict/key100"
+
+"/subdict/key2"  overridden;
+
+
+active
+{
+    type            turbulentIntensityKineticEnergyInlet;
+    intensity       0.1;
+    value           100;
+}
+
+// Some more with scoping
+
+"/active/value(pwd)"    200;
+"/active/'(pwd|foo)'"   200;   // Can use single or double quotes
+"/active/intensity"     0.05;
+
+// Auto-vivify intermediate dictionaries
+
+"/active/subdict/type"  anotherType;
+"/active/subdict/value/type"    anotherType;
+
+// This is an error - cannot change type of intermediate dictionaries!
+// "active/value/type/of/things"   newType;
+
+"/active/subdict/value"    change;
+
+"/active/subdict/value"    { entry1 value1; entry2 value2; }
+
+// Handle remove as per changeDictionary?  TBD
+// Removal:
+// "~/active/subdict/value"
+
+// "~active"
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

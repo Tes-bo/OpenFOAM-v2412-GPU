@@ -1,0 +1,61 @@
+#----------------------------------*-sh-*--------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2018-2024 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# File
+#     etc/config.sh/hypre
+#     [optional/experimental: not sourced by OpenFOAM-*/etc/bashrc]
+#
+# Description
+#     Setup for HYPRE include/libraries (usually ThirdParty installation).
+#
+#     To disable its use:               hypre_version=hypre-none
+#     For system-wide installations:    hypre_version=hypre-system
+#
+#     For central installations not located under ThirdParty:
+#       1. use hypre-system
+#       2. and provide full path for HYPRE_ARCH_PATH
+#
+#------------------------------------------------------------------------------
+# USER EDITABLE PART: Changes made here may be lost with the next upgrade
+
+hypre_version=hypre-2.31.0
+export HYPRE_ARCH_PATH="$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER$WM_PRECISION_OPTION$WM_LABEL_OPTION/$hypre_version"
+
+# END OF (NORMAL) USER EDITABLE PART
+#------------------------------------------------------------------------------
+if [ -n "$FOAM_VERBOSE" ] && [ -n "$PS1" ]
+then
+    echo "Using hypre ($hypre_version)  ->  $HYPRE_ARCH_PATH" 1>&2
+fi
+
+if command -v _foamAddLibAuto >/dev/null
+then
+    # Normal sourcing (not makeHYPRE)
+
+    _foamAddLibAuto $HYPRE_ARCH_PATH
+
+    unset hypre_version
+
+elif [ "$1" = "-force" ]
+then
+    # Forced command-line sourcing
+
+    if output="$($WM_PROJECT_DIR/bin/tools/lib-dir -sh $HYPRE_ARCH_PATH 2>/dev/null)"
+    then
+        eval "$output"
+    fi
+
+    unset hypre_version output
+fi
+
+
+#------------------------------------------------------------------------------

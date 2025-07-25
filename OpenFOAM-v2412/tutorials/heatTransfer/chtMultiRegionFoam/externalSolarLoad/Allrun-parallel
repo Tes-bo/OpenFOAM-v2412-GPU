@@ -1,0 +1,36 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+# Setup case
+./Allrun.pre
+
+#-- Run in parallel
+
+# Decompose
+runApplication decomposePar -allRegions -constant
+
+# Agglomerate patch faces
+#for region in air
+#do
+#    runParallel -s $region \
+#        faceAgglomerate -region $region -dict constant/viewFactorsDict
+#done
+
+# Generate view factors
+for region in air
+do
+    runParallel -s $region \
+        viewFactorsGen -region $region
+done
+
+# Set the initial fields
+restore0Dir
+
+runParallel $(getApplication)
+
+# Reconstruct
+runApplication reconstructPar -allRegions
+
+#------------------------------------------------------------------------------

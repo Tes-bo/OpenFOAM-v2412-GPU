@@ -1,0 +1,57 @@
+#---------------------------------*- sh -*-------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2023 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# File
+#     etc/tools/CMakeFunction
+#
+# Description
+#     CMake make/install helper functions
+#
+#------------------------------------------------------------------------------
+
+# Variables referenced by the functions. Initialization at the end of the file.
+unset CMAKE_VARIABLES
+unset withVERBOSE
+BUILD_TYPE=Release  # The cmake build type
+
+#------------------------------------------------------------------------------
+
+#
+# Set CMake cache variables.
+# Automatically adds -D prefix it needed
+#
+addCMakeVariable()
+{
+    local i
+    for i
+    do
+        case "$i" in
+        ('') ;;  # empty
+        (-*) CMAKE_VARIABLES="${CMAKE_VARIABLES} ${i}" ;;
+        (*)  CMAKE_VARIABLES="${CMAKE_VARIABLES} -D${i}" ;;
+        esac
+    done
+}
+
+#
+# Verbose makefiles
+#
+addVerbosity()
+{
+    if [ "${withVERBOSE:=false}" = true ]
+    then
+        addCMakeVariable "CMAKE_VERBOSE_MAKEFILE=TRUE"
+    fi
+}
+
+
+#------------------------------------------------------------------------------

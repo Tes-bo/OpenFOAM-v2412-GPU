@@ -1,0 +1,70 @@
+.TH "OPENFOAM" 1 "OpenFOAM-version" "www.openfoam.com" "OpenFOAM Commands Manual"
+
+.SH NAME
+openfoam \- OpenFOAM bash(1) session
+
+.SH SYNOPSIS
+\fBopenfoam\fR [\fIOPTIONS\fR] [\fIapplication ...\fR]
+
+.SH DESCRIPTION
+Activate an \fBOpenFOAM\fR environment in an interactive or
+non-interactive bash(1) session.
+
+If no application is given, an interactive bash session will be used.
+If an application (optionally with arguments) is provided, the
+OpenFOAM \fIetc/bashrc\fR file will be sourced from the project directory
+prior to running the application.
+
+.SH OPTIONS
+.TP
+\fB\-c\fR \fIcommand\fR
+Execute shell commands with OpenFOAM environment
+.TP
+\fB\-D\fR\fIkey=[value]\fR
+Define key/value to pass as a preference
+.TP
+\fB\-sp\fR
+Use single precision for scalar-size
+.TP
+\fB\-dp\fR
+Use double precision for scalar-size
+.TP
+\fB\-spdp\fR
+Use single precision for scalar-size, double for solve-scalar size
+.TP
+\fB\-int32\fR
+Use 32-bit label-size
+.TP
+\fB\-int64\fR
+Use 64-bit label-size
+.TP
+\fB\-prefix=DIR\fR
+Specify alternative OpenFOAM project directory
+.TP
+\fB\-show-api\fR | \fB\-version\fR
+Print META-INFO api value and exit
+.TP
+\fB\-show-patch\fR
+Print META-INFO patch value and exit
+.TP
+\fB\-show-prefix\fR
+Print project directory and exit
+.TP
+\fB\-help\fR
+Print the usage
+
+.SH ARGUMENTS
+
+If arguments remain after option processing, the first argument is
+assumed to be an application with options and arguments.
+
+.SH FILES
+
+The \fIetc/bashrc\fR file from the OpenFOAM project directory supplies
+the environment settings.
+
+.SH "SEE ALSO"
+Online documentation https://www.openfoam.com/documentation/
+
+.SH COPYRIGHT
+Copyright \(co 2020 OpenCFD Ltd.

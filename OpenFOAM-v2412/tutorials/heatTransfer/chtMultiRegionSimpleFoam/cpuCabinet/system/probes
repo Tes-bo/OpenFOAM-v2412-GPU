@@ -1,0 +1,76 @@
+// -*- C++ -*-
+
+_volFieldValue
+{
+    type            volFieldValue;
+    libs            (fieldFunctionObjects);
+    enabled         true;
+    writeControl    timeStep;
+    writeInterval   1;
+    log             true;
+    valueOutput     false;
+    writeFields     false;
+}
+
+Volume1_v_CPU
+{
+    ${_volFieldValue}
+
+    regionType      cellZone;
+    name            v_CPU;
+    region          v_CPU;
+    operation       volAverage;
+    fields          ( T );
+}
+
+Volume3_v_fins
+{
+    ${_volFieldValue}
+
+    regionType      cellZone;
+    name            v_fins;
+    region          v_fins;
+    operation       volAverage;
+    fields          ( T );
+}
+
+probesFins
+{
+    type            probes;
+    libs            (sampling);
+    writeControl    timeStep;
+    writeInterval   1;
+    interpolationScheme cell;
+    region          v_fins;
+
+    fields          ( T );
+
+    probeLocations
+    (
+        (0.118 0.01 -0.125)
+        (0.118 0.03 -0.125)
+    );
+}
+
+probesFluid
+{
+    type            probes;
+    libs            (sampling);
+    writeControl    timeStep;
+    writeInterval   1;
+    interpolationScheme cell;
+    region         domain0;
+    log             true;
+    verbose         true;
+
+    fields          (T U);
+
+    probeLocations
+    (
+        (0.118 0.035 -0.125)
+        (0.118 0.07 -0.125)
+    );
+}
+#remove (_volFieldValue _surfaceFieldValue)
+
+// ************************************************************************* //

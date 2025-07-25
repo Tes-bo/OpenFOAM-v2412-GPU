@@ -1,0 +1,6 @@
+EXE_INC = \
+    -Ibunnylod \
+    -I$(LIB_SRC)/surfMesh/lnInclude
+
+EXE_LIBS = \
+    -lsurfMesh

@@ -1,0 +1,26 @@
+#------------------------------------------------------------------------------
+include $(GENERAL_RULES)/Clang/c
+
+ifneq (,$(findstring +xcrun,$(WM_COMPILE_CONTROL)))
+cc         := xcrun cc
+endif
+
+cARCH      := -m64 -ftrapping-math
+
+ifneq (,$(strip $(WM_COMPILE_OPTION)))
+    sinclude $(DEFAULT_RULES)/c$(WM_COMPILE_OPTION)
+endif
+
+cFLAGS      = \
+    $(cARCH) $(GFLAGS) $(cWARN) $(cOPT) $(cDBUG) \
+    $(FOAM_EXTRA_CFLAGS) $(LIB_HEADER_DIRS) -fPIC
+
+ctoo        = $(WM_SCHEDULER) $(cc) $(cFLAGS) -c $< -o $@
+
+LINK_LIBS   = $(cDBUG)
+
+LINKLIBSO   = $(cc) $(cARCH) -Wl,-dylib,-undefined,dynamic_lookup
+
+LINKEXE     = $(cc) $(cARCH) -Wl,-execute,-undefined,dynamic_lookup
+
+#------------------------------------------------------------------------------

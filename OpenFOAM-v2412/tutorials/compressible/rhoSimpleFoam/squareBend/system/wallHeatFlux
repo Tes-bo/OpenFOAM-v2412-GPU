@@ -1,0 +1,30 @@
+// -*- C++ -*-
+
+wallHeatFlux1
+{
+    // Mandatory entries
+    type            wallHeatFlux;
+    libs            (fieldFunctionObjects);
+
+    // Optional entries
+    patches          (walls);
+    qr               qr;
+
+    // Optional (inherited) entries
+    writePrecision  10;
+    writeToFile     true;
+    useUserTime     true;
+
+    region          region0;
+    enabled         true;
+    log             true;
+    timeStart       0;
+    timeEnd         1000;
+    executeControl  timeStep;
+    executeInterval 1;
+    writeControl    writeTime;
+    writeInterval   -1;
+}
+
+
+// ************************************************************************* //

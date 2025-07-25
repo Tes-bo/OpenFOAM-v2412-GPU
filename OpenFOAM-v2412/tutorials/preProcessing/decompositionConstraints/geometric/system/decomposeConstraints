@@ -1,0 +1,83 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      decomposeConstraints;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// Optional decomposition constraints
+constraints
+{
+    geometric
+    {
+        type    geometric;
+
+        grow    true;
+
+        selection
+        {
+            blob
+            {
+                source  surface;
+                surfaceType  triSurfaceMesh;
+                surfaceName  blob.obj;
+            }
+
+            box1
+            {
+                source  box;
+                min     (-10 -10 -10);
+                max     (1 1 1);
+            }
+
+            semi
+            {
+                source  sphere;
+                origin  (-2 -2 1);
+                radius  1;
+            }
+
+            mid
+            {
+                source  sphere;
+                origin  (5 0 4);
+                radius  1;
+            }
+
+            ball
+            {
+                source  sphere;
+                origin  (15 4 8);
+                radius  3;
+            }
+
+            // This entry should generate a warning (and be ignored)
+            // since it does not describe an enclosed volume.
+            disk
+            {
+                source  surface;
+                surface disk;
+                origin  (0 0 0);
+                normal  (0 0 1);
+                radius  3;
+            }
+        }
+    }
+
+    baffles
+    {
+        type   preserveBaffles;
+    }
+}
+
+
+// ************************************************************************* //

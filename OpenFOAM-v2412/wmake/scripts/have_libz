@@ -1,0 +1,126 @@
+#----------------------------------*-sh-*--------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2020 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     have_libz
+#
+# Description
+#     Detection/setup of LIBZ (zlib)
+#
+# Requires
+#     None
+#
+# Functions provided
+#     have_libz, no_libz, echo_libz, search_libz
+#
+# Variables set on success
+#     HAVE_LIBZ - as per GNU autoconf
+#     LIBZ_INC_DIR
+#     LIBZ_LIB_DIR
+#
+#------------------------------------------------------------------------------
+. ${WM_PROJECT_DIR:?}/wmake/scripts/sysFunctions    # General system functions
+
+#------------------------------------------------------------------------------
+
+# Reset
+no_libz()
+{
+    unset HAVE_LIBZ LIBZ_INC_DIR LIBZ_LIB_DIR
+}
+
+
+# Report
+echo_libz()
+{
+    echo "libz=${HAVE_LIBZ:-false}"
+    echo "include=\"$LIBZ_INC_DIR\""
+    echo "library=\"$LIBZ_LIB_DIR\""
+}
+
+
+# Search
+# $1 : prefix (*_ARCH_PATH, system, ...)
+#
+# On success, return 0 and export variables
+# -> HAVE_LIBZ, LIBZ_INC_DIR, LIBZ_LIB_DIR
+search_libz()
+{
+    local warn # warn="==> skip libz"
+    local incName="zlib.h"
+    local libName="libz"
+
+    local prefix="${1:-system}"
+    local header library
+
+    # ----------------------------------
+    if isNone "$prefix"
+    then
+        [ -n "$warn" ] && echo "$warn (disabled)"
+        return 1
+    elif hasAbsdir "$prefix"
+    then
+        header=$(findFirstFile "$prefix/include/$incName")
+        library=$(findExtLib "$libName")
+    elif isSystem "$prefix"
+    then
+        header=$(findSystemInclude -name="$incName")
+        prefix=$(sysPrefix "$header")
+    else
+        unset prefix
+    fi
+    # ----------------------------------
+
+    # Header
+    [ -n "$header" ] || {
+        [ -n "$warn" ] && echo "$warn (no header)"
+        return 2
+    }
+
+    # Library
+    [ -n "$library" ] \
+    || library=$(findLibrary -prefix="$prefix" -name="$libName") \
+    || {
+        [ -n "$warn" ] && echo "$warn (no library)"
+        return 2
+    }
+
+    # ----------------------------------
+
+    # OK
+    export HAVE_LIBZ=true
+    export LIBZ_INC_DIR="${header%/*}"     # Basename
+    export LIBZ_LIB_DIR="${library%/*}"    # Basename
+}
+
+
+# Output as per search_* function
+have_libz()
+{
+    search_libz system
+}
+
+
+#------------------------------------------------------------------------------
+
+# Reset
+no_libz
+
+# Test/query
+case "$1" in
+-test)
+    have_libz
+    echo_libz
+    ;;
+esac
+
+#------------------------------------------------------------------------------

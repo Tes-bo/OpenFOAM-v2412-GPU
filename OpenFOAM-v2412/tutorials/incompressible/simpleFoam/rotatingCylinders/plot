@@ -1,0 +1,44 @@
+#!/bin/sh
+# Require gnuplot
+command -v gnuplot >/dev/null || {
+    echo "FOAM FATAL ERROR: gnuplot not found - skipping graph creation" 1>&2
+    exit 1
+}
+
+
+gnuplot<<EOF
+    set terminal pngcairo font "helvetica,16" size 800,600
+    set xlabel "Radius, r"
+    set xrange [1:2]
+    set grid
+
+    Omega1 = 100.
+    Omega2 = 0.
+    R1 = 1.
+    R2 = 2.
+
+    mu = Omega2/Omega1
+
+    A = Omega1*(1. - R2*R2*mu/R1/R1)/(1. - R2*R2/R1/R1)
+    B = R1*R1*Omega1*(1. - mu)/(1. - R1*R1/R2/R2)
+
+    analytical_utheta(r) = A*r + B/r
+    C = 0.5*A*A*R1*R1 + 2.*A*B*log(R1) - 0.5*B*B/R1/R1
+    analytical_p(r) = 0.5*A*A*r*r + 2.*A*B*log(r) - 0.5*B*B/r/r - C
+
+    samples="postProcessing/sample1/1000/centreLine_p_U_U:Transformed.xy"
+
+    set ylabel "Pressure, p"
+    set output "p.png"
+    set samples 20
+    set key bottom right
+    plot samples u 1:2 w lines lw 2 lc "black" t "OpenFOAM", \
+        analytical_p(x) w p ps 2 pt 6 lw 2 lc rgb "red" t "analytical"
+
+    set ylabel "U_{/Symbol q}, rad/s"
+    set output "Utheta.png"
+    set samples 20
+    set key top right
+    plot samples u 1:7 w lines lw 2 lc "black" t "OpenFOAM", \
+        analytical_utheta(x) w p ps 2 pt 6 lw 2 lc rgb "red" t "analytical"
+EOF

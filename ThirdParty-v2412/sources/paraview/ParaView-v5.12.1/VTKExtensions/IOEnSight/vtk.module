@@ -1,0 +1,25 @@
+NAME
+  ParaView::VTKExtensionsIOEnSight
+LIBRARY_NAME
+  vtkPVVTKExtensionsIOEnSight
+SPDX_LICENSE_IDENTIFIER
+  BSD-3-Clause
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Kitware Inc.
+GROUPS
+  PARAVIEW_CANONICAL
+CONDITION
+  PARAVIEW_ENABLE_NONESSENTIAL
+KIT
+  ParaView::CoreKit
+DEPENDS
+  VTK::CommonExecutionModel
+  VTK::IOEnSight
+PRIVATE_DEPENDS
+  VTK::ParallelCore
+OPTIONAL_DEPENDS
+  VTK::ParallelMPI
+TEST_DEPENDS
+  VTK::TestingCore
+TEST_LABELS
+  ParaView

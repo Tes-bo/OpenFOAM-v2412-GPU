@@ -1,0 +1,90 @@
+#!/bin/sh
+cd "${0%/*}" || exit                        # Run from this directory
+#------------------------------------------------------------------------------
+
+# settings
+
+    # operand setups
+    setups="
+    kEpsilon-nutkWallFunction
+    LaunderSharmaKE-nutkWallFunction
+    "
+
+
+#------------------------------------------------------------------------------
+
+plot_yPlus_vs_uPlus() {
+
+    setup="$1"
+
+    sampleFile="results/$setup/yPlus_vs_uPlus.xy"
+    image="plots/$setup/yPlus_vs_uPlus.png"
+
+    gnuplot<<EOF
+    set terminal pngcairo font "helvetica,20" size 1000, 1000
+    set grid
+    set key top left
+    set key samplen 2
+    set key spacing 0.75
+    set xlabel "y^+"
+    set ylabel "u^+"
+    set parametric
+    set trange [0:30]
+    set logscale x
+    set format x "10^{%T}"
+    set output "$image"
+    set title "Setup: $setup"
+
+    # Benchmark - Spalding's law of the wall
+        kappa=0.41
+        E=9.8
+        f(t) = \
+            t \
+          + 1/E*(exp(kappa*t) - 1 - kappa*t*(1 + 0.5*kappa*t) - 1/6*kappa*t**3)
+
+    # Samples - OpenFOAM
+        samples="$sampleFile"
+
+    plot \
+        f(t),t t "Spalding's law" w l lw 2 dt 2 lc rgb "#D55E00", \
+        samples u 1:2 t "OpenFOAM" w p lt 1 pt 6 ps 2 lc rgb "#4169e1"
+EOF
+}
+
+
+#------------------------------------------------------------------------------
+
+# Require gnuplot
+command -v gnuplot >/dev/null || {
+    echo "gnuplot not found - skipping graph creation" 1>&2
+    exit 1
+}
+
+# Check directory: "results"
+[ -d "results" ] || {
+    echo "No results directory found - skipping graph creation" 1>&2
+    exit 1
+}
+
+
+#------------------------------------------------------------------------------
+
+for setup in $setups
+do
+    echo ""
+    echo "# Plots for the setup: $setup"
+    echo ""
+
+    [ -d "results/$setup" ] || {
+        echo "No results/$setup directory found - skipping graph creation" 1>&2
+        continue
+    }
+
+    dirPlots="plots/$setup"
+    [ -d "$dirPlots" ] || mkdir -p "$dirPlots"
+
+    plot_yPlus_vs_uPlus "$setup"
+done
+
+
+#------------------------------------------------------------------------------

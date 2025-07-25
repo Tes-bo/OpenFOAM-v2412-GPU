@@ -1,0 +1,16 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+targetType=libso                                    # Preferred library type
+. ${WM_PROJECT_DIR:?}/wmake/scripts/AllwmakeParseArguments
+. ${WM_PROJECT_DIR:?}/wmake/scripts/have_fftw
+
+#------------------------------------------------------------------------------
+
+if have_fftw
+then
+    wmake $targetType
+else
+    echo "==> skip randomProcesses library (no FFTW)"
+fi
+
+#------------------------------------------------------------------------------

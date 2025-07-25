@@ -1,0 +1,41 @@
+sinclude $(GENERAL_RULES)/ADIOS2
+
+sinclude $(GENERAL_RULES)/module-path-user
+
+/* Failsafe - user location */
+ifeq (,$(strip $(FOAM_MODULE_LIBBIN)))
+    FOAM_MODULE_LIBBIN = $(FOAM_USER_LIBBIN)
+endif
+
+EXE_INC = \
+    $(PFLAGS) $(PINC) $(ADIOS_FLAGS) \
+    -I$(LIB_SRC)/meshTools/lnInclude \
+    -I$(LIB_SRC)/finiteVolume/lnInclude \
+    -I$(LIB_SRC)/finiteArea/lnInclude \
+    -I$(LIB_SRC)/lagrangian/basic/lnInclude \
+    -I$(LIB_SRC)/lagrangian/spray/lnInclude \
+    -I$(LIB_SRC)/lagrangian/intermediate/lnInclude \
+    -I$(LIB_SRC)/lagrangian/molecularDynamics/molecule/lnInclude \
+    -I$(LIB_SRC)/lagrangian/molecularDynamics/potential/lnInclude \
+    -I$(LIB_SRC)/thermophysicalModels/basic/lnInclude \
+    -I$(LIB_SRC)/thermophysicalModels/reactionThermo/lnInclude \
+    -I$(LIB_SRC)/thermophysicalModels/specie/lnInclude \
+    -I$(LIB_SRC)/thermophysicalModels/SLGThermo/lnInclude \
+    -I$(LIB_SRC)/thermophysicalModels/thermophysicalProperties/lnInclude \
+    -I$(LIB_SRC)/transportModels/compressible/lnInclude \
+    -I$(LIB_SRC)/regionModels/regionModel/lnInclude \
+    -I$(LIB_SRC)/regionModels/surfaceFilmModels/lnInclude \
+    -I../adiosFoam/lnInclude
+
+
+LIB_LIBS = \
+    $(PLIBS) $(ADIOS_LIBS) \
+    -lmeshTools -lfiniteVolume -lfiniteArea \
+    -llagrangian -llagrangianIntermediate -llagrangianSpray \
+    -lmolecule \
+    -lcompressibleTransportModels \
+    -lSLGThermo \
+    -lreactionThermophysicalModels \
+    -lregionModels \
+    -lsurfaceFilmModels \
+    -L$(FOAM_MODULE_LIBBIN) -ladiosFoam

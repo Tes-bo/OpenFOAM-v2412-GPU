@@ -1,0 +1,466 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2011-2016 OpenFOAM Foundation
+#     Copyright (C) 2017-2021 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     bin/foamEtcFile
+#
+# Description
+#     Locate user/group/other file as per '#includeEtc'.
+#
+#     The -mode option is used within etc/{bashrc,cshrc} to ensure
+#     that system prefs are respected:
+#     \code
+#        eval $(foamEtcFile -sh -mode=o  prefs.sh)
+#        eval $(foamEtcFile -sh -mode=ug prefs.sh)
+#     \endcode
+#
+#     The -mode option can also be used when chaining settings.
+#     For example, in the user ~/.OpenFOAM/config.sh/compiler
+#     \code
+#        eval $(foamEtcFile -sh -mode=go config.sh/compiler)
+#     \endcode
+#
+# Environment
+#     FOAM_CONFIG_ETC
+#         Alternative etc directory for shipped files
+#
+#     FOAM_CONFIG_MODE
+#         Fallback search mode for etc files. Unset is the same as "ugo".
+#
+#     WM_PROJECT_SITE         (unset defaults to PROJECT/site)
+#
+# Note
+#     This script must exist in the project 'bin' directory
+#
+#     The '-show-api' and '-show-patch' options extract values from
+#     the "META-INFO/api-info" file
+#
+#     The '-show-build' options extract values from
+#     the "META-INFO/build-info" file
+#
+# SeeAlso
+#     META-INFO/README.md for other routines that also use META-INFO.
+#
+#-------------------------------------------------------------------------------
+printHelp() {
+    cat<<HELP_HEAD
+
+Usage: ${0##*/} [OPTION] fileName [-- args]
+       ${0##*/} [OPTION] [-list|-list-test] [fileName]
+
+options:
+  -all (-a)         Return all files (otherwise stop after the first match)
+  -list (-l)        List directories or files to be checked
+  -list-test        List (existing) directories or files to be checked
+  -mode=MODE        Any combination of u(user), g(group), o(other)
+  -csh              Produce 'source FILE' output for a csh eval
+  -sh               Produce '. FILE' output for a sh eval
+  -csh-verbose      As per -csh, with additional verbosity
+  -sh-verbose       As per -sh,  with additional verbosity
+  -config           Add config directory prefix for shell type:
+                        with -csh* for a config.csh/ prefix
+                        with -sh*  for a config.sh/ prefix
+  -etc=[DIR]        set/unset FOAM_CONFIG_ETC for alternative etc directory
+  -show-api         Print META-INFO api value and exit
+  -show-patch       Print META-INFO patch value and exit
+  -show-build       Print META-INFO build value and exit
+  -with-api=NUM     Specify alternative api value to search with
+  -quiet (-q)       Suppress all normal output
+  -silent (-s)      Suppress stderr, except -csh-verbose, -sh-verbose output
+  -version | --version  Print version (same as -show-api)
+  -help             Display short help and exit
+  -help-full        Display full help and exit
+
+Locate user/group/other file as per '#includeEtc'
+Do not group single character options.
+HELP_HEAD
+
+if [ -n "$1" ]
+then
+cat<<HELP_FULL
+
+Equivalent options:
+  |  -mode=MODE     | -mode MODE  | -m MODE
+  |  -prefix=DIR    [obsolete 1812]
+  |  -version=VER   [obsolete 1812]
+
+Environment
+    FOAM_CONFIG_ETC  : ${FOAM_CONFIG_ETC:-[]}
+    FOAM_CONFIG_MODE : ${FOAM_CONFIG_MODE:-[]}
+    WM_PROJECT_SITE  : ${WM_PROJECT_SITE:-[PROJECT/site]}
+HELP_FULL
+fi
+
+
+cat<<HELP_TAIL
+
+Exit status
+    0  when the file is found. Print resolved path to stdout.
+    1  for miscellaneous errors.
+    2  when the file is not found.
+HELP_TAIL
+
+    exit 0  # A clean exit
+}
+
+unset optQuiet optSilent
+# Report error and exit
+die()
+{
+    [ "${optQuiet:-$optSilent}" = true ] && exit 1
+    exec 1>&2
+    echo
+    echo "Error encountered:"
+    while [ "$#" -ge 1 ]; do echo "    $1"; shift; done
+    echo
+    echo "See 'foamEtcFile -help' for usage"
+    echo
+    exit 1
+}
+
+#-------------------------------------------------------------------------------
+binDir="${0%/*}"                                    # The bin dir
+projectDir="$(\cd $(dirname $binDir) && \pwd -L)"   # Project dir
+
+userDir="$HOME/.OpenFOAM"                           # As per foamVersion.H
+groupDir="${WM_PROJECT_SITE:-$projectDir/site}"     # As per foamVersion.H
+optMode=ugo                                         # Default search = 'ugo'
+
+# Environment overrides
+case "$FOAM_CONFIG_MODE" in ([ugo]*) optMode="$FOAM_CONFIG_MODE" ;; esac
+
+
+#-------------------------------------------------------------------------------
+
+# Get a value from META-INFO/api-info
+# $1 : keyword
+getApiInfo()
+{
+    value="$(sed -ne 's@^'"$1"' *= *\([0-9][0-9]*\).*@\1@p' "$projectDir"/META-INFO/api-info 2>/dev/null)"
+
+    if [ -n "$value" ]
+    then
+        echo "$value"
+    else
+        echo "Could not determine OPENFOAM '$1' value" 1>&2
+        return 1
+    fi
+}
+
+
+# Get 'build' from META-INFO/build-info
+getBuildValue()
+{
+    value="$(sed -ne 's@^build *= *\([^ ]*\).*@\1@p' "$projectDir"/META-INFO/build-info 2>/dev/null)"
+    echo "$value"
+}
+
+
+#-------------------------------------------------------------------------------
+unset shellOutput verboseOutput
+unset optAll optConfig optList projectApi
+
+# Parse options
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    -help-f*)   # Full help
+        printHelp -full
+        ;;
+    -h | -help*) # Short help
+        printHelp
+        ;;
+    -show-api | -version | --version)  # Show API and exit
+        getApiInfo api
+        exit $?
+        ;;
+    -show-patch)  # Show patch level and exit
+        getApiInfo patch
+        exit $?
+        ;;
+    -show-build)  # Show build information and exit
+        getBuildValue
+        exit $?
+        ;;
+    -with-api=*)
+        projectApi="${1#*=}"
+        ;;
+    -a | -all)
+        optAll=true
+        unset shellOutput verboseOutput
+        ;;
+    -l | -list)
+        optList=true
+        ;;
+    -list-test)
+        optList='test'
+        ;;
+    -csh | -sh)
+        shellOutput="${1#-}"
+        unset verboseOutput
+        ;;
+    -csh-verbose | -sh-verbose)
+        shellOutput="${1#-}"
+        verboseOutput="source "         # Report: "source FILE"
+        ;;
+    -config)
+        optConfig=true
+        ;;
+    -mode=[ugo]*)
+        optMode="${1#*=}"
+        ;;
+    -m | -mode)
+        optMode="$2"
+        shift
+        # Sanity check. Handles missing argument too.
+        case "$optMode" in
+        ([ugo]*)
+            ;;
+        (*)
+            die "invalid mode '$optMode'"
+            ;;
+        esac
+        ;;
+    -q | -quiet)
+        optQuiet=true
+        ;;
+    -s | -silent)
+        optSilent=true
+        ;;
+    -etc=*)
+        # FOAM_CONFIG_ETC for finding files. Empty unsets it (later)
+        export FOAM_CONFIG_ETC="${1#*=}"
+        ;;
+    --)
+        shift
+        break
+        ;;
+    -prefix=* | -version=*)
+        echo "ignored defunct option '${1%%=*}'" 1>&2
+        ;;
+    -*)
+        die "unknown option: '$1'"
+        ;;
+    *)
+        break
+        ;;
+    esac
+    shift
+done
+
+#-------------------------------------------------------------------------------
+
+# Verify FOAM_CONFIG_ETC
+if [ -n "$FOAM_CONFIG_ETC" ]
+then
+    if [ "$FOAM_CONFIG_ETC" = "etc" ] \
+    || [ "$FOAM_CONFIG_ETC" = "$projectDir/etc" ]
+    then
+        # Redundant value
+        unset FOAM_CONFIG_ETC
+    elif [ "${FOAM_CONFIG_ETC#/}" = "$FOAM_CONFIG_ETC" ]
+    then
+        # Relative to project-dir
+        FOAM_CONFIG_ETC="$projectDir/$FOAM_CONFIG_ETC"
+    fi
+else
+    unset FOAM_CONFIG_ETC
+fi
+
+# Establish the API value
+[ -n "$projectApi" ] || projectApi=$(getApiInfo api)
+
+# Split arguments into filename (for searching) and trailing bits for shell eval
+# Silently remove leading ~OpenFOAM/ (as per Foam::findEtcFile)
+nArgs=$#
+fileName="${1#~OpenFOAM/}"
+unset evalArgs
+
+if [ "$nArgs" -eq 1 ]
+then
+    if [ "$1" = "--" ]
+    then
+        nArgs=0
+        unset fileName
+    fi
+elif [ "$nArgs" -ge 2 ]
+then
+    if [ "$2" = "--" ]
+    then
+        nArgs=1
+        shift 2
+        evalArgs="$@"
+    fi
+fi
+
+
+# Debugging:
+# echo "Installed locations:" 1>&2
+# for i in projectDir
+# do
+#     eval echo "$i=\$$i" 1>&2
+# done
+
+# Define the various places to be searched:
+unset dirList
+case "$optMode" in (*[u]*) # (U)ser
+    dirList="$dirList $userDir/$projectApi $userDir"
+    ;;
+esac
+
+case "$optMode" in (*[g]*) # (G)roup == site
+    dirList="$dirList $groupDir/$projectApi/etc $groupDir/etc"
+    ;;
+esac
+
+case "$optMode" in (*[o]*) # (O)ther == shipped
+    dirList="$dirList $FOAM_CONFIG_ETC $projectDir/etc"
+    ;;
+esac
+set -- $dirList
+
+[ "$#" -ge 1 ] || die "No directories to scan. Programming or user error?"
+exitCode=2  # Fallback is a FileNotFound error
+
+
+#
+# Preliminaries
+#
+
+# Special handling of config.sh/ , config.csh/ directories
+if [ -n "$optConfig" ] && [ -n "$shellOutput" ] && [ -n "$fileName" ]
+then
+    case "$shellOutput" in
+    csh*)
+        optConfig="config.csh/"
+        ;;
+    sh*)
+        optConfig="config.sh/"
+        ;;
+    *)
+        unset optConfig
+        ;;
+    esac
+
+    if [ -n "$optConfig" ]
+    then
+        case "$fileName" in
+        /* | config.csh* | config.sh*)
+            # Does not need or cannot add a prefix
+            unset optConfig
+            ;;
+        *)
+            fileName="$optConfig$fileName"
+            ;;
+        esac
+    fi
+fi
+
+
+#
+# The main routine
+#
+
+if [ -n "$optList" ]
+then
+
+    # List directories, or potential file locations
+    [ "$nArgs" -le 1 ] || \
+        die "-list options expect 0 or 1 filename, but $nArgs provided"
+
+    # A silly combination, but -quiet has absolute precedence
+    [ -n "$optQuiet" ] && exit 0
+
+    # Test for directory or file too?
+    if [ "$optList" = "test" ]
+    then
+        if [ "$nArgs" -eq 1 ]
+        then
+            for dir
+            do
+                resolved="$dir/$fileName"
+                if [ -f "$resolved" ]
+                then
+                    echo "$resolved"
+                    exitCode=0  # OK
+                fi
+            done
+        else
+            for dir
+            do
+                if [ -d "$dir" ]
+                then
+                    echo "$dir"
+                    exitCode=0  # OK
+                fi
+            done
+        fi
+    else
+        exitCode=0  # OK, already verified that $# != 0
+        for dir
+        do
+            echo "$dir${fileName:+/}$fileName"
+        done
+    fi
+
+else
+
+    [ "$nArgs" -eq 1 ] || die "One filename expected - $nArgs provided"
+
+    # Output for sourcing files ("source" for csh, "." for POSIX shell)
+    # Only allow sourcing a single file (disallow combination with -all)
+    case "$shellOutput" in
+    csh*)
+        shellOutput="source "   # eg, "source FILE"
+        ;;
+    sh*)
+        shellOutput=". "        # eg, ". FILE"
+        ;;
+    esac
+
+    # Anti-pattern: -all disables shell commands
+    if [ -n "$optAll" ]
+    then
+        unset shellOutput verboseOutput
+    fi
+
+    for dir
+    do
+        resolved="$dir/$fileName"
+        if [ -f "$resolved" ]
+        then
+            exitCode=0  # OK
+            if [ -n "$optQuiet" ]
+            then
+                break
+            elif [ -n "$verboseOutput" ]
+            then
+                echo "$verboseOutput$resolved" 1>&2
+            fi
+
+            if [ -n "$shellOutput" ]
+            then
+                echo "$shellOutput$resolved $evalArgs"
+            else
+                echo "$resolved"
+            fi
+            [ -n "$optAll" ] || break
+        fi
+    done
+
+fi
+
+exit $exitCode
+
+#------------------------------------------------------------------------------

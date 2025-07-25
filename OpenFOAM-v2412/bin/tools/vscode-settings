@@ -1,0 +1,152 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2020-2023 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     bin/tools/vscode-settings
+#
+# Description
+#     Emit some settings for Visual Studio Code + OpenFOAM
+#
+# Example
+#    bin/tools/vscode-settings > openfoam.code-workspace
+#
+# Environment
+#     WM_PROJECT_DIR, WM_PROJECT_USER_DIR, WM_OPTIONS
+#
+# More information:
+# https://openfoamwiki.net/index.php/HowTo_Use_OpenFOAM_with_Visual_Studio_Code
+#
+#------------------------------------------------------------------------------
+# Values consistent with wmake-with-bear
+cacheDirName="build/$WM_OPTIONS"
+
+printHelp() {
+    cat<<USAGE
+
+Usage: ${0##*/} [OPTIONS]
+
+options:
+    -help           Print the usage
+
+Emit some settings for Visual Studio Code + OpenFOAM
+
+For example,
+    bin/tools/vscode-settings > openfoam.code-workspace
+
+USAGE
+    exit 0  # clean exit
+}
+
+
+#------------------------------------------------------------------------------
+
+unset outputDir
+
+# Parse options
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    -h | -help*)
+        printHelp
+        ;;
+    *)
+        echo "Unknown option/argument: '$1'" 1>&2
+        break
+        ;;
+    esac
+    shift
+done
+
+
+#------------------------------------------------------------------------------
+# Report settings and flag errors
+projectDir="$WM_PROJECT_DIR"
+session="$projectDir"/etc/openfoam
+
+echo "project: ${WM_PROJECT_DIR:?OpenFOAM environment not set?}" 1>&2
+echo "options: ${WM_OPTIONS:?not set}" 1>&2
+if [ -x "$session" ]
+then
+    echo "session: $session" 1>&2
+elif [ -x "$projectDir"/openfoam ]
+then
+    session="$projectDir"/openfoam
+    echo "session: $session" 1>&2
+else
+    echo "No session: $session" 1>&2
+fi
+
+if [ -z "$outputDir" ]
+then
+    prefixDir="$projectDir"
+    if ! [ -w "$prefixDir" ]
+    then
+        echo "Non-writable directory: $prefixDir" 1>&2
+        echo "Try with user location" 1>&2
+        prefixDir="$WM_PROJECT_USER_DIR"
+
+        if ! [ -w "$prefixDir" ]
+        then
+            echo "Non-writable directory: $prefixDir" 1>&2
+            echo "Using home directory" 1>&2
+            prefixDir="$HOME"
+        fi
+    fi
+    outputDir="$prefixDir/$cacheDirName"
+fi
+
+
+## echo "Output = $outputDir" 1>&2
+
+# JSON output. Long entries are outdented.
+cat << INFO 1>&2
+# -------------------------
+# Some settings for Visual Studio Code + OpenFOAM
+# -------------------------
+INFO
+
+# ccls integration
+cat << JSON_CONTENT
+{
+    "folders": [
+        {
+            "path": "$projectDir"
+        }
+    ],
+    "settings": {
+        "ccls.cache.directory": "$outputDir/ccls-cache",
+
+        "ccls.misc.compilationDatabaseDirectory": "$outputDir",
+
+JSON_CONTENT
+
+
+# Compilation via openfoam session
+if [ -x "$session" ]
+then
+cat << JSON_CONTENT
+        "C_Cpp.default.compileCommands": "$session wmake -with-bear -s -j",
+JSON_CONTENT
+fi
+
+cat << JSON_CONTENT
+
+        "C_Cpp.autocomplete": "disabled",
+        "C_Cpp.errorSquiggles": "disabled",
+        "C_Cpp.formatting": "disabled",
+        "C_Cpp.intelliSenseEngine": "disabled"
+    }
+}
+JSON_CONTENT
+
+#------------------------------------------------------------------------------

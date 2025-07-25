@@ -1,0 +1,136 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      fvOptions;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+filter1
+{
+    type            explicitPorositySource;
+    active          yes;
+
+    explicitPorositySourceCoeffs
+    {
+        selectionMode   cellZone;
+        cellZone        filter;
+
+        type            DarcyForchheimer;
+
+        DarcyForchheimerCoeffs
+        {
+            d   d [0 -2 0 0 0 0 0] (500000 -1000 -1000);
+            f   f [0 -1 0 0 0 0 0] (0 0 0);
+
+            coordinateSystem
+            {
+                origin  (0 0 0);
+                e1      (1 0 0);
+                e2      (0 1 0);
+            }
+        }
+    }
+}
+
+
+heater1
+{
+    // Add some additional water inside a cellZone that is nested inside
+    // the filter. This is just to demonstrate overlapping cellZones
+
+    type            scalarSemiImplicitSource;
+    active          yes;
+
+    timeStart       0.0;
+    duration        0.4;
+    volumeMode      specific;
+
+    selectionMode   cellZone;
+    cellZone        heater;
+
+    sources
+    {
+        rho         (1e-2 0); // kg/s/m^3
+        H2O         (1e-2 0); // kg/s/m^3
+    }
+}
+
+
+massSource1
+{
+    type            scalarSemiImplicitSource;
+    active          yes;
+
+    timeStart       0.2;
+    duration        2.0;
+    volumeMode      absolute;
+
+    selectionMode   points;
+
+    points
+    (
+        (2.75 0.5 0)
+    );
+
+    sources
+    {
+        rho         (1e-4 0); // kg/s
+        H2O         (1e-4 0); // kg/s
+    }
+}
+
+
+momentumSource1
+{
+    type            vectorSemiImplicitSource;
+    active          yes;
+    timeStart       0.2;
+    duration        2.0;
+    volumeMode      absolute;
+
+    selectionMode   points;
+
+    points
+    (
+        (2.75 0.5 0)
+    );
+
+    sources
+    {
+        U           ((0 0.005 0) 0);
+    }
+}
+
+
+energySource1
+{
+    type            scalarSemiImplicitSource;
+    active          yes;
+    timeStart       0.2;
+    duration        2.0;
+    volumeMode      absolute;
+
+    selectionMode   points;
+
+    points
+    (
+        (2.75 0.5 0)
+    );
+
+    sources
+    {
+        h           (10 0);
+    }
+}
+
+
+// ************************************************************************* //

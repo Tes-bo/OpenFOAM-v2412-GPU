@@ -1,0 +1,36 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      fvOptions;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+iceZone
+{
+    type            solidificationMeltingSource;
+    active          on;
+
+    solidificationMeltingSourceCoeffs
+    {
+        selectionMode   all;
+
+        Tmelt           273;
+        L               334000; // enthalpy of fusion for water [J/kg]
+        thermoMode      thermo; // retrieve thermo properties from thermo model
+        beta            50e-6;  // thermal expansion coeff [1/K]
+
+        rhoRef          1000;
+    }
+}
+
+
+// ************************************************************************* //

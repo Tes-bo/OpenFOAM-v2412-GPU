@@ -1,0 +1,83 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+scale           0.001;
+
+depth           6.2;    // depth in the empty direction
+width           300;    // width of the wide part of the hopper
+gap             30;     // width of the gap
+totalHeight     500;    // height of the hopper including the angled part
+bottomAngle     30;     // angle of the bottom with respect to the ground
+
+minX            #eval{ 0.5*$width - 0.5*$gap };
+maxX            #eval{ 0.5*$width + 0.5*$gap };
+
+// height of the angled part based on the bottom angle
+htilted         #eval{ $minX*tan(degToRad($bottomAngle)) };
+
+vertices
+(
+    (0       $htilted        $depth)
+    ($minX   0               $depth)
+    ($maxX   0               $depth)
+    ($width  $htilted        $depth)
+    ($width  $totalHeight    $depth)
+    (0       $totalHeight    $depth)
+    (0       $htilted             0)
+    ($minX   0                    0)
+    ($maxX   0                    0)
+    ($width  $htilted             0)
+    ($width  $totalHeight         0)
+    (0       $totalHeight         0)
+);
+
+blocks
+(
+    hex (6 9 10 11 0 3 4 5 ) (20 40 1) simpleGrading (1 1 1)
+    hex (7 8 9 6 1 2 3 0) (20 8 1) simpleGrading (1 1 1)
+);
+
+boundary
+(
+    walls
+    {
+        type wall;
+        faces
+        (
+            (1 7 8 2)
+            (0 6 7 1)
+            (2 8 9 3)
+            (0 5 11 6)
+            (3 4 10 9)
+            (4 10 11 5)
+        );
+    }
+
+    frontAndBack
+    {
+        type wall;
+        faces
+        (
+            (0 3 4 5)
+            (1 2 3 0)
+            (6 11 10 9)
+            (6 9 8 7)
+        );
+    }
+);
+
+
+// ************************************************************************* //

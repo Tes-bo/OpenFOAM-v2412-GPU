@@ -1,0 +1,73 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      fvSchemes;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+ddtSchemes
+{
+    default         Euler;
+}
+
+gradSchemes
+{
+    default         Gauss linear;
+}
+
+divSchemes
+{
+
+    div(rhoPhi,U)           Gauss linearUpwind default;
+
+    "div\(phi,alpha.*\)"    Gauss vanLeer;
+    "div\(phir,alpha.*\)"   Gauss linear;
+
+    "div\(Yiphir,alpha.*\)" Gauss linear;
+    "div\(phi,.*\.gas.*\)"  Gauss vanLeer;
+
+    div(((rho*nuEff)*dev2(T(grad(U))))) Gauss linear;
+
+    div(phi,T)              Gauss upwind;
+
+    div((alpha.gas*U))      Gauss linear;
+    div((alpha.liquid*U))   Gauss linear;
+
+    div((p*U))              Gauss linear;
+}
+
+laplacianSchemes
+{
+    default         Gauss linear orthogonal;
+}
+
+interpolationSchemes
+{
+    default         linear;
+}
+
+snGradSchemes
+{
+    default         orthogonal;
+}
+
+fluxRequired
+{
+    default         no;
+    p_rgh           ;
+    alpha.gas       ;
+    alpha.liquid    ;
+    alpha.oxide     ;
+}
+
+
+// ************************************************************************* //

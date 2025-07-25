@@ -1,0 +1,52 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+zeroGradient1
+{
+    // Mandatory entries
+    type            zeroGradient;
+    libs            (fieldFunctionObjects);
+    fields          (U "(epsilon|omega)" p);
+
+    // Optional entries
+    result          @@zeroGrad;
+
+    // Optional (inherited) entries
+    region          region0;
+    enabled         true;
+    log             true;
+    timeStart       0.25;
+    timeEnd         1000;
+    executeControl  timeStep;
+    executeInterval 5;
+    writeControl    timeStep;
+    writeInterval   25;
+}
+
+
+zeroGradient2
+{
+    // Mandatory entries
+    type            zeroGradient;
+    libs            (fieldFunctionObjects);
+    fields          (U "(epsilon|omega)" p);
+
+    // Optional (inherited) entries
+    region          region0;
+    enabled         true;
+    log             true;
+    timeStart       0.25;
+    timeEnd         1000;
+    executeControl  timeStep;
+    executeInterval 5;
+    writeControl    timeStep;
+    writeInterval   25;
+}
+
+
+// ************************************************************************* //

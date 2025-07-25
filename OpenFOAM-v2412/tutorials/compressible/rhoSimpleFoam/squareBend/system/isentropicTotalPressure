@@ -1,0 +1,14 @@
+// -*- C++ -*-
+
+isentropicPressure
+{
+    type            pressure;
+    libs            (fieldFunctionObjects);
+    enabled         yes;
+    writeControl    writeTime;
+    mode            isentropic;
+    result          isentropicP;
+}
+
+
+// ************************************************************************* //

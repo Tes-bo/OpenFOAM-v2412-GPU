@@ -1,0 +1,437 @@
+#----------------------------------*-sh-*--------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2018-2022 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     sysFunctions
+#
+# Description
+#     General system helper functions
+#
+# Functions provided
+#     isNone, isSystem, isAbsdir, hasAbsdir
+#     isDarwin, isWindows
+#     findFirstFile
+#     findSystemInclude
+#     findLibrary
+#     findExtLib
+#     versionCompare
+#
+# Internal variables used
+#     extLibraries
+#
+# External variables used
+#     WM_OSTYPE  (is set for Windows)
+#     WM_COMPILER_LIB_ARCH
+#     DEB_TARGET_MULTIARCH
+#
+# Possible Dependencies
+#     - dpkg-architecture
+#
+#------------------------------------------------------------------------------
+
+if [ -z "$WMAKE_SCRIPTS_SYSFUNCTIONS" ]
+then
+    # Load once, but do not rely on this variable elsewhere
+    WMAKE_SCRIPTS_SYSFUNCTIONS=loaded
+
+    # Handle debian multi-arch...
+    # but dpkg-architecture command may also be missing
+    if [ -z "$DEB_TARGET_MULTIARCH" ] && [ -f /etc/debian_version ]
+    then
+        DEB_TARGET_MULTIARCH="$(dpkg-architecture -qDEB_TARGET_MULTIARCH 2>/dev/null || true)"
+        if [ -z "$DEB_TARGET_MULTIARCH" ] && [ "${WM_ARCH#linux}" != "${WM_ARCH}" ]
+        then
+            # Reasonable guess at a multi-arch name (eg, x86_64-linux-gnu)
+            # TODO: aarch64 -> arm64 ?
+            DEB_TARGET_MULTIARCH="$(uname -m)-linux-gnu"
+        fi
+    fi
+
+    # True if OS is <darwin>.
+    # Test WM_ARCH for "darwin*" (lowercase) - avoid uname system call
+    isDarwin()
+    {
+        [ "${WM_ARCH#darwin}" != "${WM_ARCH}" ]
+    }
+
+    # True if target OS is <windows>
+    # Test WM_OSTYPE for or '*windows' (or '*Windows')
+    isWindows()
+    {
+        [ "${WM_OSTYPE%indows}" != "${WM_OSTYPE}" ]
+    }
+
+
+    # Static, dynamic library extensions
+    extLibraries=".a .so"
+
+    if isDarwin
+    then
+        extLibraries=".a .dylib"
+    elif isWindows
+    then
+        extLibraries=".a .dll .dll.a"  # including cross-compiling
+    fi
+
+
+    # True if '$1' begins with '/'
+    isAbsdir()
+    {
+        [ "$1" = "/${1#/}" ]
+    }
+
+
+    # True if '$1' begins with '/' and also exists as a directory
+    hasAbsdir()
+    {
+        [ "$1" = "/${1#/}" ] && [ -d "$1" ]
+    }
+
+
+    # True if '$1' is an empty string, "none" or ends in "-none"
+    # Eg,
+    #    if isNone "$BOOST_ARCH_PATH"
+    isNone()
+    {
+        [ -z "$1" ] || [ "${1##*-}" = none ]
+    }
+
+
+    # True if '$1' is "system" or ends in "-system"
+    # Eg,
+    #    if isSystem "$BOOST_ARCH_PATH"
+    isSystem()
+    {
+        [ "${1##*-}" = system ]
+    }
+
+
+    # True if '$1' and '$2' have the same directory basename
+    # Eg,
+    #    equalBaseName "/usr/include/scotch-int32" "scotch-int32"
+    equalBaseName()
+    {
+        [ "${1##*/}" = "${2##*/}" ]
+    }
+
+
+    # Simple output for -query
+    # $1 = software
+    # $2 = setting
+    _process_query()
+    {
+        if isNone "$2"
+        then
+            echo "$1=none"
+        elif isAbsdir "$2"    ## not hasAbsdir
+        then
+            echo "$1=${2##*/}"
+        elif isSystem "$2"
+        then
+            echo "$1=system"
+        else
+            echo "$1=unknown"
+        fi
+    }
+
+
+    # Return system prefix (/usr, /usr/local, ...) based on hint provided
+    # Eg,
+    #    sysPrefix "/usr/local/include/fftw3.h"  -> "/usr/local"
+    #
+    # Without a hint, echoes "/usr"
+    sysPrefix()
+    {
+        case "$1" in
+        /usr/local/*)
+            echo "/usr/local"
+            ;;
+        *)
+            echo "/usr"
+            ;;
+        esac
+    }
+
+
+    # Check existence of any of the files
+    # On success, echoes the file found and returns 0, otherwise returns 2
+    findFirstFile()
+    {
+        local file
+
+        for file
+        do
+            if [ -f "$file" ] && [ -r "$file" ]
+            then
+                echo "$file"  # Found
+                return 0
+            fi
+        done
+        return 2
+    }
+
+    # Check system /usr/local/include /usr/include paths
+    #
+    # On success, echoes the resolved file and returns 0, otherwise returns 2
+    #
+    # Specify -name=incName to search for
+    #
+    findSystemInclude()
+    {
+        local searchName
+
+        case "$1" in
+        -name=*)
+            searchName="${1#*=}"
+            ;;
+        esac
+
+        if [ -z "$searchName" ]
+        then
+            return 1
+        fi
+
+        findFirstFile \
+            "/usr/local/include/$searchName" \
+            "/usr/include/$searchName" \
+            ;
+    }
+
+    # Check existence of library with ending '.a', '.so' ...
+    #
+    # On success, echoes the resolved file and returns 0, otherwise returns 2
+    #
+    # This function has two modes of operation.
+    #
+    # 1) Automated search.
+    #    Specify -prefix=dirName -name=libName, optionally -local=subdirName
+    #    and search for (lib, lib64, lib/x86_64..) etc.
+    #
+    # 2) Directed search.
+    #    specify the fully qualified names to search on the parameter list
+    #
+    findLibrary()
+    {
+        local prefixDir localDir searchDir searchName
+        local file found ext zshsplit
+
+        searchDir=true
+
+        while [ "$searchDir" = true ] && [ "$#" -gt 0 ]
+        do
+            case "$1" in
+            -prefix=*)
+                prefixDir="${1#*=}"
+                shift
+                ;;
+
+            -local=*)
+                # Prefix with directory separator
+                localDir="/${1#*=}"
+                shift
+                ;;
+
+            -name=*)
+                searchName="${1#*=}"
+                shift
+                ;;
+
+            (*)
+                unset searchDir
+                ;;
+            esac
+        done
+
+        if [ -n "$searchName" ]
+        then
+            # Automated search (eg, lib/ lib64/, lib/x86_64-linux-gnu)
+            # but also handle possible local versions (eg, lib/scotch-int32)
+
+            : "${prefixDir:=/usr}"  # A reasonable default
+            [ -d "$prefixDir" ] || return 2
+
+            # Local and regular search paths
+            set -- \
+                "lib${localDir}" \
+                "${WM_COMPILER_LIB_ARCH:+lib${WM_COMPILER_LIB_ARCH}${localDir}}" \
+                "${DEB_TARGET_MULTIARCH:+lib/${DEB_TARGET_MULTIARCH}${localDir}}" \
+                "lib" \
+                "${WM_COMPILER_LIB_ARCH:+lib${WM_COMPILER_LIB_ARCH}}" \
+                "${DEB_TARGET_MULTIARCH:+lib/${DEB_TARGET_MULTIARCH}}" \
+                ;
+
+            # Ignore empty local search path ("/")
+            [ "${#localDir}" -gt 1 ] || shift 3
+
+            ## echo "search: $# $@" 1>&2
+
+            # Split extLibraries on space: zsh needs shwordsplit for that
+            if [ -n "$ZSH_VERSION" ]
+            then
+                # $- contains 'y' if shwordsplit already active
+                zshsplit=1
+                case "$-" in (*y*) unset zshsplit;; esac
+                setopt shwordsplit
+            fi
+
+            for searchDir in "$@"
+            do
+                [ -n "$searchDir" ] || continue
+                for ext in '' $extLibraries
+                do
+                    file="$prefixDir/$searchDir/$searchName$ext"
+                    if [ -f "$file" ] && [ -r "$file" ]
+                    then
+                        found="$file"  # Found
+                        break 2
+                    fi
+                done
+            done
+
+        else
+            # Directed search
+
+            # Split extLibraries on space: zsh needs shwordsplit for that
+            if [ -n "$ZSH_VERSION" ]
+            then
+                # $- contains 'y' if shwordsplit already active
+                zshsplit=1
+                case "$-" in (*y*) unset zshsplit;; esac
+                setopt shwordsplit
+            fi
+
+            for file
+            do
+                [ -n "$file" ] || continue
+                for ext in '' $extLibraries
+                do
+                    if [ -f "$file$ext" ] && [ -r "$file$ext" ]
+                    then
+                        found="$file$ext"  # Found
+                        break 2
+                    fi
+                done
+            done
+        fi
+
+        # Restore old shwordsplit (zsh)
+        if [ -n "$zshsplit" ]
+        then
+            unsetopt shwordsplit
+        fi
+
+        if [ -n "$found" ]
+        then
+            echo "$found"
+            return 0
+        fi
+
+        return 2
+    }
+
+
+    # Check existence of library in FOAM_EXT_LIBBIN, but conditional
+    # on FOAM_EXT_LIBBIN being located in the ThirdParty directory
+    #
+    # On success, echoes the resolved file and returns 0, otherwise returns 2
+    findExtLib()
+    {
+        local file
+
+        if [ -n "$FOAM_EXT_LIBBIN" ] && \
+           [ -n "$WM_THIRD_PARTY_DIR" ] && \
+           [ "${FOAM_EXT_LIBBIN#$WM_THIRD_PARTY_DIR}" != "$FOAM_EXT_LIBBIN" ]
+        then
+            for file
+            do
+                if file="$(findLibrary "$FOAM_EXT_LIBBIN/$file")"
+                then
+                    echo "$file"
+                    return 0
+                fi
+            done
+        fi
+
+        return 2
+    }
+
+
+    # Compare version tuples with syntax similar to POSIX shell,
+    # but respecting dot separators.
+    #
+    # arg1 OP arg2
+    #   OP is one of -eq, -ne, -lt, -le, -gt, or -ge.
+    #   Returns true for a successful comparison.
+    #   Arg1 and arg2 normally comprise positive integers, but leading content
+    #   before a '-' is stripped.
+    #   Missing digits are treated as '0'.
+    #
+    # Eg,
+    #    versionCompare "software-1.2.3" -gt 1.1 && echo True
+    #
+    # Ad hoc handling of "git" version as always newest.
+    #    "git" -gt "1.2.3" : True
+    #    "1.2.3" -lt "git" : True
+    versionCompare()
+    {
+        [ "$#" -eq 3 ] || {
+            echo "Compare needs 3 arguments (was given $#)" 1>&2
+            return 2
+        }
+
+        local arg1="${1#*-}"    # Strip leading prefix-
+        local op="${2}"
+        local arg2="${3#*-}"    # Strip leading prefix-
+        local result=''         # Empty represents 'equal'
+
+        arg1="${arg1:-0}."
+        arg2="${arg2:-0}."
+
+        if   [ "$arg1" = "$arg2" ];        then unset arg1 arg2 # Identical
+        elif [ "${arg1#git}" != "$arg1" ]; then result='more'   # (git > arg2)
+        elif [ "${arg2#git}" != "$arg2" ]; then result='less'   # (arg1 < git)
+        fi
+
+        while [ -z "$result" ] && [ -n "${arg1}${arg2}" ]
+        do
+            local digits1="${arg1%%.*}"
+            local digits2="${arg2%%.*}"
+
+            arg1="${arg1#*.}"
+            arg2="${arg2#*.}"
+
+            : "${digits1:=0}"
+            : "${digits2:=0}"
+
+            # Other handling of non-integer values?
+            if   [ "$digits1" -lt "$digits2" ]; then result='less'
+            elif [ "$digits1" -gt "$digits2" ]; then result='more'
+            fi
+        done
+
+        case "$op" in
+        (-eq | eq)  [ -z "$result" ] ;;
+        (-ne | ne)  [ -n "$result" ] ;;
+        (-lt | lt)  [ 'less' = "$result" ] ;;
+        (-gt | gt)  [ 'more' = "$result" ] ;;
+        (-le | le)  [ 'less' = "${result:-less}" ] ;;
+        (-ge | ge)  [ 'more' = "${result:-more}" ] ;;
+        (*)
+            echo "Unknown operator: '$op'" 1>&2
+            return 2
+            ;;
+        esac
+    }
+fi
+
+
+#------------------------------------------------------------------------------

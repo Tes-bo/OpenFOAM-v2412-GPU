@@ -1,0 +1,45 @@
+NAME
+  VTK::IOADIOS2
+LIBRARY_NAME
+  vtkIOADIOS2
+SPDX_LICENSE_IDENTIFIER
+  LicenseRef-BSD-3-Clause-Sandia-USGov
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
+  Copyright Sandia Corporation
+SPDX_CUSTOM_LICENSE_FILE
+  LICENSE
+SPDX_CUSTOM_LICENSE_NAME
+  BSD-3-Clause-Sandia-USGov
+LICENSE_FILES
+  LICENSE
+DEPENDS
+  VTK::CommonCore
+  VTK::CommonExecutionModel
+  VTK::ParallelCore
+OPTIONAL_DEPENDS
+  VTK::ParallelMPI
+  VTK::mpi
+PRIVATE_DEPENDS
+  VTK::CommonDataModel
+  VTK::vtksys
+  VTK::pugixml
+TEST_DEPENDS
+  VTK::IOLegacy
+  VTK::IOXML
+  VTK::IOParallelXML
+  VTK::FiltersGeneral
+  VTK::FiltersGeometry
+  VTK::FiltersSources
+  VTK::ImagingCore
+  VTK::InteractionImage
+  VTK::InteractionStyle
+  VTK::RenderingCore
+  VTK::RenderingOpenGL2
+  VTK::RenderingVolumeOpenGL2 # vtkMultiBlockVolumeMapper
+  VTK::TestingCore
+  VTK::TestingRendering
+TEST_OPTIONAL_DEPENDS
+  VTK::mpi
+  VTK::ParallelMPI
+  VTK::RenderingParallel

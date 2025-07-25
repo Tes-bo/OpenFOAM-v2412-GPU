@@ -1,0 +1,288 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    note        "mesh decomposition control dictionary";
+    object      decomposeParDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+//- The total number of domains (mandatory)
+numberOfSubdomains  256;
+
+//- The decomposition method (mandatory)
+method          scotch;
+// method          hierarchical;
+// method          simple;
+// method          metis;
+// method          manual;
+// method          multiLevel;
+// method          structured;  // does 2D decomposition of structured mesh
+
+
+//- Optional region-wise decomposition.
+//  Can specify a different method.
+//  The number of subdomains can be less than the top-level numberOfSubdomains.
+regions
+{
+    water
+    {
+        numberOfSubdomains 128;
+        method  metis;
+    }
+
+    ".*solid"
+    {
+        numberOfSubdomains 4;
+        method  metis;
+    }
+
+    heater
+    {
+        numberOfSubdomains 1;
+        method  none;
+    }
+}
+
+
+// Coefficients for the decomposition method are either as a general
+// "coeffs" dictionary or method-specific "<method>Coeffs".
+// For multiLevel, using multiLevelCoeffs only.
+
+multiLevelCoeffs
+{
+    // multiLevel decomposition methods to apply in turn.
+    // This is like hierarchical but fully general
+    // - every method can be used at every level.
+
+    // Only sub-dictionaries containing the keyword "method" are used.
+    //
+
+    level0
+    {
+        numberOfSubdomains  16;
+        method  scotch;
+    }
+    level1
+    {
+        numberOfSubdomains  2;
+        method  scotch;
+        coeffs
+        {
+            n       (2 1 1);
+            delta   0.001;
+        }
+    }
+    level2
+    {
+        numberOfSubdomains  8;
+        // method  simple;
+        method  scotch;
+    }
+}
+
+
+multiLevelCoeffs
+{
+    // Compact multiLevel specification, activated by the presence of the
+    // keywords "method" and "domains"
+
+    method  scotch;
+    domains (16 2 8);
+
+    //// Or with implicit '16' for the first level with numberOfSubdomains=256
+    //domains (2 8);
+}
+
+
+
+// Other example coefficients
+
+coeffs
+{
+    n       (2 1 1);
+}
+
+simpleCoeffs
+{
+    n       (2 1 1);
+    // delta   0.001;  //< default value = 0.001
+}
+
+hierarchicalCoeffs
+{
+    n       (1 2 1);
+    // delta   0.001;  //< default value = 0.001
+    // order   xyz;    //< default order = xyz
+}
+
+metisCoeffs
+{
+ /*
+    processorWeights
+    (
+        1
+        1
+        1
+        1
+    );
+  */
+}
+
+scotchCoeffs
+{
+    //processorWeights
+    //(
+    //    1
+    //    1
+    //    1
+    //    1
+    //);
+    //writeGraph  true;
+    //strategy "b";
+}
+
+manualCoeffs
+{
+    dataFile    "decompositionData";
+}
+
+structuredCoeffs
+{
+    // Patches to do 2D decomposition on. Structured mesh only; cells have
+    // to be in 'columns' on top of patches.
+    patches     (movingWall);
+
+    // Method to use on the 2D subset
+    method      scotch;
+}
+
+
+//- Use the volScalarField named here as a weight for each cell in the
+//  decomposition.  For example, use a particle population field to decompose
+//  for a balanced number of particles in a lagrangian simulation.
+// weightField dsmcRhoNMean;
+
+
+//// Is the case distributed? Note: command-line argument -roots takes
+//// precedence
+//distributed     yes;
+//
+//// Per slave (so nProcs-1 entries) the directory above the case.
+//roots
+//(
+//    "/tmp"
+//    "/tmp"
+//);
+
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// Decomposition constraints
+
+/*
+constraints
+{
+    baffles
+    {
+        //- Keep owner and neighbour of baffles on same processor (i.e.
+        // keep it detectable as a baffle). Baffles are two boundary face
+        // sharing the same points
+        type    preserveBaffles;
+        enabled false;
+    }
+    faces
+    {
+        //- Keep owner and neighbour on same processor for faces in zones
+        type    preserveFaceZones;
+        zones   (".*");
+        enabled false;
+    }
+    patches
+    {
+        //- Keep owner and neighbour on same processor for faces in patches
+        //  (only makes sense for cyclic patches and cyclicAMI)
+        type    preservePatches;
+        patches (".*");
+        enabled false;
+    }
+    processors
+    {
+        //- Keep all of faceSet on a single processor. This puts all cells
+        //  connected with a point, edge or face on the same processor.
+        //  (just having face connected cells might not guarantee a balanced
+        //  decomposition)
+        // The processor can be -1 (the decompositionMethod chooses the
+        // processor for a good load balance) or explicitly provided (upsets
+        // balance)
+        type    singleProcessorFaceSets;
+        sets    ((f1 -1));
+        enabled false;
+    }
+    refinement
+    {
+        //- Decompose cells such that all cell originating from single cell
+        //  end up on same processor
+        type    refinementHistory;
+        enabled false;
+    }
+    geometric
+    {
+        type    geometric;
+
+        grow    false;
+
+        selection
+        {
+            box1
+            {
+                source  box;
+                min     (-0.1 -0.01 -0.1);
+                max     (0.1 0.30 0.1);
+            }
+            ball
+            {
+                source  sphere;
+                origin  (-0.1 -0.01 -0.1);
+                radius  0.25;
+            }
+            blob
+            {
+                source      surface;
+                surfaceType triSurfaceMesh;
+                surfaceName blob.obj;
+            }
+        }
+    }
+}
+*/
+
+// Deprecated form of specifying decomposition constraints:
+//- Keep owner and neighbour on same processor for faces in zones:
+// preserveFaceZones (heater solid1 solid3);
+
+//- Keep owner and neighbour on same processor for faces in patches:
+//  (only makes sense for cyclic patches and cyclicAMI)
+//preservePatches (cyclic_half0 cyclic_half1);
+
+//- Keep all of faceSet on a single processor. This puts all cells
+//  connected with a point, edge or face on the same processor.
+//  (just having face connected cells might not guarantee a balanced
+//  decomposition)
+// The processor can be -1 (the decompositionMethod chooses the processor
+// for a good load balance) or explicitly provided (upsets balance).
+//singleProcessorFaceSets ((f0 -1));
+
+//- Keep owner and neighbour of baffles on same processor (i.e. keep it
+//  detectable as a baffle). Baffles are two boundary face sharing the
+//  same points.
+//preserveBaffles true;
+
+// ************************************************************************* //

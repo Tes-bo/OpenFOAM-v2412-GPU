@@ -1,0 +1,14 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/wmake/scripts/AllwmakeParseArguments
+
+#------------------------------------------------------------------------------
+
+wmake $targetType regionModel
+wmake $targetType pyrolysisModels
+wmake $targetType surfaceFilmModels
+wmake $targetType surfaceFilmModels/derivedFvPatchFields/wallFunctions
+wmake $targetType thermalBaffleModels
+wmake $targetType regionCoupling
+
+#------------------------------------------------------------------------------

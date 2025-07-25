@@ -1,0 +1,18 @@
+#!/bin/sh
+cd "${0%/*}" || exit                            # Run from this directory
+. "${WM_PROJECT_DIR:?}"/wmake/scripts/AllwmakeParseArguments
+#------------------------------------------------------------------------------
+
+wmake libso Vandermonde
+wmake libso quadratureMethods/momentSets
+wmake libso quadratureMethods/momentInversion
+wmake libso quadratureMethods/hermiteQuadrature
+wmake libso quadratureMethods/quadratureNode
+wmake libso quadratureMethods/fieldMomentInversion
+wmake libso quadratureMethods/quadratureApproximations
+wmake libso quadratureMethods/momentAdvection
+wmake libso quadratureMethods/PDFTransportModels
+wmake libso quadratureMethods/mixingModels
+wmake libso quadratureMethods/populationBalanceModels
+
+#------------------------------------------------------------------------------

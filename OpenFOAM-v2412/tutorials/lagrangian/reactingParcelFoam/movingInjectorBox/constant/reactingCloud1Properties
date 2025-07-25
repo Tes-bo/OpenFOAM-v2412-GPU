@@ -1,0 +1,194 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      reactingCloud1Properties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+solution
+{
+    active          true;
+    coupled         false;
+    transient       yes;
+    cellValueSourceCorrection off;
+    maxCo           0.3;
+
+    sourceTerms
+    {
+        schemes
+        {
+            rho             explicit 1;
+            U               explicit 1;
+            Yi              explicit 1;
+            h               explicit 1;
+            radiation       explicit 1;
+        }
+    }
+
+    interpolationSchemes
+    {
+        rho             cell;
+        U               cellPoint;
+        thermo:mu       cell;
+        T               cell;
+        Cp              cell;
+        kappa           cell;
+        p               cell;
+    }
+
+    integrationSchemes
+    {
+        U               Euler;
+        T               Euler;
+    }
+}
+
+
+constantProperties
+{
+    rho0            1000;
+    T0              293;
+    Cp0             4100;
+
+    volumeUpdateMethod  constantRho;
+}
+
+
+subModels
+{
+    particleForces
+    {
+        sphereDrag;
+        gravity;
+    }
+
+    injectionModels
+    {
+        model1
+        {
+            type            coneNozzleInjection;
+            massTotal       0.0001;
+            parcelBasisType mass;
+            SOI             0;
+
+            injectionMethod point;
+            flowType        constantVelocity;
+            UMag            20;
+            outerDiameter   0.001;
+            innerDiameter   0;
+            duration        2;
+            parcelsPerSecond 2000;
+            flowRateProfile constant 1;
+            thetaInner      constant 0;
+            thetaOuter      constant 10;
+
+            position        table
+            (
+                (  0 (0.1 0.5 0.5))
+                (0.2 (0.5 0.9 0.5))
+                (0.4 (0.9 0.5 0.5))
+                (0.6 (0.5 0.1 0.5))
+
+                (0.8 (0.5 0.5 0.9))
+                (1.0 (0.5 0.9 0.5))
+                (1.2 (0.5 0.5 0.1))
+                (1.4 (0.5 0.1 0.5))
+
+                (1.6 (0.1 0.5 0.5))
+                (1.8 (0.5 0.5 0.9))
+                (2.0 (0.9 0.5 0.5))
+                (2.2 (0.5 0.5 0.1))
+            );
+
+            direction       table
+            (
+                (  0 ( 1  0  0))
+                (0.2 ( 0 -1  0))
+                (0.4 (-1  0  0))
+                (0.6 ( 0  1  0))
+
+                (0.8 ( 0  0 -1))
+                (1.0 ( 0 -1  0))
+                (1.2 ( 0  0  1))
+                (1.4 ( 0  1  0))
+
+                (1.6 ( 1  0  0))
+                (1.8 ( 0  0 -1))
+                (2.0 (-1  0  0))
+                (2.2 ( 0  0  1))
+            );
+
+            sizeDistribution
+            {
+                type uniform;
+                uniformDistribution
+                {
+                    minValue        100e-06;
+                    maxValue        100e-06;
+                }
+            }
+        }
+    }
+
+    dispersionModel none;
+
+    patchInteractionModel standardWallInteraction;
+
+    heatTransferModel none;
+
+    compositionModel singleMixtureFraction;
+
+    phaseChangeModel none;
+
+    devolatilisationModel none;
+
+    surfaceReactionModel none;
+
+    stochasticCollisionModel none;
+
+    surfaceFilmModel none;
+
+    radiation       off;
+
+    standardWallInteractionCoeffs
+    {
+        type            rebound;
+    }
+
+    singleMixtureFractionCoeffs
+    {
+        phases
+        (
+            gas
+            {
+            }
+            liquid
+            {
+                H2O 1;
+            }
+            solid
+            {
+            }
+        );
+        YGasTot0        0;
+        YLiquidTot0     1;
+        YSolidTot0      0;
+    }
+}
+
+
+cloudFunctions
+{}
+
+
+// ************************************************************************* //

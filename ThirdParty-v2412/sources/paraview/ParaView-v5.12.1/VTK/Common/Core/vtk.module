@@ -1,0 +1,37 @@
+NAME
+  VTK::CommonCore
+LIBRARY_NAME
+  vtkCommonCore
+DESCRIPTION
+  The base VTK library
+KIT
+  VTK::Common
+GROUPS
+  StandAlone
+SPDX_LICENSE_IDENTIFIER
+  LicenseRef-BSD-3-Clause-Sandia-USGov
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
+  Copyright Sandia Corporation
+SPDX_CUSTOM_LICENSE_FILE
+  LICENSE
+SPDX_CUSTOM_LICENSE_NAME
+  BSD-3-Clause-Sandia-USGov
+LICENSE_FILES
+  LICENSE
+DEPENDS
+  VTK::kwiml
+  VTK::vtksys
+  VTK::token
+PRIVATE_DEPENDS
+  VTK::fast_float
+OPTIONAL_DEPENDS
+  VTK::loguru
+TEST_DEPENDS
+  VTK::cli11
+  VTK::CommonDataModel
+  VTK::CommonSystem
+  VTK::CommonTransforms
+  VTK::TestingCore
+  VTK::vtksys
+  VTK::fmt

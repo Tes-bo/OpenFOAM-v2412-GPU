@@ -1,0 +1,20 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+canCompile || exit 0    # Dynamic code
+
+echo "Use common files for 0/, constant/ and blockMeshDict"
+
+rm -rf 0 constant
+
+cp -rf ../common/0.orig 0
+
+cp -rf ../common/constant constant
+
+runApplication blockMesh -dict ../common/blockMeshDict
+
+runApplication $(getApplication)
+
+#------------------------------------------------------------------------------

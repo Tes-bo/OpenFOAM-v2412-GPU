@@ -1,0 +1,32 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+restore0Dir
+
+cp -rf \
+    "$FOAM_TUTORIALS"/resources/geometry/squareBend \
+    constant/triSurface
+
+runApplication blockMesh
+
+# Extract some faces for sampling
+runApplication surfaceMeshExtract \
+    -patches inlet -time 0 \
+    constant/triSurface/inlet_sample0.obj
+
+# Recentre and inflate
+runApplication surfaceTransformPoints \
+    -recentre \
+    -scale 3.5 \
+    constant/triSurface/inlet_sample0.obj \
+    constant/triSurface/inlet_sample1.obj
+
+# Finer mesh
+runApplication surfaceRefineRedGreen \
+    constant/triSurface/inlet_sample1.obj \
+    constant/triSurface/oversized_sample.obj
+
+
+#------------------------------------------------------------------------------

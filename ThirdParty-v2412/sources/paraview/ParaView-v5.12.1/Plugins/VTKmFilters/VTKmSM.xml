@@ -1,0 +1,774 @@
+<ServerManagerConfiguration>
+  <ProxyGroup name="filters">
+
+    <!-- ================================================================== -->
+    <SourceProxy name="VTKmContour"
+                 class="vtkmContour"
+                 label="VTKm Contour">
+      <Documentation
+        long_help="Generate isolines or isosurfaces using point scalars."
+        short_help="Generate isolines or isosurfaces.">
+        The VTKm Marching Cubes filter computes isolines or isosurfaces
+        using a selected point-centered scalar array. It behaves similarly
+        to the standard Contour filter but uses VTKm's finely threaded
+        parallel algorithms.
+      </Documentation>
+      <InputProperty command="SetInputConnection"
+                     name="Input">
+        <ProxyGroupDomain name="groups">
+          <Group name="sources" />
+          <Group name="filters" />
+        </ProxyGroupDomain>
+        <DataTypeDomain name="input_type">
+          <DataType value="vtkDataSet" />
+        </DataTypeDomain>
+        <InputArrayDomain attribute_type="point"
+                          name="input_array"
+                          number_of_components="1" />
+        <Documentation>This property specifies the input dataset to be used by
+        the contour filter.</Documentation>
+      </InputProperty>
+      <StringVectorProperty animateable="0"
+                            command="SetInputArrayToProcess"
+                            element_types="0 0 0 0 2"
+                            label="Contour By"
+                            name="SelectInputScalars"
+                            number_of_elements="5">
+        <ArrayListDomain attribute_type="Scalars"
+                         name="array_list">
+          <RequiredProperties>
+            <Property function="Input"
+                      name="Input" />
+          </RequiredProperties>
+        </ArrayListDomain>
+        <Documentation>This property specifies the name of the scalar array
+        from which the contour filter will compute isolines and/or
+        isosurfaces.</Documentation>
+      </StringVectorProperty>
+      <DoubleVectorProperty animateable="1"
+                            command="SetValue"
+                            label="Isosurfaces"
+                            name="ContourValues"
+                            number_of_elements="0"
+                            number_of_elements_per_command="1"
+                            repeat_command="1"
+                            set_number_command="SetNumberOfContours"
+                            use_index="1">
+        <ArrayRangeDomain name="scalar_range">
+          <RequiredProperties>
+            <Property function="Input"
+                      name="Input" />
+            <Property function="ArraySelection"
+                      name="SelectInputScalars" />
+          </RequiredProperties>
+        </ArrayRangeDomain>
+        <Documentation>This property specifies the values at which to compute
+        isosurfaces/isolines and also the number of such
+        values.</Documentation>
+      </DoubleVectorProperty>
+
+      <PropertyGroup label="Isosurfaces">
+        <Property name="ContourValues" />
+      </PropertyGroup>
+
+      <IntVectorProperty animateable="0"
+                         command="SetComputeScalars"
+                         default_values="0"
+                         name="ComputeScalars"
+                         number_of_elements="1">
+        <BooleanDomain name="bool" />
+        <Documentation>If this property is set to 1, an array of scalars
+        (containing the contour value) will be added to the output dataset. If
+        set to 0, the output will not contain this array.</Documentation>
+      </IntVectorProperty>
+
+      <Hints>
+        <Visibility replace_input="2" />
+        <ShowInMenu category="VTKm" />
+      </Hints>
+
+      <!-- End VTKmMarchingCubes -->
+    </SourceProxy>
+
+    <!-- ================================================================== -->
+    <SourceProxy class="vtkmThreshold"
+                 name="VTKmThreshold"
+                 label="VTKm Threshold">
+      <Documentation
+        long_help="This filter extracts cells that have point or cell scalars in the specified range."
+        short_help="Extract cells that satisfy a threshold criterion.">
+        The VTKm Threshold filter extracts cells with a field that meets a
+        certain criteria. It behaves similarly to the standard Contour
+        filter but uses VTKm's finely threaded parallel algorithms.
+      </Documentation>
+      <InputProperty command="SetInputConnection"
+                     name="Input">
+        <ProxyGroupDomain name="groups">
+          <Group name="sources" />
+          <Group name="filters" />
+        </ProxyGroupDomain>
+        <DataTypeDomain name="input_type">
+          <DataType value="vtkDataSet" />
+        </DataTypeDomain>
+        <InputArrayDomain name="input_array"
+                          number_of_components="1">
+        </InputArrayDomain>
+        <Documentation>This property specifies the input to the Threshold
+        filter.</Documentation>
+      </InputProperty>
+      <StringVectorProperty command="SetInputArrayToProcess"
+                            element_types="0 0 0 0 2"
+                            label="Scalars"
+                            name="SelectInputScalars"
+                            number_of_elements="5">
+        <ArrayListDomain attribute_type="Scalars"
+                         name="array_list">
+          <RequiredProperties>
+            <Property function="Input"
+                      name="Input" />
+          </RequiredProperties>
+        </ArrayListDomain>
+        <Documentation>The value of this property contains the name of the
+        scalar array from which to perform thresholding.</Documentation>
+      </StringVectorProperty>
+      <DoubleVectorProperty command="SetLowerThreshold"
+                            default_values="0"
+                            name="LowerThreshold"
+                            number_of_elements="1">
+        <ArrayRangeDomain name="range"
+                          default_mode="min">
+          <RequiredProperties>
+            <Property function="Input"
+                      name="Input" />
+            <Property function="ArraySelection"
+                      name="SelectInputScalars" />
+          </RequiredProperties>
+        </ArrayRangeDomain>
+        <Hints>
+          <PropertyWidgetDecorator type="CompositeDecorator">
+            <Expression type="or">
+              <PropertyWidgetDecorator type="GenericDecorator" mode="visibility" property="ThresholdMethod" value="0" />
+              <PropertyWidgetDecorator type="GenericDecorator" mode="visibility" property="ThresholdMethod" value="1" />
+            </Expression>
+          </PropertyWidgetDecorator>
+        </Hints>
+        <Documentation>
+          The value of this property specifies the lower bound of the
+          thresholding operation.
+        </Documentation>
+      </DoubleVectorProperty>
+      <DoubleVectorProperty command="SetUpperThreshold"
+                            default_values="0"
+                            name="UpperThreshold"
+                            number_of_elements="1">
+        <ArrayRangeDomain name="range"
+                          default_mode="max">
+          <RequiredProperties>
+            <Property function="Input"
+                      name="Input" />
+            <Property function="ArraySelection"
+                      name="SelectInputScalars" />
+          </RequiredProperties>
+        </ArrayRangeDomain>
+        <Hints>
+          <PropertyWidgetDecorator type="CompositeDecorator">
+            <Expression type="or">
+              <PropertyWidgetDecorator type="GenericDecorator" mode="visibility" property="ThresholdMethod" value="0" />
+              <PropertyWidgetDecorator type="GenericDecorator" mode="visibility" property="ThresholdMethod" value="2" />
+            </Expression>
+          </PropertyWidgetDecorator>
+        </Hints>
+        <Documentation>
+          The value of this property specifies the upper bound of the
+          thresholding operation.
+        </Documentation>
+      </DoubleVectorProperty>
+      <IntVectorProperty command="SetThresholdFunction"
+                         default_values="0"
+                         name="ThresholdMethod"
+                         number_of_elements="1"
+                         panel_visibility="default">
+        <EnumerationDomain name="enum">
+          <Entry text="Between" value="0"/>
+          <Entry text="Below Lower Threshold" value="1"/>
+          <Entry text="Above Upper Threshold" value="2"/>
+        </EnumerationDomain>
+        <Documentation>
+          This property indicates the threshold method.
+        </Documentation>
+      </IntVectorProperty>
+
+      <Hints>
+        <Visibility replace_input="2" />
+        <ShowInMenu category="VTKm" />
+      </Hints>
+      <!-- End Threshold -->
+    </SourceProxy>
+
+    <!-- ================================================================== -->
+    <SourceProxy class="vtkmGradient"
+                 label="VTKm Gradient"
+                 name="VTKmGradient">
+      <Documentation long_help="Estimate the gradient for each point or cell in any type of dataset."
+                     short_help="Compute gradients for any type of dataset.">
+                     The Gradient filter estimates the gradient
+                     vector at each point or cell. It operates on any type of
+                     vtkDataSet, and the output is the same type as the input.
+                     </Documentation>
+      <InputProperty command="SetInputConnection"
+                     name="Input">
+        <ProxyGroupDomain name="groups">
+          <Group name="sources" />
+          <Group name="filters" />
+        </ProxyGroupDomain>
+        <DataTypeDomain name="input_type">
+          <DataType value="vtkDataSet" />
+        </DataTypeDomain>
+        <InputArrayDomain name="input_array" />
+        <Documentation>This property specifies the input to the Gradient
+        (Unstructured) filter.</Documentation>
+      </InputProperty>
+      <StringVectorProperty command="SetInputArrayToProcess"
+                            element_types="0 0 0 0 2"
+                            label="Scalar Array"
+                            name="SelectInputScalars"
+                            number_of_elements="5">
+        <ArrayListDomain attribute_type="Scalars"
+                         name="array_list">
+          <RequiredProperties>
+            <Property function="Input"
+                      name="Input" />
+          </RequiredProperties>
+        </ArrayListDomain>
+        <Documentation>This property lists the name of the scalar array from
+        which to compute the gradient.</Documentation>
+      </StringVectorProperty>
+      <IntVectorProperty command="SetComputeGradient"
+                         default_values="1"
+                         name="ComputeGradient"
+                         number_of_elements="1"
+                         panel_visibility="advanced">
+        <BooleanDomain name="bool" />
+        <Documentation>When this flag is on, the gradient filter will compute
+        the gradient of the input array.</Documentation>
+      </IntVectorProperty>
+      <StringVectorProperty command="SetResultArrayName"
+                            default_values="Gradients"
+                            name="ResultArrayName"
+                            number_of_elements="1">
+        <Documentation>This property provides a name for the output array
+        containing the gradient vectors.</Documentation>
+      </StringVectorProperty>
+      <IntVectorProperty command="SetFasterApproximation"
+                         default_values="0"
+                         name="FasterApproximation"
+                         number_of_elements="1"
+                         panel_visibility="advanced">
+        <BooleanDomain name="bool" />
+        <Documentation>When this flag is on, the gradient filter will provide a
+        less accurate (but close) algorithm that performs fewer derivative
+        calculations (and is therefore faster). The error contains some
+        smoothing of the output data and some possible errors on the boundary.
+        This parameter has no effect when performing the gradient of cell
+        data or when the input grid is not a vtkUnstructuredGrid.</Documentation>
+      </IntVectorProperty>
+      <IntVectorProperty command="SetComputeDivergence"
+                         default_values="0"
+                         name="ComputeDivergence"
+                         number_of_elements="1"
+                         panel_visibility="advanced">
+        <BooleanDomain name="bool" />
+        <Documentation>When this flag is on, the gradient filter will compute
+        the divergence of a 3 component array.</Documentation>
+      </IntVectorProperty>
+      <StringVectorProperty command="SetDivergenceArrayName"
+                            default_values="Divergence"
+                            name="DivergenceArrayName"
+                            number_of_elements="1"
+                            panel_visibility="advanced">
+        <Documentation>This property provides a name for the output array
+        containing the divergence vector.</Documentation>
+      </StringVectorProperty>
+      <IntVectorProperty command="SetComputeVorticity"
+                         default_values="0"
+                         name="ComputeVorticity"
+                         number_of_elements="1"
+                         panel_visibility="advanced">
+        <BooleanDomain name="bool" />
+        <Documentation>When this flag is on, the gradient filter will compute
+        the vorticity/curl of a 3 component array.</Documentation>
+      </IntVectorProperty>
+      <StringVectorProperty command="SetVorticityArrayName"
+                            default_values="Vorticity"
+                            name="VorticityArrayName"
+                            number_of_elements="1"
+                            panel_visibility="advanced">
+        <Documentation>This property provides a name for the output array
+        containing the vorticity vector.</Documentation>
+      </StringVectorProperty>
+      <IntVectorProperty command="SetComputeQCriterion"
+                         default_values="0"
+                         name="ComputeQCriterion"
+                         number_of_elements="1"
+                         panel_visibility="advanced">
+        <BooleanDomain name="bool" />
+        <Documentation>When this flag is on, the gradient filter will compute
+        the Q-criterion of a 3 component array.</Documentation>
+      </IntVectorProperty>
+      <StringVectorProperty command="SetQCriterionArrayName"
+                            default_values="Q-criterion"
+                            name="QCriterionArrayName"
+                            number_of_elements="1"
+                            panel_visibility="advanced">
+        <Documentation>This property provides a name for the output array
+        containing Q criterion.</Documentation>
+      </StringVectorProperty>
+
+      <Hints>
+        <Visibility replace_input="2" />
+        <ShowInMenu category="VTKm" />
+      </Hints>
+      <!-- End UnstructuredGradient -->
+    </SourceProxy>
+
+    <!-- ==================================================================== -->
+    <SourceProxy class="vtkmLevelOfDetail"
+                 label="VTKm Level Of Detail"
+                 name="VTKmLevelOfDetail">
+      <Documentation long_help="It uses a structured grid of bins and merges all points contained in each bin."
+                     short_help="Simplify polygonal models.">The Level Of Detail
+                     filter produces a reduced-resolution polygonal
+                     approximation of the input polygonal dataset. This filter
+                     is the one used by ParaView for computing LODs. It uses
+                     spatial binning to reduce the number of points in the data
+                     set; points that lie within the same spatial bin are
+                     collapsed into one representative point.</Documentation>
+      <InputProperty command="SetInputConnection"
+                     name="Input">
+        <ProxyGroupDomain name="groups">
+          <Group name="sources" />
+          <Group name="filters" />
+        </ProxyGroupDomain>
+        <DataTypeDomain name="input_type">
+          <DataType value="vtkPolyData" />
+        </DataTypeDomain>
+        <Documentation>This property specifies the input to the Quadric
+        Clustering filter.</Documentation>
+      </InputProperty>
+      <IntVectorProperty command="SetNumberOfDivisions"
+                         default_values="256 256 256"
+                         label="Number of Dimensions"
+                         name="NumberOfDivisions"
+                         number_of_elements="3">
+        <IntRangeDomain name="range" />
+        <Documentation>This property specifies the number of bins along the X,
+        Y, and Z axes of the data set.</Documentation>
+      </IntVectorProperty>
+
+      <Hints>
+        <Visibility replace_input="2" />
+        <ShowInMenu category="VTKm" />
+      </Hints>
+      <!-- End Level Of Detail -->
+    </SourceProxy>
+
+    <!-- ==================================================================== -->
+    <SourceProxy class="vtkmAverageToPoints"
+                 label="VTKm Cell Data to Point Data"
+                 name="VTKmAverageToPoints">
+      <Documentation long_help="Create point attributes by averaging cell attributes."
+                     short_help="Convert cell data to point data.">The Cell
+                     Data to Point Data filter averages the values of the cell
+                     attributes of the cells surrounding a point to compute
+                     point attributes.</Documentation>
+      <InputProperty command="SetInputConnection"
+                     name="Input">
+        <ProxyGroupDomain name="groups">
+          <Group name="sources" />
+          <Group name="filters" />
+        </ProxyGroupDomain>
+        <DataTypeDomain name="input_type">
+          <DataType value="vtkDataSet" />
+        </DataTypeDomain>
+        <InputArrayDomain attribute_type="cell"
+                          name="input_array" />
+        <Documentation>This property specifies the input to the Cell Data to
+        Point Data filter.</Documentation>
+      </InputProperty>
+      <StringVectorProperty animateable="0"
+                            command="SetInputArrayToProcess"
+                            element_types="0 0 0 0 2"
+                            name="SelectArray"
+                            number_of_elements="5">
+        <ArrayListDomain name="array_list">
+          <RequiredProperties>
+            <Property function="Input"
+                      name="Input" />
+          </RequiredProperties>
+        </ArrayListDomain>
+        <Documentation>This property specifies the name of the array
+        to averages to cells.</Documentation>
+      </StringVectorProperty>
+
+      <Hints>
+        <ShowInMenu category="VTKm" />
+      </Hints>
+
+      <!-- End VTKmAverageToPoints -->
+    </SourceProxy>
+
+    <!-- ==================================================================== -->
+    <SourceProxy class="vtkmCleanGrid"
+                 label="VTKm Clean Unstructured Grid"
+                 name="VTKmCleanGrid">
+      <InputProperty command="SetInputConnection"
+                     name="Input">
+        <ProxyGroupDomain name="groups">
+          <Group name="sources" />
+          <Group name="filters" />
+        </ProxyGroupDomain>
+        <DataTypeDomain name="input_type">
+          <DataType value="vtkUnstructuredGrid" />
+        </DataTypeDomain>
+        <Documentation>This property specifies the input to the Clean to Grid
+        filter.</Documentation>
+      </InputProperty>
+      <IntVectorProperty command="SetCompactPoints"
+                         default_values="0"
+                         name="CompactPoints"
+                         number_of_elements="1">
+        <BooleanDomain name="bool" />
+        <Documentation>Remove points that are not part of any cell.
+        </Documentation>
+      </IntVectorProperty>
+
+      <Hints>
+        <ShowInMenu category="VTKm" />
+      </Hints>
+
+      <!-- End VTKmCleanGrid -->
+    </SourceProxy>
+
+    <!-- ==================================================================== -->
+    <SourceProxy class="vtkmClip"
+                 label="VTKm Clip"
+                 name="VTKmClip">
+      <InputProperty command="SetInputConnection"
+                     name="Input">
+        <ProxyGroupDomain name="groups">
+          <Group name="sources" />
+          <Group name="filters" />
+        </ProxyGroupDomain>
+        <DataTypeDomain name="input_type">
+          <DataType value="vtkDataSet" />
+        </DataTypeDomain>
+        <InputArrayDomain name="input_array"
+                          number_of_components="1"/>
+        <Documentation>This property specifies the input to the VTKm Clip
+        filter.</Documentation>
+      </InputProperty>
+      <StringVectorProperty animateable="0"
+                            command="SetInputArrayToProcess"
+                            element_types="0 0 0 0 2"
+                            label="Scalars"
+                            name="SelectInputScalars"
+                            number_of_elements="5">
+        <ArrayListDomain attribute_type="Scalars"
+                         input_domain_name="input_array"
+                         name="array_list">
+          <RequiredProperties>
+            <Property function="Input"
+                      name="Input" />
+          </RequiredProperties>
+        </ArrayListDomain>
+      </StringVectorProperty>
+      <DoubleVectorProperty command="SetClipValue"
+                            default_values="0.0"
+                            name="ClipValue"
+                            number_of_elements="1">
+        <ArrayRangeDomain name="range">
+          <RequiredProperties>
+            <Property function="Input"
+                      name="Input" />
+            <Property function="ArraySelection"
+                      name="SelectInputScalars" />
+          </RequiredProperties>
+        </ArrayRangeDomain>
+        <Documentation>The scalar value to use when clipping the dataset.
+        Values greater than ClipValue are preserved in the output dataset.
+        </Documentation>
+      </DoubleVectorProperty>
+      <IntVectorProperty command="SetComputeScalars"
+                         name="ComputeScalars"
+                         default_values="1"
+                         number_of_elements="1">
+        <BooleanDomain name="bool" />
+        <Documentation>Map all point data arrays onto the output dataset.
+        </Documentation>
+      </IntVectorProperty>
+
+      <Hints>
+        <ShowInMenu category="VTKm" />
+      </Hints>
+
+      <!-- End VTKmClip -->
+    </SourceProxy>
+
+    <!-- ==================================================================== -->
+    <SourceProxy class="vtkmExternalFaces"
+                 label="VTKm External Faces"
+                 name="VTKmExternalFaces">
+      <InputProperty command="SetInputConnection"
+                     name="Input">
+        <ProxyGroupDomain name="groups">
+          <Group name="sources" />
+          <Group name="filters" />
+        </ProxyGroupDomain>
+        <DataTypeDomain name="input_type">
+          <DataType value="vtkUnstructuredGrid" />
+        </DataTypeDomain>
+        <Documentation>This property specifies the input to the filter.
+        </Documentation>
+      </InputProperty>
+      <IntVectorProperty command="SetCompactPoints"
+                         default_values="0"
+                         name="CompactPoints"
+                         number_of_elements="1">
+        <BooleanDomain name="bool" />
+        <Documentation>Remove points that are not part of any output cell.
+        </Documentation>
+      </IntVectorProperty>
+
+      <Hints>
+        <ShowInMenu category="VTKm" />
+      </Hints>
+
+      <!-- End VTKmExternalFaces -->
+    </SourceProxy>
+
+    <!-- ==================================================================== -->
+    <SourceProxy class="vtkmAverageToCells"
+                 label="VTKm Point Data to Cell Data"
+                 name="VTKmAverageToCells">
+      <Documentation long_help="Create cell attributes by averaging point attributes."
+                     short_help="Convert point data to cell data.">The Point
+                     Data to Cell Data filter averages the values of the point
+                     attributes of the points defining a cell to compute
+                     cell attributes.</Documentation>
+      <InputProperty command="SetInputConnection"
+                     name="Input">
+        <ProxyGroupDomain name="groups">
+          <Group name="sources" />
+          <Group name="filters" />
+        </ProxyGroupDomain>
+        <DataTypeDomain name="input_type">
+          <DataType value="vtkDataSet" />
+        </DataTypeDomain>
+        <InputArrayDomain attribute_type="point"
+                          name="input_array" />
+        <Documentation>This property specifies the input to the filter.
+        </Documentation>
+      </InputProperty>
+      <StringVectorProperty animateable="0"
+                            command="SetInputArrayToProcess"
+                            element_types="0 0 0 0 2"
+                            name="SelectArray"
+                            number_of_elements="5">
+        <ArrayListDomain name="array_list">
+          <RequiredProperties>
+            <Property function="Input"
+                      name="Input" />
+          </RequiredProperties>
+        </ArrayListDomain>
+        <Documentation>This property specifies the name of the array
+        to averages to cells.</Documentation>
+      </StringVectorProperty>
+
+      <Hints>
+        <ShowInMenu category="VTKm" />
+      </Hints>
+
+      <!-- End VTKmAverageToCells -->
+    </SourceProxy>
+
+    <!-- ==================================================================== -->
+    <SourceProxy class="vtkmWarpScalar"
+                 label="VTKm Warp By Scalar"
+                 name="VTKmWarpScalar">
+      <Documentation long_help="This filter moves point coordinates along a vector scaled by a point attribute.  It can be used to produce carpet plots."
+                     short_help="Warp point scalars into a spatial elevation plot.">
+                     The Warp (scalar) filter translates the points of the
+                     input data set along a vector by a distance determined by
+                     the specified scalars. This filter operates on polygonal,
+                     curvilinear, and unstructured grid data sets containing
+                     single-component scalar arrays. Because it only changes
+                     the positions of the points, the output data set type is
+                     the same as that of the input. Any scalars in the input
+                     dataset are copied to the output, so the data can be
+                     colored by them.</Documentation>
+      <InputProperty command="SetInputConnection"
+                     name="Input">
+        <ProxyGroupDomain name="groups">
+          <Group name="sources" />
+          <Group name="filters" />
+        </ProxyGroupDomain>
+        <DataTypeDomain name="input_type">
+          <DataType value="vtkPointSet" />
+          <DataType value="vtkImageData" />
+          <DataType value="vtkRectilinearGrid" />
+        </DataTypeDomain>
+        <InputArrayDomain attribute_type="point"
+                          name="input_array"
+                          number_of_components="1" />
+        <Documentation>This property specifies the input to the Warp (scalar)
+        filter.</Documentation>
+      </InputProperty>
+      <StringVectorProperty command="SetInputArrayToProcess"
+                            element_types="0 0 0 0 2"
+                            label="Scalars"
+                            name="SelectInputScalars"
+                            number_of_elements="5"
+                            panel_visibility="default">
+        <ArrayListDomain attribute_type="Scalars"
+                         name="array_list">
+          <RequiredProperties>
+            <Property function="Input"
+                      name="Input" />
+          </RequiredProperties>
+        </ArrayListDomain>
+        <Documentation>This property contains the name of the scalar array by
+        which to warp the dataset.</Documentation>
+      </StringVectorProperty>
+      <DoubleVectorProperty animateable="1"
+                            command="SetScaleFactor"
+                            default_values="1.0"
+                            name="ScaleFactor"
+                            number_of_elements="1"
+                            panel_visibility="default">
+        <BoundsDomain name="range" mode="array_scaled_extent">
+          <RequiredProperties>
+            <Property function="Input" name="Input" />
+            <Property function="ArraySelection" name="SelectInputScalars" />
+          </RequiredProperties>
+        </BoundsDomain>
+        <Hints>
+          <NoDefault/>
+        </Hints>
+        <Documentation>The scalar value at a given point is multiplied by the
+        value of this property to determine the magnitude of the change vector
+        for that point.</Documentation>
+      </DoubleVectorProperty>
+      <DoubleVectorProperty command="SetNormal"
+                            default_values="0 0 1"
+                            name="Normal"
+                            number_of_elements="3">
+        <DoubleRangeDomain name="range" />
+        <Documentation>The values of this property specify the direction along
+        which to warp the dataset if any normals contained in the input dataset
+        are not being used for this purpose. (See the UseNormal
+        property.)</Documentation>
+      </DoubleVectorProperty>
+      <IntVectorProperty command="SetUseNormal"
+                         default_values="0"
+                         name="UseNormal"
+                         number_of_elements="1">
+        <BooleanDomain name="bool" />
+        <Documentation>If point normals are present in the dataset, the value
+        of this property toggles whether to use a single normal value (value =
+        1) or the normals from the dataset (value = 0).</Documentation>
+      </IntVectorProperty>
+      <IntVectorProperty command="SetXYPlane"
+                         default_values="0"
+                         label="XY Plane"
+                         name="XYPlane"
+                         number_of_elements="1">
+        <BooleanDomain name="bool" />
+        <Documentation>If the value of this property is 1, then the
+        Z-coordinates from the input are considered to be the scalar values,
+        and the displacement is along the Z axis. This is useful for creating
+        carpet plots.</Documentation>
+      </IntVectorProperty>
+
+      <Hints>
+        <ShowInMenu category="VTKm" />
+      </Hints>
+
+      <!-- End VTKm WarpScalar -->
+    </SourceProxy>
+
+    <!-- ==================================================================== -->
+    <SourceProxy class="vtkmWarpVector"
+                 label="VTKm Warp By Vector"
+                 name="VTKmWarpVector">
+      <Documentation long_help="This filter displaces point coordinates along a vector attribute. It is useful for showing mechanical deformation."
+                     short_help="Warp (displace) the geometry with a given vector field.">
+                     The Warp (vector) filter translates the points of the
+                     input dataset using a specified vector array. The vector
+                     array chosen specifies a vector per point in the input.
+                     Each point is translated along its vector by a given scale
+                     factor. This filter operates on polygonal, curvilinear,
+                     and unstructured grid datasets. Because this filter only
+                     changes the positions of the points, the output dataset
+                     type is the same as that of the input.</Documentation>
+      <InputProperty command="SetInputConnection"
+                     name="Input">
+        <ProxyGroupDomain name="groups">
+          <Group name="sources" />
+          <Group name="filters" />
+        </ProxyGroupDomain>
+        <DataTypeDomain name="input_type">
+          <DataType value="vtkPointSet" />
+          <DataType value="vtkImageData" />
+          <DataType value="vtkRectilinearGrid" />
+        </DataTypeDomain>
+        <InputArrayDomain attribute_type="point"
+                          name="input_array"
+                          number_of_components="3" />
+        <Documentation>This property specifies the input to the Warp (vector)
+        filter.</Documentation>
+      </InputProperty>
+      <StringVectorProperty command="SetInputArrayToProcess"
+                            element_types="0 0 0 0 2"
+                            label="Vectors"
+                            name="SelectInputVectors"
+                            number_of_elements="5"
+                            panel_visibility="default">
+        <ArrayListDomain attribute_type="Vectors"
+                         name="array_list">
+          <RequiredProperties>
+            <Property function="Input"
+                      name="Input" />
+          </RequiredProperties>
+        </ArrayListDomain>
+        <Documentation>The value of this property contains the name of the
+        vector array by which to warp the dataset's point
+        coordinates.</Documentation>
+      </StringVectorProperty>
+      <DoubleVectorProperty command="SetScaleFactor"
+                            default_values="1.0"
+                            name="ScaleFactor"
+                            number_of_elements="1"
+                            panel_visibility="default">
+        <BoundsDomain name="range" mode="array_scaled_extent">
+          <RequiredProperties>
+            <Property function="Input" name="Input" />
+            <Property function="ArraySelection" name="SelectInputVectors" />
+          </RequiredProperties>
+        </BoundsDomain>
+        <Hints>
+          <NoDefault/>
+        </Hints>
+        <Documentation>Each component of the selected vector array will be
+        multiplied by the value of this property before being used to compute
+        new point coordinates.</Documentation>
+      </DoubleVectorProperty>
+      <!-- End VTKm WarpVector -->
+
+      <Hints>
+        <ShowInMenu category="VTKm" />
+      </Hints>
+
+    </SourceProxy>
+
+  </ProxyGroup>
+</ServerManagerConfiguration>

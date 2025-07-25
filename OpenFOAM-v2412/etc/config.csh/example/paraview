@@ -1,0 +1,33 @@
+#----------------------------------*-sh-*--------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2018-2020 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# File
+#     config.csh/example/paraview
+#
+# Description
+#     Example of defining a different ParaView_VERSION but retaining the
+#     standard config.csh/paraview mechanism
+#
+# Note
+#     This file could be copied to a user or site location, but should never
+#     replace the default shipped version as this will cause an infinite loop
+#
+#------------------------------------------------------------------------------
+# Use standard paraview config file (-mode=o) with a different ParaView_VERSION
+
+set pv=5.5.0
+set pv=5.5.0-mpipy
+set qt=qt-5.9.0
+
+eval `foamEtcFile -csh -config -mode=o paraview -- ParaView_VERSION=$pv ParaView_QT=$qt`
+
+#------------------------------------------------------------------------------

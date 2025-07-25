@@ -1,0 +1,114 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      caseProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+initialConditions
+{
+    U           uniform (20 0 0);
+    p           uniform 0;
+    k           uniform 0.24;
+    omega       uniform 1.78;
+    nut         uniform 0;
+}
+
+boundaryConditions
+{
+    motorbike
+    {
+        category        wall;
+        type            noSlip;
+        patches         (motorBikeGroup);
+        options
+        {
+            wallFunction    highReynolds;
+            motion          stationary;
+        }
+        values
+        {
+            $/initialConditions;
+        }
+    }
+
+    inlet
+    {
+        category        inlet;
+        type            subSonic;
+        patches         (inlet);
+        options
+        {
+            flowSpecification fixedVelocity;
+        }
+        values
+        {
+            $/initialConditions;
+        }
+    }
+
+    lowerWall
+    {
+        category        wall;
+        type            noSlip;
+        patches         (lowerWall);
+        options
+        {
+            wallFunction    highReynolds;
+            motion          stationary;
+        }
+        values
+        {
+            $/initialConditions;
+        }
+    }
+
+    outlet
+    {
+        category        outlet;
+        type            subSonic;
+        patches         (outlet);
+        options
+        {
+            returnFlow      default;
+        }
+        values
+        {
+            $/initialConditions;
+        }
+    }
+
+    upperWall
+    {
+        category        wall;
+        type            slip;
+        patches         (upperWall);
+        values
+        {
+            $/initialConditions;
+        }
+    }
+
+    frontAndBack
+    {
+        category        wall;
+        type            slip;
+        patches         (frontAndBack);
+        values
+        {
+            $/initialConditions;
+        }
+    }
+}
+
+
+// ************************************************************************* //

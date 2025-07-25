@@ -1,0 +1,14 @@
+NAME
+  VTK::Java
+LIBRARY_NAME
+  vtkJava
+SPDX_LICENSE_IDENTIFIER
+  BSD-3-Clause
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
+DEPENDS
+  VTK::CommonCore
+TEST_DEPENDS
+  VTK::RenderingOpenGL2
+  VTK::TestingRendering
+EXCLUDE_WRAP

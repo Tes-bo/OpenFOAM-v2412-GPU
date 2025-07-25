@@ -1,0 +1,21 @@
+// SPDX-FileCopyrightText: Copyright (c) Kitware Inc.
+// SPDX-FileCopyrightText: Copyright (c) Sandia Corporation
+// SPDX-License-Identifier: BSD-3-Clause
+// Generated file.  Do not edit.
+
+
+#include "@_paraview_toolbar_CLASS_NAME@.h"
+#include "@_paraview_toolbar_CLASS_NAME@Implementation.h"
+
+@_paraview_toolbar_CLASS_NAME@Implementation::@_paraview_toolbar_CLASS_NAME@Implementation(QObject* p)
+  : QObject(p)
+{
+  setObjectName("@_paraview_toolbar_CLASS_NAME@");
+}
+
+@_paraview_toolbar_CLASS_NAME@Implementation::~@_paraview_toolbar_CLASS_NAME@Implementation() = default;
+
+QToolBar* @_paraview_toolbar_CLASS_NAME@Implementation::toolBar(QWidget* parentWdg)
+{
+  return new @_paraview_toolbar_CLASS_NAME@(parentWdg);
+}

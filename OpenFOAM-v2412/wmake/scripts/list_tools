@@ -1,0 +1,40 @@
+#----------------------------------*-sh-*--------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2019 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     list_tools
+#
+# Description
+#     List names and paths of some common build-related tools
+#
+# Note
+#     Uses 'true' on all commands to avoid triggering an exit-on-error
+#     issue when sourced
+#
+#------------------------------------------------------------------------------
+
+echo "gcc=$(command -v gcc || true)"
+echo "clang=$(command -v clang || true)"
+echo "mpirun=$(command -v mpirun || true)"
+echo "make=$(command -v make || true)"
+echo "cmake=$(command -v cmake || true)"
+echo "wmake=$(command -v wmake || true)"
+echo "m4=$(command -v m4 || true)"
+## echo "awk=$(command -v awk || true)"
+## echo "sed=$(command -v sed || true)"
+echo "flex=$(command -v flex || true)"
+## echo "bison=$(command -v bison || true)"
+## echo "ragel=$(command -v ragel || true)"
+
+true    # clean exit
+
+#------------------------------------------------------------------------------

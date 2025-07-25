@@ -1,0 +1,30 @@
+// -*- C++ -*-
+// Use the areaWrite function object
+
+areaWrite
+{
+    type    areaWrite;
+    libs    ("libutilityFunctionObjects.so");
+    log     true;
+
+    writeControl    writeTime;
+    writeInterval   1;
+    // verbose         true;
+
+    // Fields to output (words or regex)
+    fields  (".*");
+
+    surfaceFormat ensight;
+    // surfaceFormat vtk;
+
+    formatOptions
+    {
+        vtk
+        {
+            format  ascii;
+        }
+    }
+}
+
+
+// ************************************************************************* //

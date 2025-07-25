@@ -1,0 +1,14 @@
+#!/bin/sh
+cd "${0%/*}" || exit    # Run from this directory
+#------------------------------------------------------------------------------
+
+wclean libso twoPhaseMixtureThermo
+wclean libso surfaceTensionModels
+wclean libso VoFphaseCompressibleTurbulenceModels
+
+wclean
+wclean compressibleInterDyMFoam
+wclean compressibleInterFilmFoam
+wclean compressibleInterIsoFoam
+
+#------------------------------------------------------------------------------

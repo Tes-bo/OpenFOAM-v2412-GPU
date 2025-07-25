@@ -1,0 +1,79 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      waveProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+inlet
+{
+    alpha           alpha.water;
+
+    waveModel       streamFunction;
+
+    nPaddle         1;
+
+    waveHeight      0.1517;
+
+    waveAngle       0.0;
+
+    rampTime        6.034;
+
+    activeAbsorption yes;
+
+    wavePeriod      3.017;
+
+    uMean           2.0825;
+
+    waveLength      6.2832;
+
+    Bjs
+    (
+        8.6669014e-002
+        2.4849799e-002
+        7.7446850e-003
+        2.3355420e-003
+        6.4497731e-004
+        1.5205114e-004
+        2.5433769e-005
+       -2.2045436e-007
+       -2.8711504e-006
+       -1.2287334e-006
+    );
+
+    Ejs
+    (
+        5.6009609e-002
+        3.1638171e-002
+        1.5375952e-002
+        7.1743178e-003
+        3.3737077e-003
+        1.6324880e-003
+        8.2331980e-004
+        4.4403497e-004
+        2.7580059e-004
+        2.2810557e-004
+    );
+
+}
+
+outlet
+{
+    alpha           alpha.water;
+
+    waveModel       shallowWaterAbsorption;
+
+    nPaddle         1;
+}
+
+
+// ************************************************************************* //

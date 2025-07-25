@@ -1,0 +1,21 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+#------------------------------------------------------------------------------
+
+gnuplot<<EOF
+
+set terminal pngcairo font "helvetica,20" size 1200, 627
+set output "velocity.png"
+set logscale x
+set logscale y
+set xrange [0.1:100]
+set yrange [1:100]
+set format x '10^{%T}'
+set format y '10^{%T}'
+set xlabel "Diameter / [mm]"
+set ylabel "Terminal velocity / [cm/s]"
+plot "D_VS_U.txt" u (\$1*1000):(\$2*100) t "Results" w lines
+
+EOF
+
+#------------------------------------------------------------------------------

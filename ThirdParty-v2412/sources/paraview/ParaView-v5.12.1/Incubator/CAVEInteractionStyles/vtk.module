@@ -1,0 +1,25 @@
+NAME
+  ParaViewIncubator::CAVEInteractionStyles
+LIBRARY_NAME
+  vtkPVIncubatorCAVEInteractionStyles
+SPDX_LICENSE_IDENTIFIER
+  BSD-3-Clause
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Kitware Inc.
+DEPENDS
+  VTK::CommonExecutionModel
+  VTK::CommonCore
+  VTK::CommonDataModel
+  VTK::RenderingCore
+  ParaView::RemotingCore
+  ParaView::RemotingServerManager
+  ParaView::RemotingViews
+  ParaView::pqApplicationComponents
+OPTIONAL_DEPENDS
+  VTK::PythonInterpreter
+  VTK::WrappingPythonCore
+PRIVATE_DEPENDS
+  VTK::CommonTransforms
+  VTK::FiltersCore
+  VTK::FiltersGeneral
+  VTK::FiltersSources

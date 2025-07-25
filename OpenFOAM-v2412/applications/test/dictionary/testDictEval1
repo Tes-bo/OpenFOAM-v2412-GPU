@@ -1,0 +1,51 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      dictionary;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+eval1 #eval #{    degToRad() *
+        pi() *
+        cos(100) * mag(19) + 1 * pi()
+            +
+        // Skip comments
+        pi() * 15 + hypot(3,4) #};
+
+eval2 #eval{    degToRad() *
+        pi() *
+        cos(100) * mag(19) + 1 * pi()
+            +
+        // Skip comments
+        pi() * 15  + hypot(3,4) };
+
+eval3   (#eval{hypot(3,4)}, #eval{sqrt(2)}, #eval{pi()});
+
+noeval3 (5, 1.41421, 3.14159);
+
+eval4   #eval{$eval1 * 10};
+
+pi()    #eval{pi()};
+
+rand()  #eval{100*rand(123456)};
+
+sinh(0.1)   #eval{sinh(0.1)};
+cosh(0.1)   #eval{cosh(0.1)};
+
+sqrt100     #eval{((sqrt(100)))};
+
+float       12.345;
+ceil        #eval{ ceil($float) };
+floor       #eval{ floor($float) };
+
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

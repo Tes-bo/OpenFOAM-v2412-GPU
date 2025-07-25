@@ -1,0 +1,5 @@
+SUFFIXES += .l
+
+ltoo = $E $(call QUIET_MESSAGE,flex,$(<F)) \
+    flex -f -o $(@D)/$(<F).c $< && \
+    $(WM_SCHEDULER) $(cc) $(cFLAGS) -c $(@D)/$(<F).c -o $@

@@ -1,0 +1,51 @@
+// -*- C++ -*-
+
+// Sampling and I/O settings
+#includeEtc "caseDicts/postProcessing/graphs/sampleDict.cfg"
+
+// Override settings here, e.g.
+// setConfig { type midPoint; }
+
+type            sets;
+libs            (sampling);
+
+writeControl    writeTime;
+
+interpolationScheme cellPoint;
+
+setFormat   raw;
+
+fields  (U);
+
+setConfig
+{
+    type    midPoint;  // midPoint
+    axis    distance;  // x, y, z, xyz
+}
+
+sets
+{
+    lineA
+    {
+        $setConfig;
+        start (-0.0016 0      0);
+        end   (-0.0016 0.0128 0);
+    }
+
+    lineB
+    {
+        $setConfig;
+        start (-0.0048 0      0);
+        end   (-0.0048 0.0128 0);
+    }
+
+    lineC
+    {
+        $setConfig;
+        start (-0.032 0      0);
+        end   (-0.032 0.0128 0);
+    }
+}
+
+
+// ************************************************************************* //

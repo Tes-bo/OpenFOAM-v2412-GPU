@@ -1,0 +1,42 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      pyrolysisZones;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+pyrolysis
+{
+    active          true;
+
+    pyrolysisModel  reactingOneDim;
+
+    region          pyrolysisRegion;
+
+    reactingOneDimCoeffs
+    {
+        filmCoupled     true;
+
+        gasHSource      true;
+        qrHSource       false;
+
+        radFluxName     qr;
+
+        moveMesh        false;
+        minimumDelta    1e-6;
+
+        useChemistrySolvers    true;
+    }
+}
+
+
+// ************************************************************************* //

@@ -1,0 +1,17 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+runApplication chemkinToFoam \
+               chemkin/chem.inp chemkin/therm.dat chemkin/transportProperties \
+               constant/reactions constant/thermo
+
+runApplication $(getApplication)
+
+if notTest "$@"
+then
+    (cd validation && ./Allrun $*)
+fi
+
+#------------------------------------------------------------------------------

@@ -1,0 +1,48 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      fvSolution;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+field "alpha.water";
+
+type composedFunction;
+mode minDist;
+composedFunctions
+{
+    plane
+    {
+        type plane;
+        origin (0 1. 0);
+        normal (0 -1 0);
+    }
+
+    sphere
+    {
+        type sphere;
+        radius 0.4;
+        origin (0.5 1.5 0.5);
+        scale 1;
+    }
+
+    sphere2
+    {
+        type sphere;
+        radius 0.4;
+        origin (0.5 0.5 0.5);
+        scale -1;
+    }
+}
+
+// ************************************************************************* //

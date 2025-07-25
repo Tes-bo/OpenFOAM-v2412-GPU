@@ -1,0 +1,15 @@
+#!/bin/sh
+cd "${0%/*}" || exit                            # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/CleanFunctions  # Tutorial clean functions
+. ${WM_PROJECT_DIR:?}/bin/tools/LogFunctions    # Tutorial logfile functions
+#------------------------------------------------------------------------------
+
+echo "--------"
+removeLogs
+
+echo "Cleaning tutorials"
+foamCleanTutorials -self
+
+echo "--------"
+
+#------------------------------------------------------------------------------

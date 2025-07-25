@@ -1,0 +1,126 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      kinematicCloudProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+solution
+{
+    active          true;
+    coupled         yes;
+    transient       yes;
+    cellValueSourceCorrection no;
+    maxCo           0.3;
+
+    sourceTerms
+    {
+        schemes
+        {
+            U               semiImplicit 1;
+        }
+    }
+
+    interpolationSchemes
+    {
+        rho             cell;
+        U               cellPoint;
+        muc             cell;
+        p               cell;
+    }
+
+    integrationSchemes
+    {
+        U               Euler;
+    }
+}
+
+constantProperties
+{
+    rho0            1000;
+}
+
+subModels
+{
+    particleForces
+    {
+        sphereDrag;
+        gravity;
+    }
+
+    injectionModels
+    {
+        model1
+        {
+            type            coneInjection;
+            SOI             10.00;
+            duration        13.000;
+            positionAxis
+            (
+                ((-0.5 0.1 0.7) (1 0 -1))
+                ((-0.5 0.2 0.7) (1 0 -1))
+                ((-0.5 0.3 0.7) (1 0 -1))
+                ((-0.5 0.4 0.7) (1 0 -1))
+                ((-0.5 0.5 0.7) (1 0 -1))
+                ((-0.5 0.6 0.7) (1 0 -1))
+                ((-0.5 0.7 0.7) (1 0 -1))
+                ((-0.5 0.8 0.7) (1 0 -1))
+                ((-0.5 0.9 0.7) (1 0 -1))
+            );
+
+            massTotal       5;
+            parcelsPerInjector 20000;
+            parcelBasisType mass;
+            flowRateProfile constant 1;
+            Umag            constant 1.0;
+            thetaInner      constant 0;
+            thetaOuter      constant 45;
+
+            sizeDistribution
+            {
+                type         RosinRammler;
+                RosinRammlerDistribution
+                {
+                    minValue        5e-04;
+                    maxValue        0.0012;
+                    lambda          7.5e-05;
+                    n               0.5;
+                }
+            }
+        }
+    }
+
+    dispersionModel none;
+
+    patchInteractionModel standardWallInteraction;
+
+    stochasticCollisionModel none;
+
+    surfaceFilmModel kinematicSurfaceFilm;
+
+    standardWallInteractionCoeffs
+    {
+        type            rebound;
+    }
+
+    kinematicSurfaceFilmCoeffs
+    {
+        interactionType absorb;
+    }
+}
+
+
+cloudFunctions
+{}
+
+
+// ************************************************************************* //

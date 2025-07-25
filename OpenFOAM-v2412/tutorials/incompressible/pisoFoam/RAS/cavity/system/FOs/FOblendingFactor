@@ -1,0 +1,34 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+blendingFactor1
+{
+    // Mandatory entries
+    type            blendingFactor;
+    libs            (fieldFunctionObjects);
+    field           U;
+
+    // Optional entries
+    phi             phi;
+    tolerance       0.001;
+
+    // Optional (inherited) entries
+    result          blendingFactorField;
+    region          region0;
+    enabled         true;
+    log             true;
+    timeStart       0;
+    timeEnd         1000;
+    executeControl  timeStep;
+    executeInterval 2;
+    writeControl    timeStep;
+    writeInterval   50;
+}
+
+
+// ************************************************************************* //

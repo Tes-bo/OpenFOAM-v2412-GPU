@@ -1,0 +1,41 @@
+// ADIOS functionObject (OpenFOAM, -*-C++-*-)
+
+adiosData
+{
+    #includeEtc "caseDicts/insitu/adios/adiosWrite.cfg";
+
+    // Take over the normal output control
+
+    writeControl        ${/writeControl};
+    writeInterval       ${/writeInterval};
+
+//     // Restart at given time (sec)
+//     // restartFrom     (none|restartTime|latestTime);
+//     restartFrom     restartTime;
+//     restartTime     0.5;
+
+    // stopAt at given time (sec)
+    // stopAt          (none|now|stopTime);
+    // stopTime        0.125;
+
+    //     stopAt      stopTime;
+    //     stopTime    500;
+
+    // Additional fields (eg, from other function objects)
+    write
+    {
+        fields  ( Lambda2 Q vorticity pMean pPrime2Mean );
+    }
+
+    // restartFrom     none;
+}
+
+// Effectively disable normal output
+"/writeControl"     clockTime;
+"/writeInterval"    86400;
+
+// Alternative
+// "/writeControl"     none;
+
+
+// ************************************************************************* //

@@ -1,0 +1,2 @@
+-np 1 xterm -font fixed -title fluid -geometry 200x15+0+0 -e ./run_fluid.sh
+-np 1 xterm -font fixed -title solid -geometry 200x15+0+200 -e ./run_solid.sh

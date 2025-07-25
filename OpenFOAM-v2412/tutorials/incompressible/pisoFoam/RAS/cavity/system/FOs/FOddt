@@ -1,0 +1,30 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+ddt1
+{
+    // Mandatory entries
+    type            ddt;
+    libs            (fieldFunctionObjects);
+    field           U;
+
+    // Optional (inherited) entries
+    result          ddtU;
+    region          region0;
+    enabled         true;
+    log             true;
+    timeStart       0.1;
+    timeEnd         1000;
+    executeControl  timeStep;
+    executeInterval 5;
+    writeControl    writeTime;
+    writeInterval   -1;
+}
+
+
+// ************************************************************************* //

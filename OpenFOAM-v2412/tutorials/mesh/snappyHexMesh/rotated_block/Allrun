@@ -1,0 +1,24 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+#mkdir -p constant/triSurface
+#cp -f \
+#    "$FOAM_TUTORIALS"/resources/geometry/flange.stl.gz \
+#    constant/triSurface
+
+runApplication blockMesh
+
+runApplication surfaceFeatureExtract
+
+runApplication snappyHexMesh
+
+runApplication checkMesh -writeFields '(nonOrthoAngle)'
+
+# Run parallel a bit as well
+runApplication decomposePar
+runParallel -s parallel snappyHexMesh
+runParallel -s parallel checkMesh -writeFields '(nonOrthoAngle)'
+
+#------------------------------------------------------------------------------

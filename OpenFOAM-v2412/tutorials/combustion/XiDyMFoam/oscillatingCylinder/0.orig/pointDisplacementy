@@ -1,0 +1,62 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       pointScalarField;
+    object      pointDisplacementy;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 0 0 0 0 0 0];
+
+internalField   uniform 0;
+
+boundaryField
+{
+    walls
+    {
+        type    fixedValue;
+        value   $internalField;
+    }
+
+    cylinder
+    {
+        name    pointDisplacementy_cylinder;
+        type    codedFixedValue;
+        code
+        #{
+            const scalar t = this->db().time().value();
+            const scalar a = 0.001;
+            const scalar f = 200;
+            operator==(a*sin(constant::mathematical::twoPi*f*t));
+        #};
+        value   $internalField;
+    }
+
+    "inlet.*"
+    {
+        type    fixedValue;
+        value   $internalField;
+    }
+
+    outlet
+    {
+        type    fixedValue;
+        value   $internalField;
+    }
+
+    frontAndBack
+    {
+        type    empty;
+    }
+}
+
+
+// ************************************************************************* //

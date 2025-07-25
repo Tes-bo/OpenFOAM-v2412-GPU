@@ -1,0 +1,79 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      dynamicMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dynamicFvMesh dynamicMultiMotionSolverFvMesh;
+
+
+// Specification of rotation around centre
+rotation1
+{
+    solidBodyMotionFunction  rotatingMotion;
+    rotatingMotionCoeffs
+    {
+        origin      (0 0 0);
+        axis        (0 0 1);
+        omega       10; // rad/s, 1rad/s=9.5rpm
+    }
+}
+
+
+dynamicMultiMotionSolverFvMeshCoeffs
+{
+    rotor1
+    {
+        solver solidBody;
+        cellZone rotor;
+        solidBodyCoeffs
+        {
+            $rotation1;
+        }
+    }
+
+    dualWing1
+    {
+        cellZone dualWing;
+
+        // Solve displacement on top of solid-body rotation
+        solver solidBodyDisplacementLaplacian;
+
+        solidBodyDisplacementLaplacianCoeffs
+        {
+            solidBodyMotionFunction  multiMotion;
+            multiMotionCoeffs
+            {
+                rotation_1
+                {
+                    $rotation1;
+                }
+                rotation_2
+                {
+                    // Apply counter rotation to keep dualWing aligned
+                    solidBodyMotionFunction rotatingMotion;
+                    rotatingMotionCoeffs
+                    {
+                        origin      (-0.43 0 0);
+                        axis        (0 0 1);
+                        omega      -10; // rad/s, 1rad/s=9.5rpm
+                    }
+                }
+            }
+            diffusivity quadratic inverseDistance (wing2);
+        }
+    }
+}
+
+
+// ************************************************************************* //

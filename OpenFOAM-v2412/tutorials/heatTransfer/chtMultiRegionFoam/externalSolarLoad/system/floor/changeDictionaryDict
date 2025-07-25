@@ -1,0 +1,85 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      changeDictionaryDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dictionaryReplacement
+{
+    boundary
+    {
+        floor_to_domain3
+        {
+            type        patch;
+        }
+    }
+    T
+    {
+        internalField   uniform 300;
+
+        boundaryField
+        {
+            ".*"
+            {
+                type    zeroGradient;
+                value   uniform 300;
+            }
+
+            floor_to_solid
+            {
+                type            compressible::turbulentTemperatureRadCoupledMixed;
+                Tnbr            T;
+                kappaMethod     solidThermo;
+                qrNbr           none;
+                qr              none;
+                kappa           none;
+                thermalInertia  true;
+                value           uniform 300;
+            }
+
+            floor_to_air
+            {
+                type            compressible::turbulentTemperatureRadCoupledMixed;
+                Tnbr            T;
+                kappaMethod     solidThermo;
+                qrNbr           qr;
+                qr              none;
+                kappa           none;
+                thermalInertia  true;
+                value           uniform 300;
+            }
+
+            floor_to_domain3
+            {
+                type    zeroGradient;
+                value   uniform 300;
+            }
+
+            minZ
+            {
+                type            externalWallHeatFluxTemperature;
+                mode            coefficient;
+                Ta              uniform 313.0;
+                h               uniform 10e5;
+                kappaMethod     solidThermo;
+                kappa           none;
+                thicknessLayers (1 2);
+                kappaLayers     (100 200);
+                value           uniform 300.0;
+            }
+        }
+    }
+}
+
+
+// ************************************************************************* //

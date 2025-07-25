@@ -1,0 +1,105 @@
+// SPDX-FileCopyrightText: Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
+// SPDX-License-Identifier: BSD-3-Clause
+
+#include "vtkChartHistogram2D.h"
+
+#include "vtkAxis.h"
+#include "vtkBrush.h"
+#include "vtkColorLegend.h"
+#include "vtkContext2D.h"
+#include "vtkContextMouseEvent.h"
+#include "vtkContextScene.h"
+#include "vtkObjectFactory.h"
+#include "vtkPen.h"
+#include "vtkPlotHistogram2D.h"
+#include "vtkSmartPointer.h"
+#include "vtkTextProperty.h"
+#include "vtkTooltipItem.h"
+
+//------------------------------------------------------------------------------
+VTK_ABI_NAMESPACE_BEGIN
+vtkStandardNewMacro(vtkChartHistogram2D);
+
+//------------------------------------------------------------------------------
+vtkChartHistogram2D::vtkChartHistogram2D()
+{
+  // Now for the 2D histogram
+  this->Histogram = vtkSmartPointer<vtkPlotHistogram2D>::New();
+  this->AddPlot(this->Histogram);
+
+  this->RemoveItem(this->Legend);
+  this->Legend = vtkSmartPointer<vtkColorLegend>::New();
+  this->AddItem(this->Legend);
+
+  // Re-add tooltip, making it the last ContextItem to be painted
+  this->RemoveItem(this->Tooltip);
+  this->AddItem(this->Tooltip);
+}
+
+//------------------------------------------------------------------------------
+vtkChartHistogram2D::~vtkChartHistogram2D() = default;
+
+//------------------------------------------------------------------------------
+void vtkChartHistogram2D::Update()
+{
+  this->Histogram->Update();
+  this->Legend->Update();
+  this->vtkChartXY::Update();
+}
+
+//------------------------------------------------------------------------------
+void vtkChartHistogram2D::SetInputData(vtkImageData* data, vtkIdType z)
+{
+  this->Histogram->SetInputData(data, z);
+}
+
+//------------------------------------------------------------------------------
+void vtkChartHistogram2D::SetTransferFunction(vtkScalarsToColors* function)
+{
+  this->Histogram->SetTransferFunction(function);
+  vtkColorLegend* legend = vtkColorLegend::SafeDownCast(this->Legend);
+  if (legend)
+  {
+    legend->SetTransferFunction(function);
+  }
+}
+
+//------------------------------------------------------------------------------
+bool vtkChartHistogram2D::UpdateLayout(vtkContext2D* painter)
+{
+  this->vtkChartXY::UpdateLayout(painter);
+  vtkColorLegend* legend = vtkColorLegend::SafeDownCast(this->Legend);
+  if (legend)
+  {
+    legend->SetPosition(vtkRectf(this->Point2[0] + 5, this->Point1[1],
+      this->Legend->GetSymbolWidth(), this->Point2[1] - this->Point1[1]));
+  }
+  this->Legend->Update();
+  return true;
+}
+
+//------------------------------------------------------------------------------
+bool vtkChartHistogram2D::Hit(const vtkContextMouseEvent& mouse)
+{
+  vtkVector2f pos(mouse.GetScenePos());
+  return pos[0] > this->Point1[0] - 10 && pos[0] < this->Point2[0] + 10 &&
+    pos[1] > this->Point1[1] && pos[1] < this->Point2[1];
+}
+
+//------------------------------------------------------------------------------
+vtkPlot* vtkChartHistogram2D::GetPlot(vtkIdType index)
+{
+  if (index == 0)
+  {
+    return this->Histogram;
+  }
+
+  return this->Superclass::GetPlot(index);
+}
+
+//------------------------------------------------------------------------------
+void vtkChartHistogram2D::PrintSelf(ostream& os, vtkIndent indent)
+{
+  this->Superclass::PrintSelf(os, indent);
+}
+VTK_ABI_NAMESPACE_END

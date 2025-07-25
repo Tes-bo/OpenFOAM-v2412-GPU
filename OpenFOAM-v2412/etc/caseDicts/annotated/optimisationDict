@@ -1,0 +1,393 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      optimisationDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+optimisationManager     steadyOptimisation;  // singleRun;
+
+
+primalSolvers
+{
+    p1
+    {
+        active                 true;
+        type                   incompressible;
+        solver                 simple;
+
+        solutionControls
+        {
+            nIters 3000;
+            residualControl
+            {
+                "p.*"       1.e-7;
+                "U.*"       1.e-7;
+            }
+        }
+    }
+}
+
+
+adjointManagers
+{
+    am1
+    {
+        primalSolver             p1;
+        adjointSolvers
+        {
+            as1
+            {
+                // choose adjoint solver
+                //----------------------
+                active                 true;
+                type                   incompressible;
+                solver                 adjointSimple;
+                useSolverNameForFields true;
+
+                // manage objectives
+                //------------------
+                objectives
+                {
+                    type                incompressible;
+                    objectiveNames
+                    {
+                        losses
+                        {
+                            weight          1;
+                            type            PtLosses;
+                            patches         (Inlet Outlet);
+                        }
+                    }
+                }
+                // ATC treatment
+                //--------------
+                ATCModel
+                {
+                    ATCModel        standard;
+                }
+                // solution control
+                //------------------
+                solutionControls
+                {
+                    nIters 3000;
+                    residualControl
+                    {
+                        "pa.*"       1.e-7;
+                        "Ua.*"       1.e-7;
+                    }
+                }
+            }
+            vol
+            {
+                // choose adjoint solver
+                //----------------------
+                active                 true;
+                type                   incompressible;
+                solver                 adjointSimple;
+                useSolverNameForFields true;
+                isConstraint           true;
+                // manage objectives
+                //------------------
+                objectives
+                {
+                    type                incompressible;
+
+                    objectiveNames
+                    {
+                        vol
+                        {
+                            weight              1;
+                            type                partialVolume;
+                            patches             (lower upper);
+                        }
+                    }
+                }
+
+                // ATC treatment
+                //--------------
+                ATCModel
+                {
+                    ATCModel        standard;
+                }
+
+                // solution control
+                //------------------
+                solutionControls
+                {
+                    nIters 3000;
+                    residualControl
+                    {
+                        "pa.*"       1.e-7;
+                        "Ua.*"       1.e-7;
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+optimisation
+{
+    optimisationType
+    {
+        type             shapeOptimisation;
+        writeEachMesh    true;
+    }
+
+    sensitivities
+    {
+        type            volumetricBSplinesFI;
+        patches         (lower upper);
+    }
+
+    updateMethod
+    {
+        method  SQP;
+        SQP
+        {
+            etaHessian        0.8;
+            nSteepestDescent  1;
+            scaleFirstHessian true;
+        }
+    }
+
+    meshMovement
+    {
+        type                   volumetricBSplines;
+        maxAllowedDisplacement 2.e-3;
+    }
+
+/*
+    updateMethod
+    {
+        method    BFGS;
+        BFGS
+        {
+            etaHessian        0.8;
+            nSteepestDescent  1;
+            scaleFirstHessian true;
+            activeDesignVariables
+            (
+                141 142 144 145 147 148
+            );
+        }
+    }
+*/
+
+/*
+    sensitivities
+    {
+        type            multiple; // used to compute many kinds of sensitivities at the same time
+        patches         (lower upper);
+        sensTypes
+        {
+            FIVolSplines
+            {
+                type                volumetricBSplinesFI;
+                patches             (lower upper);
+                includeDistance     true;
+                adjointEikonalSolver
+                {
+                    iters  1000;
+                    tolerance 1.e-6;
+                }
+            }
+            ESIVolSplines
+            {
+                type                         volumetricBSplines;
+                patches                      (lower upper);
+                includeObjectiveContribution true; // one of this or the equivalent flag in
+                                                   // surfaceSensitivities has to be set to true
+                                                   // with this being the prefered one
+                surfaceSensitivities
+                {
+                    patches                      (lower upper);
+                    includeSurfaceArea           true;
+                    includeMeshMovement          true;
+                    includeDistance              true;
+                    includeObjectiveContribution false;
+
+                    // adjointEikonal and adjointMeshMovement solvers should be always nested
+                    // within the dictionary of the sensitivity type they correspond to.
+                    // For (E)SI based sensitivities, this means the surfaceSensitivities dict
+                    // Default values are provided, so the dictionaries can be skipped
+                    adjointEikonalSolver
+                    {
+                        iters  1000;
+                        tolerance 1.e-6;
+                    }
+                    adjointMeshMovementSolver
+                    {
+                        iters  10000;
+                        tolerance 1.e-6;
+                    }
+                }
+            }
+            SIVolSplines
+            {
+                type                         volumetricBSplines;
+                patches                      (lower upper);
+                includeObjectiveContribution true; // same comment as above
+                surfaceSensitivities
+                {
+                    patches                      (lower upper);
+                    includeSurfaceArea           true;
+                    includeMeshMovement          false;
+                    includeDistance              true;
+                    includeObjectiveContribution false;
+                    adjointEikonalSolver
+                    {
+                        iters  1000;
+                        tolerance 1.e-6;
+                    }
+                }
+            }
+            FIBezier
+            {
+                type            BezierFI;
+                includeDistance true;
+                patches         (lower upper);
+                dxdbSolver
+                {
+                    iters           1000;
+                    tolerance       1.e-6;
+                }
+                adjointEikonalSolver
+                {
+                    iters  1000;
+                    tolerance 1.e-6;
+                }
+            }
+            ESIBezier
+            {
+                type            Bezier;
+                includeObjectiveContribution true; // same comment as above
+                surfaceSensitivities
+                {
+                    patches             (lower upper);
+                    includeSurfaceArea  true;
+                    includeMeshMovement true;
+                    includeDistance     true;
+                    includeObjectiveContribution false;
+                    adjointEikonalSolver
+                    {
+                        iters  1000;
+                        tolerance 1.e-6;
+                    }
+                    adjointMeshMovementSolver
+                    {
+                        iters  10000;
+                        tolerance 1.e-6;
+                    }
+                }
+                patches         (lower upper);
+            }
+            SIBezier
+            {
+                type                Bezier;
+                includeObjectiveContribution true; // same comment as above
+                surfaceSensitivities
+                {
+                    patches             (lower upper);
+                    includeSurfaceArea  true;
+                    includeMeshMovement false;
+                    includeDistance     true;
+                    includeObjectiveContribution false;
+                    adjointEikonalSolver
+                    {
+                        iters  1000;
+                        tolerance 1.e-6;
+                    }
+                }
+                patches             (lower upper);
+            }
+        }
+    }
+*/
+
+/*
+    sensitivities
+    {
+        type            multiple; // used to compute many kinds of sensitivities at the same time
+        patches         (lower upper);
+        sensTypes
+        {
+            FIVolSplines
+            {
+                type                volumetricBSplinesFI;
+                patches             (lower upper);
+            }
+            ESIVolSplines
+            {
+                type                volumetricBSplines;
+                patches             (lower upper);
+            }
+            SIVolSplines
+            {
+                type                volumetricBSplines;
+                patches             (lower upper);
+                surfaceSensitivities
+                {
+                    includeMeshMovement false;
+                }
+            }
+            FIBezier
+            {
+                type                BezierFI;
+                patches             (lower upper);
+            }
+            ESIBezier
+            {
+                type                Bezier;
+                patches             (lower upper);
+            }
+            SIBezier
+            {
+                type                Bezier;
+                patches             (lower upper);
+                surfaceSensitivities
+                {
+                    includeMeshMovement false;
+                }
+            }
+        }
+    }
+*/
+}
+
+
+/*
+Bezier
+{
+    nBezier 24;
+    confineXmovement
+    (
+        true false false false false false false false false false false true
+        true false false false false false false false false false false true
+    );
+    confineYmovement
+    (
+        true false false false false false false false false false false true
+        true false false false false false false false false false false true
+    );
+    confineZmovement
+    (
+        true true true true true true true true true true true true
+        true true true true true true true true true true true true
+    );
+}
+*/
+
+
+// ************************************************************************* //

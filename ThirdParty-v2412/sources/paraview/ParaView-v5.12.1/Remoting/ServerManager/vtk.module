@@ -1,0 +1,38 @@
+NAME
+  ParaView::RemotingServerManager
+LIBRARY_NAME
+  vtkRemotingServerManager
+SPDX_LICENSE_IDENTIFIER
+  BSD-3-Clause
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Kitware Inc.
+GROUPS
+  PARAVIEW_CORE
+KIT
+  ParaView::ServerManagerKit
+IMPLEMENTABLE
+DEPENDS
+  ParaView::protobuf
+  ParaView::RemotingClientServerStream
+  ParaView::RemotingCore
+  VTK::jsoncpp
+PRIVATE_DEPENDS
+  VTK::CommonSystem
+  VTK::IOImage
+  VTK::vtksys
+  VTK::pugixml
+  VTK::cli11
+  VTK::doubleconversion
+  VTK::fmt
+OPTIONAL_DEPENDS
+  VTK::IOIOSS
+  VTK::Python
+  VTK::PythonInterpreter
+  VTK::RenderingRayTracing
+  VTK::WrappingPythonCore
+TEST_DEPENDS
+  ParaView::RemotingApplication
+  VTK::FiltersSources
+  VTK::TestingCore
+TEST_LABELS
+  ParaView

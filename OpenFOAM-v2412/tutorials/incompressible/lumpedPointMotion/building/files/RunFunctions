@@ -1,0 +1,147 @@
+#---------------------------------*- sh -*-------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2020 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     RunFunctions
+#
+# Description
+#     Additional functions for copy/linking FSI cases
+#
+#------------------------------------------------------------------------------
+
+#
+# copyParallelPointDisplacement caseDir timeName
+#
+# Copy pointDisplacement from caseDir/0/ to caseDir/timeName/
+#
+copyParallelPointDisplacement()
+{
+    local src="$1"
+    local dstTime="$2"
+    local file=pointDisplacement
+
+    [ -d "$src" ] || {
+        echo "Error: no directory: $src"
+        return 1
+    }
+
+    # Copy select directories
+    echo "    copy processor '$file' from 0/ -> $dstTime"
+    if [ -n "$dstTime" ]
+    then
+    (
+        cd "$src" || exit
+
+        for proc in processor*
+        do
+            if [ -d "$proc/0" ] && [ -d "$proc/$dstTime" ]
+            then
+                cp "$proc/0/$file" "$proc/$dstTime/$file"
+                if [ -d "$proc/0/include" ]
+                then
+                    cp -r "$proc/0/include" "$proc/$dstTime"
+                fi
+            fi
+        done
+    )
+    else
+        echo "    no destination time"
+    fi
+
+    # Restart from latestTime
+    foamDictionary "$src"/system/controlDict \
+        -entry startFrom -set latestTime
+
+    deltaT=$(foamDictionary "$src"/system/controlDict -entry deltaT -value)
+    latestTime=$(foamListTimes -case "$src" -noZero -latestTime -processor)
+
+    # Restart using steady results as first deltaT interval
+    echo "deltaT=$deltaT latestTime=$latestTime"
+    if [ -n "$latestTime" ] && [ "$deltaT" != "$latestTime" ]
+    then
+    (
+        cd "$src" || exit
+
+        for proc in processor*
+        do
+            if [ -d "$proc/$latestTime" ] && [ ! -d "$proc/$deltaT" ]
+            then
+                mv "$proc/$latestTime" "$proc/$deltaT"
+                rm -rf "$proc/$deltaT/uniform"
+            fi
+        done
+    )
+    fi
+
+    return 0
+}
+
+#
+# linkParallelCase srcDir dstDir
+#
+linkParallelCase()
+{
+    local src="$1"
+    local dst="$2"
+    shift 2
+
+    if [ -e "$dst" ]
+    then
+        echo "Case already linked: remove case directory $dst prior to linking"
+        return 1
+    elif [ ! -d "$src" ]
+    then
+        echo "Error: no directory to link: $src"
+        return 1
+    fi
+
+    echo "Linking $dst parallel case from $src"
+    mkdir -p "$dst"
+
+    # Copy system - may wish to change things
+    for i in system 0
+    do
+        echo "    copy $i/"
+        ( cd "$dst" && cp -r "../$src/$i" . )
+    done
+
+    echo "    link constant/"
+    ( cd "$dst" && ln -sf "../$src/constant" . )
+
+    echo "    link processor*/ with $# times: $@"
+    for proc in $(cd "$src" && \ls -d processor*)
+    do
+        ( cd "$dst" && ln -sf "../$src/$proc" . )
+    done
+
+    return 0
+}
+
+#
+# linkFiles srcDir dstDir
+#
+linkFiles()
+{
+    local src="$1"
+    local dst="$2"
+    shift
+
+    echo "Linking $dst control files from $src"
+    mkdir -p "$dst"
+
+    ( cd "$dst" && ln -sf ../"$src"/* . )
+
+    return 0
+}
+
+
+#------------------------------------------------------------------------------

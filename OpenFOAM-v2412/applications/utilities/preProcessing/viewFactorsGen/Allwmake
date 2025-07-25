@@ -1,0 +1,19 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/wmake/scripts/AllwmakeParseArguments # (error catching)
+. ${WM_PROJECT_DIR:?}/wmake/scripts/have_cgal
+
+#------------------------------------------------------------------------------
+unset COMP_FLAGS LINK_FLAGS
+
+if have_cgal
+then
+    echo "    found CGAL -- enabling CGAL support."
+else
+    echo "    did not find CGAL -- disabling CGAL functionality"
+    export COMP_FLAGS="-DNO_CGAL"
+fi
+
+wmake $targetType
+
+#------------------------------------------------------------------------------

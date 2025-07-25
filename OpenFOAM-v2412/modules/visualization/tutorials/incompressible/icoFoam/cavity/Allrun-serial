@@ -1,0 +1,13 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+# Force FPE handling on - worst case.
+export FOAM_SIGFPE=true
+export FOAM_SETNAN=true
+
+runApplication blockMesh
+runApplication icoFoam
+
+#------------------------------------------------------------------------------

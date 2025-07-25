@@ -1,0 +1,39 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      dictionary;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// Test evaluation with small values
+
+dp #eval{ sqrt(3./2.) *1e-3};
+a  #eval{ 2/sqrt(2.)*$dp };
+A_square #eval{ $a*$a };
+A_inlet #eval{ $A_square-2*degToRad(180)*$dp*$dp*0.25 };
+Q $A_inlet;
+Qerror #eval{$A_inlet};
+e #eval{0.2526944494428081};
+Uin #eval{ $Q/($A_square*$e) };
+
+// Bypass
+
+alt_dp #eval{ sqrt(3./2.) *1e-3};
+alt_a  #eval{ 2/sqrt(2.)*$[alt_dp] };
+alt_A_square #eval{ $[alt_a]*$[alt_a] };
+alt_A_inlet #eval{ $[alt_A_square]-2*degToRad(180)*$[alt_dp]*$[alt_dp]*0.25 };
+alt_Q $alt_A_inlet;
+alt_Qerror #eval{ $[alt_A_inlet] };
+alt_e #eval{0.2526944494428081};
+alt_Uin #eval{ $[alt_Q]/($[alt_A_square]*$[alt_e]) };
+
+// ************************************************************************* //

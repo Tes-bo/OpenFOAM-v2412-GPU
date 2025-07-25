@@ -1,0 +1,21 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+application=Test-fieldMapping
+
+# Compile
+wmake ..
+
+runApplication blockMesh
+
+# Run with inflation
+runApplication $application true
+mv "log.$application" "log.$application-inflate"
+
+# Run without inflation
+runApplication $application false
+
+
+#------------------------------------------------------------------------------

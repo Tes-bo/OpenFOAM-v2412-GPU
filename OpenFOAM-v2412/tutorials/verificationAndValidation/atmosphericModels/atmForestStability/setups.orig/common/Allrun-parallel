@@ -1,0 +1,19 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+./Allrun.pre
+
+runApplication decomposePar
+
+runParallel setFields
+
+runParallel $(getApplication)
+
+runParallel redistributePar -reconstruct -latestTime
+
+runApplication postProcess -funcs \
+    "(minMaxComponents(U) minMaxMagnitude(U))" -latestTime
+
+#------------------------------------------------------------------------------

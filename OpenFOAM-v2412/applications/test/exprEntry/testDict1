@@ -1,0 +1,69 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      testDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+scalar1  10;
+
+scalar2  20;
+
+vector1  (1 2 3);
+
+vector2  (2 3 4);
+
+aVector  1;
+bVector  2;
+
+string1  "This is a scalar $scalar1, or $[   scalar1   ]";
+
+string2  "This is a vector $vector1, or $[vector1]";
+
+string3  "This is a vector $vector1, or $[(vector)vector1]";
+
+string3b "This is a vector ${vector1}, or $[(vector)vector1]";
+
+string4 "This is a vector ${{ 5 * 12 }} or $[(vector)vector1]";
+
+string5 "This is a vector ${{ 5 * 12 }} or $[(vector)vector1]";
+
+string8 "This is a vector ${{ 5 * 12 * $[(vector)vector1] }}";
+
+// These actually work
+string10 #{
+    Cond is ${{ ${{ sin(degToRad(4*$scalar1)) }} * $[(vector) vector${aVector}] }}
+#};
+
+// These actually work
+string10b #{
+    Cond is ${{ ${{ sin(degToRad(4*$scalar1)) }} * $[(vector) vector$bVector] }}
+#};
+
+
+// Fairly simple idea
+angle        35;
+valueExpr1   "vector(${{cos(degToRad($angle))}}, 2, 3)";
+
+
+// Slightly stranger ideas:
+
+axis1   (1 0 0);
+axis2   (0 1 0);
+axis3   (0 0 1);
+
+index   100;
+
+valueExpr2   "$[(vector) axis${{ ($index % 3) +1 }}] / ${{max(1, $index)}}";
+
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

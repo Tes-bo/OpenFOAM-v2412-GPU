@@ -1,0 +1,3 @@
+computeSensitivities.C
+
+EXE = $(FOAM_APPBIN)/computeSensitivities

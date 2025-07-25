@@ -1,0 +1,30 @@
+EXE_NDEBUG = -DNDEBUG
+/* EXE_NDEBUG = -g -O0 -DFULLDEBUG */
+
+
+/*-- Define NO_CGAL in COMP_FLAGS to avoid using CGAL altogether */
+/*-- Define CGAL_INEXACT to use inexact CGAL constructions */
+
+ifneq (,$(findstring NO_CGAL,$(COMP_FLAGS)))
+  include $(GENERAL_RULES)/no-cgal
+  c++LESSWARN :=
+else
+  include $(GENERAL_RULES)/cgal
+endif
+
+EXE_INC = \
+    ${ROUNDING_MATH} \
+    ${EXE_NDEBUG} \
+    ${CGAL_INC} \
+    ${c++LESSWARN} \
+    $(COMP_FLAGS) \
+    -I$(LIB_SRC)/fileFormats/lnInclude \
+    -I$(LIB_SRC)/surfMesh/lnInclude \
+    -I$(LIB_SRC)/meshTools/lnInclude
+
+EXE_LIBS = \
+    -lfileFormats \
+    -lsurfMesh \
+    -lmeshTools \
+    ${CGAL_LIBS} \
+    $(LINK_FLAGS)

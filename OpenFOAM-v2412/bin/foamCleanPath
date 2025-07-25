@@ -1,0 +1,322 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2011-2016 OpenFOAM Foundation
+#     Copyright (C) 2017-2022 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     foamCleanPath
+#
+# Description
+#     Usage: foamCleanPath [OPTION] path [filter] .. [filter]
+#            foamCleanPath [OPTION] -env=name [filter] .. [filter]
+#
+#     Prints its argument (which should be a ':' separated path)
+#     without the following:
+#         - duplicate elements
+#         - elements matching the specified filter(s)
+#         - inaccessible directories (with the -strip option)
+#
+# Note
+#     - false matches possible when the filter contains '.' (sed regex) etc.
+#     - a single composite filter can be passed in. This composite filter
+#       is assumed to be delimited by whitespace, colons or semi-colons.
+#     - will not filter out standard system paths (/usr/bin etc)
+#
+# Examples for cleaning the path:
+#
+#     - Using explicit arguments
+#       cleaned=$(foamCleanPath "$PATH" dir1:dir2) && PATH=$cleaned
+#
+#     - Variable to clean passed as an option
+#       cleaned=$(foamCleanPath -env=PATH dir1:dir2) && PATH=$cleaned
+#
+#     - Using shell evaluation for the output
+#       eval "$(foamCleanPath -sh=PATH "$PATH" dir1:dir2)"
+#       eval "$(foamCleanPath -sh=PATH -env=PATH dir1:dir2)"
+#       eval "$(foamCleanPath -sh-env=PATH dir1:dir2)"
+#       eval "$(foamCleanPath -sh-path dir1:dir2)"
+#
+#     - Similarly for c-shell
+#       eval `foamCleanPath -csh-path dir1:dir2`
+#
+# For library paths, it is suggested to use -sh-lib, -env=-lib etc.
+#
+# On Darwin it uses FOAM_LD_LIBRARY_PATH instead of LD_LIBRARY_PATH.
+# This should actually be DYLD_LIBRARY_PATH on Darwin, but setting that
+# or LD_LIBRARY_PATH via a shell-script is disallowed when SIP is active.
+#
+#------------------------------------------------------------------------------
+printHelp() {
+    cat<<USAGE
+
+Usage: foamCleanPath [OPTION] ENVNAME [filter] .. [filter]
+       foamCleanPath [OPTION] -env=name [filter] .. [filter]
+options:
+  -env=NAME         Evaluate NAME to obtain initial content,
+                    Accepts "-env=-path", "-env=-lib" shortcuts for PATH
+                    and LD_LIBRARY_PATH (FOAM_LD_LIBRARY_PATH on Darwin)
+  -sh=NAME          Produce 'NAME=...' output for sh eval
+  -csh=NAME         Produce 'setenv NAME ...' output for csh eval
+  -sh-env=NAME      Same as -sh=NAME -env=NAME
+  -csh-env=NAME     Same as -csh=NAME -env=NAME
+  -sh-path | -csh-path  Same as -[c]sh-env=PATH
+  -sh-lib  | -csh-lib   Same as -[c]sh-env=LD_LIBRARY_PATH
+                        (FOAM_LD_LIBRARY_PATH on Darwin)
+  -debug            Print debug information to stderr
+  -strip            Remove inaccessible directories
+  -verbose          Report some progress (input, output, ...)
+  -help             Print the usage
+
+Prints its argument (which should be a ':' separated list) cleansed from
+  * duplicate elements
+  * elements whose start matches one of the filters
+  * inaccessible directories (the -strip option)
+
+Exit status
+    0  on success
+    1  general error
+    2  initial value of ENVNAME is empty
+
+USAGE
+    exit 0  # A clean exit
+}
+
+# Report error and exit
+die()
+{
+    exec 1>&2
+    echo
+    echo "Error encountered:"
+    while [ "$#" -ge 1 ]; do echo "    $1"; shift; done
+    echo
+    echo "See '${0##*/} -help' for usage"
+    echo
+    exit 1
+}
+
+#-------------------------------------------------------------------------------
+
+# Input and outputs
+unset dirList shellFlavour shellOutput
+unset optDebug optEnvName optStrip optVerbose
+
+# Parse options
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    (-h | -help*)
+        printHelp
+        ;;
+
+    (-csh-lib | -csh-path | -sh-lib | -sh-path)
+        shellFlavour="$1"
+        case "$1" in
+        (*-lib)
+            name='LD_LIBRARY_PATH'
+            if [ "$(uname -s 2>/dev/null)" = Darwin ]
+            then
+                name='FOAM_LD_LIBRARY_PATH' # Shadow DYLD_LIBRARY_PATH
+            fi
+            ;;
+        (*-path)
+            name='PATH'
+            ;;
+        esac
+        optEnvName="$name"      # Use for input evaluation
+        shellOutput="$name"     # Use for output
+        ;;
+
+    (-env=*)
+        name="${1#*=}"
+        [ -n "$name" ] || die "Option '$1' missing an ENVNAME"
+        # Handle (-lib | -path) aliases
+        case "$1" in
+        (*=-lib)
+            name='LD_LIBRARY_PATH'
+            if [ "$(uname -s 2>/dev/null)" = Darwin ]
+            then
+                name='FOAM_LD_LIBRARY_PATH' # Shadow DYLD_LIBRARY_PATH
+            fi
+            ;;
+        (*=-path)
+            name='PATH'
+            ;;
+        esac
+        optEnvName="$name"      # Use for input evaluation
+        ;;
+
+    (-csh=* | -csh-env=* | -sh=* | -sh-env=*)
+        shellFlavour="$1"
+        name="${1#*=}"
+        [ -n "$name" ] || die "Option '$1' missing an ENVNAME"
+        # Handle (-lib | -path) aliases
+        case "$1" in
+        (*=-lib)
+            name='LD_LIBRARY_PATH'
+            if [ "$(uname -s 2>/dev/null)" = Darwin ]
+            then
+                name='FOAM_LD_LIBRARY_PATH' # Shadow DYLD_LIBRARY_PATH
+            fi
+            ;;
+        (*=-path)
+            name='PATH'
+            ;;
+        esac
+        shellOutput="$name"     # Use for output
+        # Use for input evaluation
+        case "$1" in (*-env=*) optEnvName="$name";; esac
+        ;;
+
+    (-debug)
+        optDebug=true
+        ;;
+    (-strip)
+        optStrip=true
+        ;;
+    (-verbose)
+        optVerbose=true
+        ;;
+    (*)
+        break
+        ;;
+    esac
+    shift
+done
+
+# Set the output prefix
+#    c-shell:  setenv ENVNAME ...
+#    POSIX  :  ENVNAME=...
+if [ -n "$shellOutput" ]
+then
+    case "$shellFlavour" in
+    (-csh*) shellOutput="setenv ${shellOutput} " ;;
+    (*)     shellOutput="${shellOutput}=" ;;
+    esac
+fi
+
+
+# Basic checks
+if [ -n "$optEnvName" ]
+then
+    eval "dirList=\$$optEnvName"
+elif [ "$#" -ge 1 ]
+then
+    dirList="$1"
+    shift
+else
+    die "Requires at least one argument, or use the -env option"
+fi
+
+[ -n "$dirList" ] || exit 2     # Quick exit on empty 'dirList'
+
+#-------------------------------------------------------------------------------
+
+# Debugging (optional)
+if [ -n "$optDebug" ]
+then
+    printDebug() { while [ "$#" -ge 1 ]; do echo "$1" 1>&2; shift; done; }
+else
+    printDebug() { true; }      # No-op
+fi
+
+# Optional test for directory existence
+if [ -n "$optStrip" ]
+then
+    isDir() { test -d "$1"; }   # Check for directory existence
+else
+    isDir() { test -n "$1"; }   # Only check for non-zero string
+fi
+
+# The "filter ... filterN" may have been passed as a single parameter
+# or may contain ':' separators.
+# Currently (OCT-2018) also accept split on whitespace too.
+
+oldIFS="$IFS"       # Preserve initial IFS
+IFS=':; '           # Split on colon, semicolon, whitespace
+set -- $*
+
+if [ -n "$optVerbose" ]
+then
+    echo "clean: $dirList" 1>&2
+    echo "with:  $@" 1>&2
+fi
+
+printDebug "input>$dirList<"
+
+# Apply filters via sed. Path and filter cannot contain '?'.
+for filter
+do
+    case "$filter" in
+    ( / | /bin | /sbin | /lib | /lib64 | /opt \
+        | /usr | /usr/bin | /usr/sbin | /usr/lib | /usr/lib64 \
+        | /usr/local | /usr/local/bin | /usr/local/lib | /usr/local/lib64 )
+        # Do not filter out system directories
+        printDebug "skip>$filter<"
+        ;;
+
+    (*)
+        if [ -n "$filter" ]
+        then
+            printDebug "remove>$filter<"
+            dirList=$(echo "$dirList:" | sed -e "s?${filter}[^:]*:??g")
+        fi
+        ;;
+    esac
+done
+printDebug "intermediate>$dirList<"
+
+IFS=':'             # Split on colon. No split on whitespace.
+set -- $dirList
+
+# Rebuild the list
+unset dirList
+for dir
+do
+    printDebug "check>$dir< in $dirList"
+    if isDir "$dir"
+    then
+        # Detect duplicates (ie, dir already in the list)
+        duplicate=$(echo ":$dirList:" | sed -ne '\?:'"$dir"':?p')
+
+        if [ -n "$duplicate" ]
+        then
+            printDebug "duplicate>$dir<"
+        else
+            dirList="${dirList}${dirList:+:}$dir"
+        fi
+    fi
+done
+
+IFS="$oldIFS"       # Restore initial IFS
+
+# Output:
+#
+# For eval mode, add quotes around the argument.
+# - eg,  <. PATH="path1;path2;...">
+#
+# With regular output, any quoting would be done on the caller side.
+# - eg,  <cleaned="($foamClean -env=PATH foo)
+
+printDebug "output>$dirList<"
+if [ -n "$optVerbose" ]
+then
+    echo "output: \"$dirList\"" 1>&2
+fi
+
+if [ -n "$shellOutput" ]
+then
+    echo "$shellOutput\"$dirList\""
+else
+    echo "$dirList"
+fi
+
+#------------------------------------------------------------------------------

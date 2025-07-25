@@ -1,0 +1,2 @@
+cDBUG       =
+cOPT        = -march=knl -O3

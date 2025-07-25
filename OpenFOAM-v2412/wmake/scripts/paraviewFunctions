@@ -1,0 +1,311 @@
+#----------------------------------*-sh-*--------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2018-2020 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     paraviewFunctions
+#
+# Description
+#     Helper functions for CMake with ParaView.
+#     Setup of variables for creating ParaView plugins
+#
+# Requires
+#     ParaView_DIR   (unless system)
+#     PV_PLUGIN_PATH (or rely on automatic mechanism)
+#
+# Provides Functions
+#     get_pvplugin_api, have_pvplugin_support, no_paraview, echo_paraview
+#     cmakeVtk, cmakePv, cmakePvInstall
+#
+# Variables on success
+#     HAVE_PVPLUGIN_SUPPORT
+#     FOAM_PV_PLUGIN_LIBBIN
+#     PARAVIEW_API - the paraview major/minor numbers (eg 5.6)
+#     PARAVIEW_INC_DIR
+#
+# Note
+#     The OpenFOAM plugin must be the first in PV_PLUGIN_PATH and have
+#     paraview-major.minor encoded in its name.
+#
+#------------------------------------------------------------------------------
+. ${WM_PROJECT_DIR:?}/wmake/scripts/sysFunctions    # General system functions
+. ${WM_PROJECT_DIR:?}/wmake/scripts/cmakeFunctions  # Require cmake functions
+
+#------------------------------------------------------------------------------
+
+# Reset variables
+no_paraview()
+{
+    unset HAVE_PVPLUGIN_SUPPORT FOAM_PV_PLUGIN_LIBBIN
+    unset PARAVIEW_API PARAVIEW_INC_DIR
+}
+
+
+# Report
+echo_paraview()
+{
+    echo "paraview=${HAVE_PVPLUGIN_SUPPORT:-false}"
+    echo "root=\"$ParaView_DIR\""
+    echo "include=\"$PARAVIEW_INC_DIR\""
+    echo "plugin=\"$FOAM_PV_PLUGIN_LIBBIN\""
+    echo "api=$PARAVIEW_API"
+}
+
+
+# CMake into objectsDir with VTK_DIR dependency
+# 1 - sourceDir
+# 2.. optional cmake defines
+cmakeVtk()
+{
+    cmakeVersioned "VTK_DIR=$VTK_DIR" "$@"
+}
+
+
+# CMake into objectsDir with ParaView_DIR dependency
+# 1 - sourceDir
+# 2.. optional cmake defines
+cmakePv()
+{
+    cmakeVersioned "ParaView_DIR=$ParaView_DIR" "$@"
+}
+
+# CMake into objectsDir with ParaView_DIR dependency
+# 1 - sourceDir
+# 2.. optional cmake defines
+cmakePvInstall()
+{
+    cmakeVersionedInstall "ParaView_DIR=$ParaView_DIR" "$@"
+}
+
+
+# Build library - use sentinel file(s) to handle paraview version changes
+# Some difficulty handling different installation options as well
+# as wmake options, so only handle build/configure information for now
+#
+# 1 - libName
+# 2... build/configure information
+#
+# Similar to wmakeVersioned
+wmakeLibPv()
+{
+    local depend="ParaView_DIR=$ParaView_DIR"
+    local libName="$1"
+    shift 1
+    local sentinel
+
+    sentinel=$(sameDependency "$libName" "$depend" $@) || \
+        wclean "$libName"
+
+    wmake $targetType "$libName" \
+    && storeDependency "$sentinel" "$depend" $@
+}
+
+# Get ParaView API from given path.
+# Eg, "/path/paraview-dir/paraview-5.6" -> "5.6"
+#
+# Or the output from `paraview --version`
+# Eg, "paraview version 5.6.3" -> "5.6"
+#
+# 1 - the input path ending with paraview-x.y, or paraview --version information
+#
+# On success, return 0 and echo value
+#
+get_pvapi()
+{
+    local pv_api
+
+    # Extract paraview major+minor version from the directory name
+    # From /path/paraview-5.6 -> 5.6
+    pv_api=$(echo "${1:-none}" | \
+        sed -ne 's@^.*/@@;s@^[^0-9]*\([0-9][0-9]*\.[0-9][0-9]*\).*$@\1@p')
+
+    if [ -z "$pv_api" ]
+    then
+        # Extract paraview major+minor version from "paraview --version" information
+        pv_api=$(echo "${1:-none}" | \
+            sed -ne 's@^.*version *\([0-9][0-9]*\.[0-9][0-9]*\).*$@\1@p')
+    fi
+
+    [ -n "$pv_api" ] || return 1
+
+    # OK
+    echo "$pv_api"
+}
+
+
+# Extract ParaView plugin api number from PV_PLUGIN_PATH
+# On success, return 0 and export variables
+# -> FOAM_PV_PLUGIN_LIBBIN, PARAVIEW_API
+#
+get_pvplugin_api()
+{
+    # OK
+    unset FOAM_PV_PLUGIN_LIBBIN  PARAVIEW_API
+    local pv_api targetDir
+
+    # The OpenFOAM plugin must be the first in PV_PLUGIN_PATH
+    # and must have the paraview major+minor version encoded in its name!
+    # Eg, PV_PLUGIN_PATH="$FOAM_LIBBIN/paraview-5.5"
+
+    # Get the first entry from PV_PLUGIN_PATH=dir1;dir2;...
+    targetDir="${PV_PLUGIN_PATH##;}"
+    targetDir="${targetDir%%;*}"
+
+    # Extract paraview major+minor version from directory name
+    # From /path/paraview-5.6 -> 5.6
+    pv_api=$(get_pvapi "$targetDir")
+
+    [ -n "$pv_api" ] || return 1
+
+    # OK
+    export FOAM_PV_PLUGIN_LIBBIN="$targetDir"
+    export PARAVIEW_API="$pv_api"
+
+    return 0 # success
+}
+
+
+# Test if a ParaView plugin can be built.
+# On success, return 0 and export variables
+# -> HAVE_PVPLUGIN_SUPPORT, FOAM_PV_PLUGIN_LIBBIN,
+#    PARAVIEW_API, PARAVIEW_INC_DIR
+#
+# There are several prerequisites for building plugins
+#
+have_pvplugin_support()
+{
+    local warn="==> skip paraview-plugin"
+    local settings pv_api pv_executable installDir binDir includeDir targetDir
+
+    # Trivial check
+    command -v cmake >/dev/null || {
+        echo "$warn (no cmake)"
+        return 1
+    }
+
+    if get_pvplugin_api
+    then
+        targetDir="$FOAM_PV_PLUGIN_LIBBIN"
+        pv_api="$PARAVIEW_API"
+    fi
+    unset FOAM_PV_PLUGIN_LIBBIN PARAVIEW_API
+
+    # Probably not needed...
+    # if [ -z "$targetDir" ] || [ -z "$pv_api" ]
+    # then
+    #     echo "$warn (could not determine target or major.minor version)"
+    #     echo "    PV_PLUGIN_PATH=${PV_PLUGIN_PATH:-???}"
+    #     return 1
+    # fi
+
+    # Include/library names
+    local header="pqServerManagerModel.h"
+
+    if [ -n "$ParaView_DIR" ]
+    then
+        # ParaView_DIR defined. Look for include/
+
+        # Unless already known, get API value from include directory name
+        if [ -z "$pv_api" ]
+        then
+            for settings in $(find "$ParaView_DIR"/include -maxdepth 1 -name 'paraview-*' -type d)
+            do
+                pv_api=$(get_pvapi "$settings") && break
+            done
+
+            if [ -z "$pv_api" ]
+            then
+                echo "$warn (could not determine paraview major.minor version)"
+                return 1
+            fi
+        fi
+
+        header=$(findFirstFile \
+            "$ParaView_DIR/include/paraview-$pv_api/$header" \
+            "$ParaView_DIR/include/paraview/$header"
+        )
+
+    else
+        # No ParaView_DIR defined
+        # - use location of 'paraview' to guess an equivalent ParaView_DIR
+        # - assume paraview-config works, but might be removed too!
+
+        pv_executable="$(command -v paraview 2>/dev/null)" || {
+            echo "$warn (no paraview found?)"
+            return 2
+        }
+        binDir="${pv_executable%/*}"  # Eg, /usr/bin/paraview -> /usr/bin
+        installDir="${binDir%/*}"     # Eg, /usr/bin -> /usr
+
+        case "$installDir" in
+        (/*)    # An absolute path
+            includeDir="$installDir/include"  # Eg, /usr -> /usr/include
+        ;;
+        esac
+
+        # Unless already known, get API value from `paraview --version` information
+        if [ -z "$pv_api" ]
+        then
+            pv_api=$(get_pvapi "$("$pv_executable" --version)")
+            if [ -z "$pv_api" ]
+            then
+                echo "$warn (could not determine paraview major.minor version)"
+                return 1
+            fi
+        fi
+
+        header=$(findFirstFile \
+            "$(paraview-config --include 2>/dev/null |sed -ne 's/^ *-I//p')/$header"\
+            "${includeDir:+$includeDir/paraview-$pv_api/$header}" \
+            "${includeDir:+$includeDir/paraview/$header}" \
+            /usr/local/include/"paraview-$pv_api/$header" \
+            /usr/local/include/paraview/"$header" \
+            /usr/include/"paraview-$pv_api/$header" \
+            /usr/include/paraview/"$header" \
+            )
+    fi
+
+    # ----------------------------------
+
+    # Header
+    [ -n "$header" ] || {
+        [ -n "$warn" ] && echo "$warn (no header)"
+        return 2
+    }
+
+    # ----------------------------------
+
+    # OK
+    # Use FOAM_LIBBIN/paraview-maj.min as default
+    export HAVE_PVPLUGIN_SUPPORT=true
+    export FOAM_PV_PLUGIN_LIBBIN="${targetDir:-$FOAM_LIBBIN/paraview-$pv_api}"
+    export PARAVIEW_API="$pv_api"
+    export PARAVIEW_INC_DIR="${header%/*}"      # Basename
+
+    return 0 # success
+}
+
+
+# Force reset of old variables
+no_paraview
+
+# Test/query
+case "$1" in
+-test)
+    have_pvplugin_support
+    echo_paraview
+    ;;
+-query)
+    ## query_paraview
+    ;;
+esac
+
+#------------------------------------------------------------------------------

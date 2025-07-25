@@ -1,0 +1,58 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    object      p;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [m^2 s^-2];
+
+internalField   uniform 0;
+
+boundaryField
+{
+    inlet
+    {
+        type            fanPressure;
+        direction       in;
+        fanCurve
+        {
+            type table;
+            file "<constant>/FluxVsdP.dat";
+            // outOfBounds clamp;      // Default
+        }
+        //nonDimensional  true;
+        //rpm             300;
+        //dm              2e-2;
+        p0              uniform 30;
+    }
+
+    outlet1
+    {
+        type            fixedValue;
+        value           uniform 10;
+    }
+
+    outlet2
+    {
+        type            fixedValue;
+        value           uniform 0;
+    }
+
+    defaultFaces
+    {
+        type            zeroGradient;
+    }
+}
+
+
+// ************************************************************************* //

@@ -1,0 +1,96 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+application     interFoam;
+
+startFrom       startTime;
+
+startTime       0;
+
+stopAt          endTime;
+
+endTime         10;
+
+deltaT          0.001;
+
+writeControl    adjustable;
+
+writeInterval   0.1;
+
+purgeWrite      0;
+
+writeFormat     ascii;
+
+writePrecision  6;
+
+writeCompression off;
+
+timeFormat      general;
+
+timePrecision   6;
+
+runTimeModifiable yes;
+
+adjustTimeStep  on;
+
+maxCo           1;
+
+maxAlphaCo      1;
+
+maxDeltaT       1;
+
+functions
+{
+    sTransport
+    {
+        type            scalarTransport;
+        libs            (solverFunctionObjects);
+
+        enabled         true;
+        writeControl    writeTime;
+        writeInterval   1;
+
+        field           s;
+
+        write           true;
+
+        phase           alpha.water;
+        bounded01       false;
+
+        // Adding fvOption source for residence time
+        fvOptions
+        {
+            unitySource
+            {
+                type            scalarSemiImplicitSource;
+                enabled         true;
+
+                selectionMode   all;
+                volumeMode      specific;
+
+                sources
+                {
+                    s           (1 0);
+                }
+            }
+        }
+
+        resetOnStartUp  false;
+    }
+}
+
+
+// ************************************************************************* //

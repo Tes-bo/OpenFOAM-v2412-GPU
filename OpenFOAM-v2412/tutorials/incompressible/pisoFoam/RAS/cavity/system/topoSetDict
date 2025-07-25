@@ -1,0 +1,696 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      topoSetDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+actions
+(
+    {
+        name    boundary1;
+        type    cellSet;
+        action  new;
+        source  boundaryToCell;
+    }
+
+    {
+        name    box1a;
+        type    cellSet;
+        action  new;
+        source  boxToCell;
+        boxes
+        (
+            (0 0 0) (0.05 0.05 0.01)
+            (0.1 0.1 0) (0.02 0.02 0.01)
+        );
+    }
+
+    {
+        name    box1b;
+        type    cellSet;
+        action  new;
+        source  boxToCell;
+        box     (0 0 0) (0.05 0.05 0.01);
+    }
+
+    {
+        name    box1c;
+        type    cellSet;
+        action  new;
+        source  boxToCell;
+        min     (0 0 0);
+        max     (0.05 0.05 0.01);
+    }
+
+    {
+        name    box1c;
+        type    cellSet;
+        action  add;
+        source  boxToCell;
+        min     (0.05 0.05 0);
+        max     (0.1 0.1 0.01);
+    }
+
+    {
+        name    box1c;
+        type    cellSet;
+        action  subtract;
+        source  boxToCell;
+        min     (0 0 0);
+        max     (0.05 0.05 0.01);
+    }
+
+    {
+        name    cell1a;
+        type    cellSet;
+        action  new;
+        source  cellToCell;
+        sets
+        (
+            box1a
+            box1b
+            box1c
+        );
+    }
+
+    {
+        name    cell1b;
+        type    cellSet;
+        action  new;
+        source  cellToCell;
+        set     boundary1;
+    }
+
+    {
+        name        cylinder1;
+        type        cellSet;
+        action      new;
+        source      cylinderToCell;
+        point1      (0.05 0.05 0);
+        point2      (0.05 0.05 0.01);
+        radius      0.06;
+        innerRadius 0.01;
+    }
+
+    {
+        name    field1;
+        type    cellSet;
+        action  new;
+        source  fieldToCell;
+        field   p;
+        min     0;
+        max     10;
+    }
+
+    {
+        name    cylinder1;
+        type    cellSet;
+        action  add;
+        source  haloToCell;
+        steps   2;
+    }
+
+    {
+        name    label1;
+        type    cellSet;
+        action  new;
+        source  labelToCell;
+        value
+        (
+            21
+            10
+            2
+        );
+    }
+
+    {
+        name    nbr1;
+        type    cellSet;
+        action  new;
+        source  nbrToCell;
+        neighbours 2;
+    }
+
+    {
+        name    nearest1;
+        type    cellSet;
+        action  new;
+        source  nearestToCell;
+        points
+        (
+            (0 0 0)
+            (0 0 1)
+        );
+    }
+
+    {
+        name    patch1a;
+        type    cellSet;
+        action  new;
+        source  patchToCell;
+        patches
+        (
+            movingWall
+            fixedWalls
+        );
+    }
+
+    {
+        name    patch1b;
+        type    cellSet;
+        action  new;
+        source  patchToCell;
+        patch   movingWall;
+    }
+
+    {
+        name    rotatedBox1;
+        type    cellSet;
+        action  new;
+        source  rotatedBoxToCell;
+        origin  (0 0 0);
+        i       (0.02 0.02 0);
+        j       (-0.02 0.02 0);
+        k       (0 0 100);
+    }
+
+    // {
+    //     name         searchableSurface1;
+    //     type         cellSet; // faceSet; // faceZoneSet; // pointSet;
+    //     action       new;
+    //     source       searchableSurfaceToCell; // searchableSurfaceToFace;
+    //                                           // searchableSurfaceToFaceZone;
+    //                                           // searchableSurfaceToPoint;
+    //     surfaceType  triSurfaceMesh;
+    //     surfaceName  blob.obj;
+    // }
+
+    {
+        name    shape1;
+        type    cellSet;
+        action  new;
+        source  shapeToCell;
+        shape   hex;
+    }
+
+    {
+        name        sphere1;
+        type        cellSet;
+        action      new;
+        source      sphereToCell;
+        origin      (0 0 0);
+        radius      0.05;
+        innerRadius 0.01;
+    }
+
+    // {
+    //    name            surface1;
+    //    type            cellSet; // pointSet;
+    //    action          new;
+    //    source          surfaceToCell; // surfaceToPoint;
+    //    file            "geometry.stl";
+    //    outsidePoints   ((-99 -99 -59));
+    //    includeCut      false;
+    //    includeInside   false;
+    //    includeOutside  false;
+    //    nearDistance    -1;
+    //    curvature       0.9;
+    //    useSurfaceOrientation false;
+    // }
+
+    {
+        name    targetVolume1;
+        type    cellSet;
+        action  new;
+        source  targetVolumeToCell;
+        volume  0.00001;
+        normal  (1 0 0);
+    }
+
+    {
+        name    zone1;
+        type    cellZoneSet;
+        action  new;
+        source  setToCellZone;
+        set     targetVolume1;
+    }
+
+    {
+        name    faceBoundary1;
+        type    faceSet;
+        action  new;
+        source  boundaryToFace;
+    }
+
+    {
+        name    faceBox1a;
+        type    faceSet;
+        action  new;
+        source  boxToFace;
+        boxes
+        (
+            (0 0 0) (0.05 0.05 0.01)
+            (0.1 0.1 0) (0.02 0.02 0.01)
+        );
+    }
+
+    {
+        name    faceBox1b;
+        type    faceSet;
+        action  new;
+        source  boxToFace;
+        box     (0 0 0) (0.05 0.05 0.01);
+    }
+
+    {
+        name    faceBox1c;
+        type    faceSet;
+        action  new;
+        source  boxToFace;
+        min     (0 0 0);
+        max     (0.05 0.05 0.01);
+    }
+
+    {
+        name    faceCell1a;
+        type    faceSet;
+        action  new;
+        source  cellToFace;
+        option  all;
+        sets
+        (
+            sphere1
+            box1a
+        );
+    }
+
+    {
+        name    faceCell1b;
+        type    faceSet;
+        action  new;
+        source  cellToFace;
+        option  both;
+        set     cylinder1;
+    }
+
+    {
+        name    faceCell1c;
+        type    faceSet;
+        action  new;
+        source  cellToFace;
+        option  outside;
+        set     cylinder1;
+    }
+
+    {
+        name        faceCylinder1;
+        type        faceSet;
+        action      new;
+        source      cylinderToFace;
+        point1      (0.05 0.05 0);
+        point2      (0.05 0.05 0.01);
+        radius      0.06;
+        innerRadius 0.01;
+    }
+
+    {
+        name    faceFace1a;
+        type    faceSet;
+        action  new;
+        source  faceToFace;
+        sets
+        (
+            faceCylinder1
+        );
+    }
+
+    {
+        name    faceFace1b;
+        type    faceSet;
+        action  new;
+        source  faceToFace;
+        set     faceCylinder1;
+    }
+
+    {
+        name    faceLabel1;
+        type    faceSet;
+        action  new;
+        source  labelToFace;
+        value
+        (
+            21
+            10
+            2
+        );
+    }
+
+    {
+        name    faceNormal1;
+        type    faceSet;
+        action  new;
+        source  normalToFace;
+        normal  (0 0 1);
+        cos     0.01;
+    }
+
+    {
+        name    facePatch1;
+        type    faceSet;
+        action  new;
+        source  patchToFace;
+        patches
+        (
+            fixedWalls
+            movingWall
+        );
+    }
+
+    {
+        name    facePatch1;
+        type    faceSet;
+        action  subtract;
+        source  patchToFace;
+        patch   fixedWalls;
+    }
+
+    {
+        name        faceSphere1;
+        type        faceSet;
+        action      new;
+        source      sphereToFace;
+        origin      (0 0 0);
+        radius      0.05;
+        innerRadius 0.01;
+    }
+
+    {
+        name    faceZone1;
+        type    faceZoneSet;
+        action  new;
+        source  setToFaceZone;
+        faceSet faceSphere1;
+    }
+
+    {
+        name    faceZoneToFaceZone1;
+        type    faceZoneSet;
+        action  new;
+        source  faceZoneToFaceZone;
+        zone    faceZone1;
+    }
+
+    {
+        name    setAndNormalToFaceZone1;
+        type    faceZoneSet;
+        action  new;
+        source  setAndNormalToFaceZone;
+        faceSet faceSphere1;
+        normal  (1 0 0);
+    }
+
+    {
+        name        planeToFaceZone1;
+        type        faceZoneSet;
+        action      new;
+        source      planeToFaceZone;
+        point       (0.05 0 0);
+        normal      (1 0 0);
+        option      closest;
+    }
+
+    // {
+    //     name    faceZone1;
+    //     type    faceZoneSet;
+    //     action  new;
+    //     source  setsToFaceZone;
+    //     faceSet faceBox1a;
+    //     cellSet box1a;
+    //     flip    true;
+    // }
+
+    {
+        name    cellToFaceZone1;
+        type    faceZoneSet;
+        action  new;
+        source  cellToFaceZone;
+        set     cylinder1;
+        flip    true;
+    }
+
+    {
+        name    pointBox1;
+        type    pointSet;
+        action  new;
+        source  boxToPoint;
+        boxes
+        (
+            (0 0 0) (0.05 0.05 0.01)
+            (0.1 0.1 0) (0.02 0.02 0.01)
+        );
+    }
+
+    {
+        name    pointCell1;
+        type    pointSet;
+        action  new;
+        source  cellToPoint;
+        option  all;
+        sets
+        (
+            box1a
+            box1b
+            box1c
+        );
+    }
+
+    {
+        name          pointCylinder1;
+        type          pointSet;
+        action        new;
+        source        cylinderToPoint;
+        point1        (0.05 0.05 0);
+        point2        (0.05 0.05 0.01);
+        radius        0.06;
+        innerRadius   0.01;
+    }
+
+    {
+        name    pointFace1;
+        type    pointSet;
+        action  new;
+        source  faceToPoint;
+        option  all;
+        set     faceSphere1;
+    }
+
+    {
+        name    pointLabel1;
+        type    pointSet;
+        action  new;
+        source  labelToPoint;
+        value
+        (
+            21
+            10
+            2
+        );
+    }
+
+    {
+        name    pointNearest1;
+        type    pointSet;
+        action  new;
+        source  nearestToPoint;
+        points
+        (
+            (0 0 0)
+            (0 0 1)
+        );
+    }
+
+    {
+        name    pointPoint1;
+        type    pointSet;
+        action  new;
+        source  pointToPoint;
+        option  any;
+        sets
+        (
+            pointNearest1
+        );
+    }
+
+    {
+        name        pointSphere1;
+        type        pointSet;
+        action      new;
+        source      sphereToPoint;
+        origin      (0 0 0);
+        radius      0.05;
+        innerRadius 0.01;
+    }
+
+    {
+        name    pointZone1;
+        type    pointZoneSet;
+        action  new;
+        source  setToPointZone;
+        set     pointSphere1;
+    }
+
+    {
+        name    pointPoint1;
+        type    pointSet;
+        action  new;
+        source  zoneToPoint;
+        zones
+        (
+            pointZone1
+        );
+    }
+
+
+    // Mixed sets
+    {
+        name    faceCell1;
+        type    faceSet;
+        action  new;
+        source  faceToCell;
+        option  all;
+        sets
+        (
+            faceSphere1
+            faceLabel1
+        );
+    }
+
+    {
+        name    faceCell2;
+        type    faceSet;
+        action  new;
+        source  faceToCell;
+        option  owner;
+        set     faceSphere1;
+    }
+
+    {
+        name    faceZoneCell1;
+        type    cellSet;
+        action  new;
+        source  faceZoneToCell;
+        option  back;
+        zones
+        (
+            faceZone1
+        );
+    }
+
+    {
+        name    faceZoneCell2;
+        type    cellSet;
+        action  new;
+        source  faceZoneToCell;
+        option  front;
+        zone    faceZone1;
+    }
+
+    {
+        name    pointCell2;
+        type    pointSet;
+        action  new;
+        source  pointToCell;
+        option  any;
+        sets
+        (
+            pointSphere1
+            pointNearest1
+        );
+    }
+
+    {
+        name    pointCell2;
+        type    pointSet;
+        action  new;
+        source  pointToCell;
+        option  edge;
+        set     pointNearest1;
+    }
+
+    {
+        name    region1;
+        type    cellSet;
+        action  new;
+        source  regionToCell;
+        insidePoints
+        (
+            (0.025 0.025 0.005)
+        );
+        set     box1c;
+        nErode  0;
+    }
+
+    {
+        name    zone2;
+        type    cellSet;
+        action  new;
+        source  zoneToCell;
+        zones
+        (
+            zone1
+        );
+    }
+
+    {
+        name    zone2;
+        type    cellSet;
+        action  subtract;
+        source  zoneToCell;
+        zone    zone1;
+    }
+
+    {
+        name    pointFace1;
+        type    pointSet;
+        action  new;
+        source  pointToFace;
+        option  all;
+        sets
+        (
+            pointNearest1
+        );
+    }
+
+    {
+        name      regionFace1;
+        type      faceSet;
+        action    new;
+        source    regionToFace;
+        set       faceSphere1;
+        nearPoint (1 0 0);
+    }
+
+    {
+        name    faceZone2;
+        type    faceSet;
+        action  new;
+        source  zoneToFace;
+        zones
+        (
+            faceZone1
+        );
+    }
+);
+
+
+// ************************************************************************* //

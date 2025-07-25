@@ -1,0 +1,60 @@
+// -*- C++ -*-
+
+cloudInfo
+{
+    type    cloudInfo;
+    libs    (lagrangianFunctionObjects);
+    log     true;
+
+    // Nothing happens before this anyhow
+    timeStart 0.5;
+
+    writeControl    writeTime;
+
+    // Require cloud name(s) - not regex!
+    clouds  ( reactingCloud1 );
+
+    // Optional selection mechanism
+    selection
+    {
+        all
+        {
+            action  all;
+        }
+
+        T
+        {
+            action  subset;
+            source  field;
+            field   T;
+            accept  (greater 280) and (less 300);
+        }
+
+        YH2O
+        {
+            action  subset;
+            source  field;
+            field   YH2O(l);
+            accept  (greater 0.5);
+        }
+
+        diameter
+        {
+            action  subset;
+            source  field;
+            field   d;
+            accept  (greater 1e-10);
+        }
+
+        Umin
+        {
+            action  subtract;
+            source  field;
+            field   U;
+            accept  (less 0.1);
+        }
+    }
+}
+
+
+// ************************************************************************* //

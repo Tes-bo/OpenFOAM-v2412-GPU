@@ -1,0 +1,4 @@
+EXE_INC = $(COMP_OPENMP)
+
+/* Mostly do not need to explicitly link openmp libraries */
+/* EXE_LIBS = $(LINK_OPENMP) */

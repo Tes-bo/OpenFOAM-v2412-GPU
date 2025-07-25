@@ -1,0 +1,7 @@
+SUFFIXES += .Y
+
+Ytoo = $E $(call QUIET_MESSAGE,btyacc++,$(<F)) \
+    btyacc++ -v -d $(SKELETON) $< && \
+    mv y_tab.c $(@D)/$(<F).C && \
+    mv y_tab.h $(@D)/$(<F).H && \
+    $(WM_SCHEDULER) $(CC) $(c++FLAGS) -c $(@D)/$(<F).C -o $@

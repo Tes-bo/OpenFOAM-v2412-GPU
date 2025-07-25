@@ -1,0 +1,285 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+//           outlet1
+//             +-+
+//             | |
+//             | |
+//             | |
+//             | |
+// +-----------+-+
+// |inlet      | |
+// +-----------+-+
+//             | |
+//             | |
+//             | |
+//             | |
+//             +-+
+//           outlet2
+
+scale   1;
+
+vertices
+(
+    (0.0  -0.01 0)  //0
+    (0.19 -0.01 0)
+    (0.19  0.01 0)  //2
+    (0.0   0.01 0)
+
+    (0.19 -0.02 0)  //4
+    (0.23 -0.02 0)
+    (0.23  0.02 0)  //6
+    (0.19  0.02 0)
+
+    (0.2  -0.21 0)  //8
+    (0.22 -0.21 0)
+    (0.22 -0.02 0)  //10
+    (0.2  -0.02 0)
+
+    (0.2   0.02 0)  //12
+    (0.22  0.02 0)
+    (0.22  0.21 0)  //14
+    (0.2   0.21 0)
+
+    // Z
+    (0.0  -0.01 0.01)
+    (0.19 -0.01 0.01)
+    (0.19  0.01 0.01)
+    (0.0   0.01 0.01)
+
+    (0.19 -0.02 0.01)
+    (0.23 -0.02 0.01)
+    (0.23  0.02 0.01)
+    (0.19  0.02 0.01)
+
+    (0.2  -0.21 0.01)
+    (0.22 -0.21 0.01)
+    (0.22 -0.02 0.01)
+    (0.2  -0.02 0.01)
+
+    (0.2   0.02 0.01)
+    (0.22  0.02 0.01)
+    (0.22  0.21 0.01)
+    (0.2   0.21 0.01)
+);
+
+blocks
+(
+    // inlet block
+    hex (0 1 2 3  16 17 18 19) inlet (50 5 1) simpleGrading (1 1 1)
+
+    // central block
+    hex (4 5 6 7  20 21 22 23) central (12 12 1) simpleGrading (1 1 1)
+
+    // bottom block
+    hex (8 9 10 11  24 25 26 27) bottom (5 50 1) simpleGrading (1 1 1)
+
+    // top block
+    hex (12 13 14 15  28 29 30 31) top (5 50 1) simpleGrading (1 1 1)
+);
+
+edges
+(
+);
+
+boundary
+(
+    inlet
+    {
+        type patch;
+        faces
+        (
+            (0 16 19 3)
+        );
+    }
+
+    outlet1
+    {
+        type patch;
+        faces
+        (
+            (8 9 25 24)
+        );
+    }
+
+    outlet2
+    {
+        type patch;
+        faces
+        (
+            (14 15 31 30)
+        );
+    }
+
+    walls
+    {
+        type wall;
+        faces
+        (
+            // Inlet block
+            (2 3 19 18)
+            (0 1 17 16)
+            // Central block
+            (5 6 22 21)
+            // Bottom block
+            (8 24 27 11)
+            (9 10 26 25)
+            // Top block
+            (13 14 30 29)
+            (12 28 31 15)
+        );
+    }
+
+
+    // Inlet - Central block
+    // ~~~~~~~~~~~~~~~~~~~~~
+
+    inlet_central_couple
+    {
+        type            cyclicACMI;
+        neighbourPatch  central_inlet_couple;
+        nonOverlapPatch inlet_central_blockage;
+        faces
+        (
+            (1 2 18 17)
+        );
+    }
+    inlet_central_blockage
+    {
+        type            wall;
+        faces
+        (
+            (1 2 18 17)
+        );
+    }
+    central_inlet_couple
+    {
+        type            cyclicACMI;
+        neighbourPatch  inlet_central_couple;
+        nonOverlapPatch central_inlet_blockage;
+        faces
+        (
+            (4 20 23 7)
+        );
+    }
+    central_inlet_blockage
+    {
+        type            wall;
+        faces
+        (
+            (4 20 23 7)
+        );
+    }
+
+
+    // Central - Bottom block
+    // ~~~~~~~~~~~~~~~~~~~~~
+
+    bottom_central_couple
+    {
+        type            cyclicACMI;
+        neighbourPatch  central_bottom_couple;
+        nonOverlapPatch bottom_central_blockage;
+        faces
+        (
+            (10 11 27 26)
+        );
+
+        scale           table
+        (
+            (0.00   1.0)
+            (0.20   1.0)
+            (0.30   0.0)
+        );
+    }
+    bottom_central_blockage
+    {
+        type            wall;
+        faces
+        (
+            (10 11 27 26)
+        );
+    }
+    central_bottom_couple
+    {
+        type            cyclicACMI;
+        neighbourPatch  bottom_central_couple;
+        nonOverlapPatch central_bottom_blockage;
+        faces
+        (
+            (4 5 21 20)
+        );
+    }
+    central_bottom_blockage
+    {
+        type            wall;
+        faces
+        (
+            (4 5 21 20)
+        );
+    }
+
+
+    // Central - Top block
+    // ~~~~~~~~~~~~~~~~~~~
+
+    top_central_couple
+    {
+        type            cyclicACMI;
+        neighbourPatch  central_top_couple;
+        nonOverlapPatch top_central_blockage;
+        faces
+        (
+            (12 13 29 28)
+        );
+
+        scale           table
+        (
+            (0.00   0.0)
+            (0.20   0.0)
+            (0.30   1.0)
+        );
+    }
+    top_central_blockage
+    {
+        type            wall;
+        faces
+        (
+            (12 13 29 28)
+        );
+    }
+    central_top_couple
+    {
+        type            cyclicACMI;
+        neighbourPatch  top_central_couple;
+        nonOverlapPatch central_top_blockage;
+        faces
+        (
+            (6 7 23 22)
+        );
+    }
+    central_top_blockage
+    {
+        type            wall;
+        faces
+        (
+            (6 7 23 22)
+        );
+    }
+);
+
+
+// ************************************************************************* //

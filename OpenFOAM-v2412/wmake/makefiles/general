@@ -1,0 +1,265 @@
+#----------------------------*- makefile-gmake -*------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2011-2016 OpenFOAM Foundation
+#     Copyright (C) 2019-2023 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# File
+#     wmake/makefiles/general
+#
+# Description
+#     Makefile used by wmake to make dependency files and libs and applications
+#
+# Embedded Control Parameters
+#
+#   WM_COMPILE_CONTROL (+openmp | ~openmp)
+#   WM_COMPILE_CONTROL (~openfoam)
+#   WM_OSTYPE (windows)
+#
+#------------------------------------------------------------------------------
+
+#------------------------------------------------------------------------------
+# Use POSIX shell. Default to POSIX for the OS.
+#------------------------------------------------------------------------------
+
+SHELL           = /bin/sh
+
+ifeq (,$(strip $(WM_OSTYPE)))
+    WM_OSTYPE  := POSIX
+endif
+
+
+#------------------------------------------------------------------------------
+# No default suffix rules used
+#------------------------------------------------------------------------------
+
+.SUFFIXES:
+
+
+#------------------------------------------------------------------------------
+# Directory containing the wmake scripts
+#------------------------------------------------------------------------------
+
+WM_SCRIPTS      = $(WM_DIR)/scripts
+
+
+#------------------------------------------------------------------------------
+# Declare default paths
+#------------------------------------------------------------------------------
+
+LIB_SRC         = $(WM_PROJECT_DIR)/src
+LIB_PLATFORMS   = $(WM_PROJECT_DIR)/platforms/$(WM_OPTIONS)/lib
+OBJECTS_DIR     = $(MAKE_DIR)/$(WM_OPTIONS)
+
+SYS_INC         =
+SYS_LIBS        =
+
+# Add linkage for openmp into the system libraries
+# - if enabled (+openmp) and not disabled (~openmp).
+# - disable has higher precedence
+ifeq  (,$(findstring ~openmp,$(WM_COMPILE_CONTROL)))
+ifneq (,$(findstring +openmp,$(WM_COMPILE_CONTROL)))
+SYS_LIBS        = $(LINK_OPENMP)
+endif
+endif
+
+# These are set by Make/options
+EXE_INC         =
+EXE_LIBS        =
+LIB_LIBS        =
+
+# Project include/libraries
+PROJECT_INC     = \
+    -I$(LIB_SRC)/$(WM_PROJECT)/lnInclude \
+    -I$(LIB_SRC)/OSspecific/$(WM_OSTYPE)/lnInclude
+
+PROJECT_LIBS    = -l$(WM_PROJECT) -ldl
+
+# Special compilation without OpenFOAM at all
+ifneq (,$(findstring ~openfoam,$(WM_COMPILE_CONTROL)))
+PROJECT_INC     =
+PROJECT_LIBS    =
+endif
+
+# These variables are used for some builds - provide fallback values
+ifeq (,$(strip $(FOAM_SOLVERS)))
+    FOAM_SOLVERS    = $(WM_PROJECT_DIR)/applications/solvers
+endif
+ifeq (,$(strip $(FOAM_UTILITIES)))
+    FOAM_UTILITIES  = $(WM_PROJECT_DIR)/applications/utilities
+endif
+
+#------------------------------------------------------------------------------
+# Declare default name of libraries and executables
+#------------------------------------------------------------------------------
+
+# Shared library extension (with '.' separator)
+EXT_SO  = .so
+
+# Executable extension (with '.' separator)
+EXT_EXE =
+
+# Library (default which is to be overridden)
+LIB     = libNULL
+
+# Project executable (default which is to be overridden)
+EXE     = $(WM_PROJECT).out
+
+# Standalone executable (default which is to be overridden)
+SEXE    = a.out
+
+#DEBUG: $(info "EXE_SO  = $(EXE_SO)")
+#DEBUG: $(info "EXT_EXE = $(EXT_EXE)")
+
+
+#------------------------------------------------------------------------------
+# Set compilation and dependency building rules
+#------------------------------------------------------------------------------
+
+GENERAL_RULES = $(WM_DIR)/rules/General
+include $(GENERAL_RULES)/general
+
+
+#------------------------------------------------------------------------------
+# Include PROJECT directory tree file and
+# source, object and dependency list files.
+# These are constructed by makefiles/files
+#------------------------------------------------------------------------------
+
+include $(OBJECTS_DIR)/options
+include $(OBJECTS_DIR)/variables
+include $(OBJECTS_DIR)/sourceFiles
+DEPENDENCIES=$(SOURCE:%=$(OBJECTS_DIR)/%.dep)
+BASENAMES=$(basename $(SOURCE))
+OBJECTS=$(BASENAMES:%=$(OBJECTS_DIR)/%.o)
+
+
+#------------------------------------------------------------------------------
+# Include paths, use -iquote to ensure that (.) is searched first
+#------------------------------------------------------------------------------
+
+LIB_HEADER_DIRS = \
+    $(EXE_INC) \
+    -iquote. \
+    -IlnInclude \
+    $(PROJECT_INC) \
+    $(GINC) \
+    $(SYS_INC)
+
+
+#------------------------------------------------------------------------------
+# Define link statements for executables
+#
+# Tweak with FOAM_EXTRA_LDFLAGS
+#------------------------------------------------------------------------------
+
+.PHONY: all
+all: $(EXE)$(EXT_EXE)
+	@:
+
+.PHONY: silent
+silent:
+	@:
+
+$(EXE)$(EXT_EXE): $(OBJECTS)
+	@$(WM_SCRIPTS)/makeTargetDir $(EXE)
+	$(call QUIET_MESSAGE,link,$(EXE)$(EXT_EXE))
+	$E $(LINKEXE) $(FOAM_EXTRA_LDFLAGS) $(OBJECTS) -L$(LIB_PLATFORMS) \
+	    $(EXE_LIBS) $(PROJECT_LIBS) $(SYS_LIBS) \
+	    $(LINK_LIBS) $(GLIBS) -o $(EXE)$(EXT_EXE)
+
+.PHONY: exe
+exe: $(SEXE)$(EXT_EXE) | silent
+
+$(SEXE)$(EXT_EXE): $(OBJECTS)
+	@$(WM_SCRIPTS)/makeTargetDir $(SEXE)
+	$(call QUIET_MESSAGE,link,$(SEXE)$(EXT_EXE))
+	$E $(LINKEXE) $(FOAM_EXTRA_LDFLAGS) $(OBJECTS) $(EXE_LIBS) \
+	    $(SYS_LIBS) $(LINK_LIBS) $(GLIBS) -o $(SEXE)$(EXT_EXE)
+
+
+#------------------------------------------------------------------------------
+# Define link statements for libraries
+#
+# Tweak with FOAM_EXTRA_LDFLAGS
+#------------------------------------------------------------------------------
+
+.PHONY: objects
+objects: $(OBJECTS) | silent
+
+.PHONY: libso
+libso: $(LIB)$(EXT_SO) | silent
+
+ifneq (,$(findstring windows,$(WM_OSTYPE)))
+$(LIB)$(EXT_SO): $(OBJECTS)
+	@$(WM_SCRIPTS)/makeTargetDir $(LIB)
+	$(call QUIET_MESSAGE,link,$(LIB)$(EXT_SO))
+	$E $(LINKLIBSO) $(FOAM_EXTRA_LDFLAGS) $(OBJECTS) -L$(LIB_PLATFORMS) \
+	    $(PROJECT_LIBS) $(LIB_LIBS) $(GLIB_LIBS) -o $(LIB)$(EXT_SO)
+else
+$(LIB)$(EXT_SO): $(OBJECTS)
+	@$(WM_SCRIPTS)/makeTargetDir $(LIB)
+	$(call QUIET_MESSAGE,link,$(LIB)$(EXT_SO))
+	$E $(LINKLIBSO) $(FOAM_EXTRA_LDFLAGS) $(OBJECTS) -L$(LIB_PLATFORMS) \
+	    $(LIB_LIBS) $(GLIB_LIBS) -o $(LIB)$(EXT_SO)
+endif
+
+.PHONY: lib
+lib: $(LIB).a | silent
+
+$(LIB).a: $(OBJECTS)
+	@$(WM_SCRIPTS)/makeTargetDir $(LIB)
+	@rm -f $(LIB).a
+	$(call QUIET_MESSAGE,ar,$(LIB).a)
+	$E $(AR) $(ARFLAGS) $(LIB).a $(OBJECTS)
+	$(call QUIET_MESSAGE,ranlib,$(notdir $(LIB)))
+	$E $(RANLIB) $(LIB).a
+
+.PHONY: libo
+libo: $(LIB).o | silent
+
+$(LIB).o: $(OBJECTS)
+	@$(WM_SCRIPTS)/makeTargetDir $(LIB)
+	@rm -f $(LIB).o
+	$(call QUIET_MESSAGE,ld,$(LIB).o)
+	$E $(LD) -r -o $(LIB).o $(OBJECTS)
+
+
+#------------------------------------------------------------------------------
+# Set rule to create the include directory for libraries
+#------------------------------------------------------------------------------
+
+lnInclude: $(MAKE_DIR)/files $(MAKE_DIR)/options
+	@wmakeLnInclude -force .
+
+
+#------------------------------------------------------------------------------
+# Declare all object files depend on $(OBJECTS_DIR)/options
+#------------------------------------------------------------------------------
+
+$(OBJECTS): $(OBJECTS_DIR)/options
+$(foreach S,$(SOURCE),$(eval $(OBJECTS_DIR)/$(basename $S).o : $(OBJECTS_DIR)/$S.dep))
+
+
+#------------------------------------------------------------------------------
+# Set dependency rule and include dependency lists
+#------------------------------------------------------------------------------
+
+.PHONY: dep updatedep
+dep: $(DEPENDENCIES)
+
+updatedep: dep
+
+ifeq (,$(findstring lnInclude,$(MAKECMDGOALS))$(findstring updatedep,$(MAKECMDGOALS)))
+sinclude $(DEPENDENCIES)
+endif
+
+
+#----------------------------- vim: set ft=make: ------------------------------

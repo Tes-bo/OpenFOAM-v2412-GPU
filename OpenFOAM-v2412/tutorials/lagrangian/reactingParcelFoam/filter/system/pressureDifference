@@ -1,0 +1,40 @@
+// -*- C++ -*-
+
+pressureDifference
+{
+    type    multiFieldValue;
+    libs    (fieldFunctionObjects);
+
+    operation   subtract;
+
+    functions
+    {
+        inlet
+        {
+            type            surfaceFieldValue;
+            operation       areaAverage;
+            regionType      patch;
+            name            inlet;
+            fields          (p);
+
+            writeFields     no;
+            writeToFile     no;
+            log             no;
+        }
+        outlet
+        {
+            type            surfaceFieldValue;
+            operation       areaAverage;
+            regionType      patch;
+            name            outlet;
+            fields          (p);
+
+            writeFields     no;
+            writeToFile     no;
+            log             no;
+        }
+    }
+}
+
+
+// ************************************************************************* //

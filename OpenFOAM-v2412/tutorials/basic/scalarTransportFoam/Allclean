@@ -1,0 +1,19 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/CleanFunctions      # Tutorial clean functions
+#------------------------------------------------------------------------------
+
+keepCases="pitzDaily"
+loseCases="pitzDaily-stepFunction"
+
+for caseName in $keepCases
+do
+    foamCleanTutorials -case="$caseName"
+done
+
+for caseName in $loseCases
+do
+    removeCase $caseName
+done
+
+#------------------------------------------------------------------------------

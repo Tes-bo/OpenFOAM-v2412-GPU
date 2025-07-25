@@ -1,0 +1,49 @@
+// -*- C++ -*-
+
+// ************************************************************************* //
+
+sum-tracer0-0.25
+{
+    ${__settings_stats}
+
+    regionType      functionObjectSurface;
+    name            sampled.plane-0.25;
+
+    operation       weightedAreaIntegrate;
+    // postOperation   sqrt;
+
+    weightField     rhoU;
+    fields          (tracer0);
+}
+
+
+sum-tracer0-0.45
+{
+    ${__settings_stats}
+
+    regionType      functionObjectSurface;
+    name            sampled.plane-0.45;
+
+    operation       weightedAreaIntegrate;
+    // postOperation   sqrt;
+
+    weightField     rhoU;
+    fields          (tracer0);
+}
+
+sum-tracer0-0.55
+{
+    ${__settings_stats}
+
+    regionType      functionObjectSurface;
+    name            sampled.plane-0.55;
+
+    operation       weightedAreaIntegrate;
+    // postOperation   sqrt;
+
+    weightField     rhoU;
+    fields          (tracer0);
+}
+
+
+// ************************************************************************* //

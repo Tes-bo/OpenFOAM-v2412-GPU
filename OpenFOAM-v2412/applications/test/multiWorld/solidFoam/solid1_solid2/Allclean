@@ -1,0 +1,13 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/CleanFunctions      # Tutorial clean functions
+#------------------------------------------------------------------------------
+
+cleanCase0
+rm -rf constant/solid1/polyMesh
+rm -rf constant/solid2/polyMesh
+
+# Restore default dictionaries
+cp system/fvSolution-energyCoupling system/fvSolution
+
+#------------------------------------------------------------------------------

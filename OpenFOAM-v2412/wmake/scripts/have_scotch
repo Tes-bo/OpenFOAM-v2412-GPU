@@ -1,0 +1,438 @@
+#----------------------------------*-sh-*--------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2018-2021 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     have_scotch
+#
+# Description
+#     Detection/setup of SCOTCH
+#
+# Requires
+#     config.sh/scotch
+#
+# Functions provided
+#     have_ptscotch, search_ptscotch
+#
+# Variables set on success
+#     HAVE_SCOTCH
+#     SCOTCH_ARCH_PATH
+#     SCOTCH_INC_DIR
+#     SCOTCH_LIB_DIR
+#     SCOTCH_LIBNAME_SUFFIX [optional]
+#
+# Functions provided [Must call have_scotch first]
+#     have_ptscotch, search_ptscotch
+#
+# Variables set on success
+#     HAVE_PTSCOTCH
+#     PTSCOTCH_ARCH_PATH
+#     PTSCOTCH_INC_DIR
+#     PTSCOTCH_LIB_DIR
+#
+#
+# System files can be hiding in a large variety of locations.
+# For x86_64 system:
+#
+# ArchLinux
+# ---------
+#     scotch   include: /usr/include/scotch
+#     scotch   library: /usr/lib64
+#
+#     ptscotch include: /usr/include/ptscotch
+#     ptscotch library: /usr/lib64
+#
+#
+# Debian/Ubuntu
+# -------------
+#     scotch   include: /usr/include/scotch-int32
+#     scotch   library: /usr/lib/x86_64-linux-gnu
+#
+#     ptscotch include: /usr/include/scotch-int32
+#     ptscotch library: /usr/lib/x86_64-linux-gnu
+#
+#
+# RedHat
+# ------
+#     scotch   include: /usr/include
+#     scotch   library: /usr/lib64
+#
+#     ptscotch include: /usr/include/openmpi-x86_64
+#     ptscotch library: /usr/lib64/openmpi/lib
+#
+# when MPI_ARCH_PATH=/usr/lib64/openmpi
+# and mpicc --showme:compile -> -I/usr/include/openmpi-x86_64
+#
+# NB: for RedHat (8+) /usr/include/scotch.h is a wrapper that includes
+#    /usr/include/scotch-64.h  (LP64 mode)
+# or /usr/include/scotch-32.h  (ILP32 mode)
+# In either case, int is 32 bits
+#
+# openSUSE
+# --------
+#     scotch   include: /usr/include
+#     scotch   library: /usr/lib64
+#
+#     ptscotch include: /usr/lib64/mpi/gcc/openmpi2/include
+#     ptscotch library: /usr/lib64/mpi/gcc/openmpi2/lib64
+#
+# when MPI_ARCH_PATH=/usr/lib64/mpi/gcc/openmpi2
+#
+#------------------------------------------------------------------------------
+. ${WM_PROJECT_DIR:?}/wmake/scripts/sysFunctions    # General system functions
+
+#------------------------------------------------------------------------------
+
+# Reset
+no_scotch()
+{
+    unset HAVE_SCOTCH SCOTCH_ARCH_PATH SCOTCH_INC_DIR SCOTCH_LIB_DIR
+    unset SCOTCH_VERSION SCOTCH_LIBNAME_SUFFIX
+    unset HAVE_PTSCOTCH PTSCOTCH_ARCH_PATH PTSCOTCH_INC_DIR PTSCOTCH_LIB_DIR
+}
+
+
+# Report
+echo_scotch()
+{
+    echo "scotch=${HAVE_SCOTCH:-false}"
+    echo "root=\"$SCOTCH_ARCH_PATH\""
+    echo "include=\"$SCOTCH_INC_DIR\""
+    echo "library=\"$SCOTCH_LIB_DIR\""
+    if [ -n "$SCOTCH_LIBNAME_SUFFIX" ]
+    then
+        echo "libsuffix=\"$SCOTCH_LIBNAME_SUFFIX\""
+    fi
+    echo
+    echo "ptscotch=${HAVE_PTSCOTCH:-false}"
+    echo "root=\"$PTSCOTCH_ARCH_PATH\""
+    echo "include=\"$PTSCOTCH_INC_DIR\""
+    echo "library=\"$PTSCOTCH_LIB_DIR\""
+    if [ -n "$SCOTCH_LIBNAME_SUFFIX" ]
+    then
+        echo "libsuffix=\"$SCOTCH_LIBNAME_SUFFIX\""
+    fi
+}
+
+
+# Search
+# $1 : prefix (*_ARCH_PATH, system, ...)
+#
+# On success, return 0 and export variables
+# -> HAVE_SCOTCH, SCOTCH_ARCH_PATH, SCOTCH_INC_DIR, SCOTCH_LIB_DIR
+search_scotch()
+{
+    local warn="==> skip scotch"
+    local incName="scotch.h"
+    local libName="libscotch"
+    local localDir="scotch-int$WM_LABEL_SIZE"
+
+    local prefix="${1:-system}"
+    local header library
+
+    # ----------------------------------
+    if isNone "$prefix"
+    then
+        [ -n "$warn" ] && echo "$warn (disabled)"
+        return 1
+    elif hasAbsdir "$prefix"
+    then
+        header=$(findFirstFile \
+            "$prefix/include/$localDir/$incName" \
+            "$prefix/include/scotch/$incName" \
+            "$prefix/include/$incName" \
+        )
+        library="-extlib"  # Delay search...
+    elif isSystem "$prefix"
+    then
+        header=$(findFirstFile \
+            "/usr/local/include/$localDir/$incName" \
+            "/usr/local/include/scotch/$incName" \
+            "/usr/local/include/$incName" \
+            "/usr/include/$localDir/$incName" \
+            "/usr/include/scotch/$incName" \
+            "/usr/include/$incName" \
+        )
+        prefix=$(sysPrefix "$header")
+    else
+        unset prefix
+    fi
+    # ----------------------------------
+    equalBaseName "${header%/*}" "$localDir" || unset localDir
+
+    # Header
+    [ -n "$header" ] || {
+        [ -n "$warn" ] && echo "$warn (no header)"
+        return 2
+    }
+
+    # ----------------------------------
+    # Extract 'typedef int64_t SCOTCH_Num' etc from header file
+    # - ensure consistent size between OpenFOAM and scotch header
+    # - for some systems, scotch.h includes scotch-64.h (for example).
+
+    local label
+    for hdr in \
+        "$header" \
+        "${header%/*}"/scotch-64.h \
+        "${header%/*}"/scotch-32.h \
+    ;
+    do
+        if [ -f "$hdr" ]
+        then
+            label=$(sed -ne \
+                's/^.*typedef *\([^ ]*\) *SCOTCH_Num.*/\1/p' \
+                "$hdr")
+
+            if [ -n "$label" ]
+            then
+                header="$hdr"  # Appears successful
+                break
+            fi
+        fi
+    done
+    : "${label:=unknown}"  # Safety
+
+    # Transform (int32_t | int64_t) -> (int32 | int64)
+    case "$label" in (int32_t | int64_t) label="${label%_t}" ;; esac
+
+    if [ "$library" = "-extlib" ]
+    then
+        library=$(findExtLib "${libName}-${label}" "$libName")
+    fi
+
+    # Library
+    [ -n "$library" ] \
+    || library=$(findLibrary -prefix="$prefix" -name="$libName" -local="$localDir") \
+    || {
+        [ -n "$warn" ] && echo "$warn (no library)"
+        return 2
+    }
+
+    # ----------------------------------
+
+    # No SCOTCH_VERSION set? Try to obtain from header
+    # extract #define SCOTCH_VERSION, SCOTCH_RELEASE, SCOTCH_PATCHLEVEL
+    [ -n "$SCOTCH_VERSION" ] || \
+    SCOTCH_VERSION=$(
+        eval $(
+            sed -ne \
+            's/^ *#define *SCOTCH_\(VERSION\|RELEASE\|PATCHLEVEL\) *\([0-9][0-9]*\).*$/\1=\2/p' \
+            "$header"
+        )
+
+        set -- $VERSION $RELEASE $PATCHLEVEL
+        IFS="."
+        [ "$#" -gt 0 ] && echo "scotch-$*"
+    )
+    : "${SCOTCH_VERSION:=scotch}"  # Failsafe value
+
+    # Accept widening of OpenFOAM label to scotch label (SCOTCH_Num)
+    # but reject narrowing here instead of in the code
+    case "$WM_LABEL_SIZE:$label" in
+    ( 32:int32 | 32:int \
+    | 32:int64 | 32:long \
+    | 64:int64 | 64:long )
+        ;;
+
+    (*)
+        if [ -n "$warn" ]
+        then
+            echo "$warn (label='$WM_LABEL_SIZE', ${header##*/} has '$label')"
+        fi
+        no_scotch
+        return 1
+        ;;
+    esac
+
+    # Library name suffix (-int32 | -int64)
+    case "${library##*/}" in
+    (*-int32.*) export SCOTCH_LIBNAME_SUFFIX="-int32" ;;
+    (*-int64.*) export SCOTCH_LIBNAME_SUFFIX="-int64" ;;
+    esac
+
+    # OK
+    echo "scotch ($label) - $prefix"
+    export HAVE_SCOTCH=true
+    export SCOTCH_ARCH_PATH="$prefix"
+    export SCOTCH_INC_DIR="${header%/*}"     # Basename
+    export SCOTCH_LIB_DIR="${library%/*}"    # Basename
+    export SCOTCH_VERSION
+
+    ##echo "DEBUG: header=$header" 1>&2
+    ##echo "DEBUG: library=$library" 1>&2
+}
+
+
+# Search
+# $1 : prefix (*_ARCH_PATH, system, ...)
+#
+# On success, return 0 and export variables
+# -> HAVE_PTSCOTCH, PTSCOTCH_ARCH_PATH, PTSCOTCH_INC_DIR, PTSCOTCH_LIB_DIR
+search_ptscotch()
+{
+    local warn="==> skip ptscotch"
+    local incName="ptscotch.h"
+    local libName="libptscotch"
+    local localDir="scotch-int$WM_LABEL_SIZE"
+
+    local prefix="${1:-system}"
+    local header library
+
+    local mpiPrefix="$MPI_ARCH_PATH"
+    local mpiName="${MPI_ARCH_PATH##*/}"
+
+    # ----------------------------------
+    if isNone "$prefix"
+    then
+        [ -n "$warn" ] && echo "$warn (disabled)"
+        return 1
+    elif hasAbsdir "$prefix"
+    then
+        header=$(findFirstFile  \
+            "$prefix/include/$FOAM_MPI/$incName" \
+            "$prefix/include/$localDir/$incName" \
+            "$prefix/include/ptscotch/$incName" \
+            "$prefix/include/scotch/$incName" \
+            "$prefix/include/$incName" \
+            "$mpiPrefix/include/$incName" \
+            "$prefix/include/$mpiName/$incName" \
+            "$prefix/include/${mpiName}-$(uname -m)/$incName" \
+        )
+        library=$(findExtLib \
+            "$FOAM_MPI/$libName${SCOTCH_LIBNAME_SUFFIX}" \
+            "$libName${SCOTCH_LIBNAME_SUFFIX}" \
+            "$FOAM_MPI/$libName${SCOTCH_LIBNAME_SUFFIX}" \
+        )
+    elif isSystem "$prefix"
+    then
+        header=$(findFirstFile \
+            "/usr/local/include/$localDir/$incName" \
+            "/usr/local/include/ptscotch/$incName" \
+            "/usr/local/include/scotch/$incName" \
+            "/usr/local/include/$incName" \
+            "/usr/include/$localDir/$incName" \
+            "/usr/include/ptscotch/$incName" \
+            "/usr/include/scotch/$incName" \
+            "/usr/include/$incName" \
+            "$mpiPrefix/include/$incName" \
+            "/usr/include/$mpiName/$incName" \
+            "$prefix/include/${mpiName}-$(uname -m)/$incName" \
+        )
+        prefix=$(sysPrefix "$header")
+    else
+        unset prefix
+    fi
+    # ----------------------------------
+    equalBaseName "${header%/*}" "$localDir" || unset localDir
+
+    # Header
+    [ -n "$header" ] || {
+        [ -n "$warn" ] && echo "$warn (no header)"
+        return 2
+    }
+
+    # Library
+    [ -n "$library" ] \
+    || library=$(findLibrary -prefix="$prefix" -name="$libName" -local="$localDir") \
+    || library=$(findLibrary -prefix="$mpiPrefix" -name="$libName" -local="$localDir") \
+    || {
+        [ -n "$warn" ] && echo "$warn (no library)"
+        return 2
+    }
+
+    # ----------------------------------
+
+    # OK
+    echo "ptscotch - $prefix"
+    export HAVE_PTSCOTCH=true
+    export PTSCOTCH_ARCH_PATH="$prefix"
+    export PTSCOTCH_INC_DIR="${header%/*}"     # Basename
+    export PTSCOTCH_LIB_DIR="${library%/*}"    # Basename
+
+    ##echo "DEBUG: header=$header" 1>&2
+    ##echo "DEBUG: library=$library" 1>&2
+}
+
+
+# Output as per search_* function
+have_scotch()
+{
+    local warn="==> skip scotch"
+    local config="config.sh/scotch"
+    local file
+
+    if file="$("$WM_PROJECT_DIR"/bin/foamEtcFile "$config")"
+    then
+        . "$file"
+    else
+        [ -n "$warn" ] && echo "$warn (no $config)"
+        return 2
+    fi
+
+    search_scotch "$SCOTCH_ARCH_PATH"
+}
+
+
+# Output as per search_* function
+have_ptscotch()
+{
+    local warn="==> skip ptscotch"
+
+    if [ "$HAVE_SCOTCH" != true ]
+    then
+        echo "$warn (no serial scotch available?)"
+        return 1
+    fi
+
+    # Reuse old settings
+    [ -n "$PTSCOTCH_ARCH_PATH" ] || PTSCOTCH_ARCH_PATH="$SCOTCH_ARCH_PATH"
+
+    search_ptscotch "$PTSCOTCH_ARCH_PATH"
+}
+
+
+# Query settings
+query_scotch()
+{
+    local config="config.sh/scotch"
+    local file
+
+    if file="$("$WM_PROJECT_DIR"/bin/foamEtcFile -mode=o "$config")"
+    then
+        . "$file"
+        _process_query scotch "$SCOTCH_ARCH_PATH"
+    else
+        echo "(no $config)" 1>&2
+        echo "scotch=unknown"
+    fi
+}
+
+
+#------------------------------------------------------------------------------
+
+# Reset
+no_scotch
+
+# Test/query
+case "$1" in
+-test | -debug-test)
+    [ "$1" = "-debug-test" ] && set -x
+    have_scotch && have_ptscotch
+    [ "$1" = "-debug-test" ] && set +x
+    echo_scotch
+    ;;
+-query)
+    query_scotch
+    ;;
+esac
+
+#------------------------------------------------------------------------------

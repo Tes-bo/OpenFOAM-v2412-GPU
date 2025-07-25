@@ -1,0 +1,4 @@
+- demo for using moving 'geometric' fvOption selection
+- flow left to right
+- scalar transport with zero (non-numerical) diffusion
+- still too many invocations of selection update

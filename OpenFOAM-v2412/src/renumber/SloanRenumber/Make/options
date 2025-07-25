@@ -1,0 +1,10 @@
+EXE_INC = \
+    $(c++LESSWARN) \
+    -I$(BOOST_INC_DIR) \
+    -I$(LIB_SRC)/meshTools/lnInclude \
+    -I$(LIB_SRC)/renumber/renumberMethods/lnInclude
+
+LIB_LIBS = \
+    -L$(BOOST_LIB_DIR) -lboost_system \
+    -lmeshTools \
+    -lrenumberMethods

@@ -1,0 +1,26 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+# Generate mesh
+
+#- Conformal starting mesh
+#m4 < system/blockMeshDict-conformal.m4 > system/blockMeshDict
+
+#- Non-conformal starting mesh
+m4 < system/blockMeshDict-non-conformal.m4 > system/blockMeshDict
+runApplication blockMesh
+# Convert coordinates from cylindrical into Cartesian
+runApplication -s cylToCart transformPoints -cylToCart "((0 0 0) (0 0 1) (1 0 0))"
+
+# Final clean-up, setting of boundary file, etc.
+rm -rf 0/
+runApplication -s cyclicAMI changeDictionary -dict system/changeDictionaryDict_cyclicAMI -noZero -constant
+runApplication checkMesh -constant
+restore0Dir
+
+# Set up postprocessing
+paraFoam -vtk -touch
+
+#------------------------------------------------------------------------------

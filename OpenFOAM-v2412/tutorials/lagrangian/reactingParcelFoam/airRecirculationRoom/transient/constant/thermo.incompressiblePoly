@@ -1,0 +1,158 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      thermo.incompressiblePoly;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+/*
+in order to use the Boussinesq approximation for the density is sufficient to use the icoPolynominial model by setting its coefficients in the following way
+[>> BOUSSINESQ TO icoPolynomial converter]
+
+Rearranging Boussinesq equation in the form of rho = A + B * T
+rho = rho_0 - rho_0 * Beta * (T  - T_0)
+rho = rho_0 + rho_0 * Beta * T_0 - rho_0 * Beta * T
+
+By using the following values :
+        rho_0  = 1;
+        T_0  = 298;
+        Beta = 0.0034; // thermal expansion coefficient of air : At normal standard conditions of 25 degree Celsius or 298 Kelvin, Thermal expansion coefficient of air is said to be around 0.0034/K.
+
+A = rho_0 + rho_0 * Beta * T_0 = 1+1*0.0034*298 = 2.0132
+B = -rho_0 * Beta = -0.0034
+
+Therefore in the icoPolynomial subdictionaries in constant/thermo.incompressiblePoly we will set :
+
+    equationOfState
+    {
+        rhoCoeffs<8>   ( 2.0132 -0.0034 0 0 0 0 0 0 ); // rho = A + B * T
+    }
+*/
+
+N2
+{
+    specie
+    {
+        molWeight       28.0134;
+    }
+    equationOfState
+    {
+        rhoCoeffs<8>   ( 2.0132 -0.0034 0 0 0 0 0 0 );
+    }
+    thermodynamics
+    {
+        Hf              0;
+        Sf              0;
+        CpCoeffs<8>    ( 979.08 0.41787 -0.0011761 1.6742e-06 -7.2559e-10 0 0 0 );
+    }
+    transport
+    {
+        muCoeffs<8>    ( 1.5068e-06 6.1598e-08 -1.8188e-11 0 0 0 0 0 );
+        kappaCoeffs<8> ( 0.0031494 8.4997e-05 -1.2621e-08 0 0 0 0 0 );
+    }
+}
+
+O2
+{
+    specie
+    {
+        molWeight       31.9988;
+    }
+    equationOfState
+    {
+        rhoCoeffs<8>   ( 2.0132 -0.0034 0 0 0 0 0 0 );
+    }
+    thermodynamics
+    {
+        Hf              0;
+        Sf              0;
+        CpCoeffs<8>    ( 834.84 0.29297 -0.00014959 3.4143e-07 -2.2786e-10 0 0 0 );
+    }
+    transport
+    {
+        muCoeffs<8>    ( 1.5068e-06 6.1598e-08 -1.8188e-11 0 0 0 0 0 );
+        kappaCoeffs<8> ( 0.00016082 8.5301e-05 -1.4998e-08 0 0 0 0 0 );
+    }
+}
+
+H2O
+{
+    specie
+    {
+        molWeight       18.0153;
+    }
+    equationOfState
+    {
+        rhoCoeffs<8>   ( 2.0132 -0.0034 0 0 0 0 0 0 );
+    }
+    thermodynamics
+    {
+        Hf              0;//-13423000;
+        Sf              0;//10482;
+        CpCoeffs<8>    ( 1563.1 1.604 -0.0029334 3.2168e-06 -1.1571e-09 0 0 0 );
+    }
+    transport
+    {
+        muCoeffs<8>    ( 1.5068e-06 6.1598e-08 -1.8188e-11 0 0 0 0 0 );
+        kappaCoeffs<8> ( 0.0037972 0.00015336 -1.1859e-08 0 0 0 0 0 );
+    }
+}
+
+CO2
+{
+    specie
+    {
+        molWeight       44.01;
+    }
+    // to be updated: following CO2 coefficients taken from 02 subdictionary
+    equationOfState
+    {
+        rhoCoeffs<8>   ( 2.0132 -0.0034 0 0 0 0 0 0 );
+    }
+    thermodynamics
+    {
+        Hf              0;
+        Sf              0;
+        CpCoeffs<8>    ( 834.84 0.29297 -0.00014959 3.4143e-07 -2.2786e-10 0 0 0 );
+    }
+    transport
+    {
+        muCoeffs<8>    ( 1.5068e-06 6.1598e-08 -1.8188e-11 0 0 0 0 0 );
+        kappaCoeffs<8> ( 0.00016082 8.5301e-05 -1.4998e-08 0 0 0 0 0 );
+    }
+}
+
+air
+{
+    specie
+    {
+        molWeight       28.85;
+    }
+    equationOfState
+    {
+        rhoCoeffs<8>   ( 2.0132 -0.0034 0 0 0 0 0 0 );
+    }
+    thermodynamics
+    {
+        Hf              0;
+        Sf              0;
+        CpCoeffs<8>    ( 948.76 0.39171 -0.00095999 1.393e-06 -6.2029e-10 0 0 0 );
+    }
+    transport
+    {
+        muCoeffs<8>    ( 1.5061e-06 6.16e-08 -1.819e-11 0 0 0 0 0 );
+        kappaCoeffs<8> ( 0.0025219 8.506e-05 -1.312e-08 0 0 0 0 0 );
+    }
+}
+
+
+// ************************************************************************* //

@@ -1,0 +1,25 @@
+// -*- C++ -*-
+// Use the areaWrite function object
+
+areaWrite
+{
+    type    areaWrite;
+    libs    (utilityFunctionObjects);
+    log     true;
+
+    writeControl    writeTime;
+    writeInterval   1;
+
+    // Fields to output (words or regex)
+    fields  (Uf_film hf_film pf_film);
+
+    surfaceFormat ensight;
+
+    formatOptions
+    {
+        default { format binary; }
+    }
+}
+
+
+// ************************************************************************* //

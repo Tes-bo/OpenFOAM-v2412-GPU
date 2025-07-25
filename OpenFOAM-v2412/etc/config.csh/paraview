@@ -1,0 +1,252 @@
+#----------------------------------*-sh-*--------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2011-2016 OpenFOAM Foundation
+#     Copyright (C) 2016-2024 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# File
+#     config.csh/paraview
+#     - sourced by OpenFOAM-*/etc/cshrc or via foamPV alias
+#
+# Description
+#     Setup for PARAVIEW (partially QT too)
+#
+#     To disable use of the PV_PLUGIN_PATH:
+#         ParaView_VERSION=none
+#
+#     For system-wide installations:
+#         ParaView_QT=qt-system
+#         ParaView_VERSION=system       [EXPERIMENTAL]
+#
+# Note
+#     The following env. variables are required for building plugins:
+#         ParaView_DIR
+#         PV_PLUGIN_PATH
+#     The OpenFOAM plugin must be the first in PV_PLUGIN_PATH and have
+#     paraview-major.minor encoded in its name.
+#
+#     For central installations not located under ThirdParty, the environment
+#     values must be set manually. For example,
+#
+#         setenv ParaView_DIR /opt/paraview/paraview-5.6.0
+#         setenv PV_PLUGIN_PATH $FOAM_LIBBIN/paraview-5.6
+#
+#         setenv PATH $ParaView_DIR/bin:${PATH}
+#         setenv LD_LIBRARY_PATH $ParaView_DIR/lib:$LD_LIBRARY_PATH
+#         unsetenv ParaView_VERSION     # skip ThirdParty settings
+#
+#     In paraview-5.4 and earlier, the libraries were in the sub-directory:
+#
+#         setenv LD_LIBRARY_PATH $ParaView_DIR/lib/paraview-5.4:$LD_LIBRARY_PATH
+#
+# Additional Notes
+#     PV_PLUGIN_PATH is *only* set if the directory actually exists.
+#
+#------------------------------------------------------------------------------
+# USER EDITABLE PART: Changes made here may be lost with the next upgrade
+
+set ParaView_VERSION=5.12.1
+set ParaView_QT=qt-system
+
+# END OF (NORMAL) USER EDITABLE PART
+#------------------------------------------------------------------------------
+set pv_api=auto         # Either auto or pair of (major.minor) digits
+
+if (! $?ParaView_DIR ) setenv ParaView_DIR
+if (! $?WM_COMPILER_LIB_ARCH ) setenv WM_COMPILER_LIB_ARCH
+
+# Compiler-specific location for ThirdParty installations
+set archDir="$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER"
+
+# Clean path and library path
+eval `$WM_PROJECT_DIR/bin/foamCleanPath -csh-path "$ParaView_DIR $archDir/ParaView- $archDir/qt-"`
+eval `$WM_PROJECT_DIR/bin/foamCleanPath -csh-lib "$ParaView_DIR $archDir/ParaView- $archDir/qt-"`
+
+# Darwin
+switch ("$WM_ARCH")
+case darwin*:
+    setenv DYLD_LIBRARY_PATH "${FOAM_LD_LIBRARY_PATH}"
+    breaksw
+endsw
+
+# Evaluate command-line parameters for ParaView
+while ( $#argv > 0 )
+    switch ($argv[1])
+    case ParaView*=*:
+        # name=value  -> set name=value
+        eval "set $argv[1]"
+        breaksw
+    endsw
+    shift
+end
+
+unset pv_plugin_dir
+unsetenv PV_PLUGIN_PATH
+
+if ($?ParaView_VERSION) then
+switch ("$ParaView_VERSION")
+case "":
+    # empty - do nothing
+    setenv ParaView_DIR   # Defined but empty (used by foamPV alias)
+    breaksw
+
+case "none":
+    setenv ParaView_DIR   # Defined but empty (used by foamPV alias)
+
+    if ($?FOAM_VERBOSE && $?prompt) then
+        echo "Using paraview (disabled)"
+    endif
+    breaksw
+
+case "system":
+    # Obtain (major.minor) from `paraview --version`
+    set pv_api=`paraview --version | sed -ne 's/^[^0-9]*\([0-9][0-9]*\.[0-9][0-9]*\).*$/\1/p'`
+
+    if ("${pv_api}" == "") then
+        unsetenv ParaView_DIR PV_PLUGIN_PATH
+    else
+        # Get ParaView_DIR from `which paraview`
+        # Eg, /usr/bin/paraview -> /usr/bin -> /usr
+
+        set pv_dir=`which paraview`
+        if ( -x "$pv_dir" ) then
+            set pv_dir="${pv_dir:h}"
+            setenv ParaView_DIR "${pv_dir:h}"
+        endif
+
+        set pv_plugin_dir="$FOAM_LIBBIN/paraview-$pv_api"
+        if ( -d "$pv_plugin_dir" ) then
+            setenv PV_PLUGIN_PATH "$pv_plugin_dir"
+        else
+            set pv_plugin_dir="${pv_plugin_dir} (missing)"  # For message
+        endif
+    endif
+
+    if ($?FOAM_VERBOSE && $?prompt) then
+        if ( $?pv_plugin_dir ) then
+            echo "Using paraview (system)"
+            echo "    plugins         : ${pv_plugin_dir}"
+        else
+            echo "system paraview (not found)"
+        endif
+    endif
+    breaksw
+
+default:
+    # ParaView_VERSION set and non-empty
+
+    # Set API to correspond to VERSION
+    # pv_api is <digits>.<digits> from ParaView_VERSION
+    if (! $?pv_api ) set pv_api=auto
+    switch ("$ParaView_VERSION")
+    case "$pv_api".*:
+        # API and VERSION appear to correspond
+        breaksw
+
+    case [0-9]*:
+        # Extract API from VERSION.
+        set pv_api=`echo "$ParaView_VERSION" | sed -ne 's/^[^0-9]*\([0-9][0-9]*\.[0-9][0-9]*\).*$/\1/p'`
+        breaksw
+    endsw
+
+    setenv ParaView_DIR "$archDir/ParaView-$ParaView_VERSION"
+    set pv_plugin_dir="$FOAM_LIBBIN/paraview-$pv_api"
+
+    # Set paths if binaries are present
+    if ( -r "$ParaView_DIR" ) then
+        setenv PATH "${ParaView_DIR}/bin:${PATH}"
+        set pvLibDir="unknown"
+        set pv_libdirs=""
+
+        # QT libraries as required, and Qt5_DIR for the root directory.
+        # Another possibility: "qtpaths --qt-version"
+        set qtDir="$archDir/$ParaView_QT"
+        if ( -d "$qtDir" ) then
+            switch ("$ParaView_QT")
+            case *-5*:
+                setenv Qt5_DIR "$qtDir"
+                breaksw
+            endsw
+            foreach libDir ("lib$WM_COMPILER_LIB_ARCH" "lib")
+                if ( -d "${qtDir}/${libDir}" ) then
+                    set pv_libdirs="${qtDir}/${libDir}"
+                    break
+                endif
+            end
+        endif
+
+        # ParaView libraries
+        # - 5.4 and earlier: lib/paraview-X.X
+        # - 5.5 and later:   lib/, but could also be lib64/
+
+        foreach libDir ("lib$WM_COMPILER_LIB_ARCH" "lib")
+            set pvLibDir="${libDir}/paraview-${pv_api}"
+            if ( -d "${ParaView_DIR}/${pvLibDir}" ) then
+                switch ("$pv_api")
+                case 5.[0-4]:
+                    set libDir="$pvLibDir"   # Needs lib/paraview-X.X (not lib)
+                    breaksw
+                endsw
+                set pv_libdirs="${ParaView_DIR}/${libDir}:${pv_libdirs}"
+                break
+            endif
+            set pvLibDir="unknown"
+        end
+
+        # OpenFOAM plugin directory must be the first in PV_PLUGIN_PATH
+        # and have paraview-major.minor encoded in its name
+        if ( -d "$pv_plugin_dir" ) then
+            setenv PV_PLUGIN_PATH "$pv_plugin_dir"
+        else
+            set pv_plugin_dir="${pv_plugin_dir} (missing)"  # For message
+        endif
+
+
+        # Any extra library directories
+        if ( "$pv_libdirs" != "" ) then
+            switch ("$WM_ARCH")
+            case darwin*:
+                setenv FOAM_LD_LIBRARY_PATH "${pv_libdirs}:${FOAM_LD_LIBRARY_PATH}"
+                setenv DYLD_LIBRARY_PATH "${FOAM_LD_LIBRARY_PATH}"
+                breaksw
+            default:
+                setenv LD_LIBRARY_PATH "${pv_libdirs}:${LD_LIBRARY_PATH}"
+                breaksw
+            endsw
+        endif
+
+        if ($?FOAM_VERBOSE && $?prompt) then
+            echo "Using paraview"
+            echo "    ParaView_DIR    : $ParaView_DIR"
+            echo "    library         : $pvLibDir"
+            echo "    plugins         : ${pv_plugin_dir}"
+        endif
+    else
+        if ($?FOAM_VERBOSE && $?prompt) then
+            echo "No paraview found"
+            echo "    ParaView_DIR    : $ParaView_DIR"
+        endif
+
+        unsetenv PV_PLUGIN_PATH
+        setenv ParaView_DIR   # Defined but empty (used by foamPV alias)
+    endif
+    breaksw
+endsw
+endif
+
+
+#------------------------------------------------------------------------------
+
+unsetenv ParaView_VERSION ParaView_QT
+
+unset archDir libDir
+unset pv_api pv_plugin_dir pv_libdirs pvLibDir pvPython qtDir
+
+#------------------------------------------------------------------------------

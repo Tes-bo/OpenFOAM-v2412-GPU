@@ -1,0 +1,30 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+# Running with database
+for subcase in $(./list-worlds)
+do
+(
+    cd "$subcase" || exit
+    foamListTimes -rm
+    restore0Dir
+
+    dictFile="0/T"
+
+    for patch in $(foamDictionary "$dictFile" -keywords -entry boundaryField)
+    do
+        patchType="$(foamDictionary "$dictFile" -value -entry boundaryField/"$patch"/type)"
+
+        case "$patchType" in
+        (mapped*)
+            foamDictionary "$dictFile" -entry boundaryField/"$patch"/sampleDatabase -add true >/dev/null
+            echo "Use sampleDatabase: $subcase/$dictFile patch=$patch"
+        ;;
+        esac
+    done
+)
+done
+
+#------------------------------------------------------------------------------

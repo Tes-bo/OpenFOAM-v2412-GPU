@@ -1,0 +1,148 @@
+// -*- C++ -*-
+
+// ************************************************************************* //
+
+debug
+{
+    type    surfaces;
+    libs    (sampling);
+    log     true;
+    writeControl  timeStep;
+    writeInterval 1;
+
+    fields  (p rho U);
+
+    sampleScheme  cellPoint;
+    interpolationScheme cellPoint;
+    surfaceFormat ensight;
+    // surfaceFormat vtk;
+    // surfaceFormat raw;
+
+    formatOptions
+    {
+        ensight
+        {
+            collateTimes  true;
+            // collateTimes  false;
+            fieldLevel
+            {
+                "p.*"   1e5;
+                U       0;
+            }
+        }
+        raw
+        {
+            normal  true;
+            precision 8;
+        }
+    }
+
+    _plane
+    {
+        type    plane;
+        source  cells;
+        triangulate false;
+
+        normal  (-1 0 0);
+        point   (-0.042 0 0);
+        ///point   (-0.0425 0 0);  // between faces
+    }
+
+    _disk1
+    {
+        surfaceType disk;
+        origin      (-0.1 -0.05 0);
+        normal      (1 1 1);
+        radius      0.015;
+    }
+
+    surfaces
+    {
+        angledPlane
+        {
+            type        distanceSurface;
+            distance    0;
+            signed      true;
+            regularise  true;
+            surfaceType triSurfaceMesh;
+            surfaceName angledPlane.obj;
+        }
+
+        angledPlaneCut
+        {
+            type        surfaceCut;
+            triangulate false;
+            surfaceType triSurfaceMesh;
+            surfaceName angledPlane.obj;
+        }
+
+        angledPlane1
+        {
+            type        distanceSurface;
+            distance    0;
+            signed      true;
+            regularise  true;
+            surfaceType triSurfaceMesh;
+            surfaceName angledPlane1.obj;
+        }
+
+        angledPlane1Cut
+        {
+            type        surfaceCut;
+            triangulate false;
+            surfaceType triSurfaceMesh;
+            surfaceName angledPlane1.obj;
+        }
+
+        disk1
+        {
+            ${_disk1}
+            type        distanceSurface;
+            distance    0;
+            cell        false;
+            signed      true;
+            triangulate false;
+        }
+
+        iso
+        {
+            type        isoSurface;
+            isoField    p;
+            isoValue    1e5;
+            regularise  true;
+            interpolate true;
+
+            formatOptions
+            {
+                ensight
+                {
+                    transform
+                    {
+                        // origin  (0 0 0);
+                        rotationCentre  (0.025 0 0);
+                        rotation axisAngle;
+                        axis    (0 1 0);
+                        angle   90;
+                    }
+                }
+            }
+        }
+
+        // Top channel
+        plane1
+        {
+            ${_plane}
+            bounds (-1 0 -1) (0 1 1);
+        }
+
+        // Bottom channel
+        plane2
+        {
+            ${_plane}
+            bounds (-1 -1 -1) (0 0 1);
+        }
+    }
+}
+
+
+// ************************************************************************* //

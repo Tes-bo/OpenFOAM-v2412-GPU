@@ -1,0 +1,6 @@
+# Flags for compiling/linking openmp
+
+COMP_OPENMP = -fiopenmp
+LINK_OPENMP = -fiopenmp
+
+# -----------------------------------------------------------------------------

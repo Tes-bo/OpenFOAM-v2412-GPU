@@ -1,0 +1,48 @@
+--- scotch_6.0.6/src/libscotch/Makefile.orig	2019-04-29 14:59:53.957103493 +0200
++++ scotch_6.0.6/src/libscotch/Makefile	2019-04-29 18:50:42.560080675 +0200
+@@ -51,6 +51,12 @@
+ 
+ .PHONY				:	ptscotch	scotch	ptinstall	install	clean	realclean
+ 
++ifeq ($(WM_OSTYPE),MSwindows)
++
++libscotch			:	libscotch$(LIB) scotch.h
++
++endif
++
+ scotch				:
+ 					$(MAKE) CC="$(CCS)" CCD="$(CCS)"	\
+ 					scotch.h				\
+@@ -438,6 +444,11 @@
+ 			wgraph_part_zr$(OBJ)  			\
+ 			wgraph_store$(OBJ)
+ 
++ifeq ($(WM_OSTYPE),MSwindows)
++## Add into libscotch instead of having a separate library
++LIBSCOTCHDEPS += library_error_exit$(OBJ)
++endif
++
+ ##
+ ##  Todo list.
+ ##
+--- scotch_6.0.6/src/Makefile.orig	2018-07-14 17:24:49.000000000 +0200
++++ scotch_6.0.6/src/Makefile	2019-04-29 18:39:16.365132864 +0200
+@@ -89,9 +89,18 @@
+ $(mandir)/man1			:	$(mandir)
+ 					-$(MKDIR) $(mandir)/man1
+ 
++ifeq ($(WM_OSTYPE),MSwindows)
++
++libscotch			:	required
++					(cd libscotch ;      $(MAKE) VERSION=$(VERSION) RELEASE=$(RELEASE) PATCHLEVEL=$(PATCHLEVEL) libscotch && $(MAKE) install)
++
++else
++
+ libscotch			:	required
+ 					(cd libscotch ;      $(MAKE) VERSION=$(VERSION) RELEASE=$(RELEASE) PATCHLEVEL=$(PATCHLEVEL) scotch && $(MAKE) install)
+ 
++endif
++
+ scotch				:	libscotch
+ 					(cd scotch ;         $(MAKE) VERSION=$(VERSION) RELEASE=$(RELEASE) PATCHLEVEL=$(PATCHLEVEL) scotch && $(MAKE) install)
+ 					(cd libscotchmetis ; $(MAKE)                                                                scotch && $(MAKE) install)

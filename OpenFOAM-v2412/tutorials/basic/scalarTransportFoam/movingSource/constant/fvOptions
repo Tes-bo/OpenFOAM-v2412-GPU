@@ -1,0 +1,61 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      fvOptions;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+scalarSource1
+{
+    type            scalarSemiImplicitSource;
+
+    volumeMode      absolute;
+
+    selectionMode   geometric;
+    selection
+    {
+        cylinder
+        {
+            action  use;
+            source  cylinder;
+
+            point1  (0.05 0.03 -1); // beg point on cylinder axis
+            point2  (0.05 0.03  1); // end point on cylinder axis
+            radius  0.003;
+
+            solidBodyMotionFunction oscillatingLinearMotion;
+            oscillatingLinearMotionCoeffs
+            {
+                // coefficients
+                amplitude       (0 0.02 0);
+                omega           0.628318530718; // rad/s
+            }
+
+            /*
+            solidBodyMotionFunction tabulated6DoFMotion;
+            tabulated6DoFMotionCoeffs
+            {
+                // coefficients
+                timeDataFileName    "<constant>/meshMotion.dat";
+                CofG                (0 0 0);
+            }
+            */
+        }
+    }
+
+    sources
+    {
+        T           (1e-4 0);
+    }
+}
+
+// ************************************************************************* //

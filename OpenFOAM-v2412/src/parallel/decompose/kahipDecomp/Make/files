@@ -1,0 +1,3 @@
+kahipDecomp.C
+
+LIB = $(FOAM_LIBBIN)/libkahipDecomp

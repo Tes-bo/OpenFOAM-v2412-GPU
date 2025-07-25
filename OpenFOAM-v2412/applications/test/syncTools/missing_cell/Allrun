@@ -1,0 +1,27 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+#- Generate 2x2x1 cells
+runApplication blockMesh
+
+#- Remove cell0
+runApplication topoSet
+runApplication subsetMesh c0 -patch exposed0 -overwrite
+
+#- Put exposed faces (2) into separate patches
+runApplication -s face topoSet
+runApplication createPatch -overwrite
+
+#- Decompose - creates one processor without any faces in patches
+runApplication decomposePar
+
+#- Extract inter-patch points. Should include processor that does not
+#- have faces on patch ...
+mkdir -p constant/triSurface
+runParallel surfaceMeshExtract \
+    -patches '(exposed0 exposed1)' -featureAngle 180 \
+    constant/triSurface/blockMesh.obj
+
+#------------------------------------------------------------------------------

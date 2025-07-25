@@ -1,0 +1,43 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       polyTopoChanger;
+    location    "constant/polyMesh";
+    object      meshModifiers;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+2
+(
+top
+{
+    type layerAdditionRemoval;
+    faceZoneName top;
+    minLayerThickness 0.001;
+    maxLayerThickness 0.03;
+    thicknessFromVolume false;
+    active true;
+}
+
+bottom
+{
+    type layerAdditionRemoval;
+    faceZoneName bottom;
+//    minLayerThickness 0.005;
+//    maxLayerThickness 0.03;
+    minLayerThickness 0.005;
+    maxLayerThickness 0.03;
+    thicknessFromVolume false;
+    active true;
+}
+)
+
+// ************************************************************************* //

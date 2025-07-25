@@ -1,0 +1,28 @@
+// SPDX-FileCopyrightText: Copyright (c) Kitware Inc.
+// SPDX-FileCopyrightText: Copyright (c) Sandia Corporation
+// SPDX-License-Identifier: BSD-3-Clause
+// Generated file.  Do not edit.
+
+#include "@_paraview_tree_layout_strategy_STRATEGY_TYPE@Implementation.h"
+#include "vtk@_paraview_tree_layout_strategy_STRATEGY_TYPE@.h"
+
+@_paraview_tree_layout_strategy_STRATEGY_TYPE@Implementation::@_paraview_tree_layout_strategy_STRATEGY_TYPE@Implementation(QObject* o)
+  : QObject(o)
+{
+  this->@_paraview_tree_layout_strategy_STRATEGY_TYPE@ = vtkSmartPointer<vtk@_paraview_tree_layout_strategy_STRATEGY_TYPE@>::New();
+  setObjectName("@_paraview_tree_layout_strategy_STRATEGY_TYPE@");
+}
+
+QStringList @_paraview_tree_layout_strategy_STRATEGY_TYPE@Implementation::treeLayoutStrategies() const
+{
+  return QStringList() << "@_paraview_tree_layout_strategy_STRATEGY_LABEL@";
+}
+
+vtkAreaLayoutStrategy* @_paraview_tree_layout_strategy_STRATEGY_TYPE@Implementation::getTreeLayoutStrategy(const QString& layoutStrategy)
+{
+  if(layoutStrategy == "@_paraview_tree_layout_strategy_STRATEGY_LABEL@")
+  {
+    return this->@_paraview_tree_layout_strategy_STRATEGY_TYPE@;
+  }
+  return nullptr;
+}

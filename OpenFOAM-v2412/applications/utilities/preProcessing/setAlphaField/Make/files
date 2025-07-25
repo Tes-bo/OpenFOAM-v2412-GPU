@@ -1,0 +1,3 @@
+setAlphaField.C
+
+EXE = $(FOAM_APPBIN)/setAlphaField

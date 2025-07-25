@@ -1,0 +1,26 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+cp -rf \
+    "$FOAM_TUTORIALS"/resources/geometry/annularThermalMixer \
+    constant/triSurface
+
+runApplication surfaceFeatureExtract
+
+runApplication blockMesh
+
+runApplication snappyHexMesh -overwrite
+
+rm -rf 0
+
+runApplication createBaffles -overwrite
+
+runApplication mergeOrSplitBaffles -split -overwrite
+
+restore0Dir
+
+runApplication $(getApplication)
+
+#------------------------------------------------------------------------------

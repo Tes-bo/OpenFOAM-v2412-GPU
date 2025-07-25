@@ -1,0 +1,42 @@
+#!/bin/sh
+cd "${0%/*}" || exit                            # Run from this directory
+targetType=libso
+. "${WM_PROJECT_DIR:?}"/wmake/scripts/AllwmakeParseArguments
+
+#------------------------------------------------------------------------------
+# Default build into OpenFOAM project locations unless specified with
+# -prefix or FOAM_MODULE_PREFIX env varable
+
+# Long form to avoid dash 0.5.8 error (issue #1757)
+[ -n "$FOAM_MODULE_PREFIX" ] || FOAM_MODULE_PREFIX="${FOAM_LIBBIN%/*}"
+export FOAM_MODULE_PREFIX
+
+echo "========================================"
+case "$FOAM_MODULE_PREFIX" in
+(false | none)
+    echo "OpenFOAM modules disabled (prefix=${FOAM_MODULE_PREFIX})"
+    echo
+    exit 0
+esac
+
+echo "prefix = $FOAM_MODULE_PREFIX"
+echo
+echo "    ignoring possible compilation errors"
+echo "    make certain to check the output file"
+echo
+set +e
+export WM_CONTINUE_ON_ERROR=true
+
+#------------------------------------------------------------------------------
+
+for name in $(./list-plugins)
+do
+    if [ -d "$name" ]
+    then
+        # Use wmake -all instead of Allwmake to allow for overrides
+        ( cd "$name" && wmake -all $targetType )
+    fi
+done
+
+
+#------------------------------------------------------------------------------

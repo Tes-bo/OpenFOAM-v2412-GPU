@@ -1,0 +1,108 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      dynamicMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dynamicFvMesh   dynamicMotionSolverTopoFvMesh;
+
+motionSolverLibs (fvMotionSolvers);
+
+solver          displacementLayeredMotion;
+
+displacementLayeredMotionCoeffs
+{
+    // In addition to boundary conditions on pointDisplacement
+    // we can also have boundary conditions on faceZones bordering cellZones.
+    regions
+    {
+        LARTopCells
+        {
+            interpolationScheme oneSided;
+
+            boundaryField
+            {
+                top // patch
+                {
+                    type            uniformFollow; // use pointDisplacement bc
+                    patch           sphere;          // fixed/static
+                }
+
+                LARTopFaces
+                {
+                    type            slip;
+                }
+            }
+        }
+
+        topBlock
+        {
+            interpolationScheme oneSided;
+
+            boundaryField
+            {
+                LARTopFaces
+                {
+                    type            uniformFollow;
+                    patch           sphere;
+                }
+
+                centralTopFaces
+                {
+                    type            slip;
+                }
+
+            }
+        }
+
+        centralBlock
+        {
+            interpolationScheme oneSided;
+
+            boundaryField
+            {
+                centralTopFaces
+                {
+                    type            uniformFollow;
+                    patch           sphere;
+                }
+
+                centralBottomFaces
+                {
+                    type            slip;
+                }
+            }
+        }
+
+        bottomBlock
+        {
+            interpolationScheme oneSided;
+
+            boundaryField
+            {
+                centralBottomFaces
+                {
+                    type            uniformFollow;
+                    patch           sphere;
+                }
+                bottom
+                {
+                    type            slip;
+                }
+            }
+        }
+    }
+}
+
+
+// ************************************************************************* //

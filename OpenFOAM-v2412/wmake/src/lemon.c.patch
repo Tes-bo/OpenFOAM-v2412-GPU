@@ -1,0 +1,82 @@
+--- lemon.c.orig	2022-05-11 05:42:38.000000000 +0200
++++ lemon.c	2022-05-11 09:13:17.556350944 +0200
+@@ -426,6 +426,7 @@
+   int printPreprocessed;   /* Show preprocessor output on stdout */
+   int has_fallback;        /* True if any %fallback is seen in the grammar */
+   int nolinenosflag;       /* True if #line statements should not be printed */
++  int linkage;             /* True if %static provided (use static linkage) */
+   char *argv0;             /* Name of the program */
+ };
+ 
+@@ -1553,6 +1554,24 @@
+   lemon_strcpy(outputDir, z);
+ }
+ 
++/* Remember the name of the code extension (automatically prefix '.')
++** default is "c" extension
++*/
++static char *code_ext = ".c";
++static void handle_e_option(char *z){
++  code_ext = (char *) malloc( lemonStrlen(z)+2 );
++  if( code_ext==0 ){
++    fprintf(stderr,"out of memory\n");
++    exit(1);
++  }
++  if(*z == '.'){
++    lemon_strcpy(code_ext, z);
++  } else {
++    code_ext[0] = '.';
++    lemon_strcpy(&(code_ext[1]), z);
++  }
++}
++
+ static char *user_templatename = NULL;
+ static void handle_T_option(char *z){
+   user_templatename = (char *) malloc( lemonStrlen(z)+1 );
+@@ -1641,6 +1660,7 @@
+     {OPT_FLAG, "c", (char*)&compress, "Don't compress the action table."},
+     {OPT_FSTR, "d", (char*)&handle_d_option, "Output directory.  Default '.'"},
+     {OPT_FSTR, "D", (char*)handle_D_option, "Define an %ifdef macro."},
++    {OPT_FSTR, "e", (char*)&handle_e_option, "Output code extension.  Default 'c'"},
+     {OPT_FLAG, "E", (char*)&printPP, "Print input file after preprocessing."},
+     {OPT_FSTR, "f", 0, "Ignored.  (Placeholder for -f compiler options.)"},
+     {OPT_FLAG, "g", (char*)&rpflag, "Print grammar without actions."},
+@@ -2268,6 +2288,7 @@
+       psp->preccounter = 0;
+       psp->firstrule = psp->lastrule = 0;
+       psp->gp->nrule = 0;
++      psp->gp->linkage = 0;
+       /* fall through */
+     case WAITING_FOR_DECL_OR_RULE:
+       if( x[0]=='%' ){
+@@ -2553,6 +2574,11 @@
+           psp->state = WAITING_FOR_WILDCARD_ID;
+         }else if( strcmp(x,"token_class")==0 ){
+           psp->state = WAITING_FOR_CLASS_ID;
++        }else if( strcmp(x,"static")==0 ){
++          /* %static is boolean-like */
++          psp->gp->linkage = 1; /* 1 = static (True) */
++          psp->insertLineMacro = 0;
++          psp->state = WAITING_FOR_DECL_OR_RULE;
+         }else{
+           ErrorMsg(psp->filename,psp->tokenlineno,
+             "Unknown declaration keyword: \"%%%s\".",x);
+@@ -4315,7 +4341,7 @@
+ 
+   in = tplt_open(lemp);
+   if( in==0 ) return;
+-  out = file_open(lemp,".c","wb");
++  out = file_open(lemp,code_ext,"wb");
+   if( out==0 ){
+     fclose(in);
+     return;
+@@ -4439,6 +4465,9 @@
+   tplt_xfer(lemp->name,in,out,&lineno);
+ 
+   /* Generate the defines */
++  if( lemp->linkage ){
++    fprintf(out,"#define YYFUNCAPI static\n"); lineno++;
++  }
+   fprintf(out,"#define YYCODETYPE %s\n",
+     minimum_size_type(0, lemp->nsymbol, &szCodeType)); lineno++;
+   fprintf(out,"#define YYNOCODE %d\n",lemp->nsymbol);  lineno++;

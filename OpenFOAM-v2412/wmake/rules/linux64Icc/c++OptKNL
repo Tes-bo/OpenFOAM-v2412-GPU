@@ -1,0 +1,4 @@
+c++DBUG     =
+c++OPT      = -xmic-avx512 -fp-speculation=safe -O3
+
+ROUNDING_MATH = -frounding-math

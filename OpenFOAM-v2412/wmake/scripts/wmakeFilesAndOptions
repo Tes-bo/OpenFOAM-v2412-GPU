@@ -1,0 +1,66 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#-------------------------------------------------------------------------------
+#     Copyright (C) 2011-2016 OpenFOAM Foundation
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     wmakeFilesAndOptions
+#
+# Usage
+#     wmakeFilesAndOptions [-help]
+#
+# Description
+#     Scan current directory for directories and source files
+#     and construct Make/files and Make/options
+#
+#------------------------------------------------------------------------------
+Script=${0##*/}
+
+usage() {
+    while [ "$#" -ge 1 ]; do echo "$1"; shift; done
+    cat<<USAGE
+
+Usage: $Script [-help]
+
+Scans current directory for directories and source files and constructs
+the 'Make/files' and 'Make/options' files.
+
+USAGE
+    exit 1
+}
+
+# Find -help anywhere
+for i
+do
+    case "$i" in (-h | -help*) usage ;; esac
+done
+
+#------------------------------------------------------------------------------
+
+# No options/arguments
+[ "$#" -eq 0 ] || {
+    echo "$Script error: Unexpected options/arguments: $*" 1>&2
+    exit 1
+}
+
+if [ -e Make ]
+then
+    echo "$Script error: Make directory already exists" 1>&2
+    exit 1
+fi
+
+mkdir Make
+[ -e Make/files ]   || "${0%/*}/makeFiles"
+[ -e Make/options ] || "${0%/*}/makeOptions"
+
+exit 0 # clean exit
+
+#------------------------------------------------------------------------------

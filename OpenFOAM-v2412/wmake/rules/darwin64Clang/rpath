@@ -1,0 +1,30 @@
+#------------------------------------------------------------------------------
+
+# Compile-time rpath information:
+
+FOAM_MPI ?= dummy
+ifeq (,$(strip $(FOAM_MPI)))
+    FOAM_MPI = dummy
+endif
+
+PROJECT_RPATH :=
+
+# ThirdParty libraries (FOAM_EXT_LIBBIN) : mpi-specific and serial
+ifneq (,$(strip $(FOAM_EXT_LIBBIN)))
+    ifneq (dummy,$(strip $(FOAM_MPI)))
+        PROJECT_RPATH += -rpath $(FOAM_EXT_LIBBIN)/$(FOAM_MPI)
+    endif
+    PROJECT_RPATH += -rpath $(FOAM_EXT_LIBBIN)
+endif
+
+# project libraries (FOAM_LIBBIN) : mpi-specific and serial
+# encode as @loader_path and recompose as @executable_path as needed
+ifneq (dummy,$(strip $(FOAM_MPI)))
+    PROJECT_RPATH += -rpath @loader_path/$(FOAM_MPI)
+endif
+PROJECT_RPATH += -rpath @loader_path
+
+# Fallback for stubs libraries (largely for missing MPI) - to be found last
+PROJECT_RPATH += -rpath @loader_path/dummy
+
+#------------------------------------------------------------------------------

@@ -1,0 +1,51 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+vorticity
+{
+    type            vorticity;
+    libs            (fieldFunctionObjects);
+
+    enabled         true;
+    writeControl    writeTime;
+}
+
+Q
+{
+    type            Q;
+    libs            (fieldFunctionObjects);
+
+    enabled         true;
+    writeControl    writeTime;
+}
+
+DESModelRegions
+{
+    type            DESModelRegions;
+    libs            (fieldFunctionObjects);
+
+    enabled         true;
+    writeControl    writeTime;
+
+    result      DESField;
+}
+
+blendingFactor
+{
+    type            blendingFactor;
+    libs            (fieldFunctionObjects);
+
+    field           U;
+
+    enabled         true;
+    writeControl    writeTime;
+    log             false;
+}
+
+
+// ************************************************************************* //

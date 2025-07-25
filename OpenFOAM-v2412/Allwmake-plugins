@@ -1,0 +1,37 @@
+#!/bin/sh
+# Run from OPENFOAM top-level directory only
+cd "${0%/*}" || exit
+wmake -check-dir "$WM_PROJECT_DIR" 2>/dev/null || {
+    echo "Error (${0##*/}) : not located in \$WM_PROJECT_DIR"
+    echo "    Check your OpenFOAM environment and installation"
+    exit 1
+}
+if [ -f "$WM_PROJECT_DIR"/wmake/scripts/AllwmakeParseArguments ]
+then  . "$WM_PROJECT_DIR"/wmake/scripts/AllwmakeParseArguments -no-recursion "$@" || \
+    echo "Argument parse error"
+else
+    echo "Error (${0##*/}) : WM_PROJECT_DIR appears to be incorrect"
+    echo "    Check your OpenFOAM environment and installation"
+    exit 1
+fi
+
+#------------------------------------------------------------------------------
+# Additional components
+
+case "$FOAM_MODULE_PREFIX" in
+(false | none)
+    echo ========================================
+    echo "OpenFOAM plugins disabled (prefix=${FOAM_MODULE_PREFIX})"
+    echo "Can be built separately:"
+    echo
+    echo "    ./Allwmake-plugins -prefix=..."
+    echo
+    echo ========================================
+    echo
+    ;;
+(*)
+    # Use wmake -all instead of Allwmake to allow for overrides
+    ( cd "$WM_PROJECT_DIR/plugins" 2>/dev/null && wmake -all )
+esac
+
+#------------------------------------------------------------------------------

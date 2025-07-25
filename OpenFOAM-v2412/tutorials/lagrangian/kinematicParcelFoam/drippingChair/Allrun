@@ -1,0 +1,32 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+unset decompDict
+# decompDict=system/decomposeParDict-6
+# decompDict=system/decomposeParDict-7
+
+runApplication blockMesh
+
+runApplication makeFaMesh
+
+runApplication -decompose-dict="$decompDict" decomposePar
+
+# For ids and processor partitioning
+runParallel -s volume -decompose-dict="$decompDict" \
+    foamToVTK -name VTK-parallel -time 0 \
+    -no-finite-area -no-internal -no-lagrangian -no-fields -with-ids \
+    -patches filmWalls
+
+runParallel -decompose-dict="$decompDict" $(getApplication)
+
+if false
+then
+    # Not usually needed - uses areaWrite
+    runParallel -s area -decompose-dict="$decompDict" \
+        foamToVTK -name VTK-parallel \
+        -no-boundary -no-internal -no-lagrangian -with-ids
+fi
+
+#------------------------------------------------------------------------------

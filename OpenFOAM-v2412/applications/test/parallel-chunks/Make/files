@@ -1,0 +1,3 @@
+Test-parallel-chunks.C
+
+EXE = $(FOAM_USER_APPBIN)/Test-parallel-chunks

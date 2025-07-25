@@ -1,0 +1,21 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Version:  v2412
+    \\  /    A nd           | Website:  www.openfoam.com
+     \\/     M anipulation  |
+-------------------------------------------------------------------------------
+Description
+    Calculates the Peclet Number field from the flux field.
+
+\*---------------------------------------------------------------------------*/
+
+type            PecletNo;
+libs            (fieldFunctionObjects);
+
+field           phi;
+
+executeControl  writeTime;
+writeControl    writeTime;
+
+// ************************************************************************* //

@@ -1,0 +1,8 @@
+/* Disable normal project defaults */
+PROJECT_INC =
+PROJECT_LIBS =
+
+EXE_INC = \
+    -I../
+
+/* LIB_LIBS = */

@@ -1,0 +1,9 @@
+saturationModel/saturationModel.C
+Antoine/Antoine.C
+AntoineExtended/AntoineExtended.C
+ArdenBuck/ArdenBuck.C
+polynomial/polynomial.C
+function1/function1.C
+constantSaturationConditions/constantSaturationConditions.C
+
+LIB = $(FOAM_LIBBIN)/libsaturationModel

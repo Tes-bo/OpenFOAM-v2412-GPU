@@ -1,0 +1,21 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Version:  v2412
+    \\  /    A nd           | Website:  www.openfoam.com
+     \\/     M anipulation  |
+-------------------------------------------------------------------------------
+Description
+    Add a list of fields.
+
+\*---------------------------------------------------------------------------*/
+
+type            add;
+libs            (fieldFunctionObjects);
+
+fields          (<field names>);
+
+executeControl  writeTime;
+writeControl    writeTime;
+
+// ************************************************************************* //

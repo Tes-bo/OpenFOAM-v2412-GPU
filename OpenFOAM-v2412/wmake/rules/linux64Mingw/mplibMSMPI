@@ -1,0 +1,3 @@
+PFLAGS     = -DMPICH_SKIP_MPICXX -DOMPI_SKIP_MPICXX
+PINC       = -I$(MPI_ARCH_PATH)/include
+PLIBS      = -L$(MPI_ARCH_PATH)/lib -L$(MPI_ARCH_PATH)/lib/x64 -lmsmpi

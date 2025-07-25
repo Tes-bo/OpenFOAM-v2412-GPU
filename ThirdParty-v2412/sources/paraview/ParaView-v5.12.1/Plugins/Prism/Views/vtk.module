@@ -1,0 +1,18 @@
+NAME
+  Prism::vtkPrismViews
+LIBRARY_NAME
+  vtkPrismViews
+SPDX_LICENSE_IDENTIFIER
+  BSD-3-Clause
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Kitware Inc.
+DEPENDS
+  ParaView::RemotingViews
+  VTK::CommonExecutionModel
+PRIVATE_DEPENDS
+  ParaView::RemotingCore
+  Prism::vtkPrismFilters
+  VTK::CommonCore
+  VTK::CommonDataModel
+  VTK::FiltersExtraction
+  VTK::FiltersGeometry

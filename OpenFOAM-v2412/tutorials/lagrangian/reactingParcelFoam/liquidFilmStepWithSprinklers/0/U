@@ -1,0 +1,89 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volVectorField;
+    object      U;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 1 -1 0 0 0 0];
+
+internalField   uniform (3 0 0);
+
+boundaryField
+{
+    inlet
+    {
+        type            fixedValue;
+        value           uniform (3 0 0);
+        inletValue      uniform (0 0 0);
+    }
+
+    outlet
+    {
+        type            pressureInletOutletVelocity;
+        inletValue      uniform (0 0 0);
+        value           uniform (0 0 0);
+    }
+
+    "(top|sides)"
+    {
+        type            noSlip;
+    }
+
+    base
+    {
+        type            velocityFilmShell;
+        active          true;
+        infoOutput      false;
+        deltaWet        1e-6;
+        U               U;
+        pRef            1e5; // Reference pressure for thermo
+        T0              300; // Isothermal film temperature
+
+        zeroWallVelocity    true;
+
+        thermo
+        {
+            H2O;
+        }
+
+        turbulence          laminar;
+
+        laminarCoeffs
+        {
+            shearStress     simple;
+            friction        ManningStrickler; // Wall friction model
+            n               0.005;  // Manning number
+            Cf              0;      // Gas friction
+        }
+
+        injectionModels
+        (
+            filmSeparation
+        );
+
+        forces ();
+
+        filmSeparationCoeffs
+        {
+            model              OwenRyley;
+            definedPatchRadii  0;
+        }
+
+        region              film;
+        liquidFilmModel     kinematicThinFilm;
+        value               uniform (0 0 0);
+    }
+}
+
+
+// ************************************************************************* //

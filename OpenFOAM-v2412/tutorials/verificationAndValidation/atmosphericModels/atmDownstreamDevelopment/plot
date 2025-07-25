@@ -1,0 +1,410 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+# settings
+
+    # operand setups
+    setups="
+    kEpsilon
+    kOmegaSST
+    "
+
+    # operand minimum z height
+    zMin=0
+
+# Note: Benchmark data is available for the standard k-epsilon model from:
+#    Hargreaves, D. M., & Wright, N. G. (2007).
+#    On the use of the k–ε model in commercial CFD software
+#    to model the neutral atmospheric boundary layer.
+#    Journal of wind engineering and
+#    industrial aerodynamics, 95(5), 355-369.
+#    DOI:10.1016/j.jweia.2006.08.002
+#    Figure 6.
+#------------------------------------------------------------------------------
+
+plot_ux_vs_znorm_upstream() {
+
+    echo "  # Plots the ground-normal flow speed profile (upstream)"
+
+    endTime="$1"
+    zMin="$2"
+
+    benchmarkFile="resources/dataset/Ux-HW-RH-Fig6a"
+    sampleFile="results/$setup/postProcessing/samples_u/$endTime"
+    image="plots/$setup/ux_vs_znorm_upstream.png"
+
+    gnuplot<<PLT_UX_UPSTREAM
+    set terminal pngcairo font "helvetica,20" size 1000, 800
+    set xrange [4:18]
+    set yrange [0:50]
+    set grid
+    set key top left
+    set xlabel "U_x [m s^{-1}]"
+    set ylabel "Non-dimensionalised height, z/z_{ref}"
+    set offset .05, .05
+    set output "$image"
+
+    # Benchmark
+        benchmark="$benchmarkFile"
+        zRef=6
+
+    # OpenFOAM
+        samplesCell="$sampleFile/x_0mCell_U.xy"
+        samplesPatch="$sampleFile/x_0mPatch_U.xy"
+        zMin="$zMin"
+
+    plot \
+        benchmark u 1:2 t "Richards-Hoxey" w p ps 2 pt 6 lc rgb "#000000", \
+        benchmark u 1:2 t "Hargreaves-Wright, x=2500m" w p ps 1 pt 5 lc rgb "#E69F00", \
+        benchmark u 1:2 t "Hargreaves-Wright, x=4000m" w p ps 0.5 pt 4 lc rgb "#56B4E9", \
+        samplesCell u 2:((\$1-$zMin)/zRef) t "OpenFOAM, x=0m (Patch)" w l lw 2 lc rgb "#009E73", \
+        samplesPatch u 2:((\$1-$zMin)/zRef) t "OpenFOAM, x=0m (Cell)" w l lw 2 lc rgb "#F0E440"
+PLT_UX_UPSTREAM
+}
+
+
+plot_ux_vs_znorm_middle() {
+
+    echo "  # Plots the ground-normal flow speed profile (mid-range)"
+
+    endTime="$1"
+    zMin="$2"
+
+    benchmarkFile="resources/dataset/Ux-HW-RH-Fig6a"
+    sampleFile="results/$setup/postProcessing/samples_u/$endTime"
+    image="plots/$setup/ux_vs_znorm_middle.png"
+
+    gnuplot<<PLT_UX_MID
+    set terminal pngcairo font "helvetica,20" size 1000, 800
+    set xrange [4:18]
+    set yrange [0:50]
+    set grid
+    set key top left
+    set xlabel "U_x [m s^{-1}]"
+    set ylabel "Non-dimensionalised height, z/z_{ref}"
+    set offset .05, .05
+    set output "$image"
+
+    # Benchmark
+        benchmark="$benchmarkFile"
+        zRef=6
+
+    # OpenFOAM
+        samples0="$sampleFile/x_2500m_U.xy"
+        samples1="$sampleFile/x_4000m_U.xy"
+        zMin="$zMin"
+
+    plot \
+        benchmark u 1:2 t "Richards-Hoxey" w p ps 2 pt 6 lc rgb "#000000", \
+        benchmark u 1:2 t "Hargreaves-Wright, x=2500m" w p ps 1 pt 5 lc rgb "#E69F00", \
+        benchmark u 1:2 t "Hargreaves-Wright, x=4000m" w p ps 0.5 pt 4 lc rgb "#56B4E9", \
+        samples0 u 2:((\$1-$zMin)/zRef) t "OpenFOAM, x=2500m" w l lw 2 lc rgb "#0072B2", \
+        samples1 u 2:((\$1-$zMin)/zRef) t "OpenFOAM, x=4000m" w l lw 2 lc rgb "#D55E00"
+PLT_UX_MID
+}
+
+
+plot_ux_vs_znorm_downstream() {
+
+    echo "  # Plots the ground-normal flow speed profile (downstream)"
+
+    endTime="$1"
+    zMin="$2"
+
+    benchmarkFile="resources/dataset/Ux-HW-RH-Fig6a"
+    sampleFile="results/$setup/postProcessing/samples_u/$endTime"
+    image="plots/$setup/ux_vs_znorm_downstream.png"
+
+    gnuplot<<PLT_UX_DOWNSTREAM
+    set terminal pngcairo font "helvetica,20" size 1000, 800
+    set xrange [4:18]
+    set yrange [0:50]
+    set grid
+    set key top left
+    set xlabel "U_x [m s^{-1}]"
+    set ylabel "Non-dimensionalised height, z/z_{ref}"
+    set offset .05, .05
+    set output "$image"
+
+    # Benchmark
+        benchmark="$benchmarkFile"
+        zRef=6
+
+    # OpenFOAM
+        samplesCell="$sampleFile/x_5000mCell_U.xy"
+        samplesPatch="$sampleFile/x_5000mPatch_U.xy"
+        zMin="$zMin"
+
+    plot \
+        benchmark u 1:2 t "Richards-Hoxey" w p ps 2 pt 6 lc rgb "#000000", \
+        benchmark u 1:2 t "Hargreaves-Wright, x=2500m" w p ps 1 pt 5 lc rgb "#E69F00", \
+        benchmark u 1:2 t "Hargreaves-Wright, x=4000m" w p ps 0.5 pt 4 lc rgb "#56B4E9", \
+        samplesCell u 2:((\$1-$zMin)/zRef) t "OpenFOAM, x=5000m (Cell)" w l lw 2 lc rgb "#CC79A7", \
+        samplesPatch u 2:((\$1-$zMin)/zRef) t "OpenFOAM, x=5000m (Patch)" w l lw 2 lc rgb "#440154"
+PLT_UX_DOWNSTREAM
+}
+
+
+plot_k_vs_znorm() {
+
+    echo "  # Plots the ground-normal turbulent kinetic energy profile"
+
+    endTime="$1"
+    zMin="$2"
+
+    benchmarkFile="resources/dataset"
+    sampleFile="results/$setup/postProcessing/samples_k/$endTime"
+    image="plots/$setup/k_vs_znorm.png"
+
+    gnuplot<<PLT_K
+    set terminal pngcairo font "helvetica,20" size 1000, 800
+    set xrange [1:2]
+    set yrange [0:50]
+    set grid
+    set key top right
+    set xlabel "k [m^2 s^{-2}]"
+    set ylabel "Non-dimensionalised height, z/z_{ref}"
+    set offset .05, .05
+    set output "$image"
+
+    # Benchmark
+        benchmark0="$benchmarkFile/k-RH-Fig6b"
+        benchmark1="$benchmarkFile/k-HW-Fig6b-2500"
+        benchmark2="$benchmarkFile/k-HW-Fig6b-4000"
+        zRef=6
+
+    # OpenFOAM
+        samples0="$sampleFile/x_0mCell_k.xy"
+        samples1="$sampleFile/x_0mPatch_k.xy"
+        samples2="$sampleFile/x_2500m_k.xy"
+        samples3="$sampleFile/x_4000m_k.xy"
+        samples4="$sampleFile/x_5000mCell_k.xy"
+        samples5="$sampleFile/x_5000mPatch_k.xy"
+
+    plot \
+        benchmark0 u 1:2 t "Richards-Hoxey" w p ps 2 pt 6 lc rgb "#000000", \
+        benchmark1 u 1:2 t "Hargreaves-Wright, x=2500m" w p ps 1 pt 5 lc rgb "#E69F00", \
+        benchmark2 u 1:2 t "Hargreaves-Wright, x=4000m" w p ps 0.5 pt 4 lc rgb "#56B4E9", \
+        samples0 u 2:((\$1-$zMin)/zRef) t "OpenFOAM, x=0m (Patch)" w l lw 2 lc rgb "#009E73", \
+        samples1 u 2:((\$1-$zMin)/zRef) t "OpenFOAM, x=0m (Cell)" w l lw 2 lc rgb "#F0E440", \
+        samples2 u 2:((\$1-$zMin)/zRef) t "OpenFOAM, x=2500m" w l lw 2 lc rgb "#0072B2", \
+        samples3 u 2:((\$1-$zMin)/zRef) t "OpenFOAM, x=4000m" w l lw 2 lc rgb "#D55E00", \
+        samples4 u 2:((\$1-$zMin)/zRef) t "OpenFOAM, x=5000m (Cell)" w l lw 2 lc rgb "#CC79A7", \
+        samples5 u 2:((\$1-$zMin)/zRef) t "OpenFOAM, x=5000m (Patch)" w l lw 2 lc rgb "#440154"
+PLT_K
+}
+
+
+plot_epsilon_vs_znorm() {
+
+    echo "  # Plots the ground-normal turbulent kinetic"\
+              "energy dissipation rate profile"
+
+    endTime="$1"
+    zMin="$2"
+
+    benchmarkFile="resources/dataset/epsilon-HW-RH-Fig6c"
+    sampleFile="results/$setup/postProcessing/samples_epsilon/$endTime"
+    image="plots/$setup/epsilon_vs_znorm.png"
+
+    gnuplot<<PLT_EPSILON
+    set terminal pngcairo font "helvetica,20" size 1000, 800
+    set xrange [0.001:10]
+    set yrange [0:50]
+    set grid
+    set key top right
+    set xlabel "{/Symbol e} [m^2 s^{-3}]"
+    set ylabel "Non-dimensionalised height, z/z_{ref}"
+    set offset .05, .05
+    set logscale x
+    set output "$image"
+
+    # Benchmark
+        benchmark="$benchmarkFile"
+        zRef=6
+
+    # OpenFOAM
+        samples0="$sampleFile/x_0mCell_epsilon.xy"
+        samples1="$sampleFile/x_0mPatch_epsilon.xy"
+        samples2="$sampleFile/x_2500m_epsilon.xy"
+        samples3="$sampleFile/x_4000m_epsilon.xy"
+        samples4="$sampleFile/x_5000mCell_epsilon.xy"
+        samples5="$sampleFile/x_5000mPatch_epsilon.xy"
+
+    plot \
+        benchmark u 1:2 t "Richards-Hoxey" w p ps 2 pt 6 lc rgb "#000000", \
+        benchmark u 1:2 t "Hargreaves-Wright, x=2500m" w p ps 1 pt 5 lc rgb "#E69F00", \
+        benchmark u 1:2 t "Hargreaves-Wright, x=4000m" w p ps 0.5 pt 4 lc rgb "#56B4E9", \
+        samples0 u 2:((\$1-$zMin)/zRef) t "OpenFOAM, x=0m (Patch)" w l lw 2 lc rgb "#009E73", \
+        samples1 u 2:((\$1-$zMin)/zRef) t "OpenFOAM, x=0m (Cell)" w l lw 2 lc rgb "#F0E440", \
+        samples2 u 2:((\$1-$zMin)/zRef) t "OpenFOAM, x=2500m" w l lw 2 lc rgb "#0072B2", \
+        samples3 u 2:((\$1-$zMin)/zRef) t "OpenFOAM, x=4000m" w l lw 2 lc rgb "#D55E00", \
+        samples4 u 2:((\$1-$zMin)/zRef) t "OpenFOAM, x=5000m (Cell)" w l lw 2 lc rgb "#CC79A7", \
+        samples5 u 2:((\$1-$zMin)/zRef) t "OpenFOAM, x=5000m (Patch)" w l lw 2 lc rgb "#440154"
+PLT_EPSILON
+}
+
+
+plot_omega_vs_znorm() {
+
+    echo "  # Plots the ground-normal specific dissipation rate profile"
+
+    endTime="$1"
+    zMin="$2"
+
+    # benchmarkFile=N/A
+    sampleFile="results/$setup/postProcessing/samples_omega/$endTime"
+    image="plots/$setup/omega_vs_znorm.png"
+
+    gnuplot<<PLT_OMEGA
+    set terminal pngcairo font "helvetica,20" size 1000, 800
+    set xrange [0.001:10]
+    set yrange [0:50]
+    set grid
+    set key top right
+    set xlabel "{/Symbol w} [s^{-1}]"
+    set ylabel "Non-dimensionalised height, z/z_{ref}"
+    set offset .05, .05
+    set logscale x
+    set output "$image"
+
+    # Benchmark
+        zRef=6
+
+    # OpenFOAM
+        samples0="$sampleFile/x_0mCell_omega.xy"
+        samples1="$sampleFile/x_0mPatch_omega.xy"
+        samples2="$sampleFile/x_2500m_omega.xy"
+        samples3="$sampleFile/x_4000m_omega.xy"
+        samples4="$sampleFile/x_5000mCell_omega.xy"
+        samples5="$sampleFile/x_5000mPatch_omega.xy"
+
+    plot \
+        samples0 u 2:((\$1-$zMin)/zRef) t "OpenFOAM, x=0m (Patch)" w l lw 2 lc rgb "#009E73", \
+        samples1 u 2:((\$1-$zMin)/zRef) t "OpenFOAM, x=0m (Cell)" w l lw 2 lc rgb "#F0E440", \
+        samples2 u 2:((\$1-$zMin)/zRef) t "OpenFOAM, x=2500m" w l lw 2 lc rgb "#0072B2", \
+        samples3 u 2:((\$1-$zMin)/zRef) t "OpenFOAM, x=4000m" w l lw 2 lc rgb "#D55E00", \
+        samples4 u 2:((\$1-$zMin)/zRef) t "OpenFOAM, x=5000m (Cell)" w l lw 2 lc rgb "#CC79A7", \
+        samples5 u 2:((\$1-$zMin)/zRef) t "OpenFOAM, x=5000m (Patch)" w l lw 2 lc rgb "#440154"
+PLT_OMEGA
+}
+
+
+plot_nut_vs_znorm() {
+
+    echo "  # Plots the ground-normal turbulent viscosity profile"
+
+    endTime="$1"
+    zMin="$2"
+
+    benchmarkFile="resources/dataset"
+    sampleFile="results/$setup/postProcessing/samples_nut/$endTime"
+    image="plots/$setup/nut_vs_znorm.png"
+
+    gnuplot<<PLT_NUT
+    set terminal pngcairo font "helvetica,20" size 1000, 800
+    set xrange [0:120]
+    set yrange [0:50]
+    set grid
+    set key bottom right
+    set xlabel "{/Symbol m}_t [Pa.s]"
+    set ylabel "Non-dimensionalised height, z/z_{ref}"
+    set offset .05, .05
+    set output "$image"
+
+    # Benchmark
+        benchmark0="$benchmarkFile/mut-RH-Fig6d"
+        benchmark1="$benchmarkFile/mut-HW-Fig6d-2500"
+        benchmark2="$benchmarkFile/mut-HW-Fig6d-4000"
+        zRef=6
+
+    # OpenFOAM
+        samples0="$sampleFile/x_0mCell_nut.xy"
+        samples1="$sampleFile/x_0mPatch_nut.xy"
+        samples2="$sampleFile/x_2500m_nut.xy"
+        samples3="$sampleFile/x_4000m_nut.xy"
+        samples4="$sampleFile/x_5000mCell_nut.xy"
+        samples5="$sampleFile/x_5000mPatch_nut.xy"
+
+    plot \
+        benchmark0 u 1:2 t "Richards-Hoxey" w p ps 2 pt 6 lc rgb "#000000", \
+        benchmark1 u 1:2 t "Hargreaves-Wright, x=2500m" w p ps 1 pt 5 lc rgb "#E69F00", \
+        benchmark2 u 1:2 t "Hargreaves-Wright, x=4000m" w p ps 0.5 pt 4 lc rgb "#56B4E9", \
+        samples0 u 2:((\$1-$zMin)/zRef) t "OpenFOAM, x=0m (Patch)" w l lw 2 lc rgb "#009E73", \
+        samples1 u 2:((\$1-$zMin)/zRef) t "OpenFOAM, x=0m (Cell)" w l lw 2 lc rgb "#F0E440", \
+        samples2 u 2:((\$1-$zMin)/zRef) t "OpenFOAM, x=2500m" w l lw 2 lc rgb "#0072B2", \
+        samples3 u 2:((\$1-$zMin)/zRef) t "OpenFOAM, x=4000m" w l lw 2 lc rgb "#D55E00", \
+        samples4 u 2:((\$1-$zMin)/zRef) t "OpenFOAM, x=5000m (Cell)" w l lw 2 lc rgb "#CC79A7", \
+        samples5 u 2:((\$1-$zMin)/zRef) t "OpenFOAM, x=5000m (Patch)" w l lw 2 lc rgb "#440154"
+PLT_NUT
+}
+
+
+#------------------------------------------------------------------------------
+
+# Requires gnuplot
+command -v gnuplot >/dev/null || {
+    echo "gnuplot not found - skipping graph creation" 1>&2
+    exit 1
+}
+
+# Check "results" directory
+[ -d "results" ] || {
+    echo "No results directory found - skipping graph creation" 1>&2
+    exit 1
+}
+
+
+#------------------------------------------------------------------------------
+
+for setup in $setups
+do
+    echo ""
+    echo "# Plots for the setup: $setup"
+    echo ""
+
+    [ -d "results/$setup" ] || {
+        echo "No results/$setup directory found - skipping graph creation" 1>&2
+        continue
+    }
+
+    dirPlots="plots/$setup"
+    [ -d "$dirPlots" ] || mkdir -p "$dirPlots"
+
+    endTime=$( \
+        foamDictionary results/$setup/system/controlDict \
+            -entry endTime -value \
+        )
+
+
+    plot_ux_vs_znorm_upstream "$endTime" "$zMin"
+
+    plot_ux_vs_znorm_middle "$endTime" "$zMin"
+
+    plot_ux_vs_znorm_downstream "$endTime" "$zMin"
+
+    if [ -d "results/$setup/postProcessing/samples_k" ]
+    then
+        plot_k_vs_znorm "$endTime" "$zMin"
+    fi
+
+    if [ -d "results/$setup/postProcessing/samples_epsilon" ]
+    then
+        plot_epsilon_vs_znorm "$endTime" "$zMin"
+    fi
+
+    if [ -d "results/$setup/postProcessing/samples_omega" ]
+    then
+        plot_omega_vs_znorm "$endTime" "$zMin"
+    fi
+
+    if [ -d "results/$setup/postProcessing/samples_nut" ]
+    then
+        plot_nut_vs_znorm "$endTime" "$zMin"
+    fi
+done
+
+
+#------------------------------------------------------------------------------

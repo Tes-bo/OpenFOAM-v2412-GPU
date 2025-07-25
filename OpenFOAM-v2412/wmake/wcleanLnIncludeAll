@@ -1,0 +1,60 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#-------------------------------------------------------------------------------
+#     Copyright (C) 2011-2016 OpenFOAM Foundation
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     wcleanLnIncludeAll
+#
+# Usage
+#     wcleanLnIncludeAll [dir1 [..dirN]]
+#
+# Description
+#     Delete all the lnInclude directories in the tree.
+#
+#------------------------------------------------------------------------------
+usage() {
+    exec 1>&2
+    while [ "$#" -ge 1 ]; do echo "$1"; shift; done
+    cat<<USAGE
+
+Usage: ${0##*/} [dir1 [..dirN]]
+
+options:
+  -h, -help         Print the usage
+
+Remove all lnInclude directories found in the tree
+
+USAGE
+    exit 1
+}
+
+# Simple help
+case "$1" in (-h | -help*) usage ;; esac
+
+#------------------------------------------------------------------------------
+# Default is the current directory
+[ "$#" -gt 0 ] || set -- .
+
+for dir
+do
+    if [ -d "$dir" ]
+    then
+        echo "removing lnInclude directories: $dir"
+        find $dir -depth -name lnInclude -type d -exec rm -rf {} \;
+    else
+        echo "no directory: $dir" 1>&2
+    fi
+done
+
+exit 0 # clean exit
+
+#------------------------------------------------------------------------------

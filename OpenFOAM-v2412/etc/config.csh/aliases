@@ -1,0 +1,72 @@
+#----------------------------------*-sh-*--------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2011-2016 OpenFOAM Foundation
+#     Copyright (C) 2017-2020 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# File
+#     etc/config.csh/aliases
+#     - sourced by OpenFOAM-*/etc/cshrc  (or from the user's ~/.cshrc)
+#
+# Description
+#     Aliases for working with OpenFOAM
+#
+#------------------------------------------------------------------------------
+
+# Change compiled version aliases
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+alias wmSet 'source $WM_PROJECT_DIR/etc/cshrc'
+alias wmInt32 'wmSet WM_LABEL_SIZE=32'
+alias wmInt64 'wmSet WM_LABEL_SIZE=64'
+alias wmDP 'wmSet WM_PRECISION_OPTION=DP'
+alias wmSP 'wmSet WM_PRECISION_OPTION=SP'
+alias wmSPDP 'wmSet WM_PRECISION_OPTION=SPDP'
+
+# Clear env
+alias wmUnset 'source $WM_PROJECT_DIR/etc/config.csh/unset'
+
+
+# Change directory aliases
+# ~~~~~~~~~~~~~~~~~~~~~~~~
+alias foam 'cd $WM_PROJECT_DIR'
+
+alias src 'cd $WM_PROJECT_DIR/src'
+alias lib 'cd $FOAM_LIBBIN'
+alias app 'cd $WM_PROJECT_DIR/applications'
+alias sol 'cd $WM_PROJECT_DIR/applications/solvers'
+alias util 'cd $WM_PROJECT_DIR/applications/utilities'
+alias tut 'cd $WM_PROJECT_DIR/tutorials'
+alias run 'cd $WM_PROJECT_USER_DIR/run'
+
+alias ufoam 'cd $WM_PROJECT_USER_DIR'
+alias uapp 'cd $WM_PROJECT_USER_DIR/applications'
+alias usol 'cd $WM_PROJECT_USER_DIR/applications/solvers'
+alias uutil 'cd $WM_PROJECT_USER_DIR/applications/utilities'
+
+
+# Refresh the environment
+# ~~~~~~~~~~~~~~~~~~~~~~~
+alias wmRefresh 'set projectDir=$WM_PROJECT_DIR; set foamSettings=$FOAM_SETTINGS; wmUnset; source $projectDir/etc/cshrc $foamSettings'
+
+
+# Query the current OpenFOAM version
+# or change to another version (if installed in a parallel directory)
+# - can be fragile
+alias foamVersion \
+    'if ( "\!*" != "" ) source ${WM_PROJECT_DIR:h}/OpenFOAM-\!*/etc/cshrc; echo OpenFOAM-$WM_PROJECT_VERSION'
+
+
+# Change ParaView version
+# ~~~~~~~~~~~~~~~~~~~~~~~
+alias foamPV \
+    'source $WM_PROJECT_DIR/etc/config.csh/paraview ParaView_VERSION=\!*; echo paraview=${ParaView_DIR:t}'
+
+
+#------------------------------------------------------------------------------

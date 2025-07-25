@@ -1,0 +1,3 @@
+writeMorpherCPs.C
+
+EXE = $(FOAM_APPBIN)/writeMorpherCPs

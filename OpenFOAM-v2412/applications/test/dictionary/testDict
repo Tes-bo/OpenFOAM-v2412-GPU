@@ -1,0 +1,173 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      dictionary;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#sinclude   "someUnknownFile"
+#sinclude   "$FOAM_CASE/someUnknownFile"
+#includeIfPresent "$FOAM_CASE/someUnknownFile-$FOAM_CASENAME"
+
+zeroVelocity    uniform (0 0 0);
+
+internalField   uniform 1;
+
+// supply defaults
+#default internalField  uniform 10;
+#default dimensions     [ 1 2 -2 0 0 0 0 ];
+#overwrite dimensions   [ 0 2 -2 0 0 0 0 ];
+// #warn       dimensions      [ 0 2 -2 0 0 0 0 ];
+// #error      dimensions      [ 0 2 -2 0 0 0 0 ];
+
+active
+{
+    type            turbulentIntensityKineticEnergyInlet;
+    intensity       0.1;
+    value           $internalField;
+}
+
+inactive
+{
+    type            zeroGradient;
+}
+
+
+// Indirection
+varType active;
+
+// Indirection of values
+x 5;
+varName x;
+
+
+// Indirection for keys
+key inlet_9;
+
+
+boundaryField
+{
+    Default_Boundary_Region
+    {
+        type            zeroGradient;
+    }
+
+    inlet_1  { $active }
+    inlet_2  { $inactive }
+    inlet_3  { $inactive }
+    inlet_4  { $inactive }
+    inlet_5  "a primitiveEntry is squashed by a directory entry";
+    inlet_5  { $inactive }
+    inlet_6a { $...inactive }   // Relative scoping - fairly horrible to use
+    inlet_6b { $^inactive }     // Absolute scoping
+    inlet_6c { key ${/key}; }   // Absolute scoping
+
+    inlet_7  { ${inactive}}     // Test variable expansion
+    inlet_8  { $inactive }
+
+    // Variable expansion for a keyword
+    ${key}   { $inactive }
+
+    #include "testDictInc"
+
+    outletBase
+    {
+        type            inletOutlet;
+        inletValue      $internalField;
+        value           #include "value";
+        // error           #remove self;
+        x               ${${varName}};  // Test indirection/recursive expansion
+        y               6;
+    }
+
+    outlet
+    {
+        $outletBase
+    }
+
+    Default_Boundary_Region
+    {
+        valueOut        $zeroVelocity;
+    }
+
+    // this should have no effect (not in scope)
+    #remove inactive
+
+    // But this should work to remove things in different scopes
+    #remove "/zeroVelocity"
+
+    inlet_7  { ${inactive} }    // Test variable expansion
+    inlet_8  { $inactive }
+
+    inlet_7a { ${${varType}} }  // Test indirection/recursive expansion
+    inlet_7b { ${${varType}} }  // Test indirection/recursive expansion
+
+    #overwrite inlet_8  { type none; }
+}
+
+
+// No patterns with scoped removal
+// #remove "/boundaryField/outletB.*"
+#remove "/boundaryField/outletBase"
+
+#include "testDict2"
+
+verbatim #{
+
+    This is a somewhat larger chunk of verbatim text that we would much
+    prefer to move as a token rather than copying its entire content each
+    time we do parsing or need to resize the token list.
+
+#};
+
+foo
+{
+    $active
+}
+
+bar
+{
+    $active
+}
+
+baz
+{
+    $active
+}
+
+"anynumber.*"
+{
+    $active
+}
+
+// This should work
+#remove x
+
+// This should work too
+#remove ( bar baz )
+
+// Remove a sub-dictionary entry
+#remove "/anynumber.*/value"
+
+// Removal does not auto-vivify
+#remove "/nonExistentDict/value"
+
+// Add into existing dictionary
+"/anynumber.*/someValue"  100;
+
+// Auto-vivify
+// - but currently cannot auto-vivify entries with dictionary patterns
+"/abd/someValue"    100;
+"/def/'someValue.*" 100;
+
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

@@ -1,0 +1,311 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2020-2022 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     bin/tools/create-mpi-config
+#
+# Description
+#     Define hard-coded packaging settings for MPI flavours,
+#     primarily for system openmpi.
+#     This eliminates a runtime dependency on mpicc, for example.
+#
+#     Instead of querying/parsing 'mpicc --showme:link' each time,
+#     it is done once during packaging.
+#
+# Environment
+#     FOAM_MPI, MPI_ARCH_PATH, DEB_TARGET_MULTIARCH
+#
+# Possible Dependencies
+#     - dpkg-architecture
+#     - mpicc, orte-info
+#
+# Notes
+#     Run from top-level directory when creating config files
+#
+#------------------------------------------------------------------------------
+printHelp() {
+    exec 1>&2
+    while [ "$#" -ge 1 ]; do echo "$1"; shift; done
+    cat<<USAGE
+
+usage: ${0##*/} options
+
+options:
+  -dry-run, -n      Report but do not write config files
+  -no-mpicc         Bypass any use of mpicc (or orte-info)
+  -query-openmpi    Report installation directory for system openmpi
+  -write-openmpi    Query system openmpi and write config files
+  -write            Write config files using FOAM_MPI, MPI_ARCH_PATH
+
+Define hard-coded packaging settings for MPI flavours.
+
+Equivalent options:
+  -write-system-openmpi | -write-openmpi
+  -query-system-openmpi | -query-openmpi
+
+USAGE
+    exit 0  # A clean exit
+}
+
+
+# Report error and exit
+die()
+{
+    exec 1>&2
+    echo
+    echo "Error encountered:"
+    while [ "$#" -ge 1 ]; do echo "    $1"; shift; done
+    echo
+    echo "See '${0##*/} -help' for usage"
+    echo
+    exit 1
+}
+
+
+#------------------------------------------------------------------------------
+# Options
+unset optDryRun
+optUseMpicc=true
+
+# Get installation directory for system openmpi
+# - from "orte-info"
+# - from "mpicc --showme:link"
+# - manual fallback
+#
+# The orte-info content looks like this:
+# ----
+# path:prefix:/usr/lib64/mpi/gcc/openmpi2
+# ----
+#
+# The mpicc content looks like this:
+# ----
+# ... -L/usr/lib64/mpi/gcc/openmpi/lib64 -lmpi
+# ... -L/usr/lib64/mpi/gcc/openmpi2/lib64 -lmpi
+# ... -L/usr/lib64/openmpi/lib -lmpi
+# ----
+
+query_system_openmpi()
+{
+    unset arch_path
+
+    # Query as per etc/config.sh/mpi
+    if [ -n "$optUseMpicc" ]
+    then
+        # On the assumption that this is being called during compilation,
+        # skip orte-info and just take mpicc information
+        ## Use <orte-info> (openmpi only command) to query configuration.
+        ## Parse "path:prefix:<pathname>" type of output
+        #arch_path="$(orte-info --path prefix --parsable 2>/dev/null | sed -e 's#^path:[^:]*:##')"
+
+        # Use <mpicc> to get the link information and (slight hack)
+        # strip off 'lib' to get the prefix directory
+        if [ -z "$arch_path" ]
+        then
+            arch_path="$(mpicc --showme:link 2>/dev/null | sed -ne 's#.*-L\([^ ]*\).*#\1#p')"
+            arch_path="${arch_path%/*}"  # Prefix from libdir
+        fi
+
+        if [ -n "$arch_path" ]
+        then
+            echo "$arch_path"
+            return 0  # Clean exit
+        fi
+
+        echo "No orte-info or mpicc found. Attempt manually" 1>&2
+    fi
+
+    # Manual discovery
+
+    # Handle debian multi-arch...
+    # but dpkg-architecture command may also be missing
+    target_multiarch="$DEB_TARGET_MULTIARCH"
+    if [ -z "$target_multiarch" ] && [ -f /etc/debian_version ]
+    then
+        target_multiarch="$(dpkg-architecture -qDEB_TARGET_MULTIARCH 2>/dev/null || true)"
+        if [ -z "$target_multiarch" ] && [ "$(uname -s)" = Linux ]
+        then
+            # Reasonable guess at a multi-arch name (eg, x86_64-linux-gnu)
+            # TODO: aarch64 -> arm64 ?
+            target_multiarch="$(uname -m)-linux-gnu"
+        fi
+    fi
+
+    # Include is under /usr/lib...  (eg, debian, openSUSE)
+    # Note this cannot handle (openmpi | openmpi1 | openmpi2 | ...) include directories
+    # unless we also try to grab information out of PATH or LD_LIBRARY_PATH
+    for testdir in \
+        /usr/lib64/mpi/gcc/openmpi \
+        /usr/lib/"${target_multiarch}${target_multiarch:+/}"openmpi \
+        /usr/lib/openmpi \
+    ;
+    do
+        if [ -e "$testdir/include/mpi.h" ]
+        then
+            echo "$testdir"
+            return 0  # Clean exit
+        fi
+    done
+
+    # Include is under /usr/include (eg, RedHat)
+    for testdir in \
+        /usr/include/openmpi-"$(uname -m)" \
+        /usr/include/openmpi \
+    ;
+    do
+        if [ -e "$testdir/mpi.h" ]
+        then
+            echo "/usr"
+            return 0  # Clean exit
+        fi
+    done
+
+    # Partial env from RedHat "module load mpi/openmpi-x86_64"
+    #
+    ## MPI_COMPILER=openmpi-x86_64
+    ## MPI_HOME=/usr/lib64/openmpi
+    ## MPI_BIN=/usr/lib64/openmpi/bin
+    ## MPI_LIB=/usr/lib64/openmpi/lib
+    ## MPI_INCLUDE=/usr/include/openmpi-x86_64
+    ## MPI_SUFFIX=_openmpi
+
+
+    # Failed (should not happen)
+    # - report '/usr', but with error code 2
+    echo "/usr"
+    return 2
+}
+
+
+# Generate etc/config.{csh,sh}/MPI-TYPE files
+# based on the values for FOAM_MPI and MPI_ARCH_PATH
+
+create_files()
+{
+    [ -n "$FOAM_MPI" ] || die "FOAM_MPI not set"
+
+    # MPI-name without trailing major version
+    mpiName="${FOAM_MPI%[0-9]}"
+
+    # The prefs name
+    prefsName="prefs.$mpiName"
+
+    if [ -d "$MPI_ARCH_PATH" ]
+    then
+        echo "Define $FOAM_MPI with $MPI_ARCH_PATH" 1>&2
+
+        case "$mpiName" in
+        (sys-openmpi | openmpi-system)
+
+            # POSIX shell
+            prefsFile="etc/config.sh/$prefsName"
+            if [ -d "${prefsFile%/*}" ] || [ -n "$optDryRun" ]
+            then
+            (
+                if [ -n "$optDryRun" ]
+                then
+                    exec 1>&2
+                else
+                    exec 1> "$prefsFile"
+                fi
+
+                echo "${optDryRun}Write $prefsFile" 1>&2
+                cat << CONTENT
+# $prefsFile
+#
+# Packaging configured value for $FOAM_MPI
+export MPI_ARCH_PATH="$MPI_ARCH_PATH"
+#----
+CONTENT
+            )
+            else
+                echo "Cannot write $prefsFile - no directory" 1>&2
+            fi
+
+
+            # C-shell
+            prefsFile="etc/config.csh/$prefsName"
+            if [ -d "${prefsFile%/*}" ] || [ -n "$optDryRun" ]
+            then
+            (
+                if [ -n "$optDryRun" ]
+                then
+                    exec 1>&2
+                else
+                    exec 1> "$prefsFile"
+                fi
+
+                echo "${optDryRun}Write $prefsFile" 1>&2
+                cat << CONTENT
+# $prefsFile
+#
+# Packaging configured value for $FOAM_MPI
+setenv MPI_ARCH_PATH "$MPI_ARCH_PATH"
+#----
+CONTENT
+            )
+            else
+                echo "Cannot write $prefsFile - no directory" 1>&2
+            fi
+            ;;
+        esac
+    else
+        echo "Warning: $FOAM_MPI with bad MPI_ARCH_PATH: $MPI_ARCH_PATH" 1>&2
+        # TBD - remove old/bad entries?
+        #
+        # rm -f "etc/config.sh/$prefsName" "etc/config.csh/$prefsName"
+    fi
+}
+
+
+#------------------------------------------------------------------------------
+
+# Parse options
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    '') true ;; # Discard empty arguments
+    -h | -help* | --help*) printHelp ;;
+    -n | -dry-run) optDryRun="(dry-run) " ;;
+
+    -no-mpicc)
+        unset optUseMpicc
+        ;;
+
+    -query-openmpi | -query-system-openmpi)
+        query_system_openmpi
+        exit $?
+        ;;
+
+    -write-openmpi | -write-system-openmpi)
+        if MPI_ARCH_PATH=$(query_system_openmpi)
+        then
+            FOAM_MPI="sys-openmpi" create_files
+        else
+            die "Failed query for system openmpi"
+        fi
+        ;;
+
+    -write)
+        create_files
+        ;;
+
+    *)
+        echo "Ignore unknown option/argument: '$1'" 1>&2
+        ;;
+    esac
+    shift
+done
+
+exit 0 # A clean exit, if we get this far
+
+# -----------------------------------------------------------------------------

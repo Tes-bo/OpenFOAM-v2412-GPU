@@ -1,0 +1,85 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2020 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# SPDX-License-Identifier: (GPL-3.0-or-later)
+#
+# Script
+#     list-modules
+#
+# Description
+#     List module directories
+#     - each first-level directory with an Allwmake file
+#
+#------------------------------------------------------------------------------
+cd "${0%/*}" || exit                            # Run from this directory
+
+printHelp() {
+    cat<< HELP 1>&2
+
+Usage: ${0##*/} [OPTION]
+options:
+  -help             Display help and exit
+
+List module directories - each first-level directory with an Allwmake file
+
+HELP
+
+    exit 0  # A clean exit
+}
+
+# Report error and exit
+die()
+{
+    exec 1>&2
+    echo
+    echo "Error encountered:"
+    while [ "$#" -ge 1 ]; do echo "    $1"; shift; done
+    echo
+    echo "See '${0##*/} -help' for usage"
+    echo
+    exit 1
+}
+
+#------------------------------------------------------------------------------
+
+# Parse options
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    -h | -help*)  # Short help
+        printHelp
+        ;;
+
+    *)
+        die "Unknown option/argument: '$1'"
+        ;;
+    esac
+    shift
+done
+
+
+# Each first-level directory with an Allwmake file
+for moduleName in *
+do
+    if [ -f "$moduleName/Allwmake" ]
+    then
+        case "$moduleName" in
+        # Skip some directory names
+        (build | doc | platform*)
+            ;;
+        (*)
+            echo "$moduleName"
+            ;;
+        esac
+    fi
+done
+
+
+#------------------------------------------------------------------------------

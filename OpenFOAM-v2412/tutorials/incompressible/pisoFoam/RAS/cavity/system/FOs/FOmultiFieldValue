@@ -1,0 +1,143 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+sampleEpsilon1
+{
+    type            sets;
+    libs            (sampling);
+    interpolationScheme cellPointFace;
+    setFormat       raw;
+    fields          ( epsilon );
+
+    sets
+    (
+        cloud
+        {
+            type    cloud;
+            axis    xyz;
+            points
+            (
+                (0.0025 0.05 0.005)
+            );
+        }
+    );
+}
+
+
+multiFieldValue_add
+{
+    // Mandatory entries
+    type    multiFieldValue;
+    libs    (fieldFunctionObjects);
+
+    operation   add;
+
+    functions
+    {
+        movingWallEpsilon
+        {
+            type            surfaceFieldValue;
+            operation       areaAverage;
+            regionType      patch;
+            name            movingWall;
+            fields          (epsilon);
+
+            writeFields     no;
+            writeToFile     no;
+            log             no;
+            resultFields    (areaAverage(movingWall,epsilon));
+        }
+        fixedWallsEpsilon
+        {
+            type            surfaceFieldValue;
+            operation       areaAverage;
+            regionType      patch;
+            name            fixedWalls;
+            fields          (epsilon);
+
+            writeFields     no;
+            writeToFile     no;
+            log             yes;
+        }
+        averageEpsilon
+        {
+            type            valueAverage;
+            functionObject  sampleEpsilon1;
+            fields          (average(epsilon));
+            writeToFile     no;
+            log             no;
+        }
+    }
+
+    // Inherited entries
+    writePrecision  10;
+    writeToFile     true;
+    useUserTime     true;
+
+    region          region0;
+    enabled         true;
+    log             true;
+    timeStart       0;
+    timeEnd         1000;
+    executeControl  timeStep;
+    executeInterval 1;
+    writeControl    writeTime;
+    writeInterval   -1;
+}
+
+
+multiFieldValue_sum
+{
+    ${multiFieldValue_add}
+    operation    sum;
+}
+
+
+multiFieldValue_subtract
+{
+    ${multiFieldValue_add}
+    operation    subtract;
+}
+
+
+multiFieldValue_min
+{
+    ${multiFieldValue_add}
+    operation    min;
+}
+
+
+multiFieldValue_max
+{
+    ${multiFieldValue_add}
+    operation    max;
+}
+
+
+multiFieldValue_average
+{
+    ${multiFieldValue_add}
+    operation    average;
+}
+
+
+multiFieldValue_divide
+{
+    ${multiFieldValue_add}
+    operation    divide;
+}
+
+
+multiFieldValue_cmptDivide
+{
+    ${multiFieldValue_add}
+    operation    cmptDivide;
+}
+
+
+// ************************************************************************* //

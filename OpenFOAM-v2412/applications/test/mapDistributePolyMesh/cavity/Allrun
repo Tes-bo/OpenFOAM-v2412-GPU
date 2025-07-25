@@ -1,0 +1,16 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+runApplication blockMesh
+
+runApplication decomposePar -decomposeParDict system/decomposeParDict.2
+
+runParallel -s scotch -decomposeParDict system/decomposeParDict.5 \
+    redistributePar
+
+runParallel -decomposeParDict system/decomposeParDict.5 \
+    Test-mapDistributePolyMesh
+
+# -----------------------------------------------------------------------------

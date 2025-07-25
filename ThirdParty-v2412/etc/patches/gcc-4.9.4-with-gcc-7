@@ -1,0 +1,87 @@
+#
+# Patch for building older gcc versions with gcc-7
+#
+--- gcc-4.9.4/libgcc/config/i386/linux-unwind.h.orig	2014-01-02 23:25:22.000000000 +0100
++++ gcc-4.9.4/libgcc/config/i386/linux-unwind.h	2018-07-27 10:43:46.021527909 +0200
+@@ -58,7 +58,7 @@
+   if (*(unsigned char *)(pc+0) == 0x48
+       && *(unsigned long long *)(pc+1) == RT_SIGRETURN_SYSCALL)
+     {
+-      struct ucontext *uc_ = context->cfa;
++      ucontext_t *uc_ = context->cfa;
+       /* The void * cast is necessary to avoid an aliasing warning.
+          The aliasing warning is correct, but should not be a problem
+          because it does not alias anything.  */
+@@ -138,7 +138,7 @@
+ 	siginfo_t *pinfo;
+ 	void *puc;
+ 	siginfo_t info;
+-	struct ucontext uc;
++	ucontext_t uc;
+       } *rt_ = context->cfa;
+       /* The void * cast is necessary to avoid an aliasing warning.
+          The aliasing warning is correct, but should not be a problem
+--- gcc-4.9.4/libsanitizer/asan/asan_linux.cc.orig	2013-12-05 10:18:38.000000000 +0100
++++ gcc-4.9.4/libsanitizer/asan/asan_linux.cc	2018-07-27 11:11:52.085497715 +0200
+@@ -26,6 +26,7 @@
+ #include <sys/types.h>
+ #include <fcntl.h>
+ #include <pthread.h>
++#include <signal.h>
+ #include <stdio.h>
+ #include <unistd.h>
+ #include <unwind.h>
+--- gcc-4.9.4/libsanitizer/sanitizer_common/sanitizer_linux.cc.orig	2013-12-05 10:18:38.000000000 +0100
++++ gcc-4.9.4/libsanitizer/sanitizer_common/sanitizer_linux.cc	2018-07-27 10:43:02.405528690 +0200
+@@ -599,8 +599,7 @@
+   return internal_syscall(__NR_prctl, option, arg2, arg3, arg4, arg5);
+ }
+ 
+-uptr internal_sigaltstack(const struct sigaltstack *ss,
+-                         struct sigaltstack *oss) {
++uptr internal_sigaltstack(const void *ss, void *oss) {
+   return internal_syscall(__NR_sigaltstack, (uptr)ss, (uptr)oss);
+ }
+ 
+--- gcc-4.9.4/libsanitizer/sanitizer_common/sanitizer_linux.h.orig	2013-12-05 10:18:38.000000000 +0100
++++ gcc-4.9.4/libsanitizer/sanitizer_common/sanitizer_linux.h	2018-07-27 10:42:29.845529273 +0200
+@@ -18,7 +18,6 @@
+ #include "sanitizer_platform_limits_posix.h"
+ 
+ struct link_map;  // Opaque type returned by dlopen().
+-struct sigaltstack;
+ 
+ namespace __sanitizer {
+ // Dirent structure for getdents(). Note that this structure is different from
+@@ -28,8 +27,7 @@
+ // Syscall wrappers.
+ uptr internal_getdents(fd_t fd, struct linux_dirent *dirp, unsigned int count);
+ uptr internal_prctl(int option, uptr arg2, uptr arg3, uptr arg4, uptr arg5);
+-uptr internal_sigaltstack(const struct sigaltstack* ss,
+-                          struct sigaltstack* oss);
++uptr internal_sigaltstack(const void* ss, void* oss);
+ uptr internal_sigaction(int signum, const __sanitizer_kernel_sigaction_t *act,
+     __sanitizer_kernel_sigaction_t *oldact);
+ uptr internal_sigprocmask(int how, __sanitizer_kernel_sigset_t *set,
+--- gcc-4.9.4/libsanitizer/sanitizer_common/sanitizer_stoptheworld_linux_libcdep.cc.orig	2013-12-05 11:28:59.000000000 +0100
++++ gcc-4.9.4/libsanitizer/sanitizer_common/sanitizer_stoptheworld_linux_libcdep.cc	2018-07-27 10:41:32.053530308 +0200
+@@ -238,7 +238,7 @@
+ 
+   // Alternate stack for signal handling.
+   InternalScopedBuffer<char> handler_stack_memory(kHandlerStackSize);
+-  struct sigaltstack handler_stack;
++  stack_t handler_stack;
+   internal_memset(&handler_stack, 0, sizeof(handler_stack));
+   handler_stack.ss_sp = handler_stack_memory.data();
+   handler_stack.ss_size = kHandlerStackSize;
+--- gcc-4.9.4/libsanitizer/tsan/tsan_platform_linux.cc.orig	2013-12-05 10:18:38.000000000 +0100
++++ gcc-4.9.4/libsanitizer/tsan/tsan_platform_linux.cc	2018-07-27 10:40:13.781531710 +0200
+@@ -351,7 +351,7 @@
+ // closes within glibc. The code is a pure hack.
+ int ExtractResolvFDs(void *state, int *fds, int nfd) {
+   int cnt = 0;
+-  __res_state *statp = (__res_state*)state;
++  struct __res_state *statp = (struct __res_state*)state;
+   for (int i = 0; i < MAXNS && cnt < nfd; i++) {
+     if (statp->_u._ext.nsaddrs[i] && statp->_u._ext.nssocks[i] != -1)
+       fds[cnt++] = statp->_u._ext.nssocks[i];

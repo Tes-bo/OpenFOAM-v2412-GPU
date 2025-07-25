@@ -1,0 +1,19 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+runApplication blockMesh
+runApplication topoSet
+runApplication setsToZones -noFlipMap
+runApplication decomposePar
+runParallel $(getApplication)
+
+if [[ ! -z $(which cartesian2DMesh) ]]
+then 
+    cd reEval
+        ./AllrunReEval > log.AllrunReEval 2>&1 && echo "End" >> log.AllrunReEval 
+    cd ..    
+fi
+
+#------------------------------------------------------------------------------

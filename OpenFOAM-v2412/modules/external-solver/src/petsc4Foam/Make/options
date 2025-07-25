@@ -1,0 +1,26 @@
+sinclude $(GENERAL_RULES)/mplib$(WM_MPLIB)
+sinclude $(RULES)/mplib$(WM_MPLIB)
+
+sinclude $(GENERAL_RULES)/module-path-user
+
+/* Failsafe - default to user location */
+ifeq (,$(strip $(FOAM_MODULE_LIBBIN)))
+    FOAM_MODULE_LIBBIN = $(FOAM_USER_LIBBIN)
+endif
+
+EXE_INC = \
+    $(PFLAGS) $(PINC) \
+    -Wno-old-style-cast \
+    -I$(LIB_SRC)/finiteVolume/lnInclude \
+    -I$(LIB_SRC)/fileFormats/lnInclude \
+    -I$(LIB_SRC)/surfMesh/lnInclude \
+    -I$(LIB_SRC)/meshTools/lnInclude \
+    -I$(LIB_SRC)/Pstream/mpi \
+    $(foreach dir,$(PETSC_INC_DIR),-I$(dir))
+
+LIB_LIBS = \
+    -lfiniteVolume \
+    -lfileFormats \
+    -lsurfMesh \
+    -lmeshTools \
+    $(foreach dir,$(PETSC_LIB_DIR),-L$(dir)) -lpetsc

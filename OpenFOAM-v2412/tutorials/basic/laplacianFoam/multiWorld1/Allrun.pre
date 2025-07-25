@@ -1,0 +1,23 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+# Create meshes and initial fields
+for subcase in $(./list-worlds)
+do
+(
+    cd "$subcase" || exit
+    echo "case=$subcase"
+    if [ -x ./Allrun.pre ]
+    then
+        ./Allrun.pre
+    else
+        runApplication blockMesh
+    fi
+    restore0Dir
+    echo
+)
+done
+
+#------------------------------------------------------------------------------

@@ -1,0 +1,19 @@
+NAME
+  ExplicitStructuredGrid::vtkExplicitStructuredGrid
+LIBRARY_NAME
+  vtkExplicitStructuredGrid
+SPDX_LICENSE_IDENTIFIER
+  BSD-3-Clause
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Kitware Inc.
+DEPENDS
+  VTK::CommonExecutionModel
+  VTK::FiltersCore
+PRIVATE_DEPENDS
+  VTK::CommonDataModel
+  VTK::CommonCore
+  VTK::ParallelCore
+OPTIONAL_DEPENDS
+  VTK::Python
+  VTK::WrappingPythonCore
+  VTK::PythonInterpreter

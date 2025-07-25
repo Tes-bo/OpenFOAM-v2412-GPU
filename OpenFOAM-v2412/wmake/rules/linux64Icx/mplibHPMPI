@@ -1,0 +1,1 @@
+include $(GENERAL_RULES)/mplib-x86_64-HPMPI

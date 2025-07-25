@@ -1,0 +1,127 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+DebugSwitches
+{
+//    OSspecific  1;
+//    POSIX       2;
+//    codeStream  1;
+//    codedBase   1;
+//    masterUncollated    1;
+//    hostCollated      1;
+//    collated        1;
+//    fileMonitor 1;
+}
+
+OptimisationSwitches
+{
+    fileModificationSkew    1;
+}
+
+//- Set deltaT
+#include "solverControls"
+
+
+application     icoFoam;
+
+startFrom       startTime;
+
+startTime       0;
+
+stopAt          endTime;
+//stopAt          #codeStream
+//{
+//    code
+//    #{
+//        os  << "nextWrite;" << nl;
+//    #};
+//};
+
+
+endTime         0.04;
+
+//deltaT          0.005;
+
+writeControl    timeStep;
+
+writeInterval   20;
+
+purgeWrite      0;
+
+writeFormat     ascii;
+
+writePrecision  6;
+
+writeCompression off;
+
+timeFormat      general;
+
+timePrecision   6;
+
+runTimeModifiable true;
+
+functions
+{
+    solverControls
+    {
+        type                timeActivatedFileUpdate;
+        libs                (utilityFunctionObjects);
+        writeControl        timeStep;
+        writeInterval       1;
+        fileToUpdate        "<system>/solverControls";
+
+        timeVsFile
+        (
+            (-1     "<system>/solverControls.0" )
+            ( 0.02  "<system>/solverControls.5" )
+        );
+    }
+
+    fvSolution
+    {
+        type                timeActivatedFileUpdate;
+        libs                (utilityFunctionObjects);
+        writeControl        timeStep;
+        writeInterval       1;
+        fileToUpdate        "<system>/fvSolution";
+
+        timeVsFile
+        (
+            (-1     "<system>/fvSolution.0" )
+            ( 0.02  "<system>/fvSolution.5" )
+        );
+    }
+
+
+    // Wait a bit to make runTimeModifiable work.
+    //  - see also fileModificationSkew
+    //  - could also directly use system FO
+    sleep
+    {
+        type                coded;
+        libs                (utilityFunctionObjects);
+        name                sleep;
+        writeControl        timeStep;
+
+        codeExecute
+        #{
+            sleep(1);
+        #};
+    }
+}
+
+
+// ************************************************************************* //

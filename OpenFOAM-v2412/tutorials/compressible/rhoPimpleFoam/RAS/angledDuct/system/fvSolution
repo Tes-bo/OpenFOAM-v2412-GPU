@@ -1,0 +1,90 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      fvSolution;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+solvers
+{
+    p
+    {
+        solver          PCG;
+        preconditioner  DIC;
+        tolerance       1e-07;
+        relTol          0.01;
+    }
+
+    pFinal
+    {
+        $p;
+        relTol          0;
+    }
+
+    "(rho|U|e|k|epsilon)"
+    {
+        solver          smoothSolver;
+        smoother        symGaussSeidel;
+        tolerance       1e-06;
+        relTol          0.1;
+    }
+
+    "(rho|U|e|k|epsilon)Final"
+    {
+        $U;
+        relTol          0;
+    }
+}
+
+PIMPLE
+{
+    momentumPredictor   yes;
+    transonic           no;
+    nOuterCorrectors    50;
+    nCorrectors         1;
+    nNonOrthogonalCorrectors 0;
+    consistent          yes;
+    SIMPLErho           yes;
+
+    pMaxFactor          1.5;
+    pMinFactor          0.9;
+
+    residualControl
+    {
+        "(U|k|epsilon)"
+        {
+            relTol          0;
+            tolerance       0.0001;
+        }
+    }
+
+    turbOnFinalIterOnly no;
+}
+
+relaxationFactors
+{
+    fields
+    {
+        "p.*"           0.3;
+        "rho.*"         1;
+    }
+    equations
+    {
+        // "(U|e|k|epsilon).*"  0.7;
+
+        // Demonstrate some ramping
+        "(U|e|k|epsilon).*" table ((0 0.4) (0.5 0.7));
+    }
+}
+
+
+// ************************************************************************* //

@@ -1,0 +1,69 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      surfaceFilmProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+surfaceFilmModel kinematicSingleLayer;
+
+region          wallFilmRegion;
+
+active          true;
+
+kinematicSingleLayerCoeffs
+{
+    filmThermoModel constant;
+    constantCoeffs
+    {
+        specie      water;
+        rho0        1000;
+        mu0         1e-3;
+        sigma0      0.07;
+    }
+
+    injectionModels ();
+
+    turbulence      laminar;
+    laminarCoeffs
+    {
+        Cf          0.001;
+    }
+
+    forces
+    (
+        thermocapillary
+        distributionContactAngle
+    );
+
+    distributionContactAngleCoeffs
+    {
+        Ccf             1;
+
+        distribution
+        {
+            type            normal;
+            normalDistribution
+            {
+                minValue        50;
+                maxValue        100;
+                mu              75;
+                sigma           100;
+            }
+        }
+
+        zeroForcePatches ();
+    }
+}
+
+
+// ************************************************************************* //

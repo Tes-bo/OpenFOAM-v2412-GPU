@@ -1,0 +1,87 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    object      alphat;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [1 -1 -1 0 0 0 0];
+
+internalField   uniform 0.5;
+
+boundaryField
+{
+     #includeEtc "caseDicts/setConstraintTypes"
+    FAN_SHROUD
+    {
+        type            compressible::alphatWallFunction;
+        value           uniform 0;
+    }
+
+    CABINET
+    {
+        type            compressible::alphatWallFunction;
+        value           uniform 0;
+    }
+
+    FINS
+    {
+        type            compressible::alphatWallFunction;
+        value           uniform 0;
+    }
+
+    PROCESSOR
+    {
+        type            compressible::alphatWallFunction;
+        value           uniform 0;
+    }
+
+    FAN
+    {
+        type            compressible::alphatWallFunction;
+        value           uniform 0;
+    }
+
+    MRF_region
+    {
+        type            compressible::alphatWallFunction;
+        value           uniform 0;
+    }
+
+    OUTLET_01
+    {
+        type            calculated;
+        value           $internalField;
+    }
+
+    OUTLET_02
+    {
+        type            calculated;
+        value           $internalField;
+    }
+
+    domain0_to_v_CPU
+    {
+        type            compressible::alphatWallFunction;
+        Prt             0.85;
+        value           uniform 0;
+    }
+
+    domain0_to_v_fins
+    {
+        type            compressible::alphatWallFunction;
+        Prt             0.85;
+        value           uniform 0;
+    }
+}
+
+// ************************************************************************* //

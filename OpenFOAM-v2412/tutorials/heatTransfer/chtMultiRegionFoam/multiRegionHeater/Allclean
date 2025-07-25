@@ -1,0 +1,12 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/CleanFunctions      # Tutorial clean functions
+#------------------------------------------------------------------------------
+
+cleanCase0
+
+rm -rf VTK
+rm -rf constant/cellToRegion
+rm -rf constant/*/polyMesh  # region meshes
+
+#------------------------------------------------------------------------------

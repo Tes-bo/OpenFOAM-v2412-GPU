@@ -1,0 +1,97 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+./Allrun.pre
+
+unset coupling parallel testCreate
+
+isTrue -dict controls -entry coupling && coupling=true
+isTrue -dict controls -entry parallel && parallel=true
+# isTrue -dict controls -entry testCreate && testCreate=true
+
+# Remove lock file on interrupt
+trap '\rm -f comms/OpenFOAM.lock 2>/dev/null' INT
+
+# Decompose
+if [ "$parallel" = true ]
+then
+
+    runApplication decomposePar
+
+    # ## Can verify parallel operation of createExternalCoupledPatchGeometry
+    if [ "$coupling" = true ] && [ "$testCreate" = true ]
+    then
+
+        rm -f log.createExternalCoupledPatchGeometry
+
+        runParallel createExternalCoupledPatchGeometry \
+            coupleGroup \
+            -commsDir $PWD/comms
+
+    fi
+
+fi
+
+
+if [ "$coupling" = true ]
+then
+
+    echo "Running with external coupling"
+
+    # Controls
+cat << CONTROLS >| externalCoupled.control
+//- Overrides for externalCoupled
+enabled true;
+CONTROLS
+
+    # Run OpenFOAM, with externalCoupled enabled
+    if [ "$parallel" = true ]
+    then
+
+        runParallel $(getApplication) &
+
+    else
+
+        runApplication $(getApplication) &
+
+    fi
+
+    # Simulated external solver
+    runApplication ./externalSolver
+
+else
+
+    echo "Running without external coupling"
+
+    # Controls
+cat << CONTROLS >| externalCoupled.control
+//- Overrides for externalCoupled
+enabled false;
+CONTROLS
+
+    # Run OpenFOAM, with externalCoupled disabled
+    if [ "$parallel" = true ]
+    then
+
+        runParallel $(getApplication)
+
+    else
+
+        runApplication $(getApplication)
+
+    fi
+
+fi
+
+
+# Reconstruct
+if [ "$parallel" = true ]
+then
+
+    runApplication reconstructPar
+
+fi
+
+#------------------------------------------------------------------------------

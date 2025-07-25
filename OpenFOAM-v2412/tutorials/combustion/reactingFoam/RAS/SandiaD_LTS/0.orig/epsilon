@@ -1,0 +1,85 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    object      epsilon;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 2 -3 0 0 0 0];
+
+internalField   uniform 30000;
+
+boundaryField
+{
+    wallTube
+    {
+        type            epsilonWallFunction;
+        Cmu             0.09;
+        kappa           0.41;
+        E               9.8;
+        value           uniform 30000;
+    }
+
+    outlet
+    {
+        type            inletOutlet;
+        inletValue      uniform 30000;
+        value           uniform 30000;
+    }
+
+    inletPilot
+    {
+        type            turbulentMixingLengthDissipationRateInlet;
+        mixingLength    0.000735;
+        phi             phi;
+        k               k;
+        value           uniform 1;
+    }
+
+    inletAir
+    {
+        type            turbulentMixingLengthDissipationRateInlet;
+        mixingLength    0.019677;
+        value           uniform 1;
+    }
+
+    wallOutside
+    {
+        type            epsilonWallFunction;
+        Cmu             0.09;
+        kappa           0.41;
+        E               9.8;
+        value           uniform 30000;
+    }
+
+    inletCH4
+    {
+        type            turbulentMixingLengthDissipationRateInlet;
+        mixingLength    0.000504;
+        phi             phi;
+        k               k;
+        value           uniform 1;
+    }
+
+    frontAndBack_pos
+    {
+        type            wedge;
+    }
+
+    frontAndBack_neg
+    {
+        type            wedge;
+    }
+}
+
+
+// ************************************************************************* //

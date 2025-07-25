@@ -1,0 +1,55 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#-------------------------------------------------------------------------------
+#     Copyright (C) 2011 OpenFOAM Foundation
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     foamNew
+#
+# Description
+#     Create a new standard OpenFOAM source or template file
+#
+#------------------------------------------------------------------------------
+usage() {
+    exec 1>&2
+    while [ "$#" -ge 1 ]; do echo "$1"; shift; done
+    cat<<USAGE
+Usage: ${0##*/} <type> {args}
+
+* create a new standard OpenFOAM source or template file
+
+type:
+    -s | -source | source
+    -t | -template | template
+
+USAGE
+    exit 1
+}
+
+
+# this implicitly covers a lone -help, but let other scripts handle the rest
+[ "$#" -gt 1 ] || usage
+
+case "$1" in
+(-s | -source | source)
+    shift
+    $WM_PROJECT_DIR/etc/codeTemplates/source/foamNewSource "$@"
+    ;;
+(-t | -template | template)
+    shift
+    $WM_PROJECT_DIR/etc/codeTemplates/template/foamNewTemplate "$@"
+    ;;
+(*)
+    usage "unknown type '$1'"
+    ;;
+esac
+
+#------------------------------------------------------------------------------

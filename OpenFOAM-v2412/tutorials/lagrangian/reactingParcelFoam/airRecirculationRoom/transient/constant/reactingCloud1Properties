@@ -1,0 +1,584 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      reactingCloud1Properties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+solution
+{
+    active          true;
+    coupled         true;
+    transient       yes;
+    cellValueSourceCorrection on;
+    maxCo           0.3;
+
+    sourceTerms
+    {
+        schemes
+        {
+            rho             explicit 1;
+            U               explicit 1;
+            Yi              explicit 1;
+            h               explicit 1;
+            radiation       explicit 1;
+        }
+    }
+
+    interpolationSchemes
+    {
+        rho             cell;
+        U               cellPoint;
+        thermo:mu       cell;
+        T               cell;
+        Cp              cell;
+        kappa           cell;
+        p               cell;
+    }
+
+    integrationSchemes
+    {
+        U               Euler;
+        T               analytical;
+    }
+}
+
+constantProperties
+{
+    rho0            1000;
+    T0              310;
+    Cp0             4100;
+
+    constantVolume  false;
+}
+
+subModels
+{
+    particleForces
+    {
+        sphereDrag;
+        gravity;
+    }
+
+    injectionModels
+    {
+// using droplets distribution from 2009 Chao paper
+// https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7126899/
+
+// to allow an easier check of the number of particles hitting a patch
+// according to their size, we will reduce the number of model* parcel and
+// comment some of them, so to get a shorter list, easier to verify.
+        model3 // diameter  3 μm => 0.000003m
+        {
+            type            patchInjection;
+            parcelBasisType fixed;
+            patch           mouth;
+            U0              (4.0 0.0 0.0);
+            nParticle       1; //  1 particles = one parcel
+            parcelsPerSecond 2; // taken from 3rd column of table https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7126899/table/tbl1/
+            sizeDistribution
+            {
+                type uniform;
+                uniformDistribution
+                {
+                    minValue        0.000003;
+                    maxValue        0.000003;
+                }
+            }
+            flowRateProfile constant 1;
+            massTotal       0;
+            SOI 0.0;
+            duration 120.0;
+        }
+
+        model6 // diameter  6 μm => 0.000006m
+        {
+            type            patchInjection;
+            parcelBasisType fixed;
+            patch           mouth;
+            U0              (4.0 0.0 0.0);
+            nParticle       1; //  1 particles = one parcel
+            parcelsPerSecond 27;
+            sizeDistribution
+            {
+                type uniform;
+                uniformDistribution
+                {
+                    minValue        0.000006;
+                    maxValue        0.000006;
+                }
+            }
+            flowRateProfile constant 1;
+            massTotal       0;
+            SOI 0.0;
+            duration 120.0;
+        }
+
+        model12 // diameter  12 μm => 0.000012m
+        {
+            type            patchInjection;
+            parcelBasisType fixed;
+            patch           mouth;
+            U0              (4.0 0.0 0.0);
+            nParticle       1; //  1 particles = one parcel
+            parcelsPerSecond 9;
+            sizeDistribution
+            {
+                type uniform;
+                uniformDistribution
+                {
+                    minValue        0.000012;
+                    maxValue        0.000012;
+                }
+            }
+            flowRateProfile constant 1;
+            massTotal       0;
+            SOI 0.0;
+            duration 120.0;
+        }
+
+        model20 // diameter  20 μm => 0.000020m
+        {
+            type            patchInjection;
+            parcelBasisType fixed;
+            patch           mouth;
+            U0              (4.0 0.0 0.0);
+            nParticle       1; //  1 particles = one parcel
+            parcelsPerSecond 5;
+            sizeDistribution
+            {
+                type uniform;
+                uniformDistribution
+                {
+                    minValue        0.000020;
+                    maxValue        0.000020;
+                }
+            }
+            flowRateProfile constant 1;
+            massTotal       0;
+            SOI 0.0;
+            duration 120.0;
+        }
+
+        model28 // diameter  28 μm => 0.000028m
+        {
+            type            patchInjection;
+            parcelBasisType fixed;
+            patch           mouth;
+            U0              (4.0 0.0 0.0);
+            nParticle       1; //  1 particles = one parcel
+            parcelsPerSecond 3;
+            sizeDistribution
+            {
+                type uniform;
+                uniformDistribution
+                {
+                    minValue        0.000028;
+                    maxValue        0.000028;
+                }
+            }
+            flowRateProfile constant 1;
+            massTotal       0;
+            SOI 0.0;
+            duration 120.0;
+        }
+
+        model36 // diameter  36 μm => 0.000036m
+        {
+            type            patchInjection;
+            parcelBasisType fixed;
+            patch           mouth;
+            U0              (4.0 0.0 0.0);
+            nParticle       1; //  1 particles = one parcel
+            parcelsPerSecond 2;
+            sizeDistribution
+            {
+                type uniform;
+                uniformDistribution
+                {
+                    minValue        0.000036;
+                    maxValue        0.000036;
+                }
+            }
+            flowRateProfile constant 1;
+            massTotal       0;
+            SOI 0.0;
+            duration 120.0;
+        }
+
+        model45 // diameter  45 μm => 0.000045m
+        {
+            type            patchInjection;
+            parcelBasisType fixed;
+            patch           mouth;
+            U0              (4.0 0.0 0.0);
+            nParticle       1; //  1 particles = one parcel
+            parcelsPerSecond 2;
+            sizeDistribution
+            {
+                type uniform;
+                uniformDistribution
+                {
+                    minValue        0.000045;
+                    maxValue        0.000045;
+                }
+            }
+            flowRateProfile constant 1;
+            massTotal       0;
+            SOI 0.0;
+            duration 120.0;
+        }
+
+/*
+        model62 // diameter  62 μm => 0.000062m
+        {
+            type            patchInjection;
+            parcelBasisType fixed;
+            patch           mouth;
+            U0              (4.0 0.0 0.0);
+            nParticle       1; //  1 particles = one parcel
+            parcelsPerSecond 2;
+            sizeDistribution
+            {
+                type uniform;
+                uniformDistribution
+                {
+                    minValue        0.000062;
+                    maxValue        0.000062;
+                }
+            }
+            flowRateProfile constant 1;
+            massTotal       0;
+            SOI 0.0;
+            duration 120.0;
+        }
+
+        model87 // diameter  87 μm => 0.000087m
+        {
+            type            patchInjection;
+            parcelBasisType fixed;
+            patch           mouth;
+            U0              (4.0 0.0 0.0);
+            nParticle       1; //  1 particles = one parcel
+            parcelsPerSecond 1;
+            sizeDistribution
+            {
+                type uniform;
+                uniformDistribution
+                {
+                    minValue        0.000087;
+                    maxValue        0.000087;
+                }
+            }
+            flowRateProfile constant 1;
+            massTotal       0;
+            SOI 0.0;
+            duration 120.0;
+        }
+
+        model112 // diameter  112 μm => 0.000112m
+        {
+            type            patchInjection;
+            parcelBasisType fixed;
+            patch           mouth;
+            U0              (4.0 0.0 0.0);
+            nParticle       1; //  1 particles = one parcel
+            parcelsPerSecond 2;
+            sizeDistribution
+            {
+                type uniform;
+                uniformDistribution
+                {
+                    minValue        0.000112;
+                    maxValue        0.000112;
+                }
+            }
+            flowRateProfile constant 1;
+            massTotal       0;
+            SOI 0.0;
+            duration 120.0;
+        }
+
+        model137 // diameter  137 μm => 0.000137m
+        {
+            type            patchInjection;
+            parcelBasisType fixed;
+            patch           mouth;
+            U0              (4.0 0.0 0.0);
+            nParticle       1; //  1 particles = one parcel
+            parcelsPerSecond 2;
+            sizeDistribution
+            {
+                type uniform;
+                uniformDistribution
+                {
+                    minValue        0.000137;
+                    maxValue        0.000137;
+                }
+            }
+            flowRateProfile constant 1;
+            massTotal       0;
+            SOI 0.0;
+            duration 120.0;
+        }
+
+        model175 // diameter  175 μm => 0.000175m
+        {
+            type            patchInjection;
+            parcelBasisType fixed;
+            patch           mouth;
+            U0              (4.0 0.0 0.0);
+            nParticle       1; //  1 particles = one parcel
+            parcelsPerSecond 2;
+            sizeDistribution
+            {
+                type uniform;
+                uniformDistribution
+                {
+                    minValue        0.000175;
+                    maxValue        0.000175;
+                }
+            }
+            flowRateProfile constant 1;
+            massTotal       0;
+            SOI 0.0;
+            duration 120.0;
+        }
+
+        model225 // diameter  225 μm => 0.000225m
+        {
+            type            patchInjection;
+            parcelBasisType fixed;
+            patch           mouth;
+            U0              (4.0 0.0 0.0);
+            nParticle       1; //  1 particles = one parcel
+            parcelsPerSecond 2;
+            sizeDistribution
+            {
+                type uniform;
+                uniformDistribution
+                {
+                    minValue        0.000225;
+                    maxValue        0.000225;
+                }
+            }
+            flowRateProfile constant 1;
+            massTotal       0;
+            SOI 0.0;
+            duration 120.0;
+        }
+
+        model375 // diameter  375 μm => 0.000375m
+        {
+            type            patchInjection;
+            parcelBasisType fixed;
+            patch           mouth;
+            U0              (4.0 0.0 0.0);
+            nParticle       1; //  1 particles = one parcel
+            parcelsPerSecond 1;
+            sizeDistribution
+            {
+                type uniform;
+                uniformDistribution
+                {
+                    minValue        0.000375;
+                    maxValue        0.000375;
+                }
+            }
+            flowRateProfile constant 1;
+            massTotal       0;
+            SOI 0.0;
+            duration 120.0;
+        }
+
+        model750 // diameter  750 μm => 0.000750m
+        {
+            type            patchInjection;
+            parcelBasisType fixed;
+            patch           mouth;
+            U0              (4.0 0.0 0.0);
+            nParticle       1; //  1 particles = one parcel
+            parcelsPerSecond 1;
+            sizeDistribution
+            {
+                type uniform;
+                uniformDistribution
+                {
+                    minValue        0.000750;
+                    maxValue        0.000750;
+                }
+            }
+            flowRateProfile constant 1;
+            massTotal       0;
+            SOI 0.0;
+            duration 120.0;
+        }
+*/
+    }
+
+    dispersionModel none;
+
+    patchInteractionModel multiInteraction;
+
+    heatTransferModel RanzMarshall;
+
+    compositionModel singleMixtureFraction;
+
+    phaseChangeModel liquidEvaporation;
+
+    devolatilisationModel none;
+
+    surfaceReactionModel none;
+
+    stochasticCollisionModel none;
+
+    surfaceFilmModel none;
+
+    radiation       off;
+
+    multiInteractionCoeffs
+    {
+        oneInteractionOnly no;
+
+        model1 // for the walls: setting them all sticky
+        {
+            patchInteractionModel    standardWallInteraction;
+            standardWallInteractionCoeffs
+            {
+                type            stick;
+            }
+
+            writeToFile     yes;
+        }
+
+        model2 // for the recycling patches
+        {
+            patchInteractionModel    recycleInteraction;
+            recycleInteractionCoeffs
+            {
+                recyclePatches
+                (
+                    (intake1 exhaust_minX)
+                    (intake2 exhaust_minY)
+                    (intake3 exhaust_maxX)
+                    (intake4 exhaust_maxY)
+                );
+                recycleFraction 0.8;
+            }
+        }
+    }
+
+    RanzMarshallCoeffs
+    {
+        BirdCorrection  true;
+    }
+
+    singleMixtureFractionCoeffs
+    {
+        phases
+        (
+            gas
+            {
+            }
+            liquid
+            {
+                H2O   1;  // the liquid phase is 100% water
+            }
+            solid
+            {
+                C     1;  // the solid phase is 100% carbon
+/*
+it is possible to set multiple solid components; their ratio sum must be 1, for example :
+proteinA 0.7;
+proteinB 0.3;
+*/
+            }
+        );
+        YGasTot0        0;
+        YLiquidTot0     0.8;  // 80% of the droplet is water
+        YSolidTot0      0.2;  // 20% of the droplet is solid (protein nuclei)
+    }
+
+    liquidEvaporationCoeffs
+    {
+        enthalpyTransfer latentHeat;//enthalpyDifference;
+
+        activeLiquids   ( H2O );
+    }
+}
+
+cloudFunctions
+{
+    // function to count particles hitting patches
+    // classified according to their size
+
+/*
+in the injection models set above we have
+3   μm ->  2 parcels per second
+6   μm -> 27 parcels per second
+12  μm ->  9 parcels per second
+20  μm ->  5 parcels per second
+28  μm ->  3 parcels per second
+36  μm ->  2 parcels per second
+45  μm ->  2 parcels per second
+
+therefore in the following "particleHistogram1" we can set
+    nBins = 9
+    min = 0μm
+    max = 45μm
+in this ways the particles hitting the patches will be classified in the following ranges:
+    1) 0μm     to 5.01μm  <- the 3μm particles will be counted in this range
+    2) 5.01μm  to 10.01μm <- the 6μm particles will be counted in this range
+    3) 10.01μm to 15.01μm <- the 12μm particles will be counted in this range
+    4) 15.01μm to 20.01μm <- the 20μm particles will be counted in this range
+    5) 20.01μm to 25.01μm
+    6) 25.01μm to 30.01μm <- the 28μm particles will be counted in this range
+    7) 30.01μm to 35.01μm
+    8) 35.01μm to 40.01μm <- the 36μm particles will be counted in this range
+    9) 40.01μm to 45.01μm <- the 45μm particles will be counted in this range
+*/
+
+    particleHistogram1
+    {
+        type            particleHistogram;
+        patches
+        (
+            roof
+            floor
+            sideWall
+            humanBody
+            outlet
+        );
+        nBins            9;
+        min              0.0000001;
+        max              0.000045;
+        maxStoredParcels 100000000;
+    }
+
+    particlePostProcessing1
+    {
+        type            particlePostProcessing;
+        fields          (position origId d);
+        maxStoredParcels 100000000;
+        patches
+        (
+            roof
+            floor
+            sideWall
+            humanBody
+            outlet
+        );
+    }
+}
+
+
+// ************************************************************************* //

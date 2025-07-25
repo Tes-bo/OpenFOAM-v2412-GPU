@@ -1,0 +1,252 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2020-2021 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     foamTestTutorial dir [.. dirN]
+#
+# Description
+#     Run foamRunTutorials with specified tutorial directories
+#     Creates/destroys a temporary directory for each test unless
+#     an output directory has been specified.
+#
+# Environment
+#     Requires an initialized OpenFOAM environment.
+#
+# Note
+#     Potentially useful for debian autopkgtest
+#
+#------------------------------------------------------------------------------
+# Auto-detect from location
+#Unused# projectDir="$(\cd "$(dirname "${0%/*}")" && \pwd -L)"
+
+#------------------------------------------------------------------------------
+printHelp() {
+    cat<<USAGE
+
+usage: ${0##*/} [OPTION] dir [.. dirN]
+
+options:
+  -1            Run only one time step (modifies controlDict) [default]
+  -full         Run to completion (does not modify controlDict)
+  -force        Force overwrite of existing output directories
+  -debian       Adjust for running with autopkgtest
+  -serial       Prefer Allrun-serial if available
+  -parallel     Prefer Allrun-parallel if available
+  -output=DIR   Output directory (default: a temporary directory)
+  -help         Print the usage
+
+Run foamRunTutorials with specified tutorial directories
+Creates/destroys a temporary directory for each test unless
+an output directory has been specified.
+
+USAGE
+    exit 0 # A clean exit
+}
+
+# Report error and exit
+die()
+{
+    exec 1>&2
+    echo
+    echo "Error encountered:"
+    while [ "$#" -ge 1 ]; do echo "    $1"; shift; done
+    echo
+    echo "See '${0##*/} -help' for usage"
+    echo
+    exit 1
+}
+
+#------------------------------------------------------------------------------
+
+unset optAllrun optDebian optForce optVerbose
+unset outputDir
+optRunLimit=1
+
+# Parse options
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    (- | --)
+        shift
+        break   # Stop option parsing
+        ;;
+
+    (-h* | -help* | --help*)
+        printHelp
+        ;;
+
+    -force)
+        optForce=true
+        ;;
+    -1)
+        optRunLimit="${1#-}"
+        ;;
+    -full)
+        unset optRunLimit
+        ;;
+
+    -debian)
+        # Redirect stderr to stdout, if autopkgtest (tests/control)
+        # does NOT use "Restrictions: allow-stderr"
+        exec 2>&1
+        ;;
+
+    -serial | -parallel)
+        optAllrun="Allrun-${1#-}"
+        ;;
+
+    -output=*)
+        outputDir="${1#*=}"
+        ;;
+
+    -*)
+        die "unknown option $1"
+        ;;
+
+    *)
+        break
+        ;;
+    esac
+    shift
+done
+
+
+#------------------------------------------------------------------------------
+# Basic sanity checks
+
+[ -n "$FOAM_TUTORIALS" ] || export FOAM_TUTORIALS="$WM_PROJECT_DIR"/tutorials
+
+[ -d "${WM_PROJECT_DIR:?}" ] || die "No OpenFOAM environment: $WM_PROJECT_DIR"
+[ -d "$FOAM_TUTORIALS" ] || die "No OpenFOAM tutorials: $FOAM_TUTORIALS"
+
+
+#-------------------------------------------------------------------------------
+# Resolve the output directory
+if [ -n "$outputDir" ]
+then
+    outputDir="$(cd "$outputDir" 2>/dev/null && pwd -L)" || \
+        die "Cannot resolve output directory"
+
+    [ -w "$outputDir" ] || die "Output directory non-writable: $outputDir"
+fi
+
+#------------------------------------------------------------------------------
+
+#
+# Modify case controlDicts to run only one time step
+#
+modifyCaseControlDict()
+{
+    for dict in $(find . -name "controlDict*" -type f)
+    do
+        cp -f "${dict}" "${dict}.orig"
+        sed \
+            -e 's/\(startFrom[ \t]*\)[^ \t;]*;/\1 latestTime;/' \
+            -e 's/\(stopAt[ \t]*\)[^ \t;]*;/\1 nextWrite;/' \
+            -e 's/\(writeControl[ \t]*\)[^ \t;]*;/\1 timeStep;/' \
+            -e 's/\(writeInterval[ \t]*\)[^ \t;]*;/\1 '"${optRunLimit:-1}"';/' \
+            "${dict}.orig" > "${dict}"
+    done
+}
+
+
+#------------------------------------------------------------------------------
+
+nTests="$#"
+nPassed=0
+
+for testdir in "$@"
+do
+    testdir="${testdir#tutorials/}"
+    testdir="$(echo "$testdir" | sed -e 's@^//*@@; s@//*$@@;')"
+    suffix="$(echo "$testdir" | sed -e 's@//*@_@g')"
+
+    if [ -n "$testdir" ] && [ -d "$FOAM_TUTORIALS/$testdir" ]
+    then
+    (
+        echo "Run test: $testdir"
+        set -e
+
+        if [ -n "$outputDir" ]
+        then
+            TESTDIR="$outputDir/$suffix"
+            if [ -d "$TESTDIR" ]
+            then
+                if [ "$optForce" = true ]
+                then
+                    rm -rf "$TESTDIR"  # Remove old directory
+                else
+                    echo "Directory exists: $TESTDIR" 1>&2
+                    exit
+                fi
+            fi
+            mkdir "$TESTDIR"
+        else
+            TESTDIR="$(mktemp --directory --suffix=".$suffix")"
+            trap 'rm -rf $TESTDIR' 0 INT QUIT ABRT PIPE TERM
+        fi
+        cp -r "$FOAM_TUTORIALS/$testdir"/* "$TESTDIR"/
+        cd "$TESTDIR" || exit
+
+        # In case the input already had results
+        foamCleanTutorials  > /dev/null 2>&1
+
+        if [ -n "$optRunLimit" ]
+        then
+            set +e
+            modifyCaseControlDict
+            set -e
+        fi
+
+        nFilesBefore="$(ls | wc -l)"
+
+        if [ -n "$optAllrun" ] && [ -f ./"$optAllrun" ]
+        then
+            ./"$optAllrun"
+        else
+            foamRunTutorials
+        fi
+        nFilesAfter="$(ls | wc -l)"
+
+        if [ "$nFilesBefore" = 0 ]
+        then
+            echo "No input for $testdir" 1>&2
+            exit 1
+        elif [ "$nFilesBefore" = "$nFilesAfter" ]
+        then
+            echo "Run failure for $testdir" 1>&2
+            exit 1
+        else
+            # And/or grep for FatalError in log files
+            echo "run: OK"
+        fi
+    ) && nPassed=$((nPassed + 1))
+
+    else
+        echo "No tutorial: $testdir" 1>&2
+    fi
+done
+
+
+if [ "$nTests" = 0 ]
+then
+    die "No tests specified"
+elif [ "$nPassed" = "$nTests" ]
+then
+    echo "Passed all $nTests tests"
+else
+    echo "Passed $nPassed/$nTests tests" 1>&2
+    exit 1
+fi
+
+#------------------------------------------------------------------------------

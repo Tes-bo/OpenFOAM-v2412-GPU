@@ -1,0 +1,18 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/CleanFunctions      # Tutorial clean functions
+#------------------------------------------------------------------------------
+
+cleanCase0
+
+rm -rf constant/extendedFeatureEdgeMesh
+rm -rf constant/triSurface
+
+rm -rf VTK
+rm -rf constant/bottomAir/polyMesh
+rm -rf constant/topAir/polyMesh
+rm -rf constant/heater/polyMesh
+rm -rf constant/leftSolid/polyMesh
+rm -rf constant/rightSolid/polyMesh
+
+#------------------------------------------------------------------------------

@@ -1,0 +1,13 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/wmake/scripts/AllwmakeParseArguments -no-recursion "$@"
+. ${WM_PROJECT_DIR:?}/wmake/scripts/wmakeFunctions  # Require wmake functions
+
+#------------------------------------------------------------------------------
+# Environment
+#   - FOAM_MPI_LIBBIN (optional: defaults to FOAM_LIBBIN/FOAM_MPI)
+
+# Never need/want openmp for MPI interfaces
+wmakeLibMpi -no-openmp mpi
+
+#------------------------------------------------------------------------------

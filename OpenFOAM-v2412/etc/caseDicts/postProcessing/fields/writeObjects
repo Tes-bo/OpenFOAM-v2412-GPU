@@ -1,0 +1,20 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Version:  v2412
+    \\  /    A nd           | Website:  www.openfoam.com
+     \\/     M anipulation  |
+-------------------------------------------------------------------------------
+Description
+    Writes out specified objects, e.g. fields, stored on the case database.
+
+\*---------------------------------------------------------------------------*/
+
+type            writeObjects;
+libs            (utilityFunctionObjects);
+
+objects         (<object names>);
+
+writeControl    writeTime;
+
+// ************************************************************************* //

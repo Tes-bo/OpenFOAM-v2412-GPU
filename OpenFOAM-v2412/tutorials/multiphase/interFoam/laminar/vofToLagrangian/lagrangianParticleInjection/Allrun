@@ -1,0 +1,60 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+eulerianCase=../eulerianInjection
+
+copyLagrangianData()
+{
+    dir=$1
+    latestTime=$(\cd $dir && foamListTimes -latestTime)
+    if [ -z $latestTime ]
+    then
+        if [ -d $dir/processor0 ]
+        then
+            # Try a processor directory
+            latestTime=$(\cd $dir && foamListTimes -latestTime -processor)
+            if [ -n $latestTime ]
+            then
+                dir="${dir}/processor0"
+            fi
+        fi
+    fi
+
+    if [ -z $latestTime ]
+    then
+        echo "Error: unable to find Lagrangian data in case $dir"
+        exit 1
+    fi
+
+    udir=$dir/${latestTime}/uniform/lagrangian
+    ldir=$dir/${latestTime}/lagrangian
+
+    if [ -d $dir ]
+    then
+        echo "Copying lagrangian data from $ldir to 0 directory"
+        cp -rf $ldir 0
+        mkdir 0/uniform && cp -rf $udir 0/uniform
+    else
+        echo "Error: unable to find Lagrangian data in case $ldir"
+        exit 1
+    fi
+}
+
+
+restore0Dir;
+
+copyLagrangianData ${eulerianCase}
+
+runApplication blockMesh
+
+#runApplication decomposePar
+
+#runParallel $(getApplication)
+
+#runApplication reconstructPar
+
+runApplication $(getApplication)
+
+#------------------------------------------------------------------------------

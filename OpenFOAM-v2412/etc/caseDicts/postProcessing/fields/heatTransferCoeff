@@ -1,0 +1,22 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Version:  v2412
+    \\  /    A nd           | Website:  www.openfoam.com
+     \\/     M anipulation  |
+-------------------------------------------------------------------------------
+Description
+    Calculates the heat transfer coefficient at wall patches,
+    outputting the data as a volScalarField.
+
+\*---------------------------------------------------------------------------*/
+
+type            heatTransferCoeff;
+libs            (fieldFunctionObjects);
+
+field           T;
+
+executeControl  writeTime;
+writeControl    writeTime;
+
+// ************************************************************************* //

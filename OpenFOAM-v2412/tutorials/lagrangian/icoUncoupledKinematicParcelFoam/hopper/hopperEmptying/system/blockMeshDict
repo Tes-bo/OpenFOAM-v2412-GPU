@@ -1,0 +1,110 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+scale           0.001;
+
+depth           6.2;    // depth in the empty direction
+width           300;    // width of the wide part of the hopper
+gap             30;     // width of the gap
+totalHeight     500;    // height of the hopper including the angled part
+bottomAngle     30;     // angle of the bottom with respect to the ground
+
+minX            #eval{ 0.5*$width - 0.5*$gap };
+maxX            #eval{ 0.5*$width + 0.5*$gap };
+
+// height of the angled part based on the bottom angle
+htilted         #eval{ $minX*tan(degToRad($bottomAngle)) };
+
+vertices
+(
+    (0           $htilted        $depth)
+    ($minX       0               $depth)
+    (0          -$htilted        $depth)
+    ($width     -$htilted        $depth)
+    ($maxX       0               $depth)
+    ($width      $htilted        $depth)
+    ($width      $totalHeight    $depth)
+    (0           $totalHeight    $depth)
+    (0           $htilted             0)
+    ($minX       0                    0)
+    (0          -$htilted             0)
+    ($width     -$htilted             0)
+    ($maxX       0                    0)
+    ($width      $htilted             0)
+    ($width      $totalHeight         0)
+    (0           $totalHeight         0)
+);
+
+blocks
+(
+    hex (8 13 14 15 0 5 6 7) (24 50 1) simpleGrading (1 1 1)
+    hex (9 12 13 8 1 4 5 0) (24 8 1) simpleGrading (1 1 1)
+    hex (10 11 12 9 2 3 4 1) (24 6 1) simpleGrading (1 1 1)
+);
+
+boundary
+(
+    walls
+    {
+        type wall;
+        faces
+        (
+            //side walls
+            (0 7 15 8)
+            (1 0 8 9)
+            (13 14 6 5)
+            (12 13 5 4)
+            (2 1 9 10)
+            (11 12 4 3)
+        );
+    }
+
+    frontAndBack
+    {
+        type wall;
+        faces
+        (
+            //front and back walls
+            (4 5 0 1)
+            (5 6 7 0)
+            (15 14 13 8)
+            (8 13 12 9)
+            (3 4 1 2)
+            (12 11 10 9)
+        );
+    }
+
+    inlet
+    {
+        type patch;
+        faces
+        (
+            (15 7 6 14)
+        );
+    }
+
+    outlet
+    {
+        type patch;
+        faces
+        (
+            (3 2 10 11)
+        );
+    }
+);
+
+
+// ************************************************************************* //

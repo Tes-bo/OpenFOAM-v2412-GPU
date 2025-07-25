@@ -1,0 +1,72 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2011-2016 OpenFOAM Foundation
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     makeFiles
+#
+# Description
+#     Scan the current directory for source files and construct Make/files
+#
+#     Usage : makeFiles
+#
+#------------------------------------------------------------------------------
+scriptDir="${0%/*}"                     # The script dir
+dirToString="$scriptDir/dirToString"
+
+if [ -r Make/files ]
+then
+    echo "Error: Make/files already exists - exiting" 1>&2
+    exit 1
+fi
+
+[ -x "$dirToString" ] || {
+    echo "Error: no command $dirToString" 1>&2
+    exit 1
+}
+
+[ -d Make ] || mkdir Make
+rm -f Make/files
+
+#------------------------------------------------------------------------------
+
+echo "Creating Make/files ..."
+
+for dir in $(find . -mindepth 1 -type d -print)
+do
+    case "$dir" in
+    . | ./Make | ./lnInclude )
+        # Skip special directories
+        ;;
+    *)
+        echo "$($dirToString "$dir")  =  ${dir#./}"
+        ;;
+    esac
+done > Make/files
+[ -s Make/files ] && echo >> Make/files
+
+for file in $(find . -name "*.[cCylLfF]" -type f -print)
+do
+    pathName="$($dirToString "${file%/*}")"
+
+    if [ -n "$pathName" ]
+    then
+        echo '$('"$pathName"')/'"${file##*/}"
+    else
+        echo "${file##*/}"
+    fi
+done >> Make/files
+
+echo >> Make/files
+echo 'EXE = $(FOAM_APPBIN)/'"${PWD##*/}" >> Make/files
+
+#------------------------------------------------------------------------------

@@ -1,0 +1,20 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+# copy cpu surface from resources directory
+cp -rf \
+    "$FOAM_TUTORIALS"/resources/geometry/cpuCabinet \
+    constant/triSurface
+
+runApplication blockMesh
+runApplication surfaceFeatureExtract
+runApplication snappyHexMesh -overwrite
+runApplication $decompDict decomposePar
+restore0Dir -processor
+
+runParallel splitMeshRegions -cellZones -overwrite
+runParallel topoSet -region domain0
+
+#------------------------------------------------------------------------------

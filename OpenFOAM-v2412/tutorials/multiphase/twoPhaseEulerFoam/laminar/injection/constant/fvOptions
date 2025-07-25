@@ -1,0 +1,71 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      fvOptions;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+injector1
+{
+    timeStart       0.1;
+    duration        5;
+    selectionMode   points;
+    points
+    (
+        (0.075 0.2 0.05)
+    );
+}
+
+options
+{
+    massSource1
+    {
+        type            scalarSemiImplicitSource;
+
+        $injector1;
+
+        volumeMode      absolute;
+        sources
+        {
+            thermo:rho.air  (1e-3 0);  // kg/s
+        }
+    }
+
+    momentumSource1
+    {
+        type            vectorSemiImplicitSource;
+
+        $injector1;
+
+        volumeMode      absolute;
+        sources
+        {
+            U.air       ((0 -1e-2 0) 0);  // kg*m/s^2
+        }
+    }
+
+    energySource1
+    {
+        type            scalarSemiImplicitSource;
+
+        $injector1;
+
+        volumeMode      absolute;
+        sources
+        {
+            e.air       (500 0);  // kg*m^2/s^3
+        }
+    }
+}
+
+
+// ************************************************************************* //

@@ -1,0 +1,16 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+canCompile || exit 0    # Dynamic code
+
+echo "Linking processor*/ directory"
+for proc in $(\ls -d ../steadyState/processor*)
+do
+    [ -d "$proc" ] && ln -sf "$proc" .
+done
+
+runParallel $(getApplication)
+
+#------------------------------------------------------------------------------

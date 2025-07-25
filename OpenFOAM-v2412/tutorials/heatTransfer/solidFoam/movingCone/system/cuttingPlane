@@ -1,0 +1,28 @@
+// -*- C++ -*-
+
+cuttingPlane
+{
+    type            surfaces;
+    libs            (sampling);
+
+    writeControl    writeTime;
+
+    surfaceFormat   vtk;
+    fields          ( p U );
+
+    interpolationScheme cellPoint;
+
+    surfaces
+    {
+        zNormal
+        {
+            type        cuttingPlane;
+            point       (0 0 0);
+            normal      (0 0 1);
+            interpolate true;
+        }
+    }
+}
+
+
+// ************************************************************************* //

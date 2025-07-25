@@ -1,0 +1,54 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      snappyHexMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+
+minVol          1e-13;
+minTetQuality   1e-16;
+minArea         1e-13;
+minTwist        0.05;
+minDeterminant  1e-06;
+minFaceWeight   0.02;
+minVolRatio     0.01;
+minTriangleTwist -1;
+minFlatness     0.5;
+maxNonOrtho     70;
+maxBoundarySkewness 20;
+maxInternalSkewness 4;
+maxConcave      80;
+nSmoothScale    4;
+errorReduction  0.75;
+
+relaxed
+{
+    minVol          1e-30;
+    minTetQuality   1e-30;
+    minArea         1e-30;
+    minTwist        0.001;
+    minDeterminant  1e-06;
+    minFaceWeight   1e-06;
+    minVolRatio     0.01;
+    minTriangleTwist -1;
+    minFlatness     0.5;
+    maxNonOrtho     75;
+    maxBoundarySkewness 20;
+    maxInternalSkewness 8;
+    maxConcave      80;
+    nSmoothScale    4;
+    errorReduction  0.75;
+}
+
+
+// ************************************************************************* //

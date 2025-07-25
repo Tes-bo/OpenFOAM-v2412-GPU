@@ -1,0 +1,3 @@
+dummyMetisDecomp.cxx
+
+LIB = $(FOAM_LIBBIN)/dummy/libmetisDecomp

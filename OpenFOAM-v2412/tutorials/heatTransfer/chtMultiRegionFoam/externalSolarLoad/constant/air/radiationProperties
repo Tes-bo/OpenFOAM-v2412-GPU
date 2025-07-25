@@ -1,0 +1,92 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      radiationProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+radiation       on;
+
+radiationModel  viewFactor;
+
+solarLoadCoeffs
+{
+    sunDirectionModel   tracking;
+
+        sunTrackingUpdateInterval 800; // Time interval to update Sun position
+        localStandardMeridian     9;       // GMT offset (hours)
+        startDay                  204;     // day of the year
+        startTime                 15;      // time of the day (hours decimal)
+        longitude                 139.74;  // longitude (degrees)
+        latitude                  35.658;  // latitude (degrees)
+        gridUp                    (0 0 1); // grid orientation
+        gridEast                  (1 0 0);
+
+
+    sunLoadModel    fairWeather;
+
+        // Fair weather conditions model constants
+        // Calculate beta from the Solar calculator or input
+        groundReflectivity 0.2;
+        A       500;   // Apparent solar irradiation at air mass m = 0
+        B       0.142; // Atmospheric extinction coefficient
+        C       0.058; // Solar diffusivity constant
+        //beta    45;  // Solar altitude (in degrees) above the horizontal
+
+
+    // see solarCalculator.H for other model examples and details
+
+
+    // Energy spectrum
+    spectralDistribution (2 1);
+
+
+    // Radiative flux coupling flags
+    solidCoupled    true;  //Couple through qr the solid regions (default true)
+    wallCoupled     false; //Couple through qr wall patches (default false)
+
+    // Reflecting rays
+    useReflectedRays true;
+    reflecting
+    {
+        nPhi        10;
+        nTheta      10;
+    }
+
+    absorptionEmissionModel none;
+    scatterModel            none;
+    sootModel               none;
+}
+
+
+viewFactorCoeffs
+{
+    smoothing true; //Smooth view factor matrix (use when in a close surface
+                    //to force Sum(Fij = 1)
+    constantEmissivity true; //constant emissivity on surfaces.
+
+    nBands    2;
+
+    useSolarLoad       true;
+}
+
+// Number of flow iterations per radiation iteration
+solverFreq 1;
+
+absorptionEmissionModel none;
+
+scatterModel    none;
+
+sootModel       none;
+
+
+// ************************************************************************* //

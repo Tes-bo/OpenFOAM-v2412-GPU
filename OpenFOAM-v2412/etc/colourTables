@@ -1,0 +1,98 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+// An OpenFOAM dictionary of colourTables.
+// The predefined enumerations in the colourTables class *must* also appear
+// here, but the file can also contain additional custom colour tables too.
+
+(
+
+coolToWarm
+{
+    // ParaView: "Cool To Warm"
+    interpolate diverging;
+
+    table
+    (
+        ( 0.0 ( 0.231372 0.298039 0.752941 ) )
+        ( 0.5 ( 0.865003 0.865003 0.865003 ) )
+        ( 1.0 ( 0.705882 0.0156863 0.14902 ) )
+    );
+}
+
+coldAndHot
+{
+    // ParaView : "Cold and Hot"
+    interpolate diverging;
+
+    table
+    (
+        ( 0    ( 0 1 1 ) )
+        ( 0.45 ( 0 0 1 ) )
+        ( 0.5  ( 0 0 0.5019608) )
+        ( 0.55 ( 1 0 0 ) )
+        ( 1    ( 1 1 0 ) )
+    );
+}
+
+
+fire
+{
+    // ParaView: Black-Body Radiation
+    interpolate rgb;
+
+    table
+    (
+        ( 0   ( 0 0 0 ) )
+        ( 0.4 ( 0.901961 0 0 ) )
+        ( 0.8 ( 0.901961 0.901961 0 ) )
+        ( 1   ( 1 1 1 ) )
+    );
+}
+
+rainbow
+{
+    interpolate hsv;
+
+    table
+    (
+        ( 0   ( 0 0 1 ) )
+        ( 0.5 ( 0 1 0 ) )
+        ( 1   ( 1 0 0 ) )
+    );
+}
+
+greyscale
+{
+    // ParaView: grayscale
+    interpolate rgb;
+
+    table
+    (
+        ( 0   ( 0 0 0 ) )
+        ( 1   ( 1 1 1 ) )
+    );
+}
+
+xray
+{
+    // ParaView: "X ray"
+    interpolate rgb;
+
+    table
+    (
+        ( 0   ( 1 1 1 ) )
+        ( 1   ( 0 0 0 ) )
+    );
+}
+
+// Additional tables (without code enumeration)
+
+)
+
+// ************************************************************************* //

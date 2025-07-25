@@ -1,0 +1,54 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       areaScalarField;
+    object      Cs;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions          [1 -2 0 0 0 0 0];
+
+internalField       uniform 0;
+
+referenceLevel      0;
+
+boundaryField
+{
+    #includeEtc "caseDicts/setConstraintTypes"
+
+    inlet1
+    {
+        type        fixedValue;
+        value       uniform 1;
+    }
+
+    inlet2
+    {
+        type        fixedValue;
+        value       uniform 0.9;
+    }
+
+    outlet
+    {
+        type        inletOutlet;
+        value       uniform 1;
+        phi         phis;
+        inletValue  uniform 0;
+    }
+
+    bound
+    {
+        type        symmetry;
+    }
+}
+
+
+// ************************************************************************* //

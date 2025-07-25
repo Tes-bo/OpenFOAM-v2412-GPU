@@ -1,0 +1,27 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/wmake/scripts/wmakeFunctions  # Require wmake functions
+#------------------------------------------------------------------------------
+
+# Remove library files (including dummy)
+# - regular and mpi-specific locations
+
+echo "Removing librunTimePostProcessing* from standard locations"
+
+for libDir in "$FOAM_LIBBIN" "$FOAM_SITE_LIBBIN" "$FOAM_USER_LIBBIN"
+do
+    if [ -d "$libDir" ]
+    then
+        for dir in "$libDir" "$libDir/$FOAM_MPI"
+        do
+            rm -f "$dir"/librunTimePostProcessing*
+        done
+    fi
+done
+
+# This cleanup handles both cmake runTimePostProcessing and the dummy version
+
+# Cleanup generated files - remove entire top-level
+removeObjectDir "$PWD"
+
+#------------------------------------------------------------------------------

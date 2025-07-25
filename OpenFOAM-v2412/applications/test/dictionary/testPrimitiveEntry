@@ -1,0 +1,49 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      dictionary;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// Test parsing of primitive entry
+// Can pass through foamDictionary -expand for test
+
+dict1
+{
+    entry1  no brackets;
+
+    entry2  balanced ( set of { brackets } in the ) entry;
+
+    entry3a mismatch ( set of { brackets ) in the } entry;
+
+    entry3b mismatch ( set of { brackets } in the } entry;
+
+    // Runs on
+    // entry3c too many ( set of ) brackets ) in ) entry;
+
+    //entry4  missing closing ( set of { brackets } in entry;
+}
+
+
+dict2
+{
+    entry1  no brackets;
+    entry2  no brackets but missing semi-colon
+}
+
+dict3
+{
+    entry1  anything;
+}
+
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

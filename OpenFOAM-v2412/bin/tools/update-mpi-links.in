@@ -1,0 +1,75 @@
+#!/bin/sh
+FOAM_MPI="@FOAM_MPI@"
+FOAM_SYSTEM_MPI_LIBBIN="@FOAM_SYSTEM_MPI_LIBBIN@"
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2020 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Description
+#     Update of links from system mpi lib/ to local lib/mpi-name
+#
+# Note
+#     Normally located as a trigger within the platforms/ directory
+#     Uses hard-coded values (eg, generated with autoconfig).
+#
+#------------------------------------------------------------------------------
+cd "${0%/*}" || exit                                # Run from this directory
+
+# Local values
+FOAM_LIBBIN="$(pwd -P)/lib"
+FOAM_MPI_LIBBIN="$FOAM_LIBBIN/$FOAM_MPI"
+
+#------------------------------------------------------------------------------
+echo "Link OpenFOAM ($FOAM_MPI) from system locations"
+echo "Target: $FOAM_MPI_LIBBIN"
+echo "Source: $FOAM_SYSTEM_MPI_LIBBIN"
+
+if [ -z "$FOAM_MPI" ]
+then
+    echo "FOAM_MPI not defined - skipping"
+    exit 0
+fi
+if [ -z "$FOAM_SYSTEM_MPI_LIBBIN" ]
+then
+    echo "FOAM_SYSTEM_MPI_LIBBIN not defined - skipping"
+    exit 0
+fi
+if [ ! -d "$FOAM_SYSTEM_MPI_LIBBIN" ]
+then
+    echo "No system mpi lib: $FOAM_SYSTEM_MPI_LIBBIN"
+    echo "... not updating"
+    exit 0
+fi
+if [ ! -d "$FOAM_LIBBIN" ]
+then
+    echo "Missing $FOAM_LIBBIN"
+    exit 0
+fi
+
+#------------------------------------------------------------------------------
+mkdir -p "$FOAM_MPI_LIBBIN"
+
+# Create symlinks
+(
+    cd "$FOAM_MPI_LIBBIN" || exit
+
+    for i in "$FOAM_SYSTEM_MPI_LIBBIN"/*
+    do
+        if [ -f "$i" ]
+        then
+            ln -svf "$i" "${i##*/}"
+        fi
+    done
+)
+
+exit 0  # clean exit
+
+#------------------------------------------------------------------------------

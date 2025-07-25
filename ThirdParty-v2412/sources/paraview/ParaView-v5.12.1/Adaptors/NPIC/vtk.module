@@ -1,0 +1,18 @@
+NAME
+  ParaView::AdaptorsNPIC
+LIBRARY_NAME
+  vtkPVAdaptorsNPIC
+SPDX_LICENSE_IDENTIFIER
+  BSD-3-Clause
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Kitware Inc.
+GROUPS
+  PARAVIEW_CANONICAL
+CONDITION
+  PARAVIEW_USE_MPI
+DEPENDS
+  ParaView::Catalyst
+  VTK::CommonDataModel
+  VTK::CommonCore
+  VTK::ParallelMPI
+EXCLUDE_WRAP

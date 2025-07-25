@@ -1,0 +1,25 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+restore0Dir
+
+runApplication -s coarse blockMesh -dict system/blockMeshDict.coarse
+
+mkdir constant/coarseMesh
+mv -f constant/polyMesh constant/coarseMesh
+
+runApplication -s fine blockMesh -dict system/blockMeshDict.fine
+
+runApplication -s fine decomposePar
+
+runApplication -s coarse decomposePar -region coarseMesh
+
+runParallel $(getApplication)
+
+#runApplication -s fine reconstructPar
+#
+#runApplication -s coarse reconstructPar -region coarseMesh
+
+#------------------------------------------------------------------------------

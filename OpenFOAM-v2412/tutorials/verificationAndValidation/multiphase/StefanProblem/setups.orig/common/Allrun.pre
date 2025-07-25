@@ -1,0 +1,36 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+restore0Dir
+
+cp -Rf 0 1.36/
+
+if [ ! -d constant/polyMesh ]
+then
+    runApplication blockMesh
+
+    runApplication renumberMesh -overwrite -constant
+
+    runApplication checkMesh -allTopology -allGeometry -constant
+fi
+
+if [ ! -f "system/setAlphaFieldDict" ]
+then
+    if [ -f "system/setAlphaFieldDict.liquid" ]
+    then
+        runApplication -s liquid \
+            setAlphaField -dict system/setAlphaFieldDict.liquid
+    fi
+
+    if [ -f "system/setAlphaFieldDict.gas" ]
+    then
+        runApplication -s gas \
+            setAlphaField -dict system/setAlphaFieldDict.gas
+    fi
+else
+    runApplication setAlphaField
+fi
+
+#------------------------------------------------------------------------------

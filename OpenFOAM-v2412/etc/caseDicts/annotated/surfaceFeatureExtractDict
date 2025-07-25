@@ -1,0 +1,147 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      surfaceFeatureExtractDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+surface1.stl
+{
+    // Extract raw features (none | extractFromFile | extractFromSurface)
+    extractionMethod    extractFromSurface;
+
+    // Mark edges whose adjacent surface normals are at an angle less
+    // than includedAngle as features
+    // - 0  : selects no edges
+    // - 180: selects all edges
+    includedAngle       120;
+
+    // Do not mark region edges
+    geometricTestOnly   yes;
+
+    // Generate additional intersection features (none | self | region)
+    intersectionMethod  none;
+
+    // Tolerance for surface intersections
+    // tolerance           1e-3;
+
+// Output options:
+
+    // Write features to obj format for postprocessing
+    writeObj            yes;
+}
+
+
+// Self intersection (single or multiple surfaces).
+// - Use 'surfaces' entry (a wordRe list) if it exists.
+// - If the dictionary name does not have an extension, 'surfaces' is mandatory.
+outputName1
+{
+    extractionMethod    none;
+
+    surfaces            (surface1.stl surface2.nas);
+
+    // mm -> m scaling
+    // scale               0.001;
+
+    // Generate additional intersection features (none | self | region)
+    intersectionMethod  self;
+
+    // Tolerance for surface intersections
+    // tolerance           1e-3;
+
+// Output options:
+
+    // Write features to OBJ format for postprocessing
+    writeObj            yes;
+}
+
+
+surface2.nas
+{
+    // Extract raw features (none | extractFromFile | extractFromSurface)
+    extractionMethod    extractFromFile;
+
+    // Load from an existing feature edge file
+    featureEdgeFile     "<constant>/triSurface/featureEdges.nas";
+
+    trimFeatures
+    {
+        // Remove features with fewer than the specified number of edges
+        minElem         0;
+
+        // Remove features shorter than the specified cumulative length
+        minLen          0.0;
+    }
+
+    subsetFeatures
+    {
+        // Use a plane to select feature edges (normal)(basePoint)
+        // Only keep edges that intersect the plane
+        plane           (1 0 0)(0 0 0);
+
+        // Select feature edges using a box // (minPt)(maxPt)
+        // Only keep edges inside the box:
+        insideBox       (0 0 0)(1 1 1);
+
+        // Only keep edges outside the box:
+        outsideBox      (0 0 0)(1 1 1);
+
+        // Keep nonManifold edges (edges with >2 connected faces where
+        // the faces form more than two different normal planes)
+        nonManifoldEdges yes;
+
+        // Like nonManifoldEdges but is purely topological - does not
+        // check for normals. Either use nonManifoldEdges or
+        // strictNonManifoldEdges
+        //strictNonManifoldEdges  false;
+
+        // Keep open edges (edges with 1 connected face)
+        openEdges       yes;
+    }
+
+    addFeatures
+    {
+        // Add (without merging) another extendedFeatureEdgeMesh
+        name            axZ.extendedFeatureEdgeMesh;
+    }
+
+
+    // Generate additional intersection features (none | self | region)
+    intersectionMethod  none;
+
+    // Tolerance for surface intersections
+    // tolerance           1e-3;
+
+// Output options:
+
+    // Output the closeness of surface elements to other surface elements.
+    closeness           no;
+
+    // Output surface curvature
+    curvature           no;
+
+    // Output the proximity of feature points and edges to another
+    featureProximity    no;
+
+    // Maximum search distance when checking feature proximity (default: 1m)
+    maxFeatureProximity 1;
+
+    // Write features to OBJ format for postprocessing
+    writeObj            no;
+
+    // Write closeness/curvature/proximity fields as VTK for postprocessing
+    writeVTK            no;
+}
+
+
+// ************************************************************************* //

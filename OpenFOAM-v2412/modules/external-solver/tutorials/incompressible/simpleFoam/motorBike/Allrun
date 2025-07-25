@@ -1,0 +1,18 @@
+#!/bin/sh
+cd "${0%/*}" || exit                            # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions    # Tutorial run functions
+#------------------------------------------------------------------------------
+
+./Allrun.init
+
+dst=run
+
+if [ -d "$dst" ]
+then
+    (cd "$dst" && foamRunTutorials)
+
+    # Copy back log files
+    cp -f "$dst"/log.* .
+fi
+
+#------------------------------------------------------------------------------

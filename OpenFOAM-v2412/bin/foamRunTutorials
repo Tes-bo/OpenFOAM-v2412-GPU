@@ -1,0 +1,232 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2011-2016 OpenFOAM Foundation
+#     Copyright (C) 2018-2022 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     foamRunTutorials
+#
+# Description
+#     Recursively run Allrun/Alltest or blockMesh and application,
+#     starting with the current directory or the specified -case directory.
+#
+#     For tutorials that are known to run poorly, an Allrun-optional
+#     placeholder can be used instead of the usual Allrun script.
+#     When this is detected, the case will be skipped.
+#
+#------------------------------------------------------------------------------
+. "${WM_PROJECT_DIR:?}"/bin/tools/RunFunctions      # Tutorial run functions
+
+# Normally use standard "make"
+make="make"
+
+thisScript="$0"
+if [ "/${thisScript#/}" != "$thisScript" ]
+then
+    thisScript="$PWD/$thisScript"
+fi
+
+printHelp() {
+    cat <<USAGE
+
+Usage: ${0##*/} [OPTION]
+options:
+  -case=DIR     Specify starting directory, default is cwd
+  -serial       Prefer Allrun-serial if available
+  -parallel     Prefer Allrun-parallel if available
+  -test         Prefer Alltest script, pass -test argument to scripts
+  -dry-run      Only report which script to run
+  -self         Avoid initial Allrun / Alltest scripts
+                (prevent infinite recursion)
+  -help         Print the usage
+
+Recursively run Alltest / Allrun / Allrun-parallel / Allrun-serial
+(or simply blockMesh + application)
+starting from the current directory or the specified -case directory.
+
+Equivalent options:
+  | -case=DIR  | -case DIR |
+
+USAGE
+   exit 0  # A clean exit
+}
+
+# Report error and exit
+die()
+{
+    exec 1>&2
+    echo
+    echo "Error encountered:"
+    while [ "$#" -ge 1 ]; do echo "    $1"; shift; done
+    echo
+    echo "See '${0##*/} -help' for usage"
+    echo
+    exit 1
+}
+
+#------------------------------------------------------------------------------
+
+# Parse options
+unset optDryRun passArgs runTest runType skipSelf
+
+while [ "$#" -gt 0 ]
+do
+    unset caseDir
+    case "$1" in
+    (- | --)
+        shift
+        break   # Stop option parsing
+        ;;
+    (-h* | -help* | --help*)
+        printHelp
+        ;;
+
+    ## Prefer serial or parallel
+    -serial | -parallel)
+        runType="${1#*-}"
+        ;;
+
+    -test)
+        passArgs="$passArgs${passArgs:+ }$1"
+        runTest=true
+        ;;
+
+    ## long-option (internal dispatch form)
+    --run=serial | --run=parallel)
+        runType="${1#*=}"
+        ;;
+    --run=*)
+        echo "$0: unknown setting: $1" 1>&2
+        ;;
+
+    -dry-run)
+        passArgs="$passArgs${passArgs:+ }$1"
+        optDryRun="(dry-run) "
+        ;;
+
+    -case=*)
+        caseDir="${1#*=}"
+        ;;
+    -case)
+        caseDir="$2"
+        [ -n "$#" -ge 2 ] || die "'$1' option requires an argument"
+        shift
+        ;;
+
+    # Avoid infinite recursion when invoked from an Allrun/Alltest script
+    -self* | -skipFirst)
+        skipSelf=true
+        ;;
+    *)
+        break
+        ;;
+    esac
+    shift
+
+    if [ -n "$caseDir" ]
+    then
+        cd "$caseDir" 2>/dev/null || {
+            echo "${0##*/}: No such directory $caseDir" 1>&2
+            exit 2
+        }
+    fi
+done
+
+
+# Use specialized script(s), but not on self
+if [ -z "$skipSelf" ]
+then
+    # Use specialized script(s)
+    if [ -n "$runTest" ] && [ -f ./Alltest ]
+    then
+        if [ -n "$optDryRun" ]
+        then
+            echo "${optDryRun} Alltest: $PWD" 1>&2
+        else
+            ./Alltest $passArgs $*
+        fi
+        exit "$?"
+    elif [ -f ./Allrun-optional ]
+    then
+        echo "Skipped optional case $PWD"
+        exit 0
+    elif [ -n "$runType" ]
+    then
+        # Prefer -serial or -parallel when available?
+        allRun="Allrun-$runType"
+        if [ -f ./"$allRun" ]
+        then
+            if [ -n "$optDryRun" ]
+            then
+                echo "${optDryRun} $allRun: $PWD" 1>&2
+            else
+                ./"$allRun" $passArgs $*
+            fi
+            exit "$?"
+        fi
+    fi
+
+    # Otherwise use Allrun or Allrun-parallel or Allrun-serial
+    for allRun in Allrun Allrun-parallel Allrun-serial
+    do
+        if [ -f ./"$allRun" ]
+        then
+            if [ -n "$optDryRun" ]
+            then
+                echo "${optDryRun} $allRun: $PWD" 1>&2
+            else
+                ./"$allRun" $passArgs $*
+            fi
+            exit "$?"
+        fi
+    done
+fi
+
+
+if [ -d system ]
+then
+    # Run normal case with blockMesh and the application
+    if [ -n "$optDryRun" ]
+    then
+        echo "${optDryRun} blockMesh + application: $PWD" 1>&2
+    else
+        runApplication blockMesh
+        runApplication $(getApplication)
+    fi
+
+else
+    # Compile any applications in sub-directories
+    for caseName in *
+    do
+        if [ -d "$caseName/Make" ]
+        then
+            if [ -n "$optDryRun" ]
+            then
+                echo "${optDryRun} compile $caseName" 1>&2
+            else
+                ( compileApplication "$caseName" )
+            fi
+        fi
+    done
+
+    # Loop over sub-directories
+    subdirs=$(for d in *; do [ -d "$d" ] && echo "$d"; done | xargs)
+
+    # Run all cases which have not already been run
+    "$make" ${optDryRun:+--no-print-directory} \
+          -k -f "${WM_PROJECT_DIR:?}"/bin/tools/MakefileDirs \
+          FOAM_TARGETS="$subdirs" \
+          FOAM_APP="$thisScript" \
+          FOAM_ARGS="$passArgs ${runType:+--run=$runType} $*"
+fi
+
+#------------------------------------------------------------------------------

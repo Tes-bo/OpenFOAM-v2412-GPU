@@ -1,0 +1,55 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    object      alphat;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 2 -1 0 0 0 0];
+
+internalField   uniform 0.1;
+
+boundaryField
+{
+    "p[0-9]+"
+    {
+        type            freestream;
+        freestreamBC
+        {
+            type        timeVaryingMappedFixedValue;
+            offset      0;
+            setAverage  off;
+            mapMethod   nearest;
+            value       $internalField;
+        }
+        value           $internalField;
+    }
+
+    terrain
+    {
+        type            atmAlphatkWallFunction;
+        kappa           0.4;
+        Cmu             0.09;
+        Pr              0.9;
+        Prt             uniform 0.74;
+        z0              uniform 0.05;
+        value           uniform 0.0;
+    }
+
+    top
+    {
+        type            slip;
+    }
+}
+
+
+// ************************************************************************* //

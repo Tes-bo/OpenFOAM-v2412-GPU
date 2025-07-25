@@ -1,0 +1,44 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      createPatchDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+pointSync false;
+
+// Patches to create.
+patches
+(
+    // Example of creating mapped patches using geometric matching
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    {
+        // Name of new patch
+        name exposed1;
+
+        // Dictionary to construct new patch from
+        patchInfo
+        {
+            type        patch;
+        }
+
+        // How to select the faces:
+        //  - set : specify faceSet in 'set'
+        //  - patches : specify names in 'patches'
+        //  - autoPatch : attempts automatic patching of the specified
+        //                candidates in 'patches'.
+        constructFrom   set;
+        set             exposed0;
+    }
+);
+
+// ************************************************************************* //

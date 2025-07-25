@@ -1,0 +1,9 @@
+/* Pyrolysis models */
+pyrolysisModel/pyrolysisModel.C
+pyrolysisModel/pyrolysisModelNew.C
+reactingOneDim/reactingOneDim.C
+noPyrolysis/noPyrolysis.C
+thermo/thermo.C
+pyrolysisModel/pyrolysisModelCollection.C
+
+LIB = $(FOAM_LIBBIN)/libpyrolysisModels

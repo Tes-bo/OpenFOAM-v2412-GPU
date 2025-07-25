@@ -1,0 +1,50 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+# Get geometry and other resources
+./Allrun.init
+
+# runApplication surfaceFeatureExtract
+runApplication blockMesh
+
+rm -f constant/polyMesh/*Level
+
+unset parallel
+parallel=true
+
+# Dummy 0 directory
+mkdir -p 0
+
+if [ "${parallel:-false}" = false ]
+then
+    # Serial
+
+    runApplication snappyHexMesh -overwrite
+    rm -f constant/polyMesh/refinementHistory*
+
+    restore0Dir
+
+    runApplication renumberMesh -overwrite
+
+else
+    # Parallel
+
+    runApplication decomposePar -force
+    runParallel snappyHexMesh -overwrite
+    \ls -d processor* | xargs -I {} \rm -f ./{}/constant/polyMesh/refinementHistory
+
+    restore0Dir -processor
+
+    runParallel renumberMesh  -overwrite
+
+    # In case serial calculations are needed later
+
+    restore0Dir # Overwrite dummy 0 directory
+    # runApplication reconstructParMesh -constant
+
+fi
+
+
+#------------------------------------------------------------------------------

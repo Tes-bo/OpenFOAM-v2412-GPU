@@ -1,0 +1,21 @@
+species
+(
+    PMMA
+);
+
+gaseousSpecies
+(
+    gas
+);
+
+reactions
+{
+    charReaction
+    {
+        type        irreversibleArrheniusSolidReaction;
+        reaction    "PMMA = gas";
+        A           1.2e6;
+        Ta          11300.57;
+        Tcrit       400;
+    }
+}

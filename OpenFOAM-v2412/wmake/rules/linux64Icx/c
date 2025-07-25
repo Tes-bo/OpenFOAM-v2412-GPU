@@ -1,0 +1,18 @@
+#------------------------------------------------------------------------------
+include $(GENERAL_RULES)/Icx/c
+
+cARCH      :=
+
+ifneq (,$(strip $(WM_COMPILE_OPTION)))
+    sinclude $(DEFAULT_RULES)/c$(WM_COMPILE_OPTION)
+endif
+
+cFLAGS      = \
+    $(cARCH) $(GFLAGS) $(cWARN) $(cOPT) $(cDBUG) \
+    $(FOAM_EXTRA_CFLAGS) $(LIB_HEADER_DIRS) -fPIC
+
+ctoo        = $(WM_SCHEDULER) $(cc) $(cFLAGS) -c $< -o $@
+
+include $(GENERAL_RULES)/Icx/link-c
+
+#------------------------------------------------------------------------------

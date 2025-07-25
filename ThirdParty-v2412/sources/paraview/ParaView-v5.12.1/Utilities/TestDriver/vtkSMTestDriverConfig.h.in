@@ -1,0 +1,18 @@
+// SPDX-FileCopyrightText: Copyright (c) Kitware Inc.
+// SPDX-License-Identifier: BSD-3-Clause
+#cmakedefine PV_TEST_INIT_COMMAND "@PV_TEST_INIT_COMMAND@"
+#cmakedefine PV_TEST_CLEAN_COMMAND "@PV_TEST_CLEAN_COMMAND@"
+
+// host name for the client used when running reverse connect test.
+#cmakedefine PV_TEST_CLIENT "@PV_TEST_CLIENT@"
+
+// ssh command to connect to remote machine, usually ssh -l kitware dash8
+#cmakedefine PV_SSH_FLAGS "@PV_SSH_FLAGS@"
+
+// shell script to execute server, should contain proper port...
+// This line won't be split into smaller arguments
+#cmakedefine PV_SETUP_SCRIPT "@PV_SETUP_SCRIPT@"
+
+// if defined we use random port numbers for testing (needed for parallel
+// tests).
+#cmakedefine PV_TEST_USE_RANDOM_PORTS

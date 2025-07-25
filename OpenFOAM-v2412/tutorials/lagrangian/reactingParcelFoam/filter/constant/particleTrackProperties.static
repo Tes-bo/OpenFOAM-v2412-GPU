@@ -1,0 +1,47 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      particleTrackProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+cloud           reactingCloud1;
+
+sampleFrequency 1;
+
+maxPositions    1000000;
+
+//maxTracks       5;
+
+setFormat       gltf;
+
+formatOptions
+{
+    animate         no;
+    colour          yes;
+
+    fieldInfo
+    {
+        d
+        {
+            colourMap   rainbow;
+            min         0;
+            max         0.001;
+            //alpha       1.0;
+        }
+    }
+}
+
+fields          (d);
+
+
+// ************************************************************************* //

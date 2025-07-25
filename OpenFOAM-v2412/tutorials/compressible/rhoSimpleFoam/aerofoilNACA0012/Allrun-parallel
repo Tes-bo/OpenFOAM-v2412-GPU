@@ -1,0 +1,18 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+./Allrun.pre
+
+runParallel -s decompose \
+    redistributePar -decompose -overwrite -withZero
+
+runParallel topoSet
+
+runParallel $(getApplication)
+
+runParallel -s reconstruct \
+    redistributePar -reconstruct -overwrite
+
+#------------------------------------------------------------------------------

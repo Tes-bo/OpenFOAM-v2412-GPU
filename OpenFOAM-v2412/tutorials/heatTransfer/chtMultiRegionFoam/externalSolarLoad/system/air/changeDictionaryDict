@@ -1,0 +1,171 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      changeDictionaryDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dictionaryReplacement
+{
+    boundary
+    {
+        air_to_floor
+        {
+            inGroups    2(wall viewFactorWall);
+        }
+
+        air_to_solid
+        {
+            inGroups    2(wall viewFactorWall);
+        }
+    }
+    U
+    {
+        boundaryField
+        {
+             ".*"
+            {
+                type            pressureInletOutletVelocity;
+                value           uniform (0 0 0);
+                phi             phi;
+            }
+
+            region0_to_floor_floor_zone
+            {
+                type            fixedValue;
+                value           uniform (0 0 0);
+            }
+            "air.*"
+            {
+                type            fixedValue;
+                value           uniform (0 0 0);
+            }
+        }
+    }
+
+    T
+    {
+        internalField   uniform 300;
+        boundaryField
+        {
+             ".*"
+            {
+                type            inletOutlet;
+                value           uniform 300;
+                inletValue      uniform 300;
+            }
+
+            "air.*"
+            {
+                type            compressible::turbulentTemperatureRadCoupledMixed;
+                Tnbr            T;
+                kappaMethod     fluidThermo;
+                qrNbr           none;
+                qr              qr;
+                kappa           none;
+                thermalInertia  true;
+                value           uniform 300;
+            }
+        }
+    }
+
+    epsilon
+    {
+        internalField   uniform 0.01;
+        boundaryField
+        {
+             ".*"
+            {
+                type            inletOutlet;
+                inletValue      uniform 0.01;
+                value           uniform 0.01;
+            }
+
+            "air.*"
+            {
+                type            epsilonWallFunction;
+                value           uniform 0.01;
+            }
+
+        }
+    }
+
+    k
+    {
+        internalField   uniform 0.1;
+        boundaryField
+        {
+             ".*"
+            {
+                type            inletOutlet;
+                inletValue      uniform 0.1;
+                value           uniform 0.1;
+            }
+
+            "air.*"
+            {
+                type            kqRWallFunction;
+                value           uniform 0.1;
+            }
+
+        }
+    }
+
+    p_rgh
+    {
+        internalField   uniform 1e5;
+        boundaryField
+        {
+            ".*"
+            {
+                type            totalPressure;
+                p0              $internalField;
+            }
+
+            "air.*"
+            {
+                type            fixedFluxPressure;
+                value           uniform 1e5;
+            }
+
+        }
+    }
+
+    p
+    {
+        internalField   uniform 1e5;
+        boundaryField
+        {
+            ".*"
+            {
+                type            calculated;
+                value           uniform 1e5;
+            }
+        }
+    }
+
+    IDefault
+    {
+        internalField   uniform 0;
+        boundaryField
+        {
+            ".*"
+            {
+                type            greyDiffusiveRadiation;
+                value           uniform 0;
+            }
+        }
+    }
+}
+
+
+// ************************************************************************* //

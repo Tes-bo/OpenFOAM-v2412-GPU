@@ -1,0 +1,34 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+// Embed output with ADIOS2
+
+type            adiosWrite;
+libs            ("libadiosFunctionObjects.so");
+
+// Additional items to write, or items to write (when explicit)
+write
+{
+    // Only use explicitly named fields/clouds.
+    // Otherwise select all fields/clouds that have AUTO_WRITE on.
+    explicit    false;
+
+    // Volume fields
+    fields      ();
+
+    // Parcel clouds
+    clouds      ();
+}
+
+// Items to suppress from writing
+ignore
+{
+    fields  ();
+    clouds  ();
+}
+
+// ************************************************************************* //

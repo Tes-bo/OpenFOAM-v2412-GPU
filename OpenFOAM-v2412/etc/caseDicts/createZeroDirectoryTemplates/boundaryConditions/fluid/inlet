@@ -1,0 +1,45 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "templates";
+    object      inlet;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+subSonic
+{
+    nut
+    {
+        type        calculated;
+        value       ${:VALUE.nut};
+    }
+    k
+    {
+        type        fixedValue;
+        value       ${:VALUE.k};
+    }
+    epsilon
+    {
+        type        fixedValue;
+        value       ${:VALUE.epsilon};
+    }
+    omega
+    {
+        type        fixedValue;
+        value       ${:VALUE.omega};
+    }
+
+    OPTIONS         (flowSpecification);
+}
+
+
+// ************************************************************************* //

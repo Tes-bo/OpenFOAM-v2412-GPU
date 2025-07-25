@@ -1,0 +1,2 @@
+cDBUG       =
+cOPT        = -ffp-contract=fast -ffast-math -O3 -armpl

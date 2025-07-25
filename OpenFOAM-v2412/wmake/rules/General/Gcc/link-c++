@@ -1,0 +1,35 @@
+#------------------------------------------------------------------------------
+# Common linker settings
+
+LINK_LIBS   = $(c++DBUG)
+LINKLIBSO   = $(CC) $(c++FLAGS) -shared
+LINKEXE     = $(CC) $(c++FLAGS)
+
+undefine LINKEXE_STUB
+
+#------------------------------------------------------------------------------
+
+# Use gold linker
+ifneq (,$(findstring +gold,$(WM_COMPILE_CONTROL)))
+
+    LINKLIBSO  += -fuse-ld=gold
+    LINKEXE    += -fuse-ld=gold
+    LINKEXE_STUB := true
+
+# Default linker, assume ld - no dummy stub
+else
+
+    LINKLIBSO  += -Xlinker --add-needed -Xlinker --no-as-needed
+    LINKEXE    += -Xlinker --add-needed -Xlinker --no-as-needed
+
+endif
+
+
+# Link dummy stub to resolve libPstream symbols used by libOpenFOAM
+ifneq (,$(LINKEXE_STUB))
+ifneq (,$(findstring -lOpenFOAM,$(PROJECT_LIBS)))
+    LINKEXE += -L$(FOAM_LIBBIN)/dummy -lPstream
+endif
+endif
+
+#------------------------------------------------------------------------------

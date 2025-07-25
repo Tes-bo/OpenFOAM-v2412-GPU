@@ -1,0 +1,31 @@
+// -*- C++ -*-
+// Minimal example of using the vtkCloud function object.
+cloudWrite1
+{
+    type    vtkCloud;
+    libs    (lagrangianFunctionObjects);
+    log     true;
+
+    // Cloud name
+    // cloud   coalCloud1;
+    clouds  ( ".*" );
+
+    // Fields to output (words or regex)
+    fields  ( U T d "Y.*" );
+
+    //- Output format (ascii | binary) - Default=binary
+    // format  binary;
+
+    // format   ascii;
+    // writePrecision 12;
+
+    //- Output directory name - Default postProcessing
+    // directory       "VTK";
+
+    //- Write more frequent than fields
+    writeControl    adjustable;
+    writeInterval   0.001;
+}
+
+
+// ************************************************************************* //

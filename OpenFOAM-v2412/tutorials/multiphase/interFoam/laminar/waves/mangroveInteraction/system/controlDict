@@ -1,0 +1,164 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+application     interFoam;
+
+startFrom       latestTime;
+
+startTime       0;
+
+stopAt          endTime;
+
+endTime         10.0;
+
+deltaT          0.1;
+
+writeControl    adjustable;
+
+writeInterval   0.1;
+
+purgeWrite      0;
+
+writeFormat     ascii;
+
+writePrecision  6;
+
+writeCompression off;
+
+timeFormat      general;
+
+timePrecision   6;
+
+runTimeModifiable yes;
+
+adjustTimeStep  on;
+
+maxCo           0.4;
+
+maxAlphaCo      0.4;
+
+maxDeltaT       0.01;
+
+functions
+{
+    // VOF sensors
+    line
+    {
+        type            sets;
+        libs            (sampling);
+        enabled         true;
+        writeControl    onEnd;
+
+        interpolationScheme cellPoint;
+        setFormat       raw;
+        fixedLocations  false;
+
+        fields
+        (
+            p
+            p_rgh
+            U
+            alpha.water
+        );
+
+        sets
+        {
+            s1
+            {
+                type    uniform;
+                axis    distance;
+                start   ( 2.065 0.275 0.0 );
+                end     ( 2.065 0.275 0.5 );
+                nPoints 101;
+            }
+            s2
+            {
+                type    uniform;
+                axis    distance;
+                start   ( 3.565 0.275 0.0 );
+                end     ( 3.565 0.275 0.5 );
+                nPoints 101;
+            }
+            s3
+            {
+                type    uniform;
+                axis    distance;
+                start   ( 3.99 0.275 0.0 );
+                end     ( 3.99 0.275 0.5 );
+                nPoints 101;
+            }
+            s4
+            {
+                type    uniform;
+                axis    distance;
+                start   ( 4.055 0.275 0.0 );
+                end     ( 4.055 0.275 0.5 );
+                nPoints 101;
+            }
+            s5
+            {
+                type    uniform;
+                axis    distance;
+                start   ( 4.155 0.275 0.0 );
+                end     ( 4.155 0.275 0.5 );
+                nPoints 101;
+            }
+            s6
+            {
+                type    uniform;
+                axis    distance;
+                start   ( 4.275 0.275 0.0 );
+                end     ( 4.275 0.275 0.5 );
+                nPoints 101;
+            }
+            s7
+            {
+                type    uniform;
+                axis    distance;
+                start   ( 4.395 0.275 0.0 );
+                end     ( 4.395 0.275 0.5 );
+                nPoints 101;
+            }
+            s8
+            {
+                type    uniform;
+                axis    distance;
+                start   ( 4.515 0.275 0.0 );
+                end     ( 4.515 0.275 0.5 );
+                nPoints 101;
+            }
+            s9
+            {
+                type    uniform;
+                axis    distance;
+                start   ( 4.635 0.275 0.0 );
+                end     ( 4.635 0.275 0.5 );
+                nPoints 101;
+            }
+            s10
+            {
+                type    uniform;
+                axis    distance;
+                start   ( 4.77 0.275 0.0 );
+                end     ( 4.77 0.275 0.5 );
+                nPoints 101;
+            }
+        }
+    }
+}
+
+
+// ************************************************************************* //

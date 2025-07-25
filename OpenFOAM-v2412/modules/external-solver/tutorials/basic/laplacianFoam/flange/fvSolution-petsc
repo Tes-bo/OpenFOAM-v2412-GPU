@@ -1,0 +1,72 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2006                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      fvSolution;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+solvers
+{
+    T
+    {
+        solver petsc;
+
+        petsc
+        {
+            options
+            {
+                ksp_type  cg;
+                pc_type  bjacobi;
+                sub_pc_type  icc;
+                ksp_cg_single_reduction  true;
+                // when using OpenFOAM's L1 based criterion, we can save some work
+                // comment the line below if not using cg (or one of its variants)
+                ksp_norm_type none;
+                // uncomment the line below to obtain a textbook CG with use_petsc_residual_norm == true
+                // ksp_norm_type natural;
+                mat_type  mpiaij;
+            }
+
+            // use petsc default convergence testing instead of OpenFOAM's L1 based criterion
+            // default is false
+            use_petsc_residual_norm false;
+            // monitor (print to stdout) residual reduction in OpenFOAM norm
+            // default is false
+            monitor_foam_residual_norm false;
+
+            caching
+            {
+                matrix
+                {
+                    update always;
+                }
+
+                preconditioner
+                {
+                    update always;
+                }
+            }
+        }
+
+        tolerance       1e-06;
+        relTol          0;
+    }
+}
+
+SIMPLE
+{
+    nNonOrthogonalCorrectors 2;
+}
+
+
+// ************************************************************************* //

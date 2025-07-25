@@ -1,0 +1,184 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2020-2023 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     query-versions
+#
+# Description
+#     Query (ThirdParty) versions based on their etc/config.sh values
+#     Executes their respective -query.
+#
+# TODO
+#     cmake, vtk, paraview
+#
+#------------------------------------------------------------------------------
+# Hard-coded value (eg, with autoconfig)
+projectDir="@PROJECT_DIR@"
+
+if [ -z "$projectDir" ] || [ "${projectDir#@}" != "$projectDir" ]
+then
+    # Auto-detect from location
+    toolsDir="${0%/*}"                              # The bin/tools dir
+    projectDir="${toolsDir%/bin/tools}"             # Project dir
+
+    case "$projectDir" in
+        (/bin | /usr/bin | /usr/local/bin)
+        # This shouldn't happen.
+        # If copied to a system dir, should also be using hard-coded values!
+        echo "Warning: suspicious looking project dir: $projectDir" 1>&2
+        ;;
+
+        ("$toolsDir")
+        # Eg, called as ./openfoam etc - need to try harder
+        projectDir="$(\cd $(dirname $0)/../.. && \pwd -L)" || unset projectDir
+        ;;
+    esac
+fi
+
+#------------------------------------------------------------------------------
+usage() {
+    exec 1>&2
+    while [ "$#" -ge 1 ]; do echo "$1"; shift; done
+    cat<<USAGE
+
+Usage: ${0##*/} [OPTION]
+
+options:
+  -compiler         Print clang,gcc compiler versions only
+  -clang            Print clang compiler versions only
+  -gcc              Print gcc compiler versions only
+  -h, -help         Print the usage
+
+Query (ThirdParty) versions based on their etc/config.sh values.
+Uses OpenFOAM wmake/scripts/have_* scripts.
+
+USAGE
+    exit 1
+}
+
+#------------------------------------------------------------------------------
+
+# Parse options
+unset optCompiler
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    # Print help
+    (-h | -help*)
+        usage
+        ;;
+
+    (-clang | -gcc)
+        optCompiler="${1#-}"
+        ;;
+
+    (-comp*)
+        optCompiler=true
+        ;;
+
+    (*)
+        echo "Ignore unknown option/argument: $@" 1>&2
+        break
+        ;;
+    esac
+    shift
+done
+
+#------------------------------------------------------------------------------
+configDir="$projectDir/etc/config.sh"
+scriptsDir="$projectDir/wmake/scripts"
+
+[ -d "$configDir" ] || {
+    echo "No such directory: $configDir" 1>&2
+    exit 2
+}
+[ -d "$scriptsDir" ] || {
+    echo "No such directory: $scriptsDir" 1>&2
+    exit 2
+}
+
+# Allow operation without an active OpenFOAM environment
+export WM_PROJECT_DIR="$projectDir"
+
+#------------------------------------------------------------------------------
+
+# Gcc/Clang versions in etc/config.sh/compiler
+#
+# parse this type of content
+# ----
+#     default_clang_version=llvm-[digits].[digits].[digits]
+#     default_gcc_version=gcc-[digits].[digits].[digits]
+#
+#     Gcc121*) gcc_version=gcc-[digits].[digits].[digits] ;;
+# ----
+
+queryCompiler()
+{
+    compiler="$1"
+
+    if [ -z "$compiler" ]
+    then
+        compiler='clang\|gcc'
+    fi
+
+    settings="$configDir/compiler"
+    if ! [ -f "$settings" ]
+    then
+        echo "No such file: $settings" 1>&2
+        return 1
+    fi
+
+    sed -n \
+        -e 's/^[ ]*\('"$compiler"'\)\([0-9][0-9]*\)[^=]*=\([^ ;]*\).*$/\1\2 \3/ip' \
+        "$settings"
+
+    sed -n \
+        -e 's/^[ ]*\(default_\)\('"$compiler"'\)_version=\([^ ;]*\).*$/\1\2 \3/ip' \
+        "$settings"
+}
+
+
+#------------------------------------------------------------------------------
+
+# Examine the "wmake/scripts/have_..." scripts for query_...() functions,
+# assume they also have a -query option
+
+queryVersions()
+{
+    for script in grep -l -e '^query_' "$scriptsDir"/have_*
+    do
+        if [ -f "$script" ]
+        then
+            bash "$script" -query
+        fi
+    done
+}
+
+
+#------------------------------------------------------------------------------
+
+# main
+
+case "$optCompiler" in
+(true)
+    queryCompiler
+    ;;
+(clang | gcc)
+    queryCompiler "$optCompiler"
+    ;;
+(*)
+    queryVersions
+    ;;
+esac
+
+#------------------------------------------------------------------------------

@@ -1,0 +1,28 @@
+phaseModel/phaseModel/phaseModel.C
+phaseModel/phaseModel/phaseModels.C
+
+phasePair/phasePair.C
+phasePair/phasePairKey.C
+phasePair/orderedPhasePair.C
+
+multiphaseInterSystem/multiphaseInterSystem.C
+
+multiphaseSystem/multiphaseSystem.C
+multiphaseSystem/multiphaseSystemNew.C
+multiphaseSystem/multiphaseSystems.C
+
+interfaceCompositionModel/interfaceCompositionModel.C
+InterfaceCompositionModel/InterfaceCompositionModels.C
+
+porous = interfaceModels/porousModels
+$(porous)/porousModel/porousModel.C
+$(porous)/VollerPrakash/VollerPrakash.C
+
+surfaceTension = interfaceModels/surfaceTensionModels
+$(surfaceTension)/surfaceTensionModel/surfaceTensionModel.C
+$(surfaceTension)/constantSurfaceTensionCoefficient/constantSurfaceTensionCoefficient.C
+
+
+derivedFvPatchFields/timeVaryingMassSorption/timeVaryingMassSorptionFvPatchScalarField.C
+
+LIB = $(FOAM_LIBBIN)/libincompressibleMultiphaseSystems

@@ -1,0 +1,22 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+mkdir -p constant
+
+cp -rf \
+    "$FOAM_TUTORIALS"/resources/geometry/opposite_walls \
+    constant/triSurface
+
+runApplication blockMesh
+
+runApplication snappyHexMesh
+
+#runApplication decomposePar
+#
+#runParallel snappyHexMesh -overwrite
+#
+#runApplication reconstructParMesh -constant
+
+#------------------------------------------------------------------------------

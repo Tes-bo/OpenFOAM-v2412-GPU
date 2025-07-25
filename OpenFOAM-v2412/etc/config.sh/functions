@@ -1,0 +1,201 @@
+#----------------------------------*-sh-*--------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2011-2016 OpenFOAM Foundation
+#     Copyright (C) 2017-2022 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# File
+#     etc/config.sh/functions
+#     - sourced by OpenFOAM-*/etc/bashrc
+#
+# Description
+#     Shell functions and variables used when sourcing the OpenFOAM environment
+#
+#     Some functionality mirrored by bin/tools/lib-dir
+#
+# Defined Variables
+#     WM_SHELL_FUNCTIONS  : tracking variable
+#     foamClean           : path to bin/foamCleanPath
+#     _foam_uname_s       : cache value for `uname -s`
+#
+# Defined Functions
+#     _foamClean     : eval call to foamCleanPath for specific shell
+#     _foamEcho      : silent/non-silent echo
+#     _foamEtc       : resolve etc files (silent or verbose)
+#     _foamAddPath   : prepend to PATH
+#     _foamAddMan    : prepend to MANPATH
+#     _foamAddLib    : prepend to {DY,FOAM_}LD_LIBRARY_PATH
+#     _foamAddLibAuto: prepend to lib64/lib resolved name
+#
+#------------------------------------------------------------------------------
+
+if [ -z "$WM_SHELL_FUNCTIONS" ]
+then
+    # Not previously loaded/defined - define now
+
+    # Temporary environment variable to track loading/unloading of functions
+    WM_SHELL_FUNCTIONS=loaded
+
+    # Cleaning environment variables
+    foamClean="$WM_PROJECT_DIR/bin/foamCleanPath"
+
+    # Cache value for `uname -s`
+    _foam_uname_s="$(uname -s 2>/dev/null)"
+
+    # Cleaning environment variables
+    unset -f _foamClean 2>/dev/null
+    _foamClean()
+    {
+         foamVar_name="$1"
+         shift
+         eval "$($foamClean -sh-env="$foamVar_name" "$@")"
+         unset foamVar_name
+    }
+
+    # Echo values to stderr when FOAM_VERBOSE is on, no-op otherwise
+    # Source an etc file, possibly with some verbosity
+    # - use eval to avoid intermediate variables (ksh doesn't have 'local')
+    unset -f _foamEcho 2>/dev/null
+    unset -f _foamEtc 2>/dev/null
+    if [ -n "$FOAM_VERBOSE" ] && [ -n "$PS1" ]
+    then
+        _foamEcho() { echo "$@" 1>&2; }
+        _foamEtc()  { eval "$("$WM_PROJECT_DIR"/bin/foamEtcFile -sh-verbose "$@")"; }
+    else
+        _foamEcho() { true; }
+        _foamEtc()  { eval "$("$WM_PROJECT_DIR"/bin/foamEtcFile -sh "$@")"; }
+    fi
+
+    # Prepend PATH
+    unset -f _foamAddPath 2>/dev/null
+    _foamAddPath()
+    {
+        case "$1" in (/?*) export PATH="$1:$PATH" ;; esac
+    }
+
+    # Prepend MANPATH
+    unset -f _foamAddMan 2>/dev/null
+    _foamAddMan()
+    {
+        case "$1" in (/?*) export MANPATH="$1:$MANPATH" ;; esac
+    }
+
+    # Prepend LD_LIBRARY_PATH (DYLD_LIBRARY_PATH for Darwin)
+    unset -f _foamAddLib 2>/dev/null
+    if [ "${_foam_uname_s}" = Darwin ]
+    then
+        _foamAddLib()
+        {
+            case "$1" in (/?*)
+            if [ -e "$1" ]
+            then
+                export FOAM_LD_LIBRARY_PATH="${1}${FOAM_LD_LIBRARY_PATH:+:}${FOAM_LD_LIBRARY_PATH}"
+                export DYLD_LIBRARY_PATH="$FOAM_LD_LIBRARY_PATH"
+            fi
+            esac
+        }
+    else
+        _foamAddLib()
+        {
+            case "$1" in (/?*)
+                export LD_LIBRARY_PATH="${1}${LD_LIBRARY_PATH:+:}${LD_LIBRARY_PATH}"
+            esac
+        }
+    fi
+
+
+    # Prepend to LD_LIBRARY_PATH with additional checking
+    # $1 = base directory for 'lib' or 'lib64'
+    # $2 = fallback libname ('lib' or 'lib64')
+    #
+    # 0) Skip entirely if directory ends in "-none" or "-system".
+    #    These special cases (disabled, system directories) should not require
+    #    adjustment of LD_LIBRARY_PATH
+    # 1) Check for dir/lib64 and dir/lib
+    # 2) Use fallback if the previous failed
+    #
+    # Return 0 on success
+    unset -f _foamAddLibAuto 2>/dev/null
+    _foamAddLibAuto()
+    {
+        # Note ksh does not have 'local' thus these ugly variable names
+        foamVar_prefix="$1"
+        foamVar_end="${1##*-}"
+
+        # Do not add (none) or a system directory
+        if [ -z "$foamVar_prefix" ] || [ "$foamVar_end" = none ] || [ "$foamVar_end" = system ]
+        then
+            unset foamVar_prefix foamVar_end
+            return 1
+        elif [ -d "$foamVar_prefix" ]
+        then
+            for foamVar_end in lib$WM_COMPILER_LIB_ARCH lib
+            do
+                if [ -d "$foamVar_prefix/$foamVar_end" ]
+                then
+                    _foamAddLib "$foamVar_prefix/$foamVar_end"
+                    unset foamVar_prefix foamVar_end
+                    return 0
+                fi
+            done
+        fi
+
+        # Use fallback. Add without checking existence of the directory
+        foamVar_end="$2"
+        if [ -n "$foamVar_end" ]
+        then
+            case "$foamVar_end" in
+            (/*)    # Absolute path
+                _foamAddLib "$foamVar_end"
+                ;;
+            (*)     # Relative to prefix
+                _foamAddLib "$foamVar_prefix/$foamVar_end"
+                ;;
+            esac
+            unset foamVar_prefix foamVar_end
+            return 0
+        fi
+
+        unset foamVar_prefix foamVar_end
+        return 1    # Nothing set
+    }
+
+
+    #--------------------------------------------------------------------------
+    # Avoid any ThirdParty settings that may have 'leaked' into the environment
+
+    unset MPI_ARCH_PATH
+    unset ADIOS_ARCH_PATH
+    unset ADIOS1_ARCH_PATH
+    unset ADIOS2_ARCH_PATH
+    unset BOOST_ARCH_PATH
+    unset CCMIO_ARCH_PATH
+    unset CGAL_ARCH_PATH
+    unset FFTW_ARCH_PATH
+    unset GPERFTOOLS_ARCH_PATH
+    unset GMP_ARCH_PATH
+    unset MPFR_ARCH_PATH
+    unset LLVM_ARCH_PATH
+    unset MESA_ARCH_PATH
+    unset METIS_ARCH_PATH
+    unset SCOTCH_ARCH_PATH
+
+else
+    # Was previously loaded/defined - now unset
+
+    unset -f _foamAddPath _foamAddMan _foamAddLib _foamAddLibAuto 2>/dev/null
+    unset -f _foamClean _foamEcho _foamEtc 2>/dev/null
+    unset foamClean
+    unset _foam_uname_s
+    unset WM_SHELL_FUNCTIONS
+
+fi
+
+#------------------------------------------------------------------------------

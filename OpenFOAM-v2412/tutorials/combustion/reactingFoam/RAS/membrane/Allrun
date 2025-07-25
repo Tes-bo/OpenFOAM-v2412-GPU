@@ -1,0 +1,25 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+mkdir -p constant/triSurface
+
+cp -f \
+    "$FOAM_TUTORIALS"/resources/geometry/membrane-boundaries.stl.gz \
+    "$FOAM_TUTORIALS"/resources/geometry/membrane-membrane.stl.gz \
+    constant/triSurface
+
+runApplication blockMesh
+
+runApplication snappyHexMesh -overwrite
+
+runApplication createBaffles -overwrite
+
+restore0Dir
+
+runApplication setFields
+
+runApplication reactingFoam
+
+#------------------------------------------------------------------------------

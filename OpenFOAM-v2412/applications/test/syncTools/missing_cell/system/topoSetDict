@@ -1,0 +1,48 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      topoSetDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+actions
+(
+    {
+        name    c0;
+        type    cellSet;
+        action  new;
+        source  labelToCell;
+        value   (0);
+    }
+    {
+        name    c0;
+        type    cellSet;
+        action  invert;
+    }
+
+    {
+        name    exposed0;
+        type    faceSet;
+        action  new;
+        source  patchToFace;
+        patch   exposed0;
+    }
+    {
+        name    exposed0;
+        type    faceSet;
+        action  subset;
+        source  boxToFace;
+        box     (-100 1 -100)(100 100 100);
+    }
+);
+
+// ************************************************************************* //

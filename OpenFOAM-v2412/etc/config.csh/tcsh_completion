@@ -1,0 +1,50 @@
+#----------------------------------*-sh-*--------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2017 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# File
+#     etc/config.csh/tcsh_completion
+#     - sourced by OpenFOAM-*/etc/cshrc
+#
+# Description
+#     Tcsh completions for OpenFOAM applications
+#     Using bash completion for the hard work
+#
+# Requires
+#     bash 4.2 or newer
+#
+#------------------------------------------------------------------------------
+
+if ($?tcsh) then  # tcsh only
+
+    # Remove old completions, which look like:
+    #   complete APPNAME 'p,*,`bash $WM_PROJECT_DIR/etc/ ...
+    foreach appName (`complete | sed -ne '/WM_PROJECT/s/\t.*$//p'`)
+        uncomplete $appName
+    end
+
+    # Generate completions for predefined directories (if support is possible)
+    bash $WM_PROJECT_DIR/etc/config.csh/complete-wrapper -test
+    if ($status == 0) then
+        foreach dirName ("$FOAM_APPBIN")
+            if ( ! -d $dirName ) continue
+            foreach appName (`find $dirName -maxdepth 1 -executable -type f`)
+                # Pass explicitly
+                ## complete $appName:t 'p,*,`bash $WM_PROJECT_DIR/etc/config.csh/complete-wrapper '$appName:t' "${COMMAND_LINE}"`,'
+                # Pass via environment
+                complete $appName:t 'p,*,`bash $WM_PROJECT_DIR/etc/config.csh/complete-wrapper '$appName:t'`,'
+            end
+        end
+    endif
+
+endif
+
+#------------------------------------------------------------------------------

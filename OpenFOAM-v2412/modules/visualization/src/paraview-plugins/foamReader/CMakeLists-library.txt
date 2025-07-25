@@ -1,0 +1,38 @@
+#-----------------------------------------------------------------------------
+# OpenFOAM reader plugin - library dependencies
+
+set(OPENFOAM_LINK_DIRS
+    ${FOAM_LIBBIN}
+    ${SUPPORTING_LIBBIN}
+)
+
+set(OPENFOAM_INCLUDE_DIRS
+    ${LIB_SRC}/OpenFOAM/include
+    ${LIB_SRC}/OpenFOAM/lnInclude
+    ${LIB_SRC}/OSspecific/${WM_OSTYPE}/lnInclude
+    ${LIB_SRC}/fileFormats/lnInclude
+    ${LIB_SRC}/conversion/lnInclude
+    ${LIB_SRC}/finiteArea/lnInclude
+    ${LIB_SRC}/finiteVolume/lnInclude
+    ${PROJECT_SOURCE_DIR}/../common
+    ${PROJECT_SOURCE_DIR}/library
+    ${PROJECT_SOURCE_DIR}/plugin
+    ${PROJECT_SOURCE_DIR}/plugin/reader
+)
+
+# OpenFOAM libraries (from FOAM_LIBBIN)
+set(OPENFOAM_LIBNAMES
+    OpenFOAM
+    fileFormats
+    conversion
+    finiteArea
+    finiteVolume
+)
+
+# Supporting libraries (from FOAM_LIBBIN, or installed-dir/lib)
+set(SUPPORTING_LIBNAMES
+    vtkPVFoamCommon${foamPvLibQualifier}
+    vtkPVFoamReader${foamPvLibQualifier}
+)
+
+#-----------------------------------------------------------------------------

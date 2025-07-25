@@ -1,0 +1,23 @@
+#------------------------------------------------------------------------------
+include $(GENERAL_RULES)/Icc/c++
+
+c++ARCH    := -pthread -fp-trap=common -fp-model=precise
+
+ifneq (,$(strip $(WM_COMPILE_OPTION)))
+    sinclude $(DEFAULT_RULES)/c++$(WM_COMPILE_OPTION)
+endif
+
+c++FLAGS    = \
+    $(c++ARCH) $(GFLAGS) $(c++WARN) $(c++OPT) $(c++DBUG) $(ptFLAGS) \
+    $(FOAM_EXTRA_CXXFLAGS) $(LIB_HEADER_DIRS) -fPIC
+
+Ctoo        = $(WM_SCHEDULER) $(CC) $(c++FLAGS) -c $< -o $@
+cctoo       = $(Ctoo)
+cpptoo      = $(Ctoo)
+cxxtoo      = $(Ctoo)
+
+include $(GENERAL_RULES)/Icc/link-c++
+
+LINK_LIBS   += -L$(IA32ROOT)/lib
+
+#------------------------------------------------------------------------------

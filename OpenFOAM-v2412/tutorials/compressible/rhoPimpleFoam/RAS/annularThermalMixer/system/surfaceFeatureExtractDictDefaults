@@ -1,0 +1,39 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      surfaceFeatureExtractDictDefaults;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+extractionMethod    extractFromSurface;
+
+includedAngle       150;  // Identifes a feature when angle
+                          // between faces < includedAngle
+
+trimFeatures
+{
+    minElem         10;   // minimum edges within a feature
+}
+
+writeObj            yes;  // writes out .obj files to view features
+
+writeVTK            no;   // writes vtk files to view features
+
+// Output items
+/*
+closeness           yes;
+curvature           yes;
+featureProxmity     yes;
+*/
+
+
+// ************************************************************************* //

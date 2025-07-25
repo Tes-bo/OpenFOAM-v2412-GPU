@@ -1,0 +1,34 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+# settings
+
+    # flag to enable computations in parallel mode
+    parallel=true
+
+
+#------------------------------------------------------------------------------
+
+restore0Dir
+
+[ -d constant/polyMesh ] || cp -rf constant/polyMesh.orig constant/polyMesh
+
+if [ "$parallel" = true ]
+then
+
+    runApplication decomposePar
+
+    runParallel $(getApplication)
+
+    runApplication reconstructPar
+
+else
+
+    runApplication $(getApplication)
+
+fi
+
+
+#------------------------------------------------------------------------------

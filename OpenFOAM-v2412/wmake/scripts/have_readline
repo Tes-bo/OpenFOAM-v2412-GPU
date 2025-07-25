@@ -1,0 +1,142 @@
+#----------------------------------*-sh-*--------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2018-2020 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     have_readline
+#
+# Description
+#     Detection/setup of READLINE
+#
+# Optional
+#     config.sh/readline
+#
+# Environment
+#     READLINE_ARCH_PATH
+#
+# Functions provided
+#     have_readline, no_readline, echo_readline, search_readline
+#
+# Variables set on success
+#     HAVE_LIBREADLINE - as per GNU autoconf
+#     READLINE_INC_DIR
+#     READLINE_LIB_DIR
+#
+# Without a config file, defaults to system
+#
+#------------------------------------------------------------------------------
+. ${WM_PROJECT_DIR:?}/wmake/scripts/sysFunctions    # General system functions
+
+#------------------------------------------------------------------------------
+
+# Reset
+no_readline()
+{
+    unset HAVE_LIBREADLINE READLINE_INC_DIR READLINE_LIB_DIR
+}
+
+
+# Report
+echo_readline()
+{
+    echo "readline=${HAVE_LIBREADLINE:-false}"
+    echo "include=\"$READLINE_INC_DIR\""
+    echo "library=\"$READLINE_LIB_DIR\""
+}
+
+
+# Search
+# $1 : prefix (*_ARCH_PATH, system, ...)
+#
+# On success, return 0 and export variables
+# -> HAVE_LIBREADLINE, READLINE_INC_DIR, READLINE_LIB_DIR
+search_readline()
+{
+    local warn # warn="==> skip readline"
+    local incName="readline/readline.h"
+    local libName="libreadline"
+
+    local prefix="${1:-system}"
+    local header library
+
+    # ----------------------------------
+    if isNone "$prefix"
+    then
+        [ -n "$warn" ] && echo "$warn (disabled)"
+        return 1
+    elif hasAbsdir "$prefix"
+    then
+        header=$(findFirstFile "$prefix/include/$incName")
+        library=$(findExtLib "$libName")
+    elif isSystem "$prefix"
+    then
+        header=$(findSystemInclude -name="$incName")
+        prefix=$(sysPrefix "$header")
+    else
+        unset prefix
+    fi
+    # ----------------------------------
+
+    # Header
+    [ -n "$header" ] || {
+        [ -n "$warn" ] && echo "$warn (no header)"
+        return 2
+    }
+
+    # Library
+    [ -n "$library" ] \
+    || library=$(findLibrary -prefix="$prefix" -name="$libName") \
+    || {
+        [ -n "$warn" ] && echo "$warn (no library)"
+        return 2
+    }
+
+    # ----------------------------------
+
+    header="${header%/*}"   # Strip one-level (include/readline/...)
+
+    # OK
+    export HAVE_LIBREADLINE=true
+    export READLINE_INC_DIR="${header%/*}"     # Basename
+    export READLINE_LIB_DIR="${library%/*}"    # Basename
+}
+
+
+# Output as per search_* function
+have_readline()
+{
+    local config="config.sh/readline"
+    local file
+
+    # Allow missing file
+    if file="$("$WM_PROJECT_DIR"/bin/foamEtcFile "$config")"
+    then
+        . "$file"
+    fi
+
+    search_readline "$READLINE_ARCH_PATH"
+}
+
+
+#------------------------------------------------------------------------------
+
+# Reset
+no_readline
+
+# Test/query
+case "$1" in
+-test)
+    have_readline
+    echo_readline
+    ;;
+esac
+
+#------------------------------------------------------------------------------

@@ -1,0 +1,22 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+mkdir -p constant/triSurface
+
+# Use 'blob' as an arbitrary enclosing surface
+runApplication surfaceTransformPoints \
+    -translate '(0 0 5)' \
+    -centre '(0 0 5)' \
+    -rotate-x 45 \
+    "$FOAM_TUTORIALS"/resources/geometry/blob.stl.gz \
+    constant/triSurface/blob.obj
+
+runApplication blockMesh
+
+runApplication decomposePar -dry-run -cellDist
+
+runApplication foamToVTK -no-boundary
+
+#------------------------------------------------------------------------------

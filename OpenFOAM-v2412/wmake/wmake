@@ -1,0 +1,846 @@
+#!/bin/bash
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2011-2016 OpenFOAM Foundation
+#     Copyright (C) 2017-2023 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     wmake
+#
+# Description
+#     General, wrapped make system for multi-platform development.
+#
+#     Intermediate object and dependency files retain the tree structure
+#     of the original source files, with its location depending on the
+#     build context.
+#
+#       1. Building within the OpenFOAM project:
+#          The tree is located under $WM_PROJECT_DIR/build/$WM_OPTIONS/
+#
+#       2. Building applications or libraries outside the OpenFOAM project:
+#          The tree is located under its local Make/$WM_OPTIONS/
+#
+#     The `wdep` script can be used to locate the dependency file
+#     corresponding to a given source file.
+#
+#     When `wmake -all` is used, the following rules are applied:
+#     1. If `Allwmake.override` exists, use it.
+#     2. (OR) If `Allwmake` exists, use it.
+#     3. (OR) descend into each sub-directory and repeat.
+#
+# Environment
+#     FOAM_BUILDROOT
+#     FOAM_EXTRA_CFLAGS FOAM_EXTRA_CXXFLAGS FOAM_EXTRA_LDFLAGS
+#     FOAM_MODULE_PREFIX
+#
+# See also
+#     wmakeLnInclude, wmakeLnIncludeAll, wmakeCollect, wdep, wrmdep, wrmo,
+#     wclean, wcleanLnIncludeAll
+#
+#------------------------------------------------------------------------------
+Script="${0##*/}"                   # Need 'Script' for wmakeFunctions messages
+scriptsDir="${0%/*}"/scripts        # wmake/scripts directory
+. "$scriptsDir"/wmakeFunctions      # Source wmake functions
+
+printHelp() {
+    cat<<HELP_HEAD
+
+Usage: $Script [OPTION] [dir]
+       $Script [OPTION] target [dir [MakeDir]]
+       $Script -subcommand ...
+
+options:
+  -s | -silent      Silent mode (do not echo commands)
+  -a | -all         wmake all sub-directories, runs Allwmake if present
+  -q | -queue       Collect as single Makefile, runs Allwmake if present
+  -k | -keep-going  Keep going even when errors occur (-non-stop)
+  -j | -jN | -j N   Compile using all or specified N cores/hyperthreads
+  -update           Update lnInclude, dep files, remove deprecated files/dirs
+HELP_HEAD
+
+if [ -n "$1" ]
+then
+cat<<HELP_FULL
+  -debug            Add '-g -DFULLDEBUG' flags
+  -debug-O[g0123]   Add '-g -DFULLDEBUG' flags and optimization level
+  -strict           More deprecation warnings ('+strict' WM_COMPILE_CONTROL)
+  -build-root=PATH      Specify FOAM_BUILDROOT for compilation intermediates
+  -module-prefix=PATH   Specify FOAM_MODULE_PREFIX as absolute/relative path
+  -module-prefix=TYPE   Specify FOAM_MODULE_PREFIX as predefined type
+                        (u,user | g,group | o,openfoam)
+  -no-openfoam      Disable OpenFOAM linking ('~openfoam' WM_COMPILE_CONTROL)
+  -openmp           Compile/link with openmp ('+openmp' WM_COMPILE_CONTROL)
+  -no-openmp        Disable openmp ('~openmp' WM_COMPILE_CONTROL)
+
+  -no-scheduler     Disable scheduled parallel compilation
+
+  -show-api         Print api value (from Make rules)
+  -show-ext-so      Print shared library extension (with '.' separator)
+  -show-c           Print C compiler value
+  -show-cflags      Print C compiler flags
+  -show-cxx         Print C++ compiler value
+  -show-cxxflags    Print C++ compiler flags
+  -show-cflags-arch     The C compiler arch flag (eg, -m64 etc)
+  -show-cxxflags-arch   The C++ compiler arch flag (eg, -m64 etc)
+  -show-compile-c   Same as '-show-c -show-cflags'
+  -show-compile-cxx Same as '-show-cxx -show-cxxflags'
+  -show-path-c      Print path to C compiler
+  -show-path-cxx    Print path to C++ compiler
+  -show-mpi-compile Print mpi-related flags used when compiling
+  -show-mpi-link    Print mpi-related flags used when linking
+  -show-openmp-compile  Print openmp flags used when compiling
+  -show-openmp-link     Print openmp flags used when compiling
+
+HELP_FULL
+fi
+
+cat<<TAIL_OPTIONS
+  -pwd              Print root directory containing a Make/ directory
+  -version | --version  Print version (same as -show-api)
+  -help             Display short help and exit
+  -help-full        Display full help and exit
+
+subcommands (wmake subcommand -help for more information):
+TAIL_OPTIONS
+
+if [ -n "$1" ]
+then
+cat<<HELP_SUBCOMMANDS
+  -build-info       Query/manage status of {api,branch,build} information
+  -check-dir        Check directory equality
+  -with-bear        Call wmake via 'bear' to create json output
+HELP_SUBCOMMANDS
+else
+cat<<HELP_SUBCOMMANDS
+  -build-info -check-dir -with-bear
+HELP_SUBCOMMANDS
+fi
+
+cat<<HELP_TAIL_COMMON
+
+General, wrapped make system for multi-platform development.
+HELP_TAIL_COMMON
+
+if [ -n "$1" ]
+then
+cat<<HELP_TAIL_FULL
+
+Makefile targets:   platforms/linux64GccDPInt32Opt/.../fvMesh.o (for example)
+Special targets:
+  all | queue       Same as -all | -queue options
+  exe               Create executable
+  lib               Create statically linked archive lib (.a)
+  libo              Create statically linked lib (.o)
+  libso             Create dynamically linked lib (.so)
+  dep               Create lnInclude and dependencies only
+  updatedep         Create dependencies only (in case of broken dependencies)
+  objects           Compile but not link
+
+Environment
+  FOAM_BUILDROOT
+  FOAM_EXTRA_CFLAGS FOAM_EXTRA_CXXFLAGS FOAM_EXTRA_LDFLAGS
+  FOAM_MODULE_PREFIX
+
+HELP_TAIL_FULL
+else
+cat<<HELP_TAIL_BRIEF
+
+Some special targets (see -help-full for details):
+  all | queue       Same as -all | -queue options
+  exe               Executable
+  lib libo libso    Libraries (.a .o .so)
+
+HELP_TAIL_BRIEF
+fi
+    exit 0 # clean exit
+}
+
+
+# Report error and exit
+die()
+{
+    exec 1>&2
+    echo
+    echo "Error encountered:"
+    while [ "$#" -ge 1 ]; do echo "    $1"; shift; done
+    echo
+    echo "See '${0##*/} -help' for usage"
+    echo " or '${0##*/} -help-full' for extended usage"
+    echo
+    exit 1
+}
+
+# Default make is the "make" in the path
+make="make"
+
+# Print compiler/system information (serial only)
+printInfo()
+{
+    if [ -f "$WM_DIR"/makefiles/info ]
+    then
+        make --no-print-directory -f "$WM_DIR"/makefiles/info "$@"
+    else
+        echo "OpenFOAM environment not set?" 1>&2
+        return 1
+    fi
+}
+
+
+#------------------------------------------------------------------------------
+
+# Set nCores to the number of cores on the machine
+allCores()
+{
+    nCores=$(getconf _NPROCESSORS_ONLN 2>/dev/null) || nCores=1
+    echo "${nCores:-1}"
+}
+
+
+#------------------------------------------------------------------------------
+# Parse arguments and options
+#------------------------------------------------------------------------------
+
+# Default to compiling the local target only
+unset opt_all opt_update opt_quiet opt_show opt_pwd
+unset opt_debug opt_openmp opt_openfoam opt_strict
+
+# Consistency with inherited values
+if [ "$WM_QUIET" = true ]
+then
+    opt_quiet=true
+elif [ "$WM_QUIET" = false ]
+then
+    # Makefile syntax only checks set/unset, so handle true/false here
+    unset WM_QUIET
+fi
+
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+        ('') ;;
+        (- | --) shift; break ;;  # Stop option parsing
+
+        -help-f*)   # Full help
+            printHelp -full
+            ;;
+        -h | -help*) # Short help
+            printHelp
+            ;;
+
+        # Forward to scripts/wmake-build-info
+        -build-info) shift
+            exec "$scriptsDir/wmake-build-info" "$@"
+            exit $?
+            ;;
+
+        # Forward to scripts/wmake-check-dir
+        # Out of order options: (-quiet)
+        -check-dir) shift
+            exec "$scriptsDir/wmake-check-dir" \
+                ${opt_quiet:+-silent} "$@"
+            exit $?
+            ;;
+
+        # Forward to scripts/wmake-with-bear
+        -with-bear) shift
+            exec "$scriptsDir/wmake-with-bear" "$@"
+            exit $?
+            ;;
+
+        -s | -silent | -quiet)
+            opt_quiet=true
+            export WM_QUIET=true
+            ;;
+
+        -debug)
+            opt_debug="-g"
+            ;;
+
+        -debug-O[g0123])
+            opt_debug="-g -${1##*-}"
+            ;;
+
+        -strict)
+            opt_strict="+strict"
+            ;;
+
+        -build-root=*)
+            export FOAM_BUILDROOT="${1#*=}"
+            echo "Build-root = ${FOAM_BUILDROOT:-[]}" 1>&2
+            ;;
+
+        -module-prefix=*)
+            setModulePrefix "${1#*=}"
+            ;;
+
+        -show-ext-so | \
+        -show-compile-c   | -show-c   | -show-cflags   | -show-cflags-arch | \
+        -show-compile-cxx | -show-cxx | -show-cxxflags | -show-cxxflags-arch | \
+        -show-mpi-compile | -show-mpi-link | \
+        -show-openmp-compile | -show-openmp-link)
+            printInfo "${1#-show-}"
+            opt_show=true
+            ;;
+        -show-path-c | -show-path-cxx )
+            command -v $(printInfo "${1#-show-path-}")
+            opt_show=true
+            ;;
+
+        # Recursive build all targets
+        -a | -all | all)
+            opt_all=all
+            ;;
+
+        # Recursive build all with scheduled queuing
+        -q | -queue | queue)
+            opt_all=queue
+            ;;
+
+        # Parallel compilation on all cores (or specified number of cores)
+        -j)
+            export WM_NCOMPPROCS=0
+            case "$2" in
+            [0-9]*)
+                if WM_NCOMPPROCS="$(expr 0 + "$2" 2>/dev/null)"
+                then
+                    shift
+                fi
+                ;;
+            esac
+            [ "${WM_NCOMPPROCS:=0}" -gt 0 ] || WM_NCOMPPROCS=$(allCores)
+            echo "Compiling enabled on $WM_NCOMPPROCS cores" 1>&2
+            ;;
+        # Parallel compilation on specified number of cores
+        -j[1-9]*)
+            export WM_NCOMPPROCS="${1#-j}"
+            echo "Compiling enabled on $WM_NCOMPPROCS cores" 1>&2
+            ;;
+        # Keep going, ignoring errors
+        -k | -keep-going | -non-stop)
+            export WM_CONTINUE_ON_ERROR=true
+            ;;
+        # Compile/link with openmp
+        -openmp)
+            opt_openmp=true
+            ;;
+        # Disable openmp
+        -no-openmp)
+            opt_openmp=false
+            ;;
+        # Link without openfoam libraries
+        -no-openfoam)
+            opt_openfoam=false
+            ;;
+        # Disable scheduled parallel compilation
+        -no-scheduler)
+            unset WM_SCHEDULER
+            ;;
+        # Print root directory containing a Make/ directory and exit
+        -pwd)
+            opt_pwd=true
+            ;;
+        # Meant to be used following a pull, this will:
+        # - remove dep files that depend on deleted files;
+        # - remove stale dep files;
+        # - update lnInclude directories;
+        # - remove empty directories, along with deprecated object directories
+        #   and respective binaries.
+        -update)
+            opt_update=true
+            : "${opt_all:=all}"  # implies 'all', unless previously set
+            ;;
+
+        -show-api | -version | --version)
+            getApiOpenFOAM  # From wmakeFunctions
+            exit "$?"
+            ;;
+        -*)
+            die "unknown option: '$1'"
+            ;;
+        *)
+            break
+            ;;
+    esac
+    shift
+done
+
+# Can terminate now if it was one of the -showXXX options
+if [ "$opt_show" = true ]
+then
+    exit 0
+fi
+
+
+#------------------------------------------------------------------------------
+# Check environment variables
+#------------------------------------------------------------------------------
+
+checkEnv
+
+# Require WM_PROJECT for anything except a standalone exe.
+# The WM_PROJECT_DIR was already tested in checkEnv.
+if [ -z "$WM_PROJECT" ] && [ "$1" != exe ]
+then
+    exec 1>&2
+    echo "$Script error:"
+    echo "    environment variable \$WM_PROJECT not set"
+    echo "    while building project library"
+    exit 1
+fi
+
+
+#------------------------------------------------------------------------------
+# Setup parallel compilation
+#------------------------------------------------------------------------------
+
+if [ -n "$WM_NCOMPPROCS" ]
+then
+    parOpt="-j $WM_NCOMPPROCS"
+
+    if [ "$WM_NCOMPPROCS" -gt 1 ] && [ -z "$MAKEFLAGS" ]
+    then
+        make="$make --no-print-directory $parOpt"
+    fi
+fi
+
+
+#------------------------------------------------------------------------------
+# Check arguments and change to the directory in which to run wmake.
+# The variables 'targetType' and 'MakeDir' are considered global
+#------------------------------------------------------------------------------
+
+unset targetType
+MakeDir=Make
+
+unset dir
+
+# With -pwd, go on discovery
+if [ -n "$opt_pwd" ]
+then
+    if [ $# -ge 1 ]
+    then
+        if [ -d "$1" ]
+        then
+            dir="${1%/}"
+        elif [ -f "$1" ]
+        then
+            dir="${1%/*}"
+            : "${dir:=.}"
+            [ "$dir" != "$1" ] || dir="."
+        else
+            echo "$Script error: not a file or directory" 1>&2
+            exit 1
+        fi
+
+        cd "$dir" 2>/dev/null || {
+            echo "$Script error: could not change to directory '$dir'" 1>&2
+            exit 1
+        }
+    fi
+
+    # Locate target with Make/ directory
+    if dir="$(findTarget .)"
+    then
+        (cd "$dir" && pwd -L)
+        exit 0
+    else
+        exit 2
+    fi
+
+else
+
+    if [ $# -ge 1 ]
+    then
+        if [ -d "$1" ]
+        then
+            dir="${1%/}"
+        elif [ -f "$1" ]
+        then
+            dir="${1%/*}"
+            : "${dir:=.}"
+            if [ "$dir" = "$1" ]
+            then
+                dir="."
+            fi
+        else
+            targetType="$1"
+        fi
+
+        # Specified directory name:
+        [ $# -ge 2 ] && dir="${2%/}"
+
+        # Specified alternative name for the Make sub-directory:
+        [ $# -ge 3 ] && MakeDir="${3%/}"
+
+        if [ -n "$dir" ]
+        then
+            cd "$dir" 2>/dev/null || {
+                echo "$Script error: could not change to directory '$dir'" 1>&2
+                exit 1
+            }
+        elif [ -f "$MakeDir"/files ]
+        then
+            dir="(${PWD##*/})"  # Implicit directory information
+        fi
+
+        # Print command
+        echo "$Script $targetType${targetType:+ }$dir"
+        unset dir
+    fi
+fi
+
+unset dir
+
+
+#------------------------------------------------------------------------------
+# Setup additional compiler settings etc
+#------------------------------------------------------------------------------
+
+# Handle openmp flags. Since we are using bash, can easily remove
+# conflicting values from WM_COMPILE_CONTROL
+case "$opt_openmp" in
+(true)     # Override: compile/link with openmp
+    WM_COMPILE_CONTROL="${WM_COMPILE_CONTROL/~openmp/} +openmp"
+    export WM_COMPILE_CONTROL
+    ;;
+(false)     # Override: disable use of openmp
+    WM_COMPILE_CONTROL="${WM_COMPILE_CONTROL/+openmp/} ~openmp"
+    export WM_COMPILE_CONTROL
+    ;;
+esac
+
+# Handle openfoam flags - can currently only disable
+case "$opt_openfoam" in
+(false)     # Override: disable openfoam libraries
+    WM_COMPILE_CONTROL="${WM_COMPILE_CONTROL} ~openfoam"
+    export WM_COMPILE_CONTROL
+    ;;
+esac
+
+# Handle -strict flag(s)
+if [ -n "$opt_strict" ]
+then
+    # Add +strict into WM_COMPILE_CONTROL
+    opt_strict="${WM_COMPILE_CONTROL:+ }+strict"
+    case "$WM_COMPILE_CONTROL" in
+    (*+strict*)
+        # Appears to have already been added
+    ;;
+    (*)
+        export WM_COMPILE_CONTROL="${WM_COMPILE_CONTROL}${opt_strict}"
+    ;;
+    esac
+fi
+
+
+# Debug:
+##echo "WM_COMPILE_CONTROL='$WM_COMPILE_CONTROL'" 1>&2
+
+# Handle debug flags
+if [ -n "$opt_debug" ]
+then
+    # Add -debug value and -DFULLDEBUG into FOAM_EXTRA_CXXFLAGS
+    opt_debug="${FOAM_EXTRA_CXXFLAGS:+ }${opt_debug} -DFULLDEBUG"
+    case "$FOAM_EXTRA_CXXFLAGS" in
+    (*-DFULLDEBUG*)
+        # Appears to have already been added
+    ;;
+    (*)
+        export FOAM_EXTRA_CXXFLAGS="${FOAM_EXTRA_CXXFLAGS}${opt_debug}"
+    ;;
+    esac
+fi
+
+# Extract ccache controls from WM_COMPILE_CONTROL if possible
+# and when queuing is not active
+if [ "$opt_all" != queue ]
+then
+    unset opt_ccache
+
+    case "$WM_COMPILE_CONTROL" in
+    (*ccache=*)
+        opt_ccache="${WM_COMPILE_CONTROL##*ccache=}"
+        case "$opt_ccache" in
+        ('<'*)
+            # Angle bracket quoted: ccache=<command ...>
+            # - extract between < > delimiters
+            opt_ccache="${opt_ccache#<}"
+            opt_ccache="${opt_ccache%%>*}"
+        ;;
+        ("'"*)
+            # Single-quoted
+            opt_ccache="${opt_ccache#\'}"
+            opt_ccache="${opt_ccache%%\'*}"
+        ;;
+        ('"'*)
+            # Double-quoted
+            opt_ccache="${opt_ccache#\"}"
+            opt_ccache="${opt_ccache%%\"*}"
+        ;;
+        (*)
+            # Plain ccache=command - truncate after first space
+            opt_ccache="${opt_ccache%% *}"
+        ;;
+        esac
+    ;;
+    (*'+ccache'*)
+        # Simple specification
+        opt_ccache="ccache"
+    ;;
+    esac
+
+    if [ -n "$opt_ccache" ]
+    then
+        export WM_SCHEDULER="$opt_ccache"
+    fi
+fi
+
+# Debug:
+##echo "WM_SCHEDULER='$WM_SCHEDULER'" 1>&2
+
+
+#------------------------------------------------------------------------------
+# Recurse the source tree to update all
+#------------------------------------------------------------------------------
+
+if [ "$opt_update" = true ]
+then
+    wrmdep -update
+    wrmdep -old
+    wmakeLnIncludeAll -update $parOpt
+    wclean empty
+    export WM_UPDATE_DEPENDENCIES=yes
+fi
+
+#------------------------------------------------------------------------------
+# Recurse the source tree to compile "all" targets
+#------------------------------------------------------------------------------
+
+if [ "$opt_all" = all ]
+then
+    unset exitCode
+
+    if [ -e Allwmake.override ]
+    then
+        if [ -x Allwmake.override ]
+        then
+            ./Allwmake.override -fromWmake $targetType
+            exitCode="$?"
+        else
+            # Allow empty or non-executable file (eg, touch Allwmake.override)
+            exitCode=0
+        fi
+    elif [ -e Allwmake ]
+    then
+        ./Allwmake -fromWmake $targetType
+        exitCode="$?"
+    fi
+
+    if [ -n "$exitCode" ]
+    then
+        exit "$exitCode"
+    fi
+
+    exitCode=0  # For fall-through
+
+
+    # Find all the sub-directories containing a 'Make' directory
+    # (xargs is just used to flatten the list)
+    FOAM_APPS=$(
+        for d in *
+        do
+            case "$d" in
+                (Make) ;;  # Do not make within Make/ dir
+                (*) [ -d "$d" ] && echo "$d" ;;
+            esac
+        done | xargs)
+
+    if [ -n "$FOAM_APPS" ]
+    then
+        # Compile all applications in sub-directories
+        $make ${WM_CONTINUE_ON_ERROR:+-k} \
+              -f "$WM_DIR"/makefiles/apps \
+              TARGET="$targetType" FOAM_APPS="$FOAM_APPS"
+        exitCode=$?
+    fi
+
+    # Exit on error, or if current directory does not have a 'Make' directory
+    if [ ! -d "$MakeDir" ] || [ "$exitCode" -ne 0 ]
+    then
+        exit "$exitCode"
+    fi
+fi
+
+
+#------------------------------------------------------------------------------
+# Recurse source tree to compile "all" targets using wmakeCollect
+#------------------------------------------------------------------------------
+
+if [ "$opt_all" = queue ]
+then
+    [ "$opt_update" = true ] || wmakeLnIncludeAll $parOpt
+
+    if [ -n "$FOAM_BUILDROOT" ] && [ -w "$FOAM_BUILDROOT" ]
+    then
+        buildRoot="${FOAM_BUILDROOT}/build/${WM_OPTIONS}"
+    else
+        # Assumed to be writable
+        buildRoot="${WM_PROJECT_DIR}/build/${WM_OPTIONS}"
+    fi
+
+    # Use relative dirname if possible (reproducible names)
+    if [ "${PWD}" = "${WM_PROJECT_DIR}" ]
+    then
+        collectName="_project_"
+    else
+        collectName="_${PWD#${WM_PROJECT_DIR}/}"
+        collectName="${collectName////_}"  # Path as unique name
+    fi
+
+    ## echo "collect: $buildRoot/$collectName" 1>&2
+    (
+        export WM_COLLECT_DIR="$buildRoot/$collectName"
+        export WM_SCHEDULER="$WM_DIR/wmakeCollect"
+        trap '$WM_SCHEDULER -kill' TERM INT
+        "$WM_SCHEDULER" -clean \
+     && wmake -all objects \
+     && "$WM_SCHEDULER"  # Make with assembled makefile
+    ) && wmake -all
+    exit $?
+fi
+
+
+#------------------------------------------------------------------------------
+# Search up the directory tree for the Make sub-directory,
+# check the existence of the 'files' file and build there if present
+#------------------------------------------------------------------------------
+
+cdSource
+
+
+#------------------------------------------------------------------------------
+# Transform options
+#------------------------------------------------------------------------------
+
+# Transform no option to "libso" if that looks appropriate or remove it
+# so that the call to make builds the application
+if [ -z "$targetType" ]
+then
+    if grep -qe '^ *LIB *=' "$MakeDir"/files 2>/dev/null
+    then
+        targetType=libso
+    fi
+elif grep -qe '^ *EXE *=' "$MakeDir"/files 2>/dev/null
+then
+    # Application. Remove any nonsense targetType
+    case "$targetType" in
+    lib*)
+        unset targetType
+        ;;
+    esac
+fi
+
+
+#------------------------------------------------------------------------------
+# Spawn a sub-shell and unset MAKEFLAGS in that sub-shell to avoid
+# files and options being built in parallel
+#------------------------------------------------------------------------------
+
+# Mini-version of findObjectDir (from wmakeFunctions)
+unset objectsDir
+
+# Handle project/{applications,src} as out-of-source build.
+relativeDir="${PWD#${WM_PROJECT_DIR}/}"
+if [ "$relativeDir" != "$PWD" ]
+then
+    if [ -n "$FOAM_BUILDROOT" ] && [ -w "$FOAM_BUILDROOT" ]
+    then
+        objectsDir="${FOAM_BUILDROOT}/build/${WM_OPTIONS}/${relativeDir}"
+    elif [ -w "$WM_PROJECT_DIR" ]
+    then
+        objectsDir="${WM_PROJECT_DIR}/build/${WM_OPTIONS}/${relativeDir}"
+    fi
+fi
+
+# Default (local) build directory
+if [ -z "$objectsDir" ]
+then
+    objectsDir="$MakeDir/$WM_OPTIONS"
+fi
+
+
+(
+    unset MAKEFLAGS
+    mkdir -p "$objectsDir"
+
+    # Pre-build the $WM_OPTIONS/options file
+    # which is included when building the $WM_OPTIONS/files file
+    $make -s -f "$WM_DIR"/makefiles/files \
+        MAKE_DIR="$MakeDir" OBJECTS_DIR="$objectsDir" "$objectsDir"/options
+
+    $make -s -f "$WM_DIR"/makefiles/files \
+        MAKE_DIR="$MakeDir" OBJECTS_DIR="$objectsDir"
+)
+
+
+#------------------------------------------------------------------------------
+# Check the $objectsDir/sourceFiles file was created successfully
+#------------------------------------------------------------------------------
+
+[ -r "$objectsDir"/sourceFiles ] || {
+    echo "$Script error: file '$objectsDir/sourceFiles'" \
+         "could not be created in $PWD" 1>&2
+    exit 1
+}
+
+
+#------------------------------------------------------------------------------
+# Make the dependency files
+#------------------------------------------------------------------------------
+
+# For libraries create lnInclude, but only if 'LIB' is declared in 'Make/files'
+case "$targetType" in
+(lib | libo | libso | dep)
+    if grep -qe '^ *LIB *=' "$MakeDir"/files 2>/dev/null
+    then
+        $make -s -f "$WM_DIR"/makefiles/general \
+            MAKE_DIR="$MakeDir" OBJECTS_DIR="$objectsDir" lnInclude
+    fi
+    ;;
+esac
+
+
+#------------------------------------------------------------------------------
+# When WM_UPDATE_DEPENDENCIES is set, use forced dependency files update
+#------------------------------------------------------------------------------
+
+if [ -n "$WM_UPDATE_DEPENDENCIES" ]
+then
+    unset exitCode
+
+    $make -f "$WM_DIR"/makefiles/general \
+        MAKE_DIR="$MakeDir" OBJECTS_DIR="$objectsDir" updatedep
+    exitCode="$?"
+
+    [ "$exitCode" -eq 0 ] || exit "$exitCode"
+fi
+
+
+#------------------------------------------------------------------------------
+# Make the dependency files or object files and link
+#------------------------------------------------------------------------------
+
+exec $make -f "$WM_DIR"/makefiles/general \
+     MAKE_DIR="$MakeDir" OBJECTS_DIR="$objectsDir" $targetType
+
+exit 0 # clean exit
+
+#------------------------------------------------------------------------------

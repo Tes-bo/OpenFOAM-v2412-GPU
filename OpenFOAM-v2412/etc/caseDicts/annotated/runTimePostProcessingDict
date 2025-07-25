@@ -1,0 +1,268 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      runTimePostProcessingDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+
+// Type of functionObject
+type            runTimePostProcessing;
+
+// Where to load it from
+libs            (runTimePostProcessing);
+
+// Function object enabled flag
+enabled         true;
+
+// When to output the images
+writeControl    writeTime;
+
+//- Allow parallel rendering (default: true)
+// parallel        true;
+
+//- The output characteristics
+output
+{
+    //- The name stem for output images
+    name        image;
+
+    //- The image dimensions
+    width       1400;
+    height      1050;
+}
+
+
+//- The camera settings
+camera
+{
+    // If camera is moving, provide start and end times
+    // startPosition    0.2;
+    // endPosition      0.75;
+
+    //- Total number of frames to generate (default: 1)
+    nFrameTotal     1;
+
+    //- Parallel projection flag (default: true)
+    // parallelProjection  yes;
+
+    position        (385 -560 650);
+    focalPoint      (160 90 60);
+    up              (0.06 0.7 0.7);
+
+    zoom    1.5;
+
+    // clipBox is optional
+
+    // clipBox (-10 18 0)(280 160 76);
+    clipBox (-30 0 0)(300 200 80);
+}
+
+
+// Default colours
+// - If select to colourBy colour, these values are used unless
+// they are locally overridden
+colours
+{
+    background  (0.317647 0.341176 0.431373);
+    background2 (0.317647 0.341176 0.431373);
+    text        (0.75 0.75 0.75);
+    edge        (1 0 0);
+    surface     (0.5 0.5 0.5);
+    line        (1 0 0);
+    point       (0.5 0.5 0.5);
+}
+
+
+// Line data
+lines
+{
+    streamline
+    {
+        type            functionObjectLine;
+        functionObject  streamLines;
+        colourMap       rainbow;
+        representation  tube;
+        visible         true;
+        tubeRadius      0.5;
+        colourBy        field;
+        field           U;
+        range           (0 20);
+        opacity         1;
+        scalarBar
+        {
+            visible         no;
+        }
+    }
+}
+
+
+// Surface data
+surfaces
+{
+    geom
+    {
+        type            geometry;
+        files           ("<case>/myGeometry.vtp");
+        renderMode      phong;
+        representation  surface;
+        edgeColour      (0.5 0.5 0.5);
+        visible         yes;
+        featureEdges    none;
+        opacity         1.0;
+    }
+
+    surf1
+    {
+        type            functionObjectSurface;
+        functionObject  planes.plane0;
+        liveObject      true;
+        colourMap       coolToWarm;
+
+        representation  surface;
+        maxGlyphLength  0.1;
+        smooth          true;
+        visible         yes;
+
+        featureEdges    none;
+        colourBy        field;
+        field           U;
+        range           (0 20);
+        opacity         1;
+
+        scalarBar
+        {
+            visible     no;
+        }
+
+        //- Allow parallel rendering (default: true)
+        // parallel        true;
+    }
+
+    patches
+    {
+        type            patches;
+        patches         ( buildings ground );
+        nearCellValue   true;
+        smooth          true;
+        colourMap       coolToWarm;
+        representation  surface;
+        representation  glyph;
+
+        // maxGlyphLength  5;
+        maxGlyphLength  0;
+        visible         yes;
+        featureEdges    none;
+        colourBy        field;
+
+        field           U;
+        range           (0 20);
+
+        opacity         1;
+        scalarBar
+        {
+            visible         no;
+            position        (0.8 0.1);
+            vertical        yes;
+            // fontSize        0;  // automatic sizing
+            // titleSize       0;  // automatic sizing
+            title           "velocity [m/s]";
+            labelFormat     "%6.2f";
+            numberOfLabels  5;
+
+            bold        yes;
+            italic      yes;
+            shadow      yes;
+        }
+
+        //- Allow parallel rendering (default: true)
+        // parallel        true;
+    }
+
+    cutting
+    {
+        type    plane;
+        point   (100 100 50);
+        normal  (1 0 0);
+        offsets (0 100 200);
+
+        smooth          true;
+        colourMap       coolToWarm;
+        representation  surface;
+
+        representation  glyph;
+
+        // maxGlyphLength  5;
+        maxGlyphLength  0;
+        visible         yes;
+        featureEdges    none;
+
+        colourBy        field;
+        colourField     U;
+        field           U;
+        range           (0 20);
+
+        opacity         1;
+        scalarBar
+        {
+            visible         no;
+        }
+    }
+
+    iso
+    {
+        type            iso;
+        values          (0 4 8);
+
+        smooth          true;
+        colourMap       coolToWarm;
+        representation  surface;
+
+        representation  glyph;
+
+        // maxGlyphLength  5;
+        maxGlyphLength  0;
+        visible         yes;
+        featureEdges    none;
+
+        colourBy        field;
+        colourField     U;
+        field           U;
+        range           (0 20);
+
+        opacity         1;
+        scalarBar
+        {
+            visible         no;
+        }
+    }
+}
+
+// Text data
+text
+{
+    text1
+    {
+        string      "buildings";
+        position    (0.5 0.15);
+        halign      centre;
+        size        18;
+        opacity     0.4;
+        bold        yes;
+        italic      yes;
+        shadow      yes;
+        visible     yes;
+    }
+}
+
+
+// ************************************************************************* //

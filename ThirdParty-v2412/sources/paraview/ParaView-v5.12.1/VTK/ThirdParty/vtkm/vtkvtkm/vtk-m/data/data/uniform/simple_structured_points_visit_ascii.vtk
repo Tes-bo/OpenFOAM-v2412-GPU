@@ -1,0 +1,25 @@
+# vtk DataFile Version 3.0
+Volume example
+ASCII
+DATASET STRUCTURED_POINTS
+FIELD FieldData 3
+Nek_SpectralElementData 1 4 int
+8 8 8 68826 
+avtOriginalBounds 1 6 double
+-2 2 -2 2 -2 2 
+FakeData 2 4 int
+81 80 89 68826 
+-81 80 65 6226 
+SPACING 1 1 1
+ORIGIN 0 0 0
+CELL_DATA 27
+VECTORS grad float
+-1 -1 0 0 0 -1 0 0 -1 
+1 1 0 0 0 -1 0 0 -1 
+0 0 -1 0 0 -1 0 0 -1 
+0 0 -1 0 0 -1 0 0 -1 
+0 0 -1 0 0 -1 0 0 -1 
+0 0 -1 0 0 -1 0 0 -1 
+0 0 -1 0 0 -1 0 0 -1 
+0 0 -1 0 0 -1 0 0 -1 
+0 0 -1 0 0 -1 0 0 -1 

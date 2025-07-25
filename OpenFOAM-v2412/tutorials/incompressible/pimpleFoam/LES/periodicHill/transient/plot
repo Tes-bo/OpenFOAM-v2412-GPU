@@ -1,0 +1,76 @@
+#!/bin/bash
+cd "${0%/*}" || exit                        # Run from this directory
+
+time="$(foamListTimes -latestTime -processor)"
+
+echo "Creating plots for time $time"
+
+resultsDir="postProcessing/sample/$time"
+
+# Mapping between OpenFOAM and experimental datasets
+declare -A of_vs_exp
+of_vs_exp[0.05]="001"
+of_vs_exp[0.5]="002"
+of_vs_exp[1]="003"
+of_vs_exp[2]="004"
+of_vs_exp[3]="005"
+of_vs_exp[4]="006"
+of_vs_exp[5]="007"
+of_vs_exp[6]="008"
+of_vs_exp[7]="009"
+of_vs_exp[8]="010"
+
+
+plotStr() {
+    pos=$1
+    exp=$2
+
+cat<<EOF
+    set terminal pngcairo enhanced font "arial,16" size 600,600
+    set ylabel "y/H"
+    set yrange [-0.1:3.1]
+    set grid
+    Ub=1
+    h=0.028
+
+    set key left top
+    set xlabel "U_x/U_b"
+    set xrange [-0.4:1.2]
+    set output "U_at_x_by_h${pos}.png"
+    plot \
+        "$resultsDir/xbyh${pos}_U_columnAverage:columnAverage(UMean).xy" \
+         u (\$5/Ub):(\$1/h) w lines lc "black" lw 2 t "OpenFOAM"
+    set key right top
+    set xlabel "<u'u'>/{U_b}^2"
+    set xrange [0:0.1]
+    set output "uu_at_x_by_h${pos}.png"
+    plot \
+        "$resultsDir/xbyh${pos}_columnAverage:columnAverage(UPrime2Mean).xy" \
+        u (\$2/Ub/Ub):(\$1/h) w lines lc "black" lw 2 t "OpenFOAM"
+
+    set key right top
+    set xlabel "<v'v'>/{U_b}^2"
+    set xrange [0:0.06]
+    set output "vv_at_x_by_h${pos}.png"
+    plot \
+        "$resultsDir/xbyh${pos}_columnAverage:columnAverage(UPrime2Mean).xy" \
+        u (\$5/Ub/Ub):(\$1/h) w lines lc "black" lw 2 t "OpenFOAM"
+
+    set key left top
+    set xlabel "<u'v'>/{U_b}^2"
+    set xrange [-0.06:0.02]
+    set output "uv_at_x_by_h${pos}.png"
+    plot \
+        "$resultsDir/xbyh${pos}_columnAverage:columnAverage(UPrime2Mean).xy" \
+        u (\$3/Ub/Ub):(\$1/h) w lines lc "black" lw 2 t "OpenFOAM"
+EOF
+}
+
+
+for i in "${!of_vs_exp[@]}"
+do
+    exp=${of_vs_exp[$i]}
+    gnuplot<<<$(plotStr $i $exp)
+done
+
+#------------------------------------------------------------------------------

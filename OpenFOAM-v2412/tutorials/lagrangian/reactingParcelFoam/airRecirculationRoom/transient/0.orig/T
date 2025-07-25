@@ -1,0 +1,116 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    object      T;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 0 0 1 0 0 0];
+
+internalField   uniform 293;
+
+boundaryField
+{
+    "(roof|floor|sideWall)"
+    {
+        type            fixedValue;
+        value           uniform 297;
+    }
+
+    humanBody
+    {
+        type            externalWallHeatFluxTemperature;
+        mode            flux;
+        q               uniform 58; // W/m^2
+        value           uniform 310;
+        kappaMethod     fluidThermo;
+        kappa           none;
+        Qr              none;
+    }
+
+    inlet
+    {
+        type            fixedValue;
+        value           uniform 293;
+    }
+
+    mouth
+    {
+        type            fixedValue;
+        value           uniform 310;
+    }
+
+    outlet
+    {
+        type            zeroGradient;
+    }
+
+    "(intake1|intake2|intake3|intake4)"
+    {
+        type            zeroGradient;
+    }
+
+    exhaust_maxX
+    {
+        type            outletMappedUniformInlet;
+        outlets
+        {
+            intake3
+            {
+                offset    20;
+            }
+        }
+        value           $internalField;
+    }
+
+    exhaust_minX
+    {
+        type            outletMappedUniformInlet;
+        outlets
+        {
+            intake1
+            {
+                offset    20;
+            }
+        }
+        value           $internalField;
+    }
+
+    exhaust_maxY
+    {
+        type            outletMappedUniformInlet;
+        outlets
+        {
+            intake4
+            {
+                offset    20;
+            }
+        }
+        value           $internalField;
+    }
+
+    exhaust_minY
+    {
+        type            outletMappedUniformInlet;
+        outlets
+        {
+            intake2
+            {
+                offset    20;
+            }
+        }
+        value           $internalField;
+    }
+}
+
+
+// ************************************************************************* //

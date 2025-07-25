@@ -1,0 +1,66 @@
+// -*- C++ -*-
+
+// ************************************************************************* //
+
+samplingDebug
+{
+    type    surfaces;
+    libs    (sampling);
+    log     true;
+    writeControl  timeStep;
+    writeInterval 1;
+
+    fields  (tracer0 U);
+
+    sampleScheme  cellPoint;
+    interpolationScheme cellPoint;
+    surfaceFormat vtk;
+
+    formatOptions
+    {
+        ensight
+        {
+            collateTimes  true;
+            // collateTimes  false;
+        }
+    }
+
+    _sampleMesh
+    {
+        type    meshedSurface;
+        source  cells;
+    }
+
+    _diskOuter
+    {
+        surfaceType disk;
+        origin      (0 0 0);
+        normal      (1 0 0);
+        radius      0.09;
+    }
+
+    _distanceSurface
+    {
+        type        distanceSurface;
+        distance    0;
+        signed      true;
+        isoMethod   topo;
+    }
+
+    surfaces
+    {
+        diskOuter
+        {
+            ${_distanceSurface}
+            ${_diskOuter}
+
+            origin      (0.45 0 0);
+            innerRadius 0.05;
+
+            topology    largestRegion;
+        }
+    }
+}
+
+
+// ************************************************************************* //

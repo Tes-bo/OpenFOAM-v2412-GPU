@@ -1,0 +1,10 @@
+common/parcelSelectionDetail.C
+dataCloud/dataCloud.C
+cloudInfo/cloudInfo.C
+icoUncoupledKinematicCloud/icoUncoupledKinematicCloud.C
+dsmcFields/dsmcFields.C
+
+vtkCloud/vtkCloud.C
+ensightCloud/ensightCloudWriteObject.cxx
+
+LIB = $(FOAM_LIBBIN)/liblagrangianFunctionObjects

@@ -1,0 +1,3 @@
+hydrostaticPressure/hydrostaticPressure.C
+
+LIB = $(FOAM_LIBBIN)/libinitialisationFunctionObjects

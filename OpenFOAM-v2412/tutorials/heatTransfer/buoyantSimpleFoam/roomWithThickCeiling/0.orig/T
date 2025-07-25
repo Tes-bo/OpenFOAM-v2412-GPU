@@ -1,0 +1,119 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    object      T;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 0 0 1 0 0 0];
+
+internalField   uniform 300;
+
+boundaryField
+{
+    floor
+    {
+        type            zeroGradient;
+    }
+
+    ceiling
+    {
+        type               compressible::thermalBaffle;
+
+        // Underlying coupled boundary condition
+        Tnbr               T;
+        kappaMethod        fluidThermo; // or solidThermo
+
+        qrNbr              none;//or none.Name of qr field on neighbourregion
+        qr                 none;// or none.Name of qr field on localregion
+        value              uniform 300;
+
+        // Baffle region name
+        region              baffle3DRegion;
+        active              yes;
+
+        // The baffle is extruded from this patch to the patch 'bottom'
+        // of the solid region.
+        internal            no;
+
+        // Solid thermo in solid region
+        thermoType
+        {
+            type            heSolidThermo;
+            mixture         pureMixture;
+            transport       constIso;
+            thermo          hConst;
+            equationOfState rhoConst;
+            specie          specie;
+            energy          sensibleEnthalpy;
+        }
+
+        mixture
+        {
+            specie
+            {
+                molWeight       20;
+            }
+            transport
+            {
+                kappa           0.01;
+            }
+            thermodynamics
+            {
+                Hf              0;
+                Cp              15;
+            }
+            equationOfState
+            {
+                rho             80;
+            }
+        }
+
+        radiation
+        {
+            radiationModel  opaqueSolid;
+            absorptionEmissionModel none;
+            scatterModel    none;
+        }
+
+        // Extrude model for new region
+        extrudeModel        linearNormal;
+        nLayers             50;
+        expansionRatio      1;
+        columnCells         false; //3D
+        linearNormalCoeffs
+        {
+            thickness           0.1;
+        }
+    }
+
+    inlet
+    {
+        type            fixedValue;
+        value           uniform 300;
+    }
+
+    outlet
+    {
+        type            inletOutlet;
+        inletValue      uniform 300;
+        value           uniform 300;
+    }
+
+    fixedWalls
+    {
+        type            empty;
+    }
+}
+
+
+// ************************************************************************* //

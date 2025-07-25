@@ -1,0 +1,41 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+./Allclean
+
+mkdir logs
+
+D_VS_U="D_VS_U.txt"
+
+contamination="${1:-pure}"
+
+runApplication blockMesh
+
+APP=$(getApplication)
+
+for d in $(seq -f "%06.4f" 0.0002 0.0002 0.04)
+do
+    foamListTimes -rm
+
+    restore0Dir
+
+    echo "Setting diameter: $d"
+
+    sed -e "s/DIAMETER/$d/g" -e "s/CONTAMINATION/$contamination/g" constant/kinematicCloudProperties.TEMPLATE > constant/kinematicCloudProperties
+
+    runApplication $APP
+
+    mv log.$APP logs/log.${APP}_t$d
+
+    ./process > logs/log.velocity_t$d
+
+    #U=$(tail -5 logs/log.velocity_t$d | awk '{SUM += $2; if (++C == 5) {print SUM/C; exit}}')
+    U=$(tail -1 logs/log.velocity_t$d | awk '{print $2}')
+
+    echo "$d $U" >> $D_VS_U
+done
+
+
+#------------------------------------------------------------------------------

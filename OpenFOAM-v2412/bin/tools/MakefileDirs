@@ -1,0 +1,31 @@
+#----------------------------*- makefile-gmake -*------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2011-2016 OpenFOAM Foundation
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# File
+#     MakefileDirs
+#
+# Description
+#     Makefile used by
+#         foamRunTutorials
+#     to call some script in subdirectories.
+#
+#------------------------------------------------------------------------------
+
+.PHONY: application $(FOAM_TARGETS)
+
+application: $(FOAM_TARGETS)
+
+$(FOAM_TARGETS):
+	+@(cd $@ && $(FOAM_APP) $(FOAM_ARGS))
+
+
+#------------------------------------------------------------------------------

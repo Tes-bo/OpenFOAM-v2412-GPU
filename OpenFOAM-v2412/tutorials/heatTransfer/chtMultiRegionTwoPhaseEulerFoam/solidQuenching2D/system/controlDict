@@ -1,0 +1,101 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+DebugSwitches
+{
+    compressible::alphatWallBoilingWallFunction                 0;
+    compressible::turbulentTemperatureTwoPhaseRadCoupledMixed   0;
+}
+
+application     chtMultiRegionTwoPhaseEulerFoam;
+
+startFrom       startTime;
+
+startTime       0;
+
+stopAt          endTime;
+
+endTime         5;
+
+deltaT          1e-6;
+
+writeControl    adjustable;
+
+writeInterval   0.1;
+
+purgeWrite      0;
+
+writeFormat     ascii;
+
+writePrecision  12;
+
+writeCompression off;
+
+timeFormat      general;
+
+timePrecision   6;
+
+runTimeModifiable yes;
+
+maxCo           0.5;
+
+// Maximum diffusion number
+maxDi           10.0;
+
+maxDeltaT       1e-3;
+
+adjustTimeStep  yes;
+
+functions
+{
+    htc
+    {
+        type            reactingEulerHtcModel;
+        libs            (fieldFunctionObjects);
+        region          water;
+        field           T.liquid;
+        writeControl    writeTime;
+        writeInterval   1;
+        htcModel        fixedReferenceTemperature;
+        patches         (water_to_solid);
+        TRef            373;
+    }
+
+    htcSurfaceFieldValue
+    {
+        type            surfaceFieldValue;
+        libs            (fieldFunctionObjects);
+        log             on;
+        enabled         true;
+
+        writeControl    writeTime;
+        writeInterval   1;
+
+        writeFields     false;
+        surfaceFormat   none;
+        writeArea       false;
+
+        region          water;
+        regionType      patch;
+        name            water_to_solid;
+
+        operation       areaAverage;
+
+        fields          ( reactingEulerHtcModel(T.liquid) );
+    }
+}
+
+
+// ************************************************************************* //

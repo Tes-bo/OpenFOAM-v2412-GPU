@@ -1,0 +1,230 @@
+/* TURBULENCE MODEL VARIABLE REFS */
+turbulenceModels/turbulenceModelVariables/RAS/RASModelVariables/RASModelVariables.C
+turbulenceModels/turbulenceModelVariables/RAS/laminar/laminar.C
+turbulenceModels/turbulenceModelVariables/RAS/SpalartAllmaras/SpalartAllmaras.C
+turbulenceModels/turbulenceModelVariables/RAS/kOmegaSST/kOmegaSST.C
+turbulenceModels/turbulenceModelVariables/RAS/kEpsilon/kEpsilon.C
+turbulenceModels/turbulenceModelVariables/RAS/LaunderSharmaKE/LaunderSharmaKE.C
+
+/* FVOPTIONS */
+fvOptions/sources/TopO/topOSource/topOSource.C
+
+/* FUNCTION1 */
+OpenFOAM/primitives/functions/Function1/stepRamp/stepRamp.C
+OpenFOAM/primitives/functions/Function1/reverseRamp/reverseRamp.C
+
+/* VARIABLES SET */
+solvers/variablesSet/variablesSet/variablesSet.C
+solvers/variablesSet/incompressible/incompressibleVars.C
+solvers/variablesSet/incompressibleAdjointMeanFlow/incompressibleAdjointMeanFlowVars.C
+solvers/variablesSet/incompressibleAdjoint/incompressibleAdjointVars.C
+
+/* SOLVER CONTROL */
+solvers/solverControl/solverControl/solverControl.C
+solvers/solverControl/SIMPLEControl/SIMPLEControl/SIMPLEControl.C
+solvers/solverControl/SIMPLEControl/singleRun/SIMPLEControlSingleRun.C
+solvers/solverControl/SIMPLEControl/optimisation/SIMPLEControlOpt.C
+
+/* SOLVERS */
+solvers/solver/solver.C
+solvers/primalSolvers/primalSolver/primalSolver.C
+solvers/primalSolvers/incompressible/incompressiblePrimalSolver/incompressiblePrimalSolver.C
+solvers/primalSolvers/incompressible/simple/simple.C
+solvers/primalSolvers/incompressible/RASTurbulenceModel/RASTurbulenceModel.C
+solvers/adjointSolvers/adjointSolver/adjointSolver.C
+solvers/adjointSolvers/incompressible/incompressibleAdjointSolver/incompressibleAdjointSolver.C
+solvers/adjointSolvers/incompressible/adjointSimple/adjointSimple.C
+solvers/adjointSolvers/null/adjointNull.C
+
+/* ADJOINT SOLVER MANAGER */
+solvers/adjointSolverManager/adjointSolverManager.C
+
+/* ZERO ATC CELLS OPTIONS*/
+ATCModel/zeroATCcells/zeroATCcells/zeroATCcells.C
+ATCModel/zeroATCcells/faceCells/faceCells.C
+ATCModel/zeroATCcells/pointCells/pointCells.C
+
+/* ATC MODELS */
+ATCModel/ATCModel/ATCModel.C
+ATCModel/ATCstandard/ATCstandard.C
+ATCModel/ATCUaGradU/ATCUaGradU.C
+ATCModel/cancelATC/cancelATC.C
+
+/* OBJECTIVES */
+objectives/objective/objective.C
+objectives/incompressible/objectiveIncompressible/objectiveIncompressible.C
+objectives/incompressible/objectiveForce/objectiveForce.C
+objectives/incompressible/objectiveMoment/objectiveMoment.C
+objectives/incompressible/objectivePtLosses/objectivePtLosses.C
+objectives/incompressible/objectivePowerDissipation/objectivePowerDissipation.C
+objectives/incompressible/objectiveNutSqr/objectiveNutSqr.C
+objectives/incompressible/objectiveFlowRate/objectiveFlowRate.C
+objectives/incompressible/objectiveFlowRatePartition/objectiveFlowRatePartition.C
+objectives/incompressible/objectiveUniformityPatch/objectiveUniformityPatch.C
+objectives/incompressible/objectiveUniformityCellZone/objectiveUniformityCellZone.C
+objectives/geometric/objectiveGeometric/objectiveGeometric.C
+objectives/geometric/objectivePartialVolume/objectivePartialVolume.C
+objectives/geometric/objectiveTopOVolume/objectiveTopOVolume.C
+objectives/geometric/objectiveTopOSolidVolume/objectiveTopOSolidVolume.C
+
+/* OBJECTIVE MANAGER*/
+objectiveManager/objectiveManager.C
+
+/* BOUNDARY ADJOINT CONTRIBUTIONS */
+boundaryAdjointContributions/boundaryAdjointContribution/boundaryAdjointContribution.C
+boundaryAdjointContributions/boundaryAdjointContributionIncompressible/boundaryAdjointContributionIncompressible.C
+
+/* ADJOINT TURBULENCE MODELS*/
+turbulenceModels/incompressibleAdjoint/adjointTurbulenceModel/adjointTurbulenceModel.C
+turbulenceModels/incompressibleAdjoint/adjointRAS/adjointRASModel/adjointRASModel.C
+turbulenceModels/incompressibleAdjoint/adjointRAS/adjointLaminar/adjointLaminar.C
+turbulenceModels/incompressibleAdjoint/adjointRAS/adjointSpalartAllmaras/adjointSpalartAllmaras.C
+turbulenceModels/incompressibleAdjoint/adjointRAS/adjointkOmegaSST/adjointkOmegaSST.C
+turbulenceModels/incompressibleAdjoint/adjointRAS/derivedFvPatchFields/adjointInletNuaTilda/adjointInletNuaTildaFvPatchScalarField.C
+turbulenceModels/incompressibleAdjoint/adjointRAS/derivedFvPatchFields/adjointOutletNuaTilda/adjointOutletNuaTildaFvPatchScalarField.C
+turbulenceModels/incompressibleAdjoint/adjointRAS/derivedFvPatchFields/adjointFarFieldNuaTilda/adjointFarFieldNuaTildaFvPatchScalarField.C
+turbulenceModels/incompressibleAdjoint/adjointRAS/derivedFvPatchFields/adjointFarFieldTMVar1/adjointFarFieldTMVar1FvPatchScalarField.C
+turbulenceModels/incompressibleAdjoint/adjointRAS/derivedFvPatchFields/adjointFarFieldTMVar2/adjointFarFieldTMVar2FvPatchScalarField.C
+turbulenceModels/incompressibleAdjoint/adjointRAS/derivedFvPatchFields/adjointOutletNuaTildaFlux/adjointOutletNuaTildaFluxFvPatchScalarField.C
+turbulenceModels/incompressibleAdjoint/adjointRAS/derivedFvPatchFields/adjointOutletFlux/adjointOutletFluxFvPatchFields.C
+turbulenceModels/incompressibleAdjoint/adjointRAS/derivedFvPatchFields/kaqRWallFunction/kaqRWallFunctionFvPatchScalarField.C
+turbulenceModels/incompressibleAdjoint/adjointRAS/derivedFvPatchFields/waWallFunction/waWallFunctionFvPatchScalarField.C
+turbulenceModels/incompressibleAdjoint/adjointRAS/derivedFvPatchFields/adjointOutletKa/adjointOutletKaFvPatchScalarField.C
+turbulenceModels/incompressibleAdjoint/adjointRAS/derivedFvPatchFields/adjointOutletWa/adjointOutletWaFvPatchScalarField.C
+
+/* ADJOINT BOUNDARY CONDITIONS */
+adjointBoundaryConditions/adjointBoundaryCondition/adjointBoundaryConditions.C
+adjointBoundaryConditions/adjointInletVelocity/adjointInletVelocityFvPatchVectorField.C
+adjointBoundaryConditions/adjointOutletVelocity/adjointOutletVelocityFvPatchVectorField.C
+adjointBoundaryConditions/adjointWallVelocity/adjointWallVelocityFvPatchVectorField.C
+adjointBoundaryConditions/adjointWallVelocityLowRe/adjointWallVelocityLowReFvPatchVectorField.C
+adjointBoundaryConditions/adjointRotatingWallVelocity/adjointRotatingWallVelocityFvPatchVectorField.C
+adjointBoundaryConditions/adjointOutletPressure/adjointOutletPressureFvPatchScalarField.C
+adjointBoundaryConditions/adjointFarFieldPressure/adjointFarFieldPressureFvPatchScalarField.C
+adjointBoundaryConditions/adjointFarFieldVelocity/adjointFarFieldVelocityFvPatchVectorField.C
+adjointBoundaryConditions/adjointZeroInlet/adjointZeroInletFvPatchFields.C
+adjointBoundaryConditions/adjointOutletVelocityFlux/adjointOutletVelocityFluxFvPatchVectorField.C
+
+/* DELTA BOUNDARY */
+deltaBoundary/deltaBoundary.C
+
+/* NURBS */
+NURBS=parameterization/NURBS
+$(NURBS)/NURBSbasis/NURBSbasis.C
+$(NURBS)/NURBS3DCurve/NURBS3DCurve.C
+$(NURBS)/NURBS3DSurface/NURBS3DSurface.C
+NURBS3D=$(NURBS)/NURBS3DVolume
+$(NURBS3D)/controlPointsDefinition/controlPointsDefinition/controlPointsDefinition.C
+$(NURBS3D)/controlPointsDefinition/axisAligned/axisAligned.C
+$(NURBS3D)/controlPointsDefinition/fromFile/fromFile.C
+$(NURBS3D)/controlPointsDefinition/transformBox/transformBox.C
+$(NURBS3D)/NURBS3DVolume/NURBS3DVolume.C
+$(NURBS3D)/cartesian/NURBS3DVolumeCartesian.C
+$(NURBS3D)/cylindrical/NURBS3DVolumeCylindrical.C
+$(NURBS3D)/volBSplinesBase/volBSplinesBase.C
+
+/* BEZIER */
+parameterization/Bezier/Bezier.C
+
+/* MOTION SOLVERS */
+dynamicMesh/motionSolver/volumetricBSplinesMotionSolver/volumetricBSplinesMotionSolver.C
+dynamicMesh/motionSolver/elasticityMotionSolver/elasticityMotionSolver.C
+dynamicMesh/motionSolver/laplacianMotionSolver/laplacianMotionSolver.C
+dynamicMesh/motionSolver/pLaplacianMotionSolver/pLaplacianMotionSolver.C
+
+/* DISPLACEMENT METHOD */
+displacementMethod/displacementMethod/displacementMethod.C
+displacementMethod/displacementMethodvolumetricBSplinesMotionSolver/displacementMethodvolumetricBSplinesMotionSolver.C
+displacementMethod/displacementMethoddisplacementLaplacian/displacementMethoddisplacementLaplacian.C
+displacementMethod/displacementMethodvelocityLaplacian/displacementMethodvelocityLaplacian.C
+displacementMethod/displacementMethodelasticityMotionSolver/displacementMethodelasticityMotionSolver.C
+displacementMethod/displacementMethodlaplacianMotionSolver/displacementMethodlaplacianMotionSolver.C
+displacementMethod/displacementMethodpLaplacianMotionSolver/displacementMethodpLaplacianMotionSolver.C
+
+/* INTERPOLATION SCHEMES */
+interpolation/pointVolInterpolation/pointVolInterpolation.C
+interpolation/volPointInterpolation/volPointInterpolationAdjoint.C
+
+/* ADJOINT SENSITIVITY */
+optimisation/adjointSensitivity/sensitivity/sensitivity.C
+optimisation/adjointSensitivity/adjointSensitivity/adjointSensitivity/adjointSensitivity.C
+optimisation/adjointSensitivity/adjointSensitivity/adjointEikonalSolver/adjointEikonalSolver.C
+optimisation/adjointSensitivity/adjointSensitivity/shape/adjointMeshMovementSolver/adjointMeshMovementSolver.C
+optimisation/adjointSensitivity/adjointSensitivity/shape/shapeSensitivityBase/ShapeSensitivitiesBase.C
+optimisation/adjointSensitivity/adjointSensitivity/shape/FI/sensitivityShapeFI.C
+optimisation/adjointSensitivity/adjointSensitivity/shape/ESI/sensitivityShapeESI.C
+optimisation/adjointSensitivity/adjointSensitivity/shape/surfacePoints/sensitivitySurfacePoints.C
+optimisation/adjointSensitivity/adjointSensitivity/shape/surface/sensitivitySurface.C
+optimisation/adjointSensitivity/adjointSensitivity/topO/sensitivityTopO.C
+optimisation/adjointSensitivity/adjointSensitivity/multiple/sensitivityMultiple.C
+
+/* LINE SEARCH */
+optimisation/lineSearch/lineSearch/lineSearch.C
+optimisation/lineSearch/ArmijoConditions/ArmijoConditions.C
+optimisation/lineSearch/GCMMA/GCMMA.C
+optimisation/lineSearch/stepUpdate/stepUpdate/stepUpdate.C
+optimisation/lineSearch/stepUpdate/bisection/bisection.C
+optimisation/lineSearch/stepUpdate/quadratic/quadratic.C
+
+/* UPDATE METHOD */
+updateMethod=optimisation/updateMethod
+$(updateMethod)/updateMethod/updateMethod.C
+$(updateMethod)/constrainedOptimisationMethod/constrainedOptimisationMethod.C
+$(updateMethod)/steepestDescent/steepestDescent.C
+$(updateMethod)/quasiNewton/quasiNewton.C
+$(updateMethod)/BFGS/BFGS.C
+$(updateMethod)/DBFGS/DBFGS.C
+$(updateMethod)/LBFGS/LBFGS.C
+$(updateMethod)/SR1/SR1.C
+$(updateMethod)/conjugateGradient/conjugateGradient.C
+$(updateMethod)/MMA/MMA.C
+$(updateMethod)/nullSpace/nullSpace.C
+$(updateMethod)/constraintProjection/constraintProjection.C
+$(updateMethod)/SQPBase/SQPBase.C
+$(updateMethod)/SQP/SQP.C
+$(updateMethod)/ISQP/ISQP.C
+
+/* DESIGN VARIABLES */
+optimisation/designVariables/designVariables/designVariables.C
+topOVars=optimisation/designVariables/topODesignVariables
+$(topOVars)/topOVariablesBase/topOVariablesBase.C
+$(topOVars)/topODesignVariables.C
+$(topOVars)/dynamicTopODesignVariables/dynamicTopODesignVariables.C
+$(topOVars)/betaMax/betaMax/betaMax.C
+$(topOVars)/betaMax/value/betaMaxValue.C
+$(topOVars)/betaMax/Darcy/betaMaxDarcy.C
+$(topOVars)/betaMax/ReynoldsDarcy/betaMaxReynoldsDarcy.C
+$(topOVars)/betaMax/stepRamp/betaMaxStepRamp.C
+$(topOVars)/topOZones/topOZones.C
+$(topOVars)/regularisation/fieldRegularisation.C
+$(topOVars)/regularisation/regularisationRadius/regularisationRadius/regularisationRadius.C
+$(topOVars)/regularisation/regularisationRadius/isotropic/regularisationRadiusIsotropic.C
+$(topOVars)/regularisation/regularisationPDE/regularisationPDE/regularisationPDE.C
+$(topOVars)/regularisation/regularisationPDE/Helmoltz/Helmholtz.C
+$(topOVars)/marchingCells/marchingCells.C
+$(topOVars)/interpolationFunctions/interpolationFunction/topOInterpolationFunction.C
+$(topOVars)/interpolationFunctions/BorrvallPetersson/BorrvallPeterssonInterpolation.C
+$(topOVars)/interpolationFunctions/invBP/invBP.C
+$(topOVars)/interpolationFunctions/linear/linearInterpolation.C
+$(topOVars)/interpolationFunctions/SIMP/SIMPInterpolation.C
+$(topOVars)/interpolationFunctions/sinh/sinhInterpolation.C
+$(topOVars)/interpolationFunctions/tanh/tanhInterpolation.C
+$(topOVars)/interpolationFunctions/exp/expInterpolation.C
+levelSetVars=optimisation/designVariables/levelSet
+$(levelSetVars)/levelSetDesignVariables.C
+$(levelSetVars)/interpolationFunctions/sigmoidalHeaviside/sigmoidalHeaviside.C
+$(levelSetVars)/interpolationFunctions/smoothHeaviside/smoothHeaviside.C
+shapeVars=optimisation/designVariables/shape
+$(shapeVars)/shapeDesignVariables/shapeDesignVariables.C
+$(shapeVars)/volumetricBSplines/morphingBoxConstraints/morphingBoxConstaint/morphingBoxConstraint.C
+$(shapeVars)/volumetricBSplines/morphingBoxConstraints/none/noConstraint.C
+$(shapeVars)/volumetricBSplines/volumetricBSplinesDesignVariables.C
+$(shapeVars)/Bezier/BezierDesignVariables.C
+
+/* OPTIMIZATION MANAGER */
+optimisation/optimisationManager/optimisationManager/designVariablesUpdate/designVariablesUpdate.C
+optimisation/optimisationManager/optimisationManager/optimisationManager.C
+optimisation/optimisationManager/singleRun/singleRun.C
+optimisation/optimisationManager/steadyOptimisation/steadyOptimisation.C
+
+LIB = $(FOAM_LIBBIN)/libadjointOptimisation

@@ -1,0 +1,13 @@
+laserDTRM.C
+
+DTRMParticle/DTRMParticle.C
+DTRMParticle/DTRMParticleIO.C
+localDensityAbsorptionEmission/localDensityAbsorptionEmission.C
+reflectionModel/reflectionModel/reflectionModel.C
+reflectionModel/reflectionModel/reflectionModelNew.C
+reflectionModel/noReflection/noReflection.C
+reflectionModel/FresnelLaser/FresnelLaser.C
+reflectionModel/Fresnel/Fresnel.C
+
+
+LIB = $(FOAM_LIBBIN)/liblaserDTRM

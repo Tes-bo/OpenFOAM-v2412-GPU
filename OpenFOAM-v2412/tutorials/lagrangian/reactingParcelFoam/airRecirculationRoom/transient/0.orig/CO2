@@ -1,0 +1,65 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    object      CO2;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+//How to convert from ppm to % in the air?
+//https://www.rapidtables.com/convert/number/PPM_to_Percent.html
+// 1% = 1/100
+// 1ppm = 1/1000000
+// hence
+// 1ppm = 0.0001%
+
+dimensions      [0 0 0 0 0 0 0];
+
+internalField   uniform 0.0004;    // 400ppm => 0.04% => 0.0004
+
+boundaryField
+{
+    "(roof|floor|sideWall|humanBody)"
+    {
+        type            zeroGradient;
+    }
+
+    inlet
+    {
+        type            fixedValue;
+        value           $internalField;
+    }
+
+    mouth
+    {
+        type            fixedValue;
+        value           uniform 0.001;    // 1000ppm => 0.1% => 0.001;
+    }
+
+    outlet
+    {
+        type            zeroGradient;
+    }
+
+    "(intake1|intake2|intake3|intake4)"
+    {
+        type            zeroGradient;
+    }
+
+    "(exhaust_maxX|exhaust_minX|exhaust_maxY|exhaust_minY)"
+    {
+        type            fixedValue;
+        value           $internalField;
+    }
+}
+
+
+// ************************************************************************* //

@@ -1,0 +1,43 @@
+#----------------------------------*-sh-*--------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2017-2023 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# File
+#     etc/config.sh/kahip
+#     - sourced during wmake process only.
+#
+# Description
+#     Setup for KAHIP include/libraries (usually ThirdParty installation).
+#
+#     To disable its use:               KAHIP_VERSION=kahip-none
+#     For system-wide installations:    KAHIP_VERSION=kahip-system
+#
+#     For central installations not located under ThirdParty:
+#       1. use kahip-system
+#       2. and provide full path for KAHIP_ARCH_PATH
+#
+# Note
+#     KaHIP is 32-bit precision only.
+#     An Int64 OpenFOAM version can use it, but the mesh size is limited
+#     accordingly.
+#
+#     No csh version, This file is only used by wmake.
+#
+#     Can also disable by renaming/removing this file or by creating an empty
+#     file with the same name at a user or site location.
+#------------------------------------------------------------------------------
+# USER EDITABLE PART: Changes made here may be lost with the next upgrade
+
+KAHIP_VERSION=kahip-3.15
+export KAHIP_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$KAHIP_VERSION
+
+# END OF (NORMAL) USER EDITABLE PART
+#------------------------------------------------------------------------------

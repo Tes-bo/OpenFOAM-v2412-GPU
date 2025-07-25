@@ -1,0 +1,124 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      dynamicMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dynamicFvMesh       dynamicOversetFvMesh;
+
+solvers
+{
+    VF
+    {
+        motionSolverLibs (libfvMotionSolvers);
+        motionSolver            solidBody;
+        solidBodyMotionFunction drivenLinearMotion;
+        cellSet                 c0;
+        cOfGdisplacement        CofG;
+    }
+
+    boat_propeller
+    {
+        motionSolverLibs    (librigidBodyMeshMotion);
+        motionSolver         rigidBodyMotion;
+
+        report              on;
+        cellSet             cHullProp;
+        cOfGdisplacement    CofG;
+        bodyIdCofG      1;
+
+        solver
+        {
+            type Newmark;
+        }
+
+        accelerationRelaxation 0.8;
+        accelerationDamping    0.9;
+        nIter   3;
+
+        bodies
+        {
+            hull
+            {
+                type            rigidBody;
+                parent          root;
+                mass            2787;
+
+                centreOfMass     (0.178 0 0.3323);
+                inertia         (564 0 0 8535 0 8535);
+                // Transformation tensor and centre of rotation
+                transform       (1 0 0 0 1 0 0 0 1)  (0.178 0 0.3323);
+                joint
+                {
+                    type            composite;
+
+                    joints
+                    (
+                        {
+                            type Pxyz;
+                        }
+                        {
+                            type Ry;
+                        }
+                    );
+                }
+                patches
+                (
+                    HULL
+                    HULL_DISK
+                );
+                innerDistance   100;
+                outerDistance   200;
+            }
+            propeller
+            {
+                type            rigidBody;
+                parent          hull;
+                centreOfMass    (-3.405396 -0.000044 0.129544);
+                mass            0.3;
+                transform       (1 0 0 0 1 0 0 0 1) (-3.583 -0.000044 -0.202706);
+                inertia         (0.000556833 0 0 0.36905863 0 0.36858374);
+                patches
+                (
+                    BLADES
+                    HUB
+                    HUB_DISK
+                );
+                innerDistance   100;
+                outerDistance   200;
+                joint
+                {
+                    type        Rx;
+                }
+            }
+        }
+        restraints
+        {
+            force
+            {
+                type        externalForce;
+                body        hull;
+                location    (-3.386 0 0.21);
+                force       table
+                (
+                    (0    (500 0 0))
+                    (10   (2000 0 0))
+                    (20   (2000 0 0))
+                );
+            }
+        }
+    }
+}
+
+
+// ************************************************************************* //

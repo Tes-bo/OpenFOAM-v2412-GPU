@@ -1,0 +1,120 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+scale   1;
+
+vertices
+(
+    (0 0.3 0)
+    (1 0.3 0)
+    (1 0.7 0)
+    (0 0.7 0)
+    (0 0.3 0.1)
+    (1 0.3 0.1)
+    (1 0.7 0.1)
+    (0 0.7 0.1)
+
+    (1 0 0)
+    (3 0 0)
+    (3 1 0)
+    (1 1 0)
+    (1 0 0.1)
+    (3 0 0.1)
+    (3 1 0.1)
+    (1 1 0.1)
+);
+
+blocks
+(
+//    hex (0 1 2 3 4 5 6 7) (20 20 1) simpleGrading (1 1 1)
+//    hex (8 9 10 11 12 13 14 15) (40 48 1) simpleGrading (1 1 1)
+    hex (0 1 2 3 4 5 6 7) inletChannel (80 40 1) simpleGrading (1 1 1)
+    hex (8 9 10 11 12 13 14 15) (80 96 1) simpleGrading (1 1 1)
+);
+
+edges
+(
+);
+
+boundary
+(
+    inlet
+    {
+        type patch;
+        faces
+        (
+            (0 4 7 3)
+        );
+    }
+    outlet
+    {
+        type patch;
+        faces
+        (
+            (10 14 13 9)
+        );
+    }
+    walls
+    {
+        type wall;
+        faces
+        (
+            (3 7 6 2)
+            (1 5 4 0)
+            (11 15 14 10)
+            (9 13 12 8)
+        );
+    }
+    ACMI1_couple
+    {
+        type            cyclicACMI;
+        neighbourPatch  ACMI2_couple;
+        nonOverlapPatch ACMI1_blockage;
+        faces
+        (
+            (2 6 5 1)
+        );
+    }
+    ACMI1_blockage
+    {
+        type wall;
+        faces
+        (
+            (2 6 5 1)
+        );
+    }
+    ACMI2_couple
+    {
+        type            cyclicACMI;
+        neighbourPatch  ACMI1_couple;
+        nonOverlapPatch ACMI2_blockage;
+        faces
+        (
+            (8 12 15 11)
+        );
+    }
+    ACMI2_blockage
+    {
+        type wall;
+        faces
+        (
+            (8 12 15 11)
+        );
+    }
+);
+
+
+// ************************************************************************* //

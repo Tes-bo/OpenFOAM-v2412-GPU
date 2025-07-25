@@ -1,0 +1,154 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2011 OpenFOAM Foundation
+#     Copyright (C) 2016-2021 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     makeCmake
+#
+# Description
+#     Build script for cmake.
+#
+#     The '-link' option can be used to create a 'cmake-system' pointing
+#     to this version.
+#
+# ----------------------------------------------
+# NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
+#------------------------------------------------------------------------------
+if :    # Run from third-party directory
+then
+    cd "${0%/*}" || exit
+    wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
+        echo "Error (${0##*/}) : not located in \$WM_THIRD_PARTY_DIR"
+        echo "    Check your OpenFOAM environment and installation"
+        exit 1
+    }
+fi
+. "${WM_THIRD_PARTY_DIR:?}"/etc/tools/ThirdPartyFunctions
+#------------------------------------------------------------------------------
+
+# Special purpose script - no default version
+unset PACKAGE
+
+#------------------------------------------------------------------------------
+printVersions() { listPackageVersions cmake; exit 0; }
+printHelp() {
+    cat<<USAGE
+
+Usage: ${0##*/} [OPTION] cmake-VERSION
+options:
+  -force        Force compilation, even if binary already exists
+  -gcc          Force use of gcc/g++
+  -link         Create additional symlink as 'cmake-system'
+  -list         List available unpacked source versions
+  -help         Display usage help
+
+* Build cmake
+      ${PACKAGE:-[unspecified]}
+
+USAGE
+    showDownloadHint cmake
+    exit 0  # Clean exit
+}
+#------------------------------------------------------------------------------
+exportCompiler          # Compiler info for CMake/configure
+
+unset optForce optLink
+
+# Parse options
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    '') ;;      # Ignore empty
+    -h | -help*) printHelp;;
+    -list)      printVersions;;
+    -gcc)       useGcc  ;;
+    -force)     optForce=true ;;
+    -link)      optLink=true ;;
+
+    cmake/* | sources/cmake* | \
+    cmake-[0-9]*)
+        PACKAGE="${1%%/}"
+        ;;
+    *)
+        die "unknown option/argument: '$1'"
+        ;;
+    esac
+    shift
+done
+
+if [ -z "$PACKAGE" ]
+then
+    die "The CMAKE package/version not specified"
+fi
+
+if _foamIsSystem "$PACKAGE"
+then
+    unset optLink # basic sanity - cannot create a link
+fi
+
+#------------------------------------------------------------------------------
+#
+# Build CMAKE
+#   *PACKAGE : name-version of the package
+#   *SOURCE  : location of original sources
+#   *PREFIX  : installation directory
+
+PKG_SOURCE="$(findSourceDir "$PACKAGE")"
+PACKAGE="$(basename "$PACKAGE")"
+PKG_PREFIX="$installBASE/$PACKAGE"
+export GIT_DIR="$PKG_SOURCE/.git"
+
+
+if [ -z "$optForce" ] \
+&& [ -d "$PKG_PREFIX" ] \
+&& [ -r "$PKG_PREFIX/bin/cmake" ]
+then
+    echo "Already built: $PACKAGE"
+else
+    echo "Starting build: $PACKAGE"
+    (
+        PKG_BUILD="$buildBASE/$PACKAGE"
+        cd "$PKG_SOURCE" || exit
+        make distclean 2>/dev/null || true
+
+        rm -rf "$PKG_BUILD"
+        mkdir -p "$PKG_BUILD"
+
+        cd "$PKG_BUILD" && \
+        "$PKG_SOURCE"/bootstrap \
+            --prefix="$PKG_PREFIX" \
+        && time make -j $WM_NCOMPPROCS \
+        && make install \
+        && echo "Built: $PACKAGE"
+    ) || {
+        echo "Error building: $PACKAGE"
+        exit 1
+    }
+fi
+
+if [ "$optLink" = true ] && [ -x "$PKG_PREFIX/bin/cmake" ]
+then
+(
+    cd "${PKG_PREFIX%/*}" || exit
+    if [ -L cmake-system ]
+    then
+        rm cmake-system
+    elif [ -d cmake-system ]
+    then
+        exit 2
+    fi
+    ln -svf "$PACKAGE" cmake-system
+)
+fi
+
+#------------------------------------------------------------------------------

@@ -1,0 +1,100 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+scale               1;
+
+alpha               30;
+nx                  5;
+ny                  100;
+nz                  1;
+xMin                0;
+xMax                1;
+yMin                0;
+yMax                1;
+zMin                0;
+zMax                1;
+yExpansion          9.987905978;
+
+sin0                #eval{sin(degToRad($alpha))};
+cos0                #eval{cos(degToRad($alpha))};
+xMindx              #eval{$xMin + $sin0};
+xMaxdx              #eval{$xMax + $sin0};
+yMaxdy              #eval{$yMax*$cos0};
+
+vertices
+(
+    ($xMin     $yMin    $zMin)
+    ($xMax     $yMin    $zMin)
+    ($xMaxdx   $yMaxdy  $zMin)
+    ($xMindx   $yMaxdy  $zMin)
+    ($xMin     $yMin    $zMax)
+    ($xMax     $yMin    $zMax)
+    ($xMaxdx   $yMaxdy  $zMax)
+    ($xMindx   $yMaxdy  $zMax)
+);
+
+blocks
+(
+    hex (0 1 2 3 4 5 6 7) ($nx $ny $nz)  simpleGrading (1 $yExpansion 1)
+);
+
+boundary
+(
+    inlet
+    {
+        type patch;
+        faces
+        (
+            (0 4 7 3)
+        );
+    }
+    outlet
+    {
+        type patch;
+        faces
+        (
+            (2 6 5 1)
+        );
+    }
+    top
+    {
+        type symmetry;
+        faces
+        (
+            (3 7 6 2)
+        );
+    }
+    bottom
+    {
+        type wall;
+        faces
+        (
+            (1 5 4 0)
+        );
+    }
+    leftAndRight
+    {
+        type empty;
+        faces
+        (
+            (0 3 2 1)
+            (4 5 6 7)
+        );
+    }
+);
+
+
+// ************************************************************************* //

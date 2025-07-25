@@ -1,0 +1,3 @@
+EXE_INC = $(c++LESSWARN)
+
+/* EXE_LIBS = */

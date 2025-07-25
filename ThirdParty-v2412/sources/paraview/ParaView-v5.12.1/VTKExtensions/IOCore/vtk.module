@@ -1,0 +1,42 @@
+NAME
+  ParaView::VTKExtensionsIOCore
+LIBRARY_NAME
+  vtkPVVTKExtensionsIOCore
+SPDX_LICENSE_IDENTIFIER
+  LicenseRef-BSD-3-Clause-Sandia-USGov
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Kitware Inc.
+SPDX_CUSTOM_LICENSE_FILE
+  LICENSE
+SPDX_CUSTOM_LICENSE_NAME
+  BSD-3-Clause-Sandia-USGov
+LICENSE_FILES
+  LICENSE
+GROUPS
+  PARAVIEW_CORE
+KIT
+  ParaView::CoreKit
+DEPENDS
+  VTK::CommonExecutionModel
+  VTK::IOCore
+  VTK::IOXML
+PRIVATE_DEPENDS
+  ParaView::RemotingClientServerStream
+  ParaView::VTKExtensionsCore
+  ParaView::VTKExtensionsMisc
+  VTK::CommonMisc
+  VTK::FiltersCore
+  VTK::fmt
+  VTK::IOLegacy
+  VTK::IOParallelXML
+  VTK::jsoncpp
+  VTK::ParallelCore
+  VTK::vtksys
+TEST_DEPENDS
+  VTK::TestingCore
+TEST_OPTIONAL_DEPENDS
+  VTK::IOInfovis
+  VTK::ParallelMPI
+  VTK::TestingRendering
+TEST_LABELS
+  ParaView

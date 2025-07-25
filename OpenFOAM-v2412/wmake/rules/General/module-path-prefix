@@ -1,0 +1,50 @@
+# ----------------------------------------------------------------------------
+# Set defaults for FOAM_MODULE_APPBIN, FOAM_MODULE_LIBBIN
+# based on FOAM_MODULE_PREFIX
+#
+# FOAM_MODULE_APPBIN ?= FOAM_MODULE_PREFIX/bin
+# FOAM_MODULE_LIBBIN ?= FOAM_MODULE_PREFIX/iib
+#
+# ----------------------------------------------------------------------------
+# When compiling additional modules or user code, we need flexibility for
+# the installation locations. The project directories may be read-only etc.
+#
+# For this purpose, introduce three additional make variables:
+#
+# - FOAM_MODULE_PREFIX - default is unset
+# - FOAM_MODULE_APPBIN - default is $(FOAM_MODULE_PREFIX)/bin
+# - FOAM_MODULE_LIBBIN - default is $(FOAM_MODULE_PREFIX)/lib
+#
+# The developer may have an intended default location for a particular module.
+#
+# For default location 'user':
+#   Make/options:       include $(GENERAL_RULES)/module-path-user
+#   Make/files:         LIB = $(FOAM_MODULE_LIBBIN)/libXYZ
+#
+# For default location 'group':
+#   Make/options:       include $(GENERAL_RULES)/module-path-group
+#   Make/files:         LIB = $(FOAM_MODULE_LIBBIN)/libXYZ
+#
+# For default location 'project' (openfoam):
+#   Make/options:       include $(GENERAL_RULES)/module-path-project
+#   Make/files:         LIB = $(FOAM_MODULE_LIBBIN)/libXYZ
+#
+#
+# The module-path-{user,group,project} rules should include module-path-prefix
+# first.
+#
+# ----------------------------------------------------------------------------
+
+ifeq (,$(strip $(FOAM_MODULE_APPBIN)))
+    ifneq (,$(strip $(FOAM_MODULE_PREFIX)))
+        FOAM_MODULE_APPBIN = $(strip $(FOAM_MODULE_PREFIX))/bin
+    endif
+endif
+
+ifeq (,$(strip $(FOAM_MODULE_LIBBIN)))
+    ifneq (,$(strip $(FOAM_MODULE_PREFIX)))
+        FOAM_MODULE_LIBBIN = $(strip $(FOAM_MODULE_PREFIX))/lib
+    endif
+endif
+
+# ---------------------------------------------------------------------------

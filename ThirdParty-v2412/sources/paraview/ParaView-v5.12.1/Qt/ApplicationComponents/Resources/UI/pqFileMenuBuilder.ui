@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- SPDX-FileCopyrightText: Copyright (c) Kitware Inc. -->
+<!-- SPDX-License-Identifier: BSD-3-Clause -->
+<ui version="4.0">
+ <class>pqFileMenuBuilder</class>
+ <widget class="QMenu" name="pqFileMenuBuilder">
+  <property name="title">
+   <string>&amp;File</string>
+  </property>
+  <widget class="QMenu" name="menuRecentFiles">
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqRecentFile.svg</normaloff>:/pqWidgets/Icons/pqRecentFile.svg</iconset>
+   </property>
+   <property name="title">
+    <string>&amp;Recent Files</string>
+   </property>
+  </widget>
+  <action name="actionServerConnect">
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqConnect.svg</normaloff>:/pqWidgets/Icons/pqConnect.svg</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Connect...</string>
+   </property>
+   <property name="statusTip">
+    <string>Connect</string>
+   </property>
+  </action>
+  <action name="actionServerDisconnect">
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqDisconnect.svg</normaloff>:/pqWidgets/Icons/pqDisconnect.svg</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Disconnect</string>
+   </property>
+   <property name="statusTip">
+    <string>Disconnect</string>
+   </property>
+  </action>
+  <action name="actionFileSaveScreenshot">
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqCaptureScreenshot.svg</normaloff>:/pqWidgets/Icons/pqCaptureScreenshot.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Save Screenshot...</string>
+   </property>
+  </action>
+  <action name="actionFileSaveAnimation">
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqSaveAnimation.svg</normaloff>:/pqWidgets/Icons/pqSaveAnimation.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Save &amp;Animation...</string>
+   </property>
+   <property name="PV_MUST_BE_MASTER_TO_SHOW" stdset="0">
+    <bool>true</bool>
+   </property>
+  </action>
+  <action name="actionFileSaveData">
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqSave.svg</normaloff>:/pqWidgets/Icons/pqSave.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Save Data...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
+   </property>
+   <property name="PV_MUST_BE_MASTER_TO_SHOW" stdset="0">
+    <bool>true</bool>
+   </property>
+  </action>
+  <action name="actionFileLoadServerState">
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqLoadState.svg</normaloff>:/pqWidgets/Icons/pqLoadState.svg</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Load State...</string>
+   </property>
+   <property name="PV_MUST_BE_MASTER_TO_SHOW" stdset="0">
+    <bool>true</bool>
+   </property>
+  </action>
+  <action name="actionFileSaveServerState">
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqSaveState.svg</normaloff>:/pqWidgets/Icons/pqSaveState.svg</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Save State...</string>
+   </property>
+  </action>
+  <action name="actionFileSaveCatalystState">
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqCatalyst.svg</normaloff>:/pqWidgets/Icons/pqCatalyst.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Save Catalyst State...</string>
+   </property>
+  </action>
+  <action name="actionFileSaveGeometry">
+   <property name="text">
+    <string>Save &amp;Geometry...</string>
+   </property>
+   <property name="PV_MUST_BE_MASTER_TO_SHOW" stdset="0">
+    <bool>true</bool>
+   </property>
+  </action>
+  <action name="actionReloadFiles">
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqReloadFile.svg</normaloff>:/pqWidgets/Icons/pqReloadFile.svg</iconset>
+   </property>
+   <property name="text">
+     <string>Reload Files</string>
+   </property>
+   <property name="iconText">
+    <string>Reload Files</string>
+   </property>
+   <property name="toolTip">
+    <string>Reload data files in case they were changed externally.</string>
+   </property>
+   <property name="shortcut">
+    <string>F5</string>
+   </property>
+  </action>
+  <action name="actionFileOpen">
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqOpen.svg</normaloff>:/pqWidgets/Icons/pqOpen.svg</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Open...</string>
+   </property>
+   <property name="statusTip">
+    <string>Open</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
+   <property name="PV_MUST_BE_MASTER_TO_SHOW" stdset="0">
+    <bool>true</bool>
+   </property>
+  </action>
+  <action name="actionFileExit">
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqExitApp.svg</normaloff>:/pqWidgets/Icons/pqExitApp.svg</iconset>
+   </property>
+   <property name="text">
+    <string>E&amp;xit</string>
+   </property>
+   <property name="statusTip">
+    <string>Exit</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Q</string>
+   </property>
+  </action>
+  <action name="actionExport">
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqExportScene.svg</normaloff>:/pqWidgets/Icons/pqExportScene.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Export Scene...</string>
+   </property>
+  </action>
+  <action name="actionAnimatedExport">
+  <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqExportAnimatedScene.svg</normaloff>:/pqWidgets/Icons/pqExportAnimatedScene.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Export Animated Scene...</string>
+   </property>
+   <property name="toolTip">
+    <string>Save scene for all timesteps by playing the animation step by step</string>
+   </property>
+   <property name="statusTip">
+    <string>Save scene for all timesteps</string>
+   </property>
+  </action>
+  <action name="actionFileSaveWindowArrangement">
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqSaveWindow.svg</normaloff>:/pqWidgets/Icons/pqSaveWindow.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Save Window Arrangement...</string>
+   </property>
+   <property name="toolTip">
+    <string>Save window arrangement to a file</string>
+   </property>
+   <property name="statusTip">
+    <string>Save window arrangement to a file</string>
+   </property>
+  </action>
+  <action name="actionFileLoadWindowArrangement">
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqLoadWindow.svg</normaloff>:/pqWidgets/Icons/pqLoadWindow.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Load Window Arrangement...</string>
+   </property>
+   <property name="toolTip">
+    <string>Load window arrangement from a file</string>
+   </property>
+   <property name="statusTip">
+    <string>Load window arrangement from a file</string>
+   </property>
+  </action>
+  <action name="actionFileLoadMaterials">
+   <property name="text">
+    <string>Load Path Tracer Materials...</string>
+   </property>
+   <property name="toolTip">
+    <string>Load a Materials file that contains appearance settings for use in high quality rendering modes.</string>
+   </property>
+   <property name="statusTip">
+    <string>Load an Appearance Materials file</string>
+   </property>
+  </action>
+  <action name="actionFileSaveExtracts">
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqExportScene.svg</normaloff>:/pqWidgets/Icons/pqExportScene.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Save Extracts...</string>
+   </property>
+  </action>
+  <addaction name="actionFileOpen"/>
+  <addaction name="menuRecentFiles"/>
+  <addaction name="actionReloadFiles"/>
+  <addaction name="separator"/>
+  <addaction name="actionFileLoadServerState"/>
+  <addaction name="actionFileSaveServerState"/>
+  <addaction name="actionFileSaveCatalystState"/>
+  <addaction name="separator"/>
+  <addaction name="actionFileSaveData"/>
+  <addaction name="actionFileSaveScreenshot"/>
+  <addaction name="actionExport"/>
+  <addaction name="actionAnimatedExport"/>
+  <addaction name="separator"/>
+  <addaction name="actionFileSaveAnimation"/>
+  <addaction name="actionFileSaveExtracts"/>
+  <addaction name="actionFileSaveGeometry"/>
+  <addaction name="separator"/>
+  <addaction name="actionFileLoadMaterials"/>
+  <addaction name="separator"/>
+  <addaction name="actionFileLoadWindowArrangement"/>
+  <addaction name="actionFileSaveWindowArrangement"/>
+  <addaction name="separator"/>
+  <addaction name="actionServerConnect"/>
+  <addaction name="actionServerDisconnect"/>
+  <addaction name="separator"/>
+  <addaction name="actionFileExit"/>
+ </widget>
+ <resources>
+  <include location="../../../Components/Resources/pqComponents.qrc"/>
+ </resources>
+ <connections/>
+</ui>

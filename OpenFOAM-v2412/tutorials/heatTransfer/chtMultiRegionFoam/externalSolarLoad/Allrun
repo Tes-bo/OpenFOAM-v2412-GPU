@@ -1,0 +1,27 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+# Setup case
+./Allrun.pre
+
+#-- Run on single processor
+
+# Agglomerate patch faces
+#for region in air
+#do
+#    runApplication -s $region \
+#        faceAgglomerate -region $region -dict constant/viewFactorsDict
+#done
+
+# Generate view factors
+for region in air
+do
+    runApplication -s $region \
+        viewFactorsGen -region $region
+done
+
+runApplication $(getApplication)
+
+#------------------------------------------------------------------------------

@@ -1,0 +1,83 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+SLAB_OFFSET  2;
+
+scale   0.1;
+
+transform
+{
+    origin  (#eval{0.5 * $SLAB_OFFSET} 0 0);
+    rotation none;
+}
+
+xdim   0.5;
+ydim   1;
+zdim   0.1;
+
+vertices
+(
+    (0      0      0)
+    ($xdim  0      0)
+    ($xdim  $ydim  0)
+    (0      $ydim  0)
+
+    (0      0      $zdim)
+    ($xdim  0      $zdim)
+    ($xdim  $ydim  $zdim)
+    (0      $ydim  $zdim)
+);
+
+blocks
+(
+    hex (0 1 2 3 4 5 6 7) (2 2 1) grading (1 1 1)
+);
+
+boundary
+(
+    slab3_to_2  // left-side (face 0)
+    {
+        type  wall;
+        faces ((0 0));
+    }
+
+    slab3_to_4  // right-side (face 1)
+    {
+        type  wall;
+        faces ((0 1));
+    }
+
+    bottom      // face 2
+    {
+        type  wall;
+        faces ((0 2));
+    }
+
+    to_top      // top: face 3
+    {
+        type  wall;
+        faces ((0 3));
+    }
+
+    frontAndBack  // face 4 5
+    {
+        type  empty;
+        faces ((0 4) (0 5));
+    }
+);
+
+
+// ************************************************************************* //

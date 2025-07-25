@@ -1,0 +1,226 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2018-2019 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     foamCreateManpage
+#
+# Description
+#     Query OpenFOAM applications with -help-man to generate manpage content.
+#
+#------------------------------------------------------------------------------
+defaultOutputDir="$WM_PROJECT_DIR/doc/man1"
+
+usage() {
+    exec 1>&2
+    while [ "$#" -ge 1 ]; do echo "$1"; shift; done
+    cat<<USAGE
+
+Usage: ${0##*/} [OPTION] [appName .. [appNameN]]
+options:
+  -dir=DIR          Input directory to process
+  -output=DIR       Write to alternative output directory
+  -pdf              Process as nroff man content and pass to ps2pdf
+  -gz | -gzip       Compress manpage output
+  -version=VER      Specify an alternative version
+  -h | -help        Print the usage
+
+Query OpenFOAM applications with -help-man for their manpage content
+and redirect to corresponding directory location.
+Default input:  \$FOAM_APPBIN only.
+Default output: $defaultOutputDir
+
+Uses the search directory if individual applications are specified.
+
+Copyright (C) 2018-2019 OpenCFD Ltd.
+USAGE
+    exit 1
+}
+
+# Report error and exit
+die()
+{
+    exec 1>&2
+    echo
+    echo "Error encountered:"
+    while [ "$#" -ge 1 ]; do echo "    $1"; shift; done
+    echo
+    echo "See '${0##*/} -help' for usage"
+    echo
+    exit 1
+}
+
+# Get the option's value (argument), or die on missing or empty argument
+# $1 option
+# $2 value
+getOptionValue()
+{
+   [ -n "$2" ] || die "'$1' option requires an argument"
+   echo "$2"
+}
+
+#-------------------------------------------------------------------------------
+searchDirs="$FOAM_APPBIN"
+unset sedFilter outputDir outputType
+
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    -h | -help*)
+        usage
+        ;;
+    -dir=*)
+        searchDirs="${1#*=}"
+        [ -d "$searchDirs" ] || die "directory not found '$searchDirs'"
+        ;;
+    -dir)
+        searchDirs=$(getOptionValue "$@")
+        [ -d "$searchDirs" ] || die "directory not found '$searchDirs'"
+        shift
+        ;;
+    -gz | -gzip)
+        outputType="gz"
+        ;;
+    -pdf)
+        outputType="pdf"
+        ;;
+    -version=*)
+        version="${1#*=}"
+        sedFilter='s/OpenFOAM-[^\"]*/OpenFOAM-'"$version/"
+        ;;
+    -version)
+        version=$(getOptionValue "$@")
+        sedFilter='s/OpenFOAM-[^\"]*/OpenFOAM-'"$version/"
+        shift
+        ;;
+    -output=*)
+        outputDir="${1#*=}"
+        ;;
+    -output)
+        outputDir=$(getOptionValue "$@")
+        shift
+        ;;
+    -*)
+        die "unknown option: '$1'"
+        ;;
+    *)
+        break
+        ;;
+    esac
+    shift
+done
+
+: "${outputDir:=$defaultOutputDir}"
+
+# Verify that output is writeable
+if [ -e "$outputDir" ]
+then
+    [ -d "$outputDir" ] && [ -w "$outputDir" ] || \
+        die "Cannot write to $outputDir" "Not a directory, or no permission?"
+else
+    mkdir -p "$outputDir" 2>/dev/null || \
+        die "Cannot create directory: $outputDir"
+fi
+
+echo "Generating manpages from OpenFOAM applications" 1>&2
+echo 1>&2
+
+# Use a tmp file so that we confirm that the content was
+# generated and looks somewhat like a manpage (has a SYNOPSIS)
+tmpFile="$outputDir/${0##*/}-tmp$$"
+trap "rm -fv $tmpFile 2>/dev/null; exit 0" EXIT TERM INT
+
+
+# Any special filter requirements?
+# Default extension is "1" for manpage
+outputExt="1"
+
+case "$outputType" in
+    pdf)
+        outputExt="pdf"
+        command -v groff  >/dev/null || die "Missing program: groff"
+        command -v ps2pdf >/dev/null || die "Missing program: ps2pdf"
+        ;;
+    gz)
+        outputExt="1.gz"
+        command -v gzip   >/dev/null || die "Missing program: gzip"
+    ;;
+esac
+
+
+#-------------------------------------------------------------------------------
+
+# Get nroff man content from application, store in tmp file for checking
+# and output / filter
+# 1 = application
+process()
+{
+    local appName="$1"
+    local outFile="$outputDir/${appName##*/}"
+
+    rm -f "$outFile"*;
+
+    "$appName" -help-man | sed -e "${sedFilter}" 2>/dev/null >| "$tmpFile"
+
+    # Check that it looks ok
+    if grep -F -q "SYNOPSIS" "$tmpFile" 2>/dev/null
+    then
+        case "$outputType" in
+        pdf)
+            groff -man "$tmpFile" | ps2pdf - "$outFile.$outputExt"
+            ;;
+
+        gz)
+            gzip -c "$tmpFile" >| "$outFile.$outputExt"
+            ;;
+
+        *)
+            \cp -f "$tmpFile" "$outFile.$outputExt"
+            ;;
+        esac
+
+        echo "$outFile.$outputExt" 1>&2
+    else
+        echo "Problem with ${appName##*/}" 1>&2
+    fi
+}
+
+
+#------------------------------------------------------------------------------
+
+# Default to standard search directories
+[ "$#" -gt 0 ] || set -- ${searchDirs}
+
+for item
+do
+    if [ -d "$item" ]
+    then
+        # Process directory for applications - sort with ignore-case
+        echo "[directory] $item" 1>&2
+        choices="$(find $item -maxdepth 1 -executable -type f | sort -f 2>/dev/null)"
+        for appName in $choices
+        do
+            process $appName
+        done
+    elif command -v "$item" >/dev/null
+    then
+        process $item
+    else
+        echo "No such file or directory: $item" 1>&2
+    fi
+done
+
+echo 1>&2
+echo "Done" 1>&2
+
+
+# -----------------------------------------------------------------------------

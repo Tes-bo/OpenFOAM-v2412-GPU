@@ -1,0 +1,85 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      combustionProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+laminarFlameSpeedCorrelation Gulders;
+
+fuel            Methane;
+
+Su              Su [ 0 1 -1 0 0 0 0 ] 0.434;
+
+SuModel         unstrained;
+
+equivalenceRatio equivalenceRatio [ 0 0 0 0 0 0 0 ] 0.7;
+
+sigmaExt        sigmaExt [ 0 0 -1 0 0 0 0 ] 100000;
+
+XiModel         transport;
+
+XiCoef          XiCoef [ 0 0 0 0 0 0 0 ] 0.62;
+
+XiShapeCoef     XiShapeCoef [ 0 0 0 0 0 0 0 ] 1;
+
+uPrimeCoef      uPrimeCoef [ 0 0 0 0 0 0 0 ] 1;
+
+GuldersCoeffs
+{
+    Methane
+    {
+        W               0.422;
+        eta             0.15;
+        xi              5.18;
+        alpha           2;
+        beta            -0.5;
+        f               2.3;
+    }
+}
+
+ignite          yes;
+
+ignitionProperties
+{
+    diameter        0.03;
+    start           0;
+    duration        1;
+    strength        20;
+}
+
+noIgnitionProperties
+{
+    diameter        0;
+    start           0;
+    duration        1e-30;
+    strength        0;
+}
+
+ignitionSites
+(
+    {
+        location        (-0.28 0.55 0);
+        $noIgnitionProperties;
+    }
+);
+
+ignitionSphereFraction 1;
+
+ignitionThickness ignitionThickness [ 0 1 0 0 0 0 0 ] 0.001;
+
+ignitionCircleFraction 0.5;
+
+ignitionKernelArea ignitionKernelArea [ 0 2 0 0 0 0 0 ] 0.001;
+
+
+// ************************************************************************* //

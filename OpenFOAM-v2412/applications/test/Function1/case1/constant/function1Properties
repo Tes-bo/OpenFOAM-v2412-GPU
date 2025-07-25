@@ -1,0 +1,190 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      function1Properties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// The 'x' values for evaluation
+x
+(
+    0
+    0.25
+    0.5
+    0.75
+    1
+);
+
+
+constant1 constant 100;
+
+table1 table
+(
+    (0 0)(10 1)
+);
+
+table2
+{
+    type table;
+    values
+    (
+        (0 0)(10 1)
+    );
+}
+
+table3
+{
+    type table;
+    file "<constant>/table-values";
+}
+
+poly1 polynomial
+(
+    (0 1)
+    (1 1)
+);
+
+poly2
+{
+    type polynomial;
+    coeffs
+    (
+        (0 1)
+        (1 1)
+    );
+}
+
+function2
+{
+    type        expression;
+    expression  #{ sqr(arg()) #};
+}
+
+function2b expression;
+
+function2bCoeffs
+{
+    type        expression;
+    expression  #{ sqr(arg()) #};
+}
+
+
+stepf1
+{
+    type        step;
+    start       0.24;
+    duration    0.5;
+}
+
+rampf1
+{
+    type        linearRamp;
+    start       0.24;
+    duration    0.5;
+}
+
+
+sine1
+{
+    type        sine;
+    frequency   0.1;
+    scale       1;
+    level       0;
+}
+
+sine2
+{
+    type        sine;
+    period      10;
+    scale       1;
+    level       0;
+}
+
+cosine1
+{
+    type        cosine;
+    period      10;
+    scale       1;
+    level       0;
+}
+
+
+sine6
+{
+    type        sine;
+    period      6;
+    t0          -1.5;  // want cos
+    scale       1;
+    level       0;
+}
+
+
+cosine6
+{
+    type        cosine;
+    period      6;
+    scale       1;
+    level       0;
+}
+
+
+expr1
+{
+    type expression;
+
+    functions<scalar>
+    {
+        func1 constant 21;
+        func2 constant 15;
+        sin   constant -5;
+    }
+
+    functions<vector>
+    {
+        vfunc3 constant (1 2 3);
+        vfunc4 constant (3 2 1);
+    }
+
+    expression
+    #{
+        100 * fn:vfunc3() & fn:vfunc4() * (vector::z) .z()
+      * (fn:sin(arg()) + fn:func1(fn:func2()))
+    #};
+}
+
+
+expr2
+{
+    type expression;
+
+    functions<scalar>
+    {
+        func1 constant 21;
+        func2 constant 15;
+        sin   constant -5;
+    }
+
+    functions<vector>
+    {
+        vfunc3 constant (1 2 3);
+        vfunc4 constant (3 2 1);
+    }
+
+    expression
+    #{
+        (fn:vfunc3() & vector::z) * arg()
+    #};
+}
+
+
+// ************************************************************************* //

@@ -1,0 +1,25 @@
+NAME
+  VTK::FiltersOpenTURNS
+LIBRARY_NAME
+  vtkFiltersOpenTURNS
+IMPLEMENTS
+  VTK::ChartsCore
+SPDX_LICENSE_IDENTIFIER
+  BSD-3-Clause
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
+DEPENDS
+  VTK::ChartsCore
+  VTK::CommonCore
+  VTK::CommonDataModel
+  VTK::CommonExecutionModel
+  VTK::FiltersCore
+PRIVATE_DEPENDS
+  VTK::ImagingCore
+TEST_DEPENDS
+  VTK::IOInfovis
+  VTK::InteractionStyle
+  VTK::RenderingContextOpenGL2
+  VTK::TestingCore
+  VTK::TestingRendering
+  VTK::ViewsContext2D

@@ -1,0 +1,348 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM Extend Project: Open Source CFD        |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+mergeType points;   // Wedge geometry - Merge points instead of topology
+
+scale   1;
+
+// Domain
+axisLevel               0.0;  // x-coord of axis (right boundary of domain)
+bottomLevel             -1.0; // y-coord of bottom of domain
+topLevel                1.0;  // y-coord of top of domain
+farFieldWall            -0.572; // x-coord of far field wall
+wedgeAngle              5.0;  // Wedge angle in degrees
+// Size of block moving with sphere (no cell deformation), in sphere radii
+// above and below centre of sphere
+upperSphereBlock        5.0;
+lowerSphereBlock        5.0;
+sphereLayerThickness    2.0; // Total layer thickness in sphere radii
+
+// Sphere
+sphereRadius            0.028;
+sphereCentreHeight      0.147; // y-coord of sphere centre
+
+// Calculated positions
+sphereRadiusPosition    #eval{ -1.0*(1.0 + $sphereLayerThickness)*$sphereRadius };
+AMIBlockPosition        #eval{ 2.0*$sphereRadiusPosition + $sphereRadius };
+// Centre plane is z=0, so use half of wedge angle to calculate pos and neg
+// z-positions
+tanAlpha                #eval{ tan(0.5*degToRad($wedgeAngle)) };
+// Multiply by -1 because tan give negative value
+firstBlockPosDepth      #eval{ -1.0*$tanAlpha*$sphereRadiusPosition };
+firstBlockNegDepth      #eval{ -1.0*$firstBlockPosDepth };
+AMIBlockPosDepth        #eval{ -1.0*$tanAlpha*$AMIBlockPosition };
+AMIBlockNegDepth        #eval{ -1.0*$AMIBlockPosDepth };
+farFieldPosDepth        #eval{ -1.0*$tanAlpha*$farFieldWall };
+farFieldNegDepth        #eval{ -1.0*$farFieldPosDepth };
+
+bottomBlockTopHeight    #eval{ $sphereCentreHeight - $lowerSphereBlock*$sphereRadius };
+topBlockBottomHeight    #eval{ $sphereCentreHeight + $upperSphereBlock*$sphereRadius };
+
+topSphere               #eval{ $sphereCentreHeight + $sphereRadius };
+bottomSphere            #eval{ $sphereCentreHeight - $sphereRadius };
+topSphereLayer          #eval{ $sphereCentreHeight + (1.0 + $sphereLayerThickness)*$sphereRadius };
+bottomSphereLayer       #eval{ $sphereCentreHeight - (1.0 + $sphereLayerThickness)*$sphereRadius };
+
+// Layer block below sphere
+innerBottomLayerX       #eval{ -1.0*cos(degToRad(45.0))*$sphereRadius };
+innerBottomLayerY       #eval{ $sphereCentreHeight - cos(degToRad(45.0))*$sphereRadius };
+innerBottomLayerZPos    #eval{ -1.0*$tanAlpha*$innerBottomLayerX };
+innerBottomLayerZNeg    #eval{ -1.0*$innerBottomLayerZPos };
+
+innerBottomArcX1        #eval{ -1.0*sin(degToRad(22.5))*$sphereRadius };
+innerBottomArcY1        #eval{ $sphereCentreHeight - cos(degToRad(22.5))*$sphereRadius };
+innerBottomArcZ1Pos     #eval{ $innerBottomArcX1*$tanAlpha };
+innerBottomArcZ1Neg     #eval{ -1.0*$innerBottomArcZ1Pos };
+
+outerBottomArcX1        #eval{ -1.0*sin(degToRad(22.5))*$sphereRadius*(1.0 + $sphereLayerThickness) };
+outerBottomArcY1        #eval{ $sphereCentreHeight - cos(degToRad(22.5))*$sphereRadius*(1.0 + $sphereLayerThickness) };
+outerBottomArcZ1Pos     #eval{ $outerBottomArcX1*$tanAlpha };
+outerBottomArcZ1Neg     #eval{ -1.0*$outerBottomArcZ1Pos };
+
+outerBottomLayerX       #eval{ -1.0*cos(degToRad(45.0))*(1.0 + $sphereLayerThickness)*$sphereRadius };
+outerBottomLayerY       #eval{ $sphereCentreHeight - cos(degToRad(45.0))*(1.0 + $sphereLayerThickness)*$sphereRadius };
+outerBottomLayerZPos    #eval{ -1.0*$tanAlpha*$outerBottomLayerX };
+outerBottomLayerZNeg    #eval{ -1.0*$outerBottomLayerZPos };
+
+// Layer block above sphere
+innerTopLayerX          #eval{ cos(degToRad(135.0))*$sphereRadius };
+innerTopLayerY          #eval{ $sphereCentreHeight - cos(degToRad(135.0))*$sphereRadius };
+innerTopLayerZPos       #eval{ -1.0*$tanAlpha*$innerBottomLayerX };
+innerTopLayerZNeg       #eval{ -1.0*$innerBottomLayerZPos };
+
+innerTopArcX1           #eval{ -1.0*sin(degToRad(157.5))*$sphereRadius };
+innerTopArcY1           #eval{ $sphereCentreHeight - cos(degToRad(157.5))*$sphereRadius };
+innerTopArcZ1Pos        #eval{ $innerTopArcX1*$tanAlpha };
+innerTopArcZ1Neg        #eval{ -1.0*$innerTopArcZ1Pos };
+
+outerTopArcX1           #eval{ -1.0*sin(degToRad(157.5))*$sphereRadius*(1.0 + $sphereLayerThickness) };
+outerTopArcY1           #eval{ $sphereCentreHeight - cos(degToRad(157.5))*$sphereRadius*(1.0 + $sphereLayerThickness) };
+outerTopArcZ1Pos        #eval{ $outerTopArcX1*$tanAlpha };
+outerTopArcZ1Neg        #eval{ -1.0*$outerTopArcZ1Pos };
+
+outerTopLayerX          #eval{ cos(degToRad(135.0))*(1.0 + $sphereLayerThickness)*$sphereRadius };
+outerTopLayerY          #eval{ $sphereCentreHeight - cos(degToRad(135.0))*(1.0 + $sphereLayerThickness)*$sphereRadius };
+outerTopLayerZPos       #eval{ -1.0*$tanAlpha*$outerTopLayerX };
+outerTopLayerZNeg       #eval{ -1.0*$outerTopLayerZPos };
+
+// Layer block left of sphere
+innerLeftArcX           #eval{ -1.0*$sphereRadius };
+innerLeftArcY           #eval{ $sphereCentreHeight };
+innerLeftArcZPos        #eval{ -1.0*$tanAlpha*$innerLeftArcX };
+innerLeftArcZNeg        #eval{ -1.0*$innerLeftArcZPos };
+
+outerLeftArcX           #eval{ -1.0*(1.0 + $sphereLayerThickness)*$sphereRadius };
+outerLeftArcZPos        #eval{ -1.0*$tanAlpha*$outerLeftArcX };
+outerLeftArcZNeg        #eval{ -1.0*$outerLeftArcZPos };
+
+
+vertices
+(
+    // Lower moving block
+    ($axisLevel            $bottomLevel 0) //  0
+    ($axisLevel            $bottomBlockTopHeight 0) // 1
+    ($AMIBlockPosition $bottomLevel $AMIBlockPosDepth) //  2
+    ($AMIBlockPosition $bottomLevel $AMIBlockNegDepth) //  3
+    ($AMIBlockPosition $bottomBlockTopHeight $AMIBlockNegDepth) //  4
+    ($AMIBlockPosition $bottomBlockTopHeight $AMIBlockPosDepth) //  5
+
+    // Upper moving block
+    ($AMIBlockPosition $topBlockBottomHeight $AMIBlockPosDepth) //  6
+    ($AMIBlockPosition $topBlockBottomHeight $AMIBlockNegDepth) //  7
+    ($axisLevel            $topBlockBottomHeight 0) //  8
+    ($AMIBlockPosition     $topLevel $AMIBlockPosDepth) //  9
+    ($AMIBlockPosition     $topLevel $AMIBlockNegDepth) //  10
+    ($axisLevel            $topLevel 0) // 11
+
+    // Farfield block
+    ($farFieldWall $bottomLevel $farFieldPosDepth) // 12
+    ($AMIBlockPosition $bottomLevel $AMIBlockPosDepth) // 13
+    ($AMIBlockPosition $topLevel $AMIBlockPosDepth) // 14
+    ($farFieldWall $topLevel $farFieldPosDepth) // 15
+
+    ($farFieldWall $bottomLevel $farFieldNegDepth) // 16
+    ($AMIBlockPosition $bottomLevel $AMIBlockNegDepth) // 17
+    ($AMIBlockPosition $topLevel $AMIBlockNegDepth) // 18
+    ($farFieldWall $topLevel $farFieldNegDepth) // 19
+
+    //  Sphere block
+    ($axisLevel $bottomSphere 0) // 20
+    ($innerBottomLayerX $innerBottomLayerY $innerBottomLayerZPos) // 21
+    ($innerBottomLayerX $innerBottomLayerY $innerBottomLayerZNeg) // 22
+    ($axisLevel $bottomSphereLayer 0) // 23
+    ($outerBottomLayerX $outerBottomLayerY $outerBottomLayerZPos) // 24
+    ($outerBottomLayerX $outerBottomLayerY $outerBottomLayerZNeg) // 25
+
+    ($axisLevel $topSphere 0) // 26
+    ($axisLevel $topSphereLayer 0) // 27
+    ($innerTopLayerX $innerTopLayerY $innerTopLayerZNeg) // 28
+    ($outerTopLayerX $outerTopLayerY $outerTopLayerZNeg) // 29
+    ($innerTopLayerX $innerTopLayerY $innerTopLayerZPos) // 30
+    ($outerTopLayerX $outerTopLayerY $outerTopLayerZPos) // 31
+);
+
+edgeNumber 1; // 0.707;
+
+layerGrading 0.5;
+invLayerGrading #eval{ 1.0/$layerGrading };
+
+blockGrading 0.3;
+invBlockGrading #eval{ 1.0/$blockGrading };
+
+blocks
+(
+    hex (16 17 18 19 12 13 14 15) farField (25 100 1) simpleGrading (1 1 1)
+
+    hex (3 0 1 4 2 0 1 5) bottomBlock (10 50 1) simpleGrading ($edgeNumber 1 1)
+
+    hex (7 8 11 10 6 8 11 9) topBlock (10 35 1) simpleGrading ($edgeNumber 1 1)
+
+    hex (25 23 20 22 24 23 20 21)
+    centralBlock (10 20 1)
+    edgeGrading
+    (
+        1 1 1 1
+        $layerGrading $layerGrading $layerGrading $layerGrading
+        1 1 1 1
+    ) // bottom layer
+
+    hex (25 22 28 29 24 21 30 31)
+    centralBlock (20 20 1)
+    edgeGrading
+    (
+        $layerGrading $layerGrading $layerGrading $layerGrading
+        1 1 1 1
+        1 1 1 1
+    ) // middle layer
+
+    hex (28 26 27 29 30 26 27 31)
+    centralBlock (10 20 1)
+    edgeGrading
+    (
+        1 1 1 1
+        $invLayerGrading $invLayerGrading $invLayerGrading $invLayerGrading
+        1 1 1 1
+    ) // top layer
+
+    hex (4 1 23 25 5 1 23 24)
+    centralBlock (10 10 1)
+    edgeGrading
+    (
+        $edgeNumber 1 1 $edgeNumber
+        $blockGrading $edgeNumber $edgeNumber $blockGrading
+        1 $edgeNumber $edgeNumber 1
+    ) // bottom
+
+    hex (4 25 29 7 5 24 31 6)
+    centralBlock (10 20 1)
+    edgeGrading
+    (
+        $blockGrading $blockGrading $blockGrading $blockGrading
+        1 1 1 1
+        1 1 1 1
+    ) // middle
+
+    hex (29 27 8 7 31 27 8 6)
+    centralBlock (10 10 1)
+    edgeGrading
+    (
+        1 $edgeNumber $edgeNumber 1
+        $invBlockGrading $invBlockGrading $invBlockGrading $invBlockGrading
+        1 1 1 1
+    ) // top
+);
+
+edges
+(
+    // Layer block below sphere
+    arc 20 22 ($innerBottomArcX1 $innerBottomArcY1 $innerBottomArcZ1Pos)
+    arc 20 21 ($innerBottomArcX1 $innerBottomArcY1 $innerBottomArcZ1Neg)
+    arc 23 25 ($outerBottomArcX1 $outerBottomArcY1 $outerBottomArcZ1Pos)
+    arc 23 24 ($outerBottomArcX1 $outerBottomArcY1 $outerBottomArcZ1Neg)
+
+    // Layer block above sphere
+    arc 26 28 ($innerTopArcX1 $innerTopArcY1 $innerTopArcZ1Pos)
+    arc 26 30 ($innerTopArcX1 $innerTopArcY1 $innerTopArcZ1Neg)
+    arc 27 29 ($outerTopArcX1 $outerTopArcY1 $outerTopArcZ1Pos)
+    arc 27 31 ($outerTopArcX1 $outerTopArcY1 $outerTopArcZ1Neg)
+
+    // Layer block left of sphere
+    arc 22 28 ($innerLeftArcX $innerLeftArcY $innerLeftArcZNeg)
+    arc 21 30 ($innerLeftArcX $innerLeftArcY $innerLeftArcZPos)
+    arc 24 31 ($outerLeftArcX $innerLeftArcY $outerLeftArcZPos)
+    arc 25 29 ($outerLeftArcX $innerLeftArcY $outerLeftArcZNeg)
+);
+
+boundary
+(
+    front
+    {
+        type wedge;
+        faces
+        (
+            (0 1 5 2)
+            (5 1 23 24)
+            (23 20 21 24)
+            (24 21 30 31)
+            (5 24 31 6)
+            (31 27 8 6)
+            (6 8 11 9)
+            (31 30 26 27)
+            (12 13 14 15)
+        );
+    }
+    back
+    {
+        type wedge;
+        faces
+        (
+            (0 3 4 1)
+            (1 4 25 23)
+            (4 7 29 25)
+            (23 25 22 20)
+            (25 29 28 22)
+            (29 7 8 27)
+            (28 29 27 26)
+            (7 10 11 8)
+            (16 17 18 19)
+        );
+    }
+    innerAMI
+    {
+        type cyclicAMI;
+        neighbourPatch outerAMI;
+        faces
+        (
+            (4 5 6 7)
+            (6 9 10 7)
+            (2 5 4 3)
+        );
+        transform noOrdering;
+    }
+    outerAMI
+    {
+        type cyclicAMI;
+        neighbourPatch innerAMI;
+        faces
+        (
+            (14 13 17 18)
+        );
+        transform noOrdering;
+    }
+    top
+    {
+        type wall;
+        faces
+        (
+            (15 14 18 19)
+            (9 11 11 10)
+        );
+    }
+    bottom
+    {
+        type wall;
+        faces
+        (
+            (12 16 17 13)
+            (0 2 3 0)
+        );
+    }
+    farFieldWall
+    {
+        type wall;
+        faces
+        (
+            (12 15 19 16)
+        );
+    }
+    sphere
+    {
+        type wall;
+        faces
+        (
+            (20 22 21 20)
+            (21 22 28 30)
+            (30 26 26 28)
+        );
+    }
+);
+
+mergePatchPairs
+(
+);
+
+
+// ************************************************************************* //

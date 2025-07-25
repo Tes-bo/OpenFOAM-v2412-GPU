@@ -1,0 +1,46 @@
+<?xml version="1.0" ?>
+<pqevents>
+  <!-- create cone -->
+  <pqevent object="pqClientMainWindow/menubar" command="activate" arguments="menuSources" />
+  <pqevent object="pqClientMainWindow/menubar/menuSources/Alphabetical" command="activate" arguments="ConeSource" />
+  <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/Accept" command="activate" arguments="" />
+
+  <!-- open time manager -->
+  <pqevent object="pqClientMainWindow/menubar" command="activate" arguments="menu_View" />
+  <pqevent object="pqClientMainWindow/menubar/menu_View" command="activate" arguments="Time Manager" />
+
+  <!-- Track : Interpolate Cameras -->
+  <pqevent object="pqClientMainWindow/timeManagerDock/timeManagerPanel/timeline/1pqTimelineView0/qt_scrollarea_viewport/addTrackWidget/proxiesBox" command="activated" arguments="Camera" />
+  <pqevent object="pqClientMainWindow/timeManagerDock/timeManagerPanel/timeline/1pqTimelineView0/qt_scrollarea_viewport/addTrackWidget/propertiesBox" command="activated" arguments="Interpolate cameras" />
+  <pqevent object="pqClientMainWindow/timeManagerDock/timeManagerPanel/timeline/1pqTimelineView0/qt_scrollarea_viewport/addTrackWidget/addButton" command="activate" arguments="" />
+
+  <!-- rotate view, edit keyframe 1. to use current camera -->
+  <pqevent object="pqClientMainWindow/cameraToolbar/actionRotate90degCW" command="activate" arguments="" />
+  <pqevent object="pqClientMainWindow/timeManagerDock/timeManagerPanel/timeline/1pqTimelineView0" command="expand" arguments="1.0" />
+  <pqevent object="pqClientMainWindow/timeManagerDock/timeManagerPanel/timeline/1pqTimelineView0" command="setCurrent" arguments="1.0.1.0" />
+  <pqevent object="pqClientMainWindow/timeManagerDock/timeManagerPanel/timeline/1pqTimelineView0" command="doubleClick" arguments="1.0.1.0" />
+  <pqevent object="pqClientMainWindow/timeManagerDock/timeManagerPanel/timeline/1pqTimelineView0" command="edit" arguments="1.0.1.0" />
+  <pqevent object="pqClientMainWindow/timeManagerDock/timeManagerPanel/timeline/1pqTimelineView0" command="activate" arguments="1.0.1.0" />
+
+  <pqevent object="pqClientMainWindow/1QDialog0/pqKeyFrameEditor/tableView" command="setCurrent" arguments="1.1" />
+  <pqevent object="pqClientMainWindow/1QDialog0/pqKeyFrameEditor/tableView" command="setCurrent" arguments="1.1" />
+  <pqevent object="pqClientMainWindow/1QDialog0/pqKeyFrameEditor/tableView" command="doubleClick" arguments="1.1" />
+  <pqevent object="pqClientMainWindow/1QDialog0/pqKeyFrameEditor/tableView" command="edit" arguments="1.1" />
+  <pqevent object="pqClientMainWindow/1QDialog0/pqKeyFrameEditor/tableView/qt_scrollarea_viewport/1pqKeyFrameEditorDialog0/1QWidget0/CameraKeyFrameWidget/stackedWidgetMode/page_5/useCurrent" command="activate" arguments="" />
+  <pqevent object="pqClientMainWindow/1QDialog0/pqKeyFrameEditor/tableView/qt_scrollarea_viewport/1pqKeyFrameEditorDialog0/1QDialogButtonBox0/1QPushButton0" command="activate" arguments="" />
+
+  <!-- edit keyframe 0, to restore camera -->
+  <pqevent object="pqClientMainWindow/1QDialog0/pqKeyFrameEditor/tableView" command="setCurrent" arguments="0.1" />
+  <pqevent object="pqClientMainWindow/1QDialog0/pqKeyFrameEditor/tableView" command="doubleClick" arguments="0.1" />
+  <pqevent object="pqClientMainWindow/1QDialog0/pqKeyFrameEditor/tableView" command="edit" arguments="0.1" />
+  <pqevent object="pqClientMainWindow/1QDialog0/pqKeyFrameEditor/tableView/qt_scrollarea_viewport/1pqKeyFrameEditorDialog0/1QWidget0/CameraKeyFrameWidget/stackedWidgetMode/page_5/updateCurrent" command="activate" arguments="" />
+  <pqevent object="pqClientMainWindow/1QDialog0/pqKeyFrameEditor/tableView/qt_scrollarea_viewport/1pqKeyFrameEditorDialog0/1QDialogButtonBox0/1QPushButton0" command="activate" arguments="" />
+
+  <!-- rotate view, shortcut use current camera -->
+  <pqevent object="pqClientMainWindow/cameraToolbar/actionRotate90degCW" command="activate" arguments="" />
+  <pqevent object="pqClientMainWindow/1QDialog0/pqKeyFrameEditor/tableView" command="setCurrent" arguments="1.1" />
+  <pqevent object="pqClientMainWindow/1QDialog0/pqKeyFrameEditor/pbCameraModeStackedWidget/pbCameraModePage/pbUseCurrentCamera" command="activate" arguments="" />
+  <pqevent object="pqClientMainWindow/1QDialog0/pqKeyFrameEditor/tableView" command="setCurrent" arguments="0.1" />
+  <pqevent object="pqClientMainWindow/1QDialog0/pqKeyFrameEditor/pbCameraModeStackedWidget/pbCameraModePage/pbApplyToCamera" command="activate" arguments="" />
+  <pqevent object="pqClientMainWindow/1QDialog0/1QDialogButtonBox0/1QPushButton0" command="activate" arguments="" />
+</pqevents>

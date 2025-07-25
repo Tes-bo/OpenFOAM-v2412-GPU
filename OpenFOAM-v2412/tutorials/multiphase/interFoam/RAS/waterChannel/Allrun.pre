@@ -1,0 +1,16 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+runApplication blockMesh
+
+echo "Creating channel"
+for i in 1 2
+do
+    cp system/extrudeMeshDict.${i} system/extrudeMeshDict
+    echo "Running extrudeMesh, instance" ${i}
+    extrudeMesh > log.extrudeMesh.${i}
+done
+
+#------------------------------------------------------------------------------

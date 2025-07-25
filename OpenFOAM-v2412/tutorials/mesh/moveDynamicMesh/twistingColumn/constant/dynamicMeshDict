@@ -1,0 +1,73 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      dynamicMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dynamicFvMesh   dynamicMotionSolverFvMesh;
+
+motionSolver    coded;
+name            myMotion;
+
+codeInclude
+#{
+    #include "transformField.H"
+#};
+
+localCode
+#{
+    // Generate new set of points
+    tmp<pointField> twistColumn
+    (
+        const scalar& maxRotAngle,
+        const pointField& points
+    )
+    {
+        auto tnewPoints = tmp<pointField>::New(points);
+        auto& newPoints = tnewPoints.ref();
+
+        const boundBox bb(points, true);
+        const scalar zMin = bb.min()[vector::Z];
+        const scalar zSpan = bb.span()[vector::Z];
+
+        forAll(points, pointI)
+        {
+            const scalar x = points[pointI].component(0);
+            const scalar y = points[pointI].component(1);
+            const scalar z = points[pointI].component(2);
+
+            // Scale the angle by height
+            const scalar localAngle = maxRotAngle*(z-zMin)/zSpan;
+
+            const scalar xr = x*cos(localAngle)-y*sin(localAngle);
+            const scalar yr = x*sin(localAngle)+y*cos(localAngle);
+            newPoints[pointI] = vector(xr, yr, z);
+        }
+        return tnewPoints;
+    }
+#};
+
+code
+#{
+    const Time& tm = mesh().time();
+    const pointField& p0 = points0();
+
+    // Max twist pi at t=10
+    const scalar maxRotAngle =
+        constant::mathematical::pi*Foam::sin(degToRad(90.0/10.0*tm.value()));
+
+    return twistColumn(maxRotAngle, p0);
+#};
+
+
+// ************************************************************************* //

@@ -1,0 +1,35 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+nearWallFields1
+{
+    // Mandatory entries
+    type            nearWallFields;
+    libs            (fieldFunctionObjects);
+    fields
+    (
+        (U UNear)
+        (p pNear)
+    );
+    patches         (fixedWalls);
+    distance        0.001;
+
+    // Optional (inherited) entries
+    region          region0;
+    enabled         true;
+    log             true;
+    timeStart       0.25;
+    timeEnd         1000;
+    executeControl  timeStep;
+    executeInterval 5;
+    writeControl    timeStep;
+    writeInterval   25;
+}
+
+
+// ************************************************************************* //

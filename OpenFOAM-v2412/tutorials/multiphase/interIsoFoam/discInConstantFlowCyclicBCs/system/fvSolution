@@ -1,0 +1,79 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      fvSolution;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+solvers
+{
+
+    "alpha.water.*"
+    {
+        isoFaceTol      1e-6;
+        surfCellTol     1e-6;
+        snapTol         1e-10;
+        nAlphaBounds    3;
+        clip            true;
+        reconstructionScheme isoAlpha; // isoAlpha
+
+        nAlphaSubCycles 1;
+        cAlpha          1; // Read but not used by interIsoFoam
+    }
+
+    "pcorr.*"
+    {
+        solver          PCG;
+        preconditioner  DIC;
+        tolerance       1e-10;
+        relTol          0;
+    }
+
+    p_rgh
+    {
+        solver          PCG;
+        preconditioner  DIC;
+        tolerance       1e-07;
+        relTol          0.05;
+    }
+
+    p_rghFinal
+    {
+        $p_rgh;
+        tolerance       1e-07;
+        relTol          0;
+    }
+
+    U
+    {
+        prescribedU     true;
+
+        solver          PBiCG;
+        preconditioner  DILU;
+        tolerance       1e-06;
+        relTol          0;
+    }
+}
+
+
+PIMPLE
+{
+    frozenFlow      yes;
+    momentumPredictor no;
+    nCorrectors     -1;
+    nNonOrthogonalCorrectors -1;
+    pRefCell        0;
+    pRefValue       0;
+}
+
+// ************************************************************************* //

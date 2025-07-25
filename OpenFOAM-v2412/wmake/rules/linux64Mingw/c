@@ -1,0 +1,36 @@
+#------------------------------------------------------------------------------
+# mingw is gcc
+#------------------------------------------------------------------------------
+include $(GENERAL_RULES)/Gcc/c
+
+cc         := x86_64-w64-mingw32-gcc
+cARCH      := -m64
+
+ifneq (,$(strip $(WM_COMPILE_OPTION)))
+    sinclude $(DEFAULT_RULES)/c$(WM_COMPILE_OPTION)
+endif
+
+cFLAGS      = \
+    $(cARCH) $(GFLAGS) $(cWARN) $(cOPT) $(cDBUG) \
+    $(FOAM_EXTRA_CFLAGS) $(LIB_HEADER_DIRS)
+
+ctoo        = $(WM_SCHEDULER) $(cc) $(cFLAGS) -c $< -o $@
+
+LINK_LIBS   = $(cDBUG)
+
+LINKLIBSO   = $(cc) $(cARCH) \
+    -Wl,--output-def=$(LIB).def \
+    -Wl,--out-implib,$(LIB).dll.a \
+    -Wl,--no-undefined \
+    -Wl,--enable-runtime-pseudo-reloc \
+    -Wl,--enable-auto-import \
+    -Wl,--enable-auto-image-base \
+    -Wl,--strip-all \
+    -shared
+
+LINKEXE     = $(cc) $(cARCH) \
+    -Wl,--enable-auto-import \
+    -Wl,--strip-all \
+    -Wl,--force-exe-suffix
+
+#------------------------------------------------------------------------------

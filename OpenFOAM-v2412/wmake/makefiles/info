@@ -1,0 +1,120 @@
+#----------------------------*- makefile-gmake -*------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2019-2022 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# File
+#     wmake/makefiles/info
+#
+# Description
+#     Makefile to generate information.
+#     Used by wmake -show-*
+#
+#------------------------------------------------------------------------------
+
+#------------------------------------------------------------------------------
+# Use POSIX shell
+#------------------------------------------------------------------------------
+
+SHELL   = /bin/sh
+
+#------------------------------------------------------------------------------
+# No default suffix rules used
+#------------------------------------------------------------------------------
+
+.SUFFIXES:
+
+
+#------------------------------------------------------------------------------
+# Some default values
+#------------------------------------------------------------------------------
+
+# Shared library extension (with '.' separator)
+EXT_SO  = .so
+
+#------------------------------------------------------------------------------
+# Compilation rules
+#------------------------------------------------------------------------------
+
+GENERAL_RULES = $(WM_DIR)/rules/General
+include $(GENERAL_RULES)/general
+include $(GENERAL_RULES)/mpi-rules
+
+# Commands
+COMPILE_C    := $(strip $(cc) $(cFLAGS))
+COMPILE_CXX  := $(strip $(CC) $(c++FLAGS))
+
+#------------------------------------------------------------------------------
+# Display information
+#------------------------------------------------------------------------------
+
+# Extract WM_VERSION = OPENFOAM=<digits>
+.PHONY: api
+api:
+	@echo "$(lastword $(subst =, ,$(WM_VERSION)))"
+
+.PHONY: ext-so
+ext-so:
+	@echo "$(EXT_SO)"
+
+.PHONY: compile-c
+compile-c:
+	@echo "$(COMPILE_C)"
+
+.PHONY: compile-cxx
+compile-cxx:
+	@echo "$(COMPILE_CXX)"
+
+.PHONY: c
+c:
+	@echo "$(firstword $(cc))"
+
+.PHONY: cxx
+cxx:
+	@echo "$(firstword $(CC))"
+
+.PHONY: cflags
+cflags:
+	@echo "$(wordlist 2,$(words $(COMPILE_C)), $(COMPILE_C))"
+
+.PHONY: cxxflags
+cxxflags:
+	@echo "$(wordlist 2,$(words $(COMPILE_CXX)), $(COMPILE_CXX))"
+
+.PHONY: cflags-arch
+cflags-arch:
+	@echo "$(strip $(cARCH))"
+
+.PHONY: cxxflags-arch
+cxxflags-arch:
+	@echo "$(strip $(c++ARCH))"
+
+.PHONY: openmp-compile
+openmp-compile:
+	@echo "$(strip $(COMP_OPENMP))"
+
+.PHONY: openmp-link
+openmp-link:
+	@echo "$(strip $(LINK_OPENMP))"
+
+.PHONY: openmp
+openmp: openmp-compile
+
+# Like openmpi mpicc --showme:compile
+.PHONY: mpi-compile
+mpi-compile:
+	@echo "$(strip $(PINC))"
+
+# Like openmpi mpicc --showme:link
+.PHONY: mpi-link
+mpi-link:
+	@echo "$(strip $(PLIBS))"
+
+#------------------------------------------------------------------------------

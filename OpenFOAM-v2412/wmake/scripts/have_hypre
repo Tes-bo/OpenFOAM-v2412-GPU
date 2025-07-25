@@ -1,0 +1,187 @@
+#----------------------------------*-sh-*--------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2018-2020 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     have_hypre
+#
+# Description
+#     Detection/setup of HYPRE
+#
+# Requires
+#     HYPRE_ARCH_PATH
+# or  config.sh/hypre
+#
+# Functions provided
+#     have_hypre, no_hypre, echo_hypre, query_hypre, search_hypre
+#     hint_hypre
+#
+# Variables set on success
+#     HAVE_HYPRE
+#     HYPRE_ARCH_PATH
+#     HYPRE_INC_DIR
+#     HYPRE_LIB_DIR
+#
+#------------------------------------------------------------------------------
+. ${WM_PROJECT_DIR:?}/wmake/scripts/sysFunctions    # General system functions
+
+#------------------------------------------------------------------------------
+
+# Reset
+no_hypre()
+{
+    unset HAVE_HYPRE HYPRE_INC_DIR HYPRE_LIB_DIR
+}
+
+
+# Report
+echo_hypre()
+{
+    echo "hypre=${HAVE_HYPRE:-false}"
+    echo "root=\"$HYPRE_ARCH_PATH\""
+    echo "include=\"$HYPRE_INC_DIR\""
+    echo "library=\"$HYPRE_LIB_DIR\""
+}
+
+
+# Hint for enabling
+hint_hypre()
+{
+    /bin/cat<<INFORMATION 1>&2
+==> hypre not found?
+Define manually, enable in OpenFOAM etc/bashrc, or try the following [POSIX]:
+
+    eval \$(foamEtcFile -sh -config hypre -- -force)
+
+==
+INFORMATION
+}
+
+
+# Search
+# $1 : prefix (*_ARCH_PATH, system, ...)
+#
+# On success, return 0 and export variables
+# -> HAVE_HYPRE, HYPRE_INC_DIR, HYPRE_LIB_DIR
+search_hypre()
+{
+    local warn="==> skip hypre"
+    local incName="HYPRE.h"
+    local libName="libHYPRE"
+
+    local prefix="${1:-system}"
+    local header library
+
+    # ----------------------------------
+    if isNone "$prefix"
+    then
+        [ -n "$warn" ] && echo "$warn (disabled)"
+        return 1
+    elif hasAbsdir "$prefix"
+    then
+        header=$(findFirstFile "$prefix/include/$incName")
+        library=$(findExtLib "$libName")
+    elif isSystem "$prefix"
+    then
+        header=$(findSystemInclude -name="$incName")
+        prefix=$(sysPrefix "$header")
+    else
+        unset prefix
+    fi
+    # ----------------------------------
+
+    # Header
+    [ -n "$header" ] || {
+        [ -n "$warn" ] && echo "$warn (no header)"
+        return 2
+    }
+
+    # Library
+    [ -n "$library" ] \
+    || library=$(findLibrary -prefix="$prefix" -name="$libName") \
+    || {
+        [ -n "$warn" ] && echo "$warn (no library)"
+        return 2
+    }
+
+    # ----------------------------------
+
+    # OK
+    export HAVE_HYPRE=true
+    export HYPRE_ARCH_PATH="$prefix"
+    export HYPRE_INC_DIR="${header%/*}"     # Basename
+    export HYPRE_LIB_DIR="${library%/*}"    # Basename
+}
+
+
+# Output as per search_* function
+have_hypre()
+{
+    local warn="==> skip hypre"
+    local config="config.sh/hypre"
+    local file
+
+    # Setup - prefer current environment value
+    if [ -d "$HYPRE_ARCH_PATH" ] || [ "$HYPRE_ARCH_PATH" = system ]
+    then
+        :
+    else
+        # Use config file
+        if file="$("$WM_PROJECT_DIR"/bin/foamEtcFile "$config")"
+        then
+            . "$file"
+        else
+            [ -n "$warn" ] && echo "$warn (no $config)"
+            return 2
+        fi
+    fi
+
+    search_hypre "$HYPRE_ARCH_PATH"
+}
+
+
+# Query settings
+query_hypre()
+{
+    local config="config.sh/hypre"
+    local file
+
+    if file="$("$WM_PROJECT_DIR"/bin/foamEtcFile -mode=o "$config")"
+    then
+        . "$file"
+        _process_query hypre "$HYPRE_ARCH_PATH"
+    else
+        echo "(no $config)" 1>&2
+        echo "hypre=unknown"
+    fi
+}
+
+
+#------------------------------------------------------------------------------
+
+# Reset
+no_hypre
+
+# Test/query
+case "$1" in
+-test)
+    have_hypre
+    echo_hypre
+    ;;
+-query)
+    query_hypre
+    ;;
+-hint)
+    hint_hypre
+    ;;
+esac
+
+#------------------------------------------------------------------------------

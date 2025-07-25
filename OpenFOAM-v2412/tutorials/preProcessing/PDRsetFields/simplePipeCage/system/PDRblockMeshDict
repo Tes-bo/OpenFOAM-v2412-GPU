@@ -1,0 +1,96 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      PDRblockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+scale   1.0;
+
+x
+{
+    points  ( -11.87 0.03 1.03 2.03 3.05 15.32 );
+    nCells  ( 14 5 5 5 14 );
+    ratios  ( 0.0887187064230887 1 1 1.04060401 10.6993205379072 );
+}
+
+y
+{
+    points  ( -11.64 0.04 1.03 2.03 3.05 15.31 );
+    nCells  ( 14 5 5 5 14 );
+    ratios  ( 0.0887187064230887 1 1 1.04060401 10.6993205379072 );
+}
+
+z
+{
+    points  ( 0 1.02 2.05 14.19 );
+    nCells  ( 5 5 14 );
+    ratios  ( 1 1 10.6993205379072 );
+}
+
+// Or could use defaultFaces = outer instead
+defaultPatch
+{
+    name    defaultFaces;
+    type    wall;
+}
+
+// Faces: 0 = xmin, 1 = xmax, 2 = ymin, 3 = ymax, 4 = zmin, 5 = zmax
+
+boundary
+(
+    // Or with defaultFaces = outer
+    outer
+    {
+        type    patch;
+        faces   ( 0 1 2 3 5 );
+    }
+
+    mergingFaces
+    {
+        type    wall;
+        faces   ();
+    }
+
+    blockedFaces
+    {
+        type    wall;
+        faces   ();
+    }
+
+    wallFaces
+    {
+        type    wall;
+        faces   ( 4 );
+    }
+);
+
+
+// Treatment of the outer region
+
+outer
+{
+    type        sphere;     // (none | extend | box | sphere)  [default: none]
+    onGround    true;       // Module on the ground?  [default: false]
+    expansion   relative;   // (uniform | ratio | relative)  [default: ratio]
+
+    ratios      1.1;
+
+    size        3;          // Overall outer/inner size
+    nCells      10;         // Number of cells for outer region
+
+    // size       (3 4);
+    // nCells     (10 12);
+}
+
+
+//***************************************************************************//

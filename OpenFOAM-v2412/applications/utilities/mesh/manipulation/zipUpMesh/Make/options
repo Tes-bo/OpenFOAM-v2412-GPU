@@ -1,0 +1,11 @@
+/* Add to EXE_INC as required:
+   -DDEBUG_ZIPUP
+   -DDEBUG_CHAIN
+   -DDEBUG_ORDER
+ */
+
+EXE_INC = \
+    -I$(LIB_SRC)/meshTools/lnInclude
+
+EXE_LIBS = \
+    -lmeshTools

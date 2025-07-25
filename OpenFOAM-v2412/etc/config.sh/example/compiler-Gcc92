@@ -1,0 +1,30 @@
+#----------------------------------*-sh-*--------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2020 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# File
+#     config.sh/example/compiler-Gcc92
+#
+# Description
+#     Example of tuning compiler settings with a hook (POSIX shell).
+#
+#     Copy to etc/config.sh (or ~/.OpenFOAM/config.sh) and it will be
+#     sourced by OpenFOAM-*/etc/config.sh/compiler
+#
+#------------------------------------------------------------------------------
+
+# Modify/override compiler settings
+gcc_version=gcc-9.2.0
+gmp_version=gmp-6.2.0
+mpfr_version=mpfr-4.0.2
+mpc_version=mpc-1.1.0
+
+#------------------------------------------------------------------------------

@@ -1,0 +1,23 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+# Run serial
+./Allrun.pre
+echo "Begin run"
+mpirun -app ./mpirun_worlds.schema
+
+# Run with database
+./Allrun.addDatabase
+mv -f log.run_* 2>/dev/null
+echo "Begin run with database"
+mpirun -app ./mpirun_worlds.schema
+
+## Run parallel
+## ./Allrun.pre-parallel
+## mpirun -app ./mpirun.schema
+
+echo "End"
+
+#------------------------------------------------------------------------------

@@ -1,0 +1,32 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+cp -rf \
+    "$FOAM_TUTORIALS"/resources/geometry/snappyMultiRegionHeater \
+    constant/triSurface
+
+runApplication blockMesh
+
+runApplication surfaceFeatureExtract
+
+runApplication snappyHexMesh -overwrite
+
+runApplication splitMeshRegions -cellZones -overwrite
+
+for i in bottomAir topAir heater leftSolid rightSolid
+do
+    runApplication -s $i \
+        changeDictionary -region $i -subDict dictionaryReplacement
+done
+
+runApplication decomposePar -allRegions
+
+runParallel createZeroDirectory
+
+runParallel $(getApplication)
+
+runApplication reconstructPar -allRegions
+
+#------------------------------------------------------------------------------

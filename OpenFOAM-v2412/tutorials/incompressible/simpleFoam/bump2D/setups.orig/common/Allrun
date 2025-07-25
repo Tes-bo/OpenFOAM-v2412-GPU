@@ -1,0 +1,61 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+#######################################
+# Extract a value (Eg, from boundaryField/bump/value)
+# Arguments:
+#    $1 = dictEntry
+#    $2 = inputFile
+#    $3 = outputFile
+# Outputs:
+#    Writes to 'outputFile'
+# Notes:
+#    Only retains values between, but not including the ( ) delimiters.
+#    For example,
+#----
+#    value           nonuniform List<scalar>
+#    110
+#    (
+#    0.0041520092
+#    0.012577691
+#    0.021250264
+#    0.030176962
+#    )
+#    ;
+#######################################
+extractVal()
+{
+    if [ -f "$2" ]
+    then
+        foamDictionary -entry "$1" -value "$2" | \
+            sed -n '/(/,/)/{ s/[()]//g; /^ *$/d; p}' \
+            > "$3"
+    else
+        # Or some other tag?
+        echo "Not such file: $2" 1>&2
+        echo "0" > "$3"
+    fi
+}
+
+
+#------------------------------------------------------------------------------
+
+./Allrun.pre
+
+runApplication $(getApplication)
+
+
+endTime=$(foamListTimes -latestTime)
+
+# Create datasets for benchmark comparisons
+extractVal boundaryField/bump/value "$endTime/Cx" Cx.$$
+extractVal boundaryField/bump/value "$endTime/wallShearStress" tau.$$
+extractVal boundaryField/bump/value "$endTime/Cp" cp.$$
+
+echo "# ccx tau_xx tau_yy tau_zz cp" > profiles.dat
+paste -d ' ' Cx.$$ tau.$$ cp.$$ >> profiles.dat
+rm -f Cx.$$ tau.$$ cp.$$
+
+#------------------------------------------------------------------------------

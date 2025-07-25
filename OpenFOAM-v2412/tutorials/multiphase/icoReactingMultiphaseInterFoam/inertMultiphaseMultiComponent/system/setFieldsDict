@@ -1,0 +1,80 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      setFieldsDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// NOTE: The inert specie is defined everywhere.
+// As it is not solved it fulfills the thermo requirement of Sum Y = 1
+// in phases where there are not species
+defaultFieldValues
+(
+    volScalarFieldValue alpha.gas       0
+    volScalarFieldValue alpha.liquid    0
+    volScalarFieldValue alpha.oil       0
+    volScalarFieldValue alpha.mercury   0
+
+    volScalarFieldValue air.gas         1
+    volScalarFieldValue vapour.gas      0
+    volScalarFieldValue CO2.gas         0
+
+    volScalarFieldValue O2.liquid       0
+    volScalarFieldValue water.liquid    1
+);
+
+regions
+(
+    boxToCell
+    {
+        box (-0.1 -0.1 0) (0.5 0.5 1);
+        fieldValues
+        (
+            volScalarFieldValue alpha.liquid    1
+            volScalarFieldValue O2.liquid       0.01
+            volScalarFieldValue water.liquid    0.99
+        );
+    }
+
+    boxToCell
+    {
+        box (0.5 0 0) (1 0.5 1);
+        fieldValues
+        (
+            volScalarFieldValue alpha.oil       1
+        );
+    }
+
+    boxToCell
+    {
+        box (0.5 0.5 0) (1 1.1 1);
+        fieldValues
+        (
+            volScalarFieldValue alpha.mercury   1
+        );
+    }
+
+    boxToCell
+    {
+        box (0 0.5 0) (0.5 1.1 1);
+        fieldValues
+        (
+            volScalarFieldValue alpha.gas       1
+            volScalarFieldValue vapour.gas      0.3
+            volScalarFieldValue CO2.gas         0.2
+            volScalarFieldValue air.gas         0.5
+        );
+    }
+);
+
+
+// ************************************************************************* //

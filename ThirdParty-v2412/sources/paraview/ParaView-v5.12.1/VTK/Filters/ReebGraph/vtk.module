@@ -1,0 +1,23 @@
+NAME
+  VTK::FiltersReebGraph
+LIBRARY_NAME
+  vtkFiltersReebGraph
+KIT
+  VTK::Filters
+SPDX_LICENSE_IDENTIFIER
+  BSD-3-Clause
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
+DEPENDS
+  VTK::CommonExecutionModel
+PRIVATE_DEPENDS
+  VTK::CommonCore
+  VTK::CommonDataModel
+  VTK::FiltersCore
+TEST_DEPENDS
+  VTK::FiltersGeneral
+  VTK::FiltersSources
+  VTK::IOImage
+  VTK::InteractionStyle
+  VTK::RenderingOpenGL2
+  VTK::TestingRendering

@@ -1,0 +1,19 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+./Allrun.pre
+
+runApplication -s solid decomposePar -region solid
+
+runParallel $(getApplication)
+
+runApplication -s solid reconstructPar -latestTime -region solid
+
+if notTest "$@"
+then
+    ./plot
+fi
+
+#------------------------------------------------------------------------------

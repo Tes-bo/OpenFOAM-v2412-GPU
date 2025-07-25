@@ -1,0 +1,13 @@
+NAME
+  ThickenLayeredCells::vtkThickenLayeredCellsFilters
+LIBRARY_NAME
+  vtkThickenLayeredCellsFilters
+SPDX_LICENSE_IDENTIFIER
+  BSD-3-Clause
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Kitware Inc.
+DEPENDS
+  VTK::CommonExecutionModel
+PRIVATE_DEPENDS
+  VTK::CommonCore
+  VTK::CommonDataModel

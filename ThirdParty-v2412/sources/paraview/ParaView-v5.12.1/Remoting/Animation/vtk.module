@@ -1,0 +1,37 @@
+NAME
+  ParaView::RemotingAnimation
+LIBRARY_NAME
+  vtkRemotingAnimation
+SPDX_LICENSE_IDENTIFIER
+  BSD-3-Clause
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Kitware Inc.
+GROUPS
+  PARAVIEW_CANONICAL
+CONDITION
+  PARAVIEW_ENABLE_RENDERING
+KIT
+  ParaView::ServerManagerKit
+DEPENDS
+  ParaView::RemotingServerManager
+  ParaView::RemotingViews
+  ParaView::VTKExtensionsIOCore
+  VTK::IOMovie
+PRIVATE_DEPENDS
+  ParaView::VTKExtensionsMisc
+  VTK::CommonComputationalGeometry
+  VTK::CommonSystem
+  VTK::IOImage
+  VTK::IOExport
+  VTK::vtksys
+OPTIONAL_DEPENDS
+  VTK::IOFFMPEG
+  VTK::IOOggTheora
+  # These affect the public API.
+  VTK::PythonInterpreter
+  VTK::Python
+  VTK::WrappingPythonCore
+TEST_DEPENDS
+  VTK::TestingCore
+TEST_LABELS
+  ParaView

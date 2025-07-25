@@ -1,0 +1,48 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+restore0Dir
+
+channelCase=../initChannel
+channelDataDir="$channelCase"/postProcessing/surfaces/inlet
+
+[ -d "$channelDataDir" ] || {
+    echo "Unable to locate precursor channel case - exiting"
+    exit 1
+}
+
+# Copy the channel data
+# Note: this is mapped using a timeVaryingMapped condition on the inlet patch
+mkdir -p constant/boundaryData/inlet/0
+
+channelTimeDir=$(foamListTimes -case $channelCase -latestTime)
+
+cp -f "$channelDataDir"/points constant/boundaryData/inlet
+cp -f "$channelDataDir"/"$channelTimeDir"/turbulenceProperties:R constant/boundaryData/inlet/0/R
+cp -f "$channelDataDir"/"$channelTimeDir"/turbulenceProperties:L constant/boundaryData/inlet/0/L
+cp -f "$channelDataDir"/"$channelTimeDir"/turbulenceProperties:nuTilda constant/boundaryData/inlet/0/nuTilda
+cp -f "$channelDataDir"/"$channelTimeDir"/U constant/boundaryData/inlet/0/U
+
+runApplication blockMesh
+
+runApplication decomposePar
+
+runParallel $(getApplication)
+
+if notTest "$@"
+then
+    # create validation plot
+
+    # Require gnuplot
+    command -v gnuplot >/dev/null || {
+        echo "gnuplot not found - skipping graph creation" 1>&2
+        exit 1
+    }
+
+    # Plot the mean velocity profiles
+    ./plot $(foamListTimes -processor -latestTime)
+fi
+
+# -----------------------------------------------------------------------------

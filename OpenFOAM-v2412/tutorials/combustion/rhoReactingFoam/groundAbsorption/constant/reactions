@@ -1,0 +1,12 @@
+species
+(
+    O2
+    H2O
+    CH4
+    CO2
+    N2
+);
+
+reactions
+{
+}

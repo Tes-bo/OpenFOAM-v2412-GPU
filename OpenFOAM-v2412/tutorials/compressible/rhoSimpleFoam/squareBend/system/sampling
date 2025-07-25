@@ -1,0 +1,292 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      sampling;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// Setup for surfaceFieldValue
+//
+//   restartTime:
+//     - a 'one-shot' reset at a particular time
+//
+// fields [required]
+//     Pairs of fields to use for calculating the deviation.
+//     The fields must already exist on the surfaces.
+//
+// weightField [optional]
+//     A scalar or vector field for weighting.
+//
+// postOperation [optional]
+//     Modify the results by particular operations.
+//     (none | sqrt)
+//     The sqrt operation is useful when determining RMS values.
+//
+// The 'output/write' control triggers the calculation.
+__surfaceFieldValue
+{
+    type            surfaceFieldValue;
+    libs            (fieldFunctionObjects);
+    log             on;
+    enabled         true;
+
+    writeControl    timeStep;
+    writeInterval   1;
+
+    writeFields     false;
+    surfaceFormat   vtk;
+
+    formatOptions
+    {
+        default
+        {
+            verbose true;
+        }
+    }
+
+    // writeArea       true;
+
+    // resetOnStartUp  true;
+    // resetOnOutput   false;
+    // periodicRestart true;
+    // restartPeriod   0.0005;
+}
+
+
+// * * * * * * * * * * * * * * * * Sampling  * * * * * * * * * * * * * * * * //
+
+// Sample volume fields to surfaces and hold on registry.
+sampled
+{
+    type    surfaces;
+    libs    (sampling);
+    log     true;
+
+    executeControl  timeStep;
+    executeInterval 1;
+    writeControl    none;
+    sampleOnExecute true;
+
+    surfaceFormat   none;
+
+    fields      (p rho U T rhoU pTotal pTot);
+
+    // Remove derived fields we created prior
+    removeFieldsOnExecute   (rhoU pTotal);
+
+    _plane
+    {
+        type    plane;
+        source  cells;
+        store   true;
+
+        point   (-0.04 0 0);
+        normal  (-1 0 0);
+    }
+
+    surfaces
+    {
+        // Top channel
+        plane1
+        {
+            ${_plane}
+            bounds (-1 0 -1) (0 1 1);
+        }
+
+        // Bottom channel
+        plane2
+        {
+            ${_plane}
+            bounds (-1 -1 -1) (0 0 1);
+        }
+
+        // Angled plane - for general testing
+        plane3
+        {
+            type        distanceSurface;
+            distance    0;
+            signed      true;
+            store       true;
+
+            surfaceType triSurfaceMesh;
+            surfaceName angledPlane.obj;
+        }
+    }
+}
+
+
+// Sample and write for meshed surfaces
+sampleMesh
+{
+    type    surfaces;
+    libs    (sampling);
+    log     true;
+
+    writeControl    writeTime;
+    writeInterval   1;
+
+    surfaceFormat   vtk;
+
+    fields      (p rho U T);
+
+    surfaces
+    {
+        // Oversized sampling - for general testing
+        meshed_sample
+        {
+            type        meshedSurface;
+            surface     oversized_sample.obj;
+            source      cells;
+            maxDistance 0.0025;
+            defaultValue
+            {
+                T     273;
+            }
+        }
+
+        meshed_interpolate
+        {
+            $meshed_sample;
+            interpolate true;
+        }
+    }
+}
+
+
+// * * * * * * * * * * * * * * * Calculations  * * * * * * * * * * * * * * * //
+
+massflow
+{
+    ${__surfaceFieldValue}
+
+    regionType      functionObjectSurface;
+    name            sampled.plane1;
+
+    operation       areaNormalIntegrate;
+
+    fields          ( rhoU );
+}
+
+areaAverage
+{
+    ${__surfaceFieldValue}
+
+    regionType      functionObjectSurface;
+    name            sampled.plane1;
+
+    operation       weightedAreaAverage;
+    weightField     rhoU;
+    weightFields    ( rho U none );  // 2012 and later
+    fields          ( p pTotal pTot );
+}
+
+areaIntegrate
+{
+    ${__surfaceFieldValue}
+
+    regionType      functionObjectSurface;
+    name            sampled.plane1;
+
+    operation       weightedAreaIntegrate;
+    weightField     rhoU;
+    weightFields    ( rho U );  // 2012 and later
+    fields          ( T );
+}
+
+// Inflow uniformity
+UI1
+{
+    ${__surfaceFieldValue}
+
+    regionType      functionObjectSurface;
+    name            sampled.plane1;
+
+    operation       uniformity;
+    fields          ( U T );
+}
+
+
+// Uniformity after the bend
+UI2
+{
+    ${__surfaceFieldValue}
+
+    regionType      functionObjectSurface;
+    name            sampled.plane2;
+
+    operation       uniformity;
+    fields          ( U T );
+}
+
+
+// Uniformity on sampled surface
+UI3
+{
+    ${__surfaceFieldValue}
+
+    regionType      functionObjectSurface;
+    name            sampled.plane3;
+
+    operation       uniformity;
+    fields          ( U T );
+}
+
+
+// Inflow uniformity, but use a scalar field for weighting
+// Since this field is quite uniform, there should be no difference
+T_UI1
+{
+    ${__surfaceFieldValue}
+
+    regionType      functionObjectSurface;
+    name            sampled.plane1;
+
+    operation       weightedUniformity;
+    weightField     T;
+    fields          ( U );
+}
+
+
+// rhoU-weighted uniformity, including weighting U too (weird but possible)
+rhoU_UI1
+{
+    ${__surfaceFieldValue}
+
+    regionType      functionObjectSurface;
+    name            sampled.plane1;
+
+    operation       weightedUniformity;
+    weightField     rhoU;
+    fields          ( p rho U rhoU );
+}
+
+
+// rhoU-weighted uniformity
+rhoU_UI2
+{
+    ${__surfaceFieldValue}
+
+    regionType      functionObjectSurface;
+    name            sampled.plane2;
+
+    operation       weightedUniformity;
+    weightField     rhoU;
+    fields          ( p rho U rhoU );
+}
+
+
+// * * * * * * * * * * * * * * * * * Cleanup * * * * * * * * * * * * * * * * //
+
+#remove "__.*"
+
+
+// ************************************************************************* //

@@ -1,0 +1,149 @@
+#----------------------------------*-sh-*--------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2019-2021 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# File
+#     bin/tools/source-bashrc
+#
+# Description
+#     Source user ~/.bashrc and OpenFOAM etc/bashrc.
+#     Not normally sourced manually, but from bash with the --rcfile option.
+#
+#------------------------------------------------------------------------------
+# Hard-coded directory path (eg, autoconfig)
+projectDir="@PROJECT_DIR@"
+
+if [ -z "$projectDir" ] || [ "${projectDir#@}" != "$projectDir" ]
+then
+    # Auto-detect location (as per OpenFOAM etc/bashrc)
+    # --
+    # Assuming this file is $WM_PROJECT_DIR/bin/tools/source-bashrc,
+    # the next lines should work when sourced by BASH or ZSH shells.
+    # --
+
+    projectDir="${BASH_SOURCE:-${ZSH_NAME:+$0}}"
+    if [ -n "$projectDir" ]
+    then
+        projectDir="$(\cd "$(dirname "$projectDir")"/../.. && \pwd -L)" || \
+        unset projectDir
+    fi
+fi
+
+#------------------------------------------------------------------------------
+
+_com_openfoam_projectDir="$projectDir"
+if [ -d "$_com_openfoam_projectDir" ]
+then
+    _com_openfoam_bashrcFile="${_com_openfoam_projectDir}/etc/bashrc"
+else
+    unset _com_openfoam_bashrcFile
+fi
+
+
+# Source the user bashrc first. Improbable they use the following variables:
+# * _com_openfoam_bashrcFile
+# * _com_openfoam_projectDir
+
+if [ -f "$HOME/.bashrc" ]
+then
+    . "$HOME/.bashrc"
+fi
+
+
+# Source the OpenFOAM etc/bashrc
+
+if [ -f "$_com_openfoam_bashrcFile" ]
+then
+    . "$_com_openfoam_bashrcFile" $FOAM_SETTINGS
+
+    # Avoid further inheritance
+    unset FOAM_SETTINGS
+else
+    echo "Missing OpenFOAM etc/bashrc in '${_com_openfoam_projectDir}'" 1>&2
+fi
+unset _com_openfoam_bashrcFile _com_openfoam_projectDir
+
+
+# Welcome banner - format somewhat like Ubuntu welcome
+#----
+## Welcome to Ubuntu VER (GNU/Linux ... x86_64)
+##
+## * Documentation:  ...
+#----
+
+if [ -n "$PS1" ]  ## Interactive
+then
+    if [ -d "$WM_PROJECT_DIR" ]
+    then
+        _foam_api="$("$WM_PROJECT_DIR"/bin/foamEtcFile -show-api 2>/dev/null)"
+        _foam_patch="$("$WM_PROJECT_DIR"/bin/foamEtcFile -show-patch 2>/dev/null)"
+        _foam_build="$("$WM_PROJECT_DIR"/bin/foamEtcFile -show-build 2>/dev/null)"
+
+        unset _foam_arch1
+        case "$WM_OPTIONS" in  # Or WM_LABEL_SIZE?
+        (*Int32*) _foam_arch1="label=32" ;;
+        (*Int64*) _foam_arch1="label=64" ;;
+        esac
+
+        unset _foam_arch2
+        case "$WM_OPTIONS" in  # Or WM_PRECISION_OPTION?
+        (*SPDPInt*) _foam_arch2="scalar=32;solveScalar=64" ;;
+        (*SPInt*)   _foam_arch2="scalar=32" ;;
+        (*DPInt*)   _foam_arch2="scalar=64" ;;
+        esac
+
+        if [ "${_foam_patch:-0}" = 0 ]
+        then
+            unset _foam_patch
+        fi
+        if [ -n "$_foam_build" ]
+        then
+            # Everything there - format like binary -help output
+            _foam_build="${_foam_build}${_foam_patch:+ (patch=${_foam_patch})}"
+            _foam_verinfo="${_foam_api}"
+        else
+            # Missing build info - combine api and patch info together
+            _foam_verinfo="${_foam_api}${_foam_patch:+ patch=${_foam_patch}}"
+        fi
+
+        echo "openfoam = $WM_PROJECT_DIR" 1>&2
+        echo 1>&2
+        echo " * Using:     OpenFOAM-$WM_PROJECT_VERSION (${_foam_verinfo}) - visit www.openfoam.com" 1>&2
+        if [ -n "$_foam_build" ]
+        then
+            echo " * Build:     ${_foam_build}" 1>&2
+        fi
+        # Arch:   LSB;label=32;scalar=64
+        echo " * Arch:      $_foam_arch1;$_foam_arch2" 1>&2
+        echo " * Platform:  $WM_OPTIONS (mpi=$FOAM_MPI)" 1>&2
+        echo 1>&2
+
+        # Set prompt as reminder that this is a shell session
+
+        # Chalmers likes this one:
+        # PS1="openfoam${_foam_api}:"'$(foamPwd)\n\u\$ '
+
+        PS1="openfoam${_foam_api}:"'\w/\n\u\$ '
+        unset _foam_arch1 _foam_arch2
+        unset _foam_api _foam_patch _foam_build _foam_verinfo
+    else
+        # Adjust prompt if not found - reminder that it is a shell session
+        PS1="openfoam(not-found):"'\w/\n\u\$ '
+    fi
+
+    echo "OpenFOAM shell session - use 'exit' to quit" 1>&2
+    echo 1>&2
+fi
+
+# Cleanup variables (done as final statement for a clean exit code)
+unset projectDir
+
+#------------------------------------------------------------------------------

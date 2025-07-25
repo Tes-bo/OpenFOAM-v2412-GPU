@@ -1,0 +1,49 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      faMeshDefinition;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+polyMeshPatches ( "top.*" );
+
+boundary
+{
+    inlet1
+    {
+        type patch;
+        ownerPolyPatch top1;
+        neighbourPolyPatch inlet;
+    }
+
+    inlet2
+    {
+        type patch;
+        ownerPolyPatch top2;
+        neighbourPolyPatch inlet;
+    }
+
+    outlet
+    {
+        type patch;
+        neighbourPolyPatch outflow;
+    }
+
+    bound
+    {
+        type symmetry;
+        neighbourPolyPatch bound;
+    }
+}
+
+
+// ************************************************************************** //

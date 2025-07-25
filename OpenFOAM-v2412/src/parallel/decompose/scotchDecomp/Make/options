@@ -1,0 +1,18 @@
+EXE_INC = \
+    -I$(SCOTCH_INC_DIR) \
+    -I$(LIB_SRC)/parallel/decompose/decompositionMethods/lnInclude
+
+LIB_LIBS = \
+    -L$(FOAM_LIBBIN) -ldecompositionMethods \
+    -L$(SCOTCH_LIB_DIR) \
+    -lscotch$(SCOTCH_LIBNAME_SUFFIX)
+
+/* errexit, except for windows compile (already in library) */
+ifeq (,$(findstring windows,$(WM_OSTYPE)))
+    LIB_LIBS += -lscotcherrexit
+endif
+
+/* May require librt, but scotch does not declare the dependency */
+ifeq (.so,$(EXT_SO))
+    LIB_LIBS += -lrt
+endif

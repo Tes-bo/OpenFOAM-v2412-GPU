@@ -1,0 +1,112 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      fvSolution;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+solvers
+{
+    alpha.liquid
+    {
+        nAlphaCorr      2;
+        nAlphaSubCycles 2;
+        cAlpha          1;
+
+        MULESCorr       no;
+        nLimiterIter    5;
+    }
+
+    rho
+    {
+        solver           diagonal;
+        tolerance       1e-7;
+        relTol          0.1;
+    }
+
+    rhoFinal
+    {
+        $rho;
+        tolerance       1e-7;
+        relTol          0;
+    }
+
+    p_rgh
+    {
+        //solver           GAMG;
+        tolerance        1e-9;
+        solver          PCG;
+        preconditioner  DIC;
+        relTol           0.001;
+        smoother         DIC;
+    }
+
+    mDotSmearFinal
+    {
+        solver           PCG;
+        tolerance        1e-6;
+        preconditioner   DIC;
+        relTol           0.00;
+        smoother         DIC;
+    }
+
+    p_rghFinal
+    {
+        $p_rgh;
+        tolerance        1e-9;
+        relTol           0;
+        minIter 10;
+    }
+
+    pcorrFinal
+    {
+        $p_rgh;
+        tolerance        1e-9;
+        relTol           0;
+    }
+
+
+    "(U|h|T.*|k|epsilon|R)"
+    {
+        solver           smoothSolver;
+        smoother        symGaussSeidel;
+        tolerance        1e-7;
+        relTol           0.;
+        minIter          15;
+        maxIter          50;
+    }
+
+    "(U|h|T.*|k|epsilon|R)Final"
+    {
+        $U;
+        tolerance        1e-7;
+        relTol           0;
+        maxIter          50;
+    }
+}
+
+PIMPLE
+{
+    momentumPredictor   yes;
+    nCorrectors         4;
+    nNonOrthogonalCorrectors 0;
+}
+
+relaxationFactors
+{
+    equations
+    {
+        ".*"           1;
+    }
+}
+
+// ************************************************************************* //

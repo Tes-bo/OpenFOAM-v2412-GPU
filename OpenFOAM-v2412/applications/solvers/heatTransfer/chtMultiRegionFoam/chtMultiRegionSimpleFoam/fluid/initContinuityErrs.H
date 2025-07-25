@@ -1,0 +1,1 @@
+scalar cumulativeContErr = 0;

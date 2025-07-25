@@ -1,0 +1,285 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2017-2021 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     makeMETIS
+#
+# Description
+#     Build script for METIS
+#
+# ----------------------------------------------
+# NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
+#------------------------------------------------------------------------------
+# Dynamic library ending (default is .so)
+[ "$(uname -s)" = Darwin ] && EXT_SO=.dylib || EXT_SO=.so
+
+# Short-circuit test for an installation
+if [ "$1" = "-test" ]
+then
+    [ "$#" -eq 2 ] || { echo "${0##*/} -test : needs 1 argument"; exit 1; }
+    dir="${2%/}" # <- *_ARCH_PATH
+    [ -d "$dir/include" ] || exit 2
+
+    package="metis"
+    libName="libmetis"
+    for lib in \
+        "$FOAM_EXT_LIBBIN/$libName$EXT_SO" \
+        "$dir/lib/$libName.a" \
+        "$dir/lib/$libName$EXT_SO" \
+        "$dir/lib$WM_COMPILER_LIB_ARCH/$libName.a" \
+        "$dir/lib$WM_COMPILER_LIB_ARCH/$libName$EXT_SO" \
+        ;
+    do
+        if [ -r "$lib" ]
+        then
+            echo "    $package include: $dir/include"
+            echo "    $package library: ${lib%/*}"
+            exit 0
+        fi
+    done
+    exit 2
+fi
+#------------------------------------------------------------------------------
+if :    # Run from third-party directory
+then
+    cd "${0%/*}" || exit
+    wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
+        echo "Error (${0##*/}) : not located in \$WM_THIRD_PARTY_DIR"
+        echo "    Check your OpenFOAM environment and installation"
+        exit 1
+    }
+fi
+. "${WM_THIRD_PARTY_DIR:?}"/etc/tools/ThirdPartyFunctions
+#------------------------------------------------------------------------------
+# Obtain version from OpenFOAM etc/config.sh file:
+_foamConfig metis
+
+PACKAGE="${METIS_VERSION:-system}"
+targetType=libso
+
+if nonStandardPlatforms  # Possibly unreliable inherited values
+then
+    unset METIS_ARCH_PATH
+fi
+
+#------------------------------------------------------------------------------
+printVersions() { listPackageVersions metis; exit 0; }
+printHelp() {
+    exec 1>&2
+    while [ "$#" -ge 1 ]; do echo "$1"; shift; done
+    cat<<USAGE
+
+Usage: ${0##*/} [OPTION] [lib|libso] [METIS-VERSION]
+options:
+  -gcc          Force use of gcc/g++
+  -int32        Use IDXTYPEWIDTH 32
+  -int64        Use IDXTYPEWIDTH 64
+  -bin          Create metis binaries as well
+  -no-bin       Suppress creation of metis binaries (default)
+  -list         List available unpacked source versions
+  -help         Display usage help
+
+* Build METIS (default: -int${WM_LABEL_SIZE:-32}) with
+      ${PACKAGE:-[unspecified]}
+
+USAGE
+    showDownloadHint metis
+    exit 0  # Clean exit
+}
+#------------------------------------------------------------------------------
+exportCompiler          # Compiler info for CMake/configure
+
+unset optForce optNoExtlib
+optBinaries=false
+optLabelSize="${WM_LABEL_SIZE:-32}"
+
+# Parse options
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    '') ;;      # Ignore empty
+    -h | -help*) printHelp;;
+    -list)      printVersions;;
+    -gcc)       useGcc  ;;
+    -force)     echo "ignoring $1" ;;
+    -int32 | -int64) optLabelSize="${1#-int}" ;;
+    -bin)       optBinaries=true ;;
+    -no-bin)    optBinaries=false ;;
+    -no-extlib) optNoExtlib=true ;;  # Hidden option (experimental)
+
+    lib|libso)
+        targetType="$1"
+        ;;
+
+    metis/* | sources/metis* | \
+    metis-[0-9]*)
+        PACKAGE="${1%%/}"
+        unset METIS_ARCH_PATH  # Avoid inconsistency
+        ;;
+    *)
+        die "unknown option/argument: '$1'"
+        ;;
+    esac
+    shift
+done
+
+if [ -z "$PACKAGE" ]
+then
+    die "The METIS package/version not specified"
+elif _foamIsNone "$PACKAGE" || _foamIsSystem "$PACKAGE"
+then
+    echo "Using none/system (skip ThirdParty build of METIS)"
+    exit 0
+fi
+
+# Known build issues for mingw (various things)
+case "$WM_COMPILER" in
+(Mingw*)
+    if :
+    then
+        echo "Skipping metis - known compilation issues with $WM_COMPILER"
+        exit 0
+    fi
+    ;;
+esac
+
+if [ "$optNoExtlib" = true ]
+then
+    unset FOAM_EXT_LIBBIN
+else
+    requireExtLibBin
+fi
+
+#------------------------------------------------------------------------------
+#
+# Build METIS
+#   METIS_ARCH_PATH : installation directory (as per config file)
+#
+#   *PACKAGE : name-version of the package
+#   *SOURCE  : location of original sources
+#   *PREFIX  : installation directory
+
+PKG_SOURCE="$(findSourceDir "$PACKAGE")"
+PACKAGE="$(basename "$PACKAGE")"
+PKG_PREFIX="$installBASE$WM_SIZE_OPTIONS/$PACKAGE"
+export GIT_DIR="$PKG_SOURCE/.git"
+
+# Override as per config file (if any)
+[ -n "$METIS_ARCH_PATH" ] && PKG_PREFIX="$METIS_ARCH_PATH"
+
+[ -d "$PKG_SOURCE" ] || {
+    echo "Missing sources: '$PACKAGE'"
+    showDownloadHint metis
+    exit 2
+}
+
+#
+# Manual installation (of library)
+#
+install()
+{
+    local bindir="$PKG_PREFIX"/bin
+    local libdir="$PKG_PREFIX"/lib
+    local libdir_target="$FOAM_EXT_LIBBIN"
+    local libname_suffix="-int$WM_LABEL_SIZE"
+
+    [ -n "$FOAM_EXT_LIBBIN" ] || unset libdir_target
+    [ -n "$WM_LABEL_SIZE" ] || unset libname_suffix
+
+    echo
+    echo "Adjusting installation"
+
+    if [ "$optBinaries" = false ]
+    then
+        echo "Removing binaries: $bindir"
+        rm -rf "$bindir" 2>/dev/null # Failed removal is uncritical
+    fi
+
+    if [ "$targetType" = libso ]
+    then
+        # Rename lib as xxx-intNN qualified library names (non-windows)
+        if [ -n "$libname_suffix" ] && [ "${EXT_SO:-.dll}" != ".dll" ]
+        then
+        (
+            cd "$libdir" || exit
+            echo "Tagging libraries with $libname_suffix"
+            for name in libmetis
+            do
+                if [ -f "$name$EXT_SO" ]
+                then
+                    mv "$name$EXT_SO" "$name$libname_suffix$EXT_SO"
+                    ln -sf "$name$libname_suffix$EXT_SO" "$name$EXT_SO"
+                fi
+            done
+        )
+        fi
+
+        if [ -n "$libdir_target" ]
+        then
+            # Remove old libraries and links
+            for name in libmetis
+            do
+                rm -f "$libdir_target/$name$EXT_SO"
+                rm -f "$libdir_target/$name$libname_suffix$EXT_SO"
+            done
+            mkdir -p "$libdir_target"
+            echo "Relocating serial libraries"
+
+            # echo "Installing: $libdir_target/libmetis"
+            mv -f "$libdir"/libmetis* "$libdir_target"
+        fi
+    fi
+
+    rmdir "$libdir" 2>/dev/null  # Failed rmdir is uncritical
+    return 0
+}
+
+
+echo "Starting build: $PACKAGE ($targetType)"
+if [ "$optLabelSize" != "$WM_LABEL_SIZE" ]
+then
+    echo "Using int-$optLabelSize instead of int-$WM_LABEL_SIZE"
+fi
+export WM_LABEL_SIZE="$optLabelSize"
+
+echo
+(
+    # Configuration options:
+    unset configOpt
+    if [ "$targetType" = libso ]
+    then
+        configOpt="shared=1"
+    fi
+
+    cd "$PKG_SOURCE" || exit
+    rm -rf "$PKG_PREFIX"
+    rm -f "$FOAM_EXT_LIBBIN"/libmetis*
+
+    # Adjust metis IDXTYPEWIDTH (integer size)
+    sed -i -e 's=\(#define IDXTYPEWIDTH\).*=\1 '"$optLabelSize"'=' \
+        include/metis.h
+
+    # No config option for the library location.
+    # - build normally and use mv to relocate it
+
+    make config $configOpt prefix="$PKG_PREFIX" \
+    && make -j $WM_NCOMPPROCS install \
+    && echo "Built: metis" \
+    && install
+) || {
+    echo "Error building: metis"
+    exit 1
+}
+
+
+#------------------------------------------------------------------------------

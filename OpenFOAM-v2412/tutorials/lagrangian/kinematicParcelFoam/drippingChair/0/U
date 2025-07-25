@@ -1,0 +1,104 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volVectorField;
+    object      U;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 1 -1 0 0 0 0];
+
+internalField   uniform (0 0 0);
+
+boundaryField
+{
+    #includeEtc "caseDicts/setConstraintTypes"
+
+    top
+    {
+        type            fixedValue;
+        value           uniform (0 -0.1 0);
+    }
+
+    bottom
+    {
+        type            inletOutlet;
+        value           $internalField;
+        inletValue      uniform (0 0 0);
+    }
+
+    sides
+    {
+        type            noSlip;
+    }
+
+    frontAndBack
+    {
+        type            noSlip;
+    }
+
+    filmWalls
+    {
+        type            velocityFilmShell;
+        value           $internalField;
+
+        active          true;
+        infoOutput      true;
+        U               U;
+        pRef            1e5; // Reference pressure for thermo
+        T0              300; // Reference temperature for thermo
+
+        thermo
+        {
+            H2O;
+        }
+
+        turbulence          laminar;
+
+        laminarCoeffs
+        {
+            shearStress     simple;
+            friction        ManningStrickler; // Wall friction model
+            n               0.005;  // Manning number
+            Cf              0;      // Gas friction
+        }
+
+        injectionModels
+        (
+            // filmSeparation
+            // BrunDrippingInjection
+        );
+
+        forces ();
+
+        filmSeparationCoeffs
+        {
+            // Mandatory entries
+            model              OwenRyley;
+
+            // Optional entries
+            definedPatchRadii  0;
+            minInvR1           0;
+            deltaByR1Min       0; // h*invRi = 0.004*10
+        }
+
+        BrunDrippingInjectionCoeffs
+        {
+            deltaStable     1e-3;
+        }
+
+        region              film;
+        liquidFilmModel     kinematicThinFilm;
+    }
+}
+
+
+// ************************************************************************* //

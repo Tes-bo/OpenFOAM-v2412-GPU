@@ -1,0 +1,17 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+#------------------------------------------------------------------------------
+
+( cd flange && ./Allclean )
+( cd addLayersToFaceZone && ./Allclean )
+( cd gap_detection && ./Allclean )
+( cd aerofoilNACA0012_directionalRefinement && ./Allclean )
+( cd iglooWithFridgesDirectionalRefinement && ./Allclean )
+( cd distributedTriSurfaceMesh && ./Allclean )
+( cd faceZoneRegions && ./Allclean )
+( cd motorBike_leakDetection && ./Allclean )
+( cd opposite_walls && ./Allclean )
+( cd airfoilWithLayers && ./Allclean )
+( cd sphere_gapClosure && ./Allclean )
+
+#------------------------------------------------------------------------------

@@ -1,0 +1,55 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      topoSetDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// Generated file
+#include "<constant>/ignitionPoint"
+
+actions
+(
+    {
+        name    ignition;
+        type    cellSet;
+        action  new;
+        source  nearestToCell;
+        points  ( $location );
+    }
+
+    // Optionally grow cellSet by attached?
+
+    /*
+    {
+        name    corners;
+        type    pointSet;
+        action  new;
+        source  cellToPoint;
+        set     ignition;
+        option  all;
+    }
+
+    {
+        name    ignition;
+        type    cellSet;
+        action  add;
+        source  pointToCell;
+
+        set     corners;
+        option  edge;
+    }
+    */
+);
+
+
+// ************************************************************************* //

@@ -1,0 +1,17 @@
+// -*- C++ -*-
+
+tracer0
+{
+    type  scalarTransport;
+    libs  (solverFunctionObjects);
+    log   off;
+
+    resetOnStartUp  false;
+    writeControl    writeTime;
+    // writeInterval   1;
+    field           tracer0;
+    D               0.001;
+}
+
+
+// ************************************************************************* //

@@ -1,0 +1,80 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+//OLD  class       IOPtrList<coordinateSystem>;
+    class       coordinateSystems;
+    object      coordinateSystems;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+(
+cs1
+{
+    type    cartesian;
+    origin  (1 2 3);
+    rotation
+    {
+        type    axes;
+        e1      (0 0 1);
+        e2      (0 1 0);
+    }
+}
+
+cs2
+{
+    type    cartesian;
+    origin  (0 3 5);
+    e1      (1 2 0);
+    e2      (2 0 2);
+}
+
+cs3
+{
+    type    cartesian;
+    origin  (0 3 5);
+    coordinateRotation  // older name
+    {
+        type    euler;
+        angles  (90 0 0);
+    }
+}
+
+cs4
+{
+    type    cylindrical;
+    origin  (0 3 5);
+    rotation euler;
+    angles  (90 0 0);
+}
+
+cyl
+{
+    type    cylindrical;
+    origin  (0 0 0);
+    degrees false;
+
+    rotation
+    {
+        type    axisAngle;
+        axis    (0 0 1);
+        angle   90;
+    }
+}
+
+ident
+{
+    origin  (0 0 0);
+    rotation none;
+}
+
+)
+
+// ************************************************************************* //

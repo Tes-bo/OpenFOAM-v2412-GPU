@@ -1,0 +1,99 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+application     reactingParcelFoam;
+
+startFrom       latestTime;
+
+startTime       0;
+
+stopAt          endTime;
+
+endTime         3;
+
+deltaT          1e-04;
+
+writeControl    adjustable;
+
+writeInterval   0.02;
+
+purgeWrite      0;
+
+writeFormat     ascii;
+
+writePrecision  10;
+
+writeCompression off;
+
+timeFormat      general;
+
+timePrecision   6;
+
+runTimeModifiable yes;
+
+adjustTimeStep  yes;
+
+maxCo           0.3;
+
+maxDeltaT       1e-03;
+
+functions
+{
+    fieldExtents
+    {
+        type            fieldExtents;
+        libs            (fieldFunctionObjects);
+        region          wallFilmRegion;
+        threshold       0.5;
+        fields          (alpha);
+        internalField   yes;
+        patches         ();
+    }
+
+    filmFlux
+    {
+        type            filmFlux;
+        writeControl    writeTime;
+        result          myPhi; // optional
+    }
+
+    filmPatchFluxIn
+    {
+        type            surfaceFieldValue;
+        libs            (fieldFunctionObjects);
+        region          wallFilmRegion;
+        fields          (myPhi);
+        operation       sum;
+        regionType      patch;
+        name            inlet;
+        writeFields     no;
+    }
+
+    filmPatchFluxOut
+    {
+        type            surfaceFieldValue;
+        libs            (fieldFunctionObjects);
+        region          wallFilmRegion;
+        fields          (myPhi);
+        operation       sum;
+        regionType      patch;
+        name            outlet;
+        writeFields     no;
+    }
+}
+
+
+// ************************************************************************* //

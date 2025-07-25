@@ -1,0 +1,30 @@
+#------------------------------------------------------------------------------
+# gcc compiler
+#
+# On older systems: may need to upgrade the compiler, use a ThirdParty compiler
+# or clang to have sufficient C++ language.
+#------------------------------------------------------------------------------
+SUFFIXES   += .C .cc .cpp .cxx
+
+CC         := g++$(COMPILER_VERSION) -std=c++17
+
+c++ARCH    :=
+c++DBUG    :=
+c++OPT     := -O2
+ptFLAGS    := -DNoRepository -ftemplate-depth-100
+
+c++WARN     = \
+    -Wall -Wextra -Wold-style-cast \
+    -Wnon-virtual-dtor -Wno-unused-parameter -Wno-invalid-offsetof \
+    -Wno-attributes -Wno-unknown-pragmas
+
+# Less restrictive warnings (eg, for flex++, CGAL, etc.)
+c++LESSWARN = \
+    -Wno-old-style-cast -Wno-unused-local-typedefs -Wno-array-bounds \
+    -Wno-deprecated-declarations \
+    -fpermissive
+
+# Tuning
+sinclude $(GENERAL_RULES)/common/c++$(WM_COMPILE_OPTION)
+
+#------------------------------------------------------------------------------

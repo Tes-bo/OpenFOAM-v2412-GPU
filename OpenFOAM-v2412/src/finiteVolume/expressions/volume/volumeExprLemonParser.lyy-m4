@@ -1,0 +1,962 @@
+%include
+{
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     |
+    \\  /    A nd           | www.openfoam.com
+     \\/     M anipulation  |
+-------------------------------------------------------------------------------
+    Copyright (C) 2019-2024 OpenCFD Ltd.
+-------------------------------------------------------------------------------
+License
+    This file is part of OpenFOAM.
+
+    OpenFOAM is free software: you can redistribute it and/or modify it
+    under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+    FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+    for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
+
+Description
+    Lemon grammar for volume expressions.
+
+    https://www.sqlite.org/src/doc/trunk/doc/lemon.html
+
+    See detailed notes in the field expression parser.
+
+\*---------------------------------------------------------------------------*/
+} // %include
+
+/*
+ * include volumeExprLemonParserMacros.m4
+ *include(`volumeExprLemonParserMacros.m4')dnl
+ !done in a comment since many editors have issues matching m4 quotes!
+ */
+%include
+{
+#include "exprScanToken.H"
+#include "volumeExprDriver.H"
+#include "volumeExprParser.H"
+#include "volumeExprScanner.H"
+#include "volFields.H"
+#include "surfaceFields.H"
+#include "pointFields.H"
+#include "unitConversion.H"
+#include "error.H"
+#include "IOmanip.H"
+#include "exprOps.H"
+#include "exprDriverOps.H"
+#include "GeometricFieldOps.H"
+#include "fvcReconstruct.H"
+
+
+// Enable ParseTrace
+#undef NDEBUG
+
+compiler_pragmas()
+
+// Local Functions
+
+tmp_management()
+
+dnl
+dnl #if 0
+dnl namespace Foam
+dnl {
+dnl //- Check field sizes
+dnl template<class T1, class T2>
+dnl static bool checkSizes(const char* what, T1* arg1, T2* arg2)
+dnl {
+dnl     if (arg1 == nullptr || arg2 == nullptr)
+dnl     {
+dnl         FatalError
+dnl             << "Null pointer in " << what << nl
+dnl             << Foam::exit(Foam::FatalError);
+dnl     }
+dnl     if (arg1->size() != arg2->size())
+dnl     {
+dnl         FatalError
+dnl             << "Size mismatch in " << what << ' '
+dnl             << pTraits<typename T1::value_type>::typeName << ", "
+dnl             << pTraits<typename T2::value_type>::typeName << "\n("
+dnl             << arg1->size() << " != " << arg2->size() << ')' << nl
+dnl             << Foam::exit(Foam::FatalError);
+dnl     }
+dnl
+dnl     return true;
+dnl }
+dnl } // End namespace Foam
+dnl #endif
+dnl
+} // %include
+
+// ------------------------------------------------------------------------- //
+
+// File-scope visibility for exposed Lemon parser routines
+%static
+
+// Use extra argument for the return value
+%extra_context  { Foam::expressions::volumeExpr::parseDriver* driver }
+%parse_failure  { driver->reportFatal("Parse failure, giving up..."); }
+%syntax_error   { driver->reportFatal("Syntax error"); }
+
+%token_prefix TOK_
+
+// Terminals
+%token_type         {Foam::expressions::scanToken}
+%token_destructor   { ($$).destroy(); }
+
+// Volume fields
+declare_field(lfield, Foam::volScalarField, Foam::scalar, newVolField, getVolField)
+declare_field(sfield, Foam::volScalarField, Foam::scalar, newVolField, getVolField)
+declare_field(vfield, Foam::volVectorField, Foam::vector, newVolField, getVolField)
+declare_field(hfield, Foam::volSphericalTensorField, Foam::sphericalTensor, newVolField, getVolField)
+declare_field(yfield, Foam::volSymmTensorField, Foam::symmTensor, newVolField, getVolField)
+declare_field(tfield, Foam::volTensorField, Foam::tensor, newVolField, getVolField)
+
+// Surface fields
+declare_field(slfield, Foam::surfaceScalarField, Foam::scalar, newSurfaceField, getSurfaceField)
+declare_field(ssfield, Foam::surfaceScalarField, Foam::scalar, newSurfaceField, getSurfaceField)
+declare_field(svfield, Foam::surfaceVectorField, Foam::vector, newSurfaceField, getSurfaceField)
+declare_field(shfield, Foam::surfaceSphericalTensorField, Foam::sphericalTensor, newSurfaceField, getSurfaceField)
+declare_field(syfield, Foam::surfaceSymmTensorField, Foam::symmTensor, newSurfaceField, getSurfaceField)
+declare_field(stfield, Foam::surfaceTensorField, Foam::tensor, newSurfaceField, getSurfaceField)
+
+// Point fields
+declare_field(plfield, Foam::pointScalarField, Foam::scalar, newPointField, getPointField)
+declare_field(psfield, Foam::pointScalarField, Foam::scalar, newPointField, getPointField)
+declare_field(pvfield, Foam::pointVectorField, Foam::vector, newPointField, getPointField)
+declare_field(phfield, Foam::pointSphericalTensorField, Foam::sphericalTensor, newPointField, getPointField)
+declare_field(pyfield, Foam::pointSymmTensorField, Foam::symmTensor, newPointField, getPointField)
+declare_field(ptfield, Foam::pointTensorField, Foam::tensor, newPointField, getPointField)
+
+// For each rule action with code, destruction must be done by that code block
+// Lemon does not generate a destructor for that.
+// So do not use Lemon destructors for anything.
+
+standard_tokens()
+operator_precedence()
+
+%start_symbol evaluate
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+/*---------------------------------------------------------------------------*\
+ * General Productions
+\*---------------------------------------------------------------------------*/
+
+%type identifier { Foam::word* }
+%destructor identifier { delete($$); $$ = nullptr; }
+
+identifier (lhs) ::= IDENTIFIER (tok) .
+{
+    // Take ownership of pointer from scan token
+    lhs = tok.name_; tok.name_ = nullptr;
+}
+
+
+/*---------------------------------------------------------------------------*\
+ * Productions (scalar)
+\*---------------------------------------------------------------------------*/
+
+%type svalue { Foam::scalar }
+
+svalue (lhs) ::= NUMBER (tok) .     { lhs = (tok).scalarValue; } // scanToken
+svalue (lhs) ::= ZERO .             { lhs = Foam::zero{}; }
+svalue (lhs) ::= PI LPAREN RPAREN . { lhs = Foam::constant::mathematical::pi; }
+svalue (lhs) ::= DEG_TO_RAD LPAREN RPAREN . { lhs = Foam::degToRad(); }
+svalue (lhs) ::= RAD_TO_DEG LPAREN RPAREN . { lhs = Foam::radToDeg(); }
+svalue (lhs) ::= ARG LPAREN RPAREN .  { lhs = driver->argValue(); }
+svalue (lhs) ::= TIME LPAREN RPAREN . { lhs = driver->timeValue(); }
+svalue (lhs) ::= DELTA_T LPAREN RPAREN . { lhs = driver->deltaT(); }
+
+svalue (lhs) ::= SCALAR_FUNCTION_ID (name) LPAREN RPAREN .
+{
+    lhs = driver->getFunctionValue<Foam::scalar>
+    (
+        make_obj(name.name_),
+        driver->timeValue()
+    );
+}
+
+
+/*---------------------------------------------------------------------------*\
+ * Productions (vector)
+\*---------------------------------------------------------------------------*/
+
+%type vvalue { Foam::vector* }
+%destructor vvalue { delete($$); $$ = nullptr; }
+
+vvalue (lhs) ::= VECTOR_VALUE (tok) .
+{
+    // Take ownership of pointer from scan token
+    lhs = tok.vectorPtr; tok.vectorPtr = nullptr;
+}
+
+vvalue (lhs) ::= VECTOR_FUNCTION_ID (name) LPAREN RPAREN .
+{
+    auto val = driver->getFunctionValue<Foam::vector>
+    (
+        make_obj(name.name_),
+        driver->timeValue()
+    );
+    lhs = new Foam::vector(val);
+}
+
+
+/* * * * * * * * * * * * * * * * Volume Fields * * * * * * * * * * * * * * * *\
+dnl
+define([_logic_],       [lfield])dnl
+define([_scalar_],      [sfield])dnl
+define([_vector_],      [vfield])dnl
+define([_sphTensor_],   [hfield])dnl
+define([_symTensor_],   [yfield])dnl
+define([_tensor_],      [tfield])dnl
+dnl
+\* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+/*---------------------------------------------------------------------------*\
+ * Productions (volScalarField)
+dnl
+define([_scalar_arg_],  [sfield])dnl
+define([_target_],      [sfield])dnl
+define([_new_target_],  [_new_sfield])dnl
+define([_value_type_],  [Foam::scalar])dnl
+dnl
+\*---------------------------------------------------------------------------*/
+
+evaluate ::= _target_ (a) . { driver->setResult(a); }
+
+rule_field_from_value(_target_, svalue)
+rule_get_field(_target_, SCALAR_ID)
+
+rules_standard(_target_, _value_type_, _logic_)
+rules_inplace_gUnary(_target_)
+rules_scalar_operations()
+rules_scalar_functions()
+
+// Non-standard but manage via FieldOps::assign
+rule_unary_assign(_target_, _target_, FLOOR, Foam::floorOp<_value_type_>())
+rule_unary_assign(_target_, _target_, CEIL, Foam::ceilOp<_value_type_>())
+rule_unary_assign(_target_, _target_, ROUND, Foam::roundOp<_value_type_>())
+
+// Non-standard but manage via FieldOps::assign
+rule_binary_assign(_target_, _target_, _target_, HYPOT, Foam::hypotOp<_value_type_>())
+
+
+// Other functions
+
+_target_ (lhs) ::= RAND LPAREN RPAREN .
+{
+    lhs = driver->field_rand().ptr();
+}
+
+_target_ (lhs) ::= RAND LPAREN NUMBER (seed) RPAREN .
+{
+    // Call with -ve seed to signal use of time index as seed
+    lhs = driver->field_rand(std::round(-(seed).scalarValue)).ptr();
+}
+
+_target_ (lhs) ::= SCALAR_FUNCTION_ID (name) LPAREN _scalar_arg_ (values) RPAREN.
+{
+    lhs = _new_target_;
+    driver->fillFunctionValues<_value_type_>
+    (
+        *lhs,
+        make_obj(name.name_),
+        make_obj(values)
+    );
+}
+
+
+/*---------------------------------------------------------------------------*\
+ * Productions (volVectorField)
+dnl
+define([_scalar_arg_],  [sfield])dnl
+define([_target_],      [vfield])dnl
+define([_new_target_],  [_new_vfield])dnl
+define([_value_type_],  [Foam::vector])dnl
+dnl
+\*---------------------------------------------------------------------------*/
+
+evaluate ::= _target_ (a) . { driver->setResult(a); }
+
+rule_field_from_value(_target_, vvalue)
+rule_get_field(_target_, VECTOR_ID)
+
+rules_standard(_target_, _value_type_, _logic_)
+rules_inplace_gUnary(_target_)
+rules_vector_operations()
+rules_vector_functions()
+
+// Other functions
+
+_target_ (lhs) ::= VECTOR_FUNCTION_ID (name) LPAREN _scalar_arg_ (values) RPAREN.
+{
+    lhs = _new_target_;
+    driver->fillFunctionValues<_value_type_>
+    (
+        *lhs,
+        make_obj(name.name_),
+        make_obj(values)
+    );
+}
+
+
+/*---------------------------------------------------------------------------*\
+ * Productions (volSphericalTensorField)
+dnl
+define([_scalar_arg_],  [sfield])dnl
+define([_target_],      [hfield])dnl
+define([_value_type_],  [Foam::sphericalTensor])dnl
+dnl
+\*---------------------------------------------------------------------------*/
+
+evaluate ::= _target_ (a) . { driver->setResult(a); }
+
+rule_get_field(_target_, SPH_TENSOR_ID)
+
+rules_standard(_target_, _value_type_, _logic_)
+rules_inplace_gUnary(_target_)
+rules_sphTensor_operations()
+rules_sphTensor_functions()
+
+/*---------------------------------------------------------------------------*\
+ * Productions (volSymmTensorField)
+dnl
+define([_scalar_arg_],  [sfield])dnl
+define([_target_],      [yfield])dnl
+define([_value_type_],  [Foam::symmTensor])dnl
+dnl
+\*---------------------------------------------------------------------------*/
+
+evaluate ::= _target_ (a) . { driver->setResult(a); }
+
+rule_get_field(_target_, SYM_TENSOR_ID)
+rules_standard(_target_, _value_type_, _logic_)
+rules_inplace_gUnary(_target_)
+rules_symTensor_operations()
+rules_symTensor_functions()
+
+/*---------------------------------------------------------------------------*\
+ * Productions (volTensorField)
+dnl
+define([_scalar_arg_],  [sfield])dnl
+define([_target_],      [tfield])dnl
+define([_value_type_],  [Foam::tensor])dnl
+dnl
+\*---------------------------------------------------------------------------*/
+
+evaluate ::= _target_ (a) . { driver->setResult(a); }
+tfield (lhs) ::= IDENTITY_TENSOR . { lhs = _new_tfield(Foam::tensor::I); }
+
+rule_get_field(_target_, TENSOR_ID)
+
+rules_standard(_target_, _value_type_, _logic_)
+rules_inplace_gUnary(_target_)
+rules_tensor_operations()
+rules_tensor_functions()
+
+/*---------------------------------------------------------------------------*\
+ * Logic field productions (volScalarField)
+dnl
+define([_target_],      [lfield])dnl
+define([_value_type_],  [Foam::scalar])dnl
+dnl
+\*---------------------------------------------------------------------------*/
+
+evaluate ::= _target_ (a) . { driver->setResult(a, true); /* Logical */ }
+
+_logic_ (lhs) ::= LTRUE .   { lhs = _new_lfield(_logic_true_); }
+_logic_ (lhs) ::= LFALSE .  { lhs = _new_lfield(_logic_false_); }
+
+rule_cast_logical(_target_, _target_)
+rule_cast_logical(_target_, _scalar_, Foam::scalar)
+
+rules_logical_operations(_logic_, _value_type_)
+
+
+/*---------------------------------------------------------------------------*\
+ * General Volume-related productions
+\*---------------------------------------------------------------------------*/
+
+rules_driver_volume_functions()
+
+
+/* * * * * * * * * * * * * * * * Surface Fields  * * * * * * * * * * * * * * *\
+dnl
+define([_logic_],       [slfield])dnl
+define([_scalar_],      [ssfield])dnl
+define([_vector_],      [svfield])dnl
+define([_sphTensor_],   [shfield])dnl
+define([_symTensor_],   [syfield])dnl
+define([_tensor_],      [stfield])dnl
+dnl
+\* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+dnl> %ifndef disable_surface_fields
+
+/*---------------------------------------------------------------------------*\
+ * Productions (surfaceScalarField)
+dnl
+define([_scalar_arg_],  [ssfield])dnl
+define([_target_],      [ssfield])dnl
+define([_new_target_],  [_new_ssfield])dnl
+define([_value_type_],  [Foam::scalar])dnl
+dnl
+\*---------------------------------------------------------------------------*/
+
+evaluate ::= _target_ (a) . { driver->setResult(a); }
+
+rule_field_from_value(_target_, svalue, FACE_EXPR)
+rule_get_field(_target_, SSCALAR_ID)
+
+rules_standard(_target_, _value_type_, _logic_)
+rules_inplace_gUnary(_target_)
+rules_scalar_operations()
+rules_scalar_functions()
+
+// Non-standard but manage via FieldOps::assign
+rule_unary_assign(_target_, _target_, FLOOR, Foam::floorOp<_value_type_>())
+rule_unary_assign(_target_, _target_, CEIL, Foam::ceilOp<_value_type_>())
+rule_unary_assign(_target_, _target_, ROUND, Foam::roundOp<_value_type_>())
+
+// Non-standard but manage via FieldOps::assign
+rule_binary_assign(_target_, _target_, _target_, HYPOT, Foam::hypotOp<_value_type_>())
+
+_target_ (lhs) ::= SCALAR_FUNCTION_ID (name) LPAREN _scalar_arg_ (values) RPAREN.
+{
+    lhs = _new_target_;
+    driver->fillFunctionValues<_value_type_>
+    (
+        *lhs,
+        make_obj(name.name_),
+        make_obj(values)
+    );
+}
+
+
+/*---------------------------------------------------------------------------*\
+ * Productions (surfaceVectorField)
+dnl
+define([_scalar_arg_],  [ssfield])dnl
+define([_target_],      [svfield])dnl
+define([_new_target_],  [_new_svfield])dnl
+define([_value_type_],  [Foam::vector])dnl
+dnl
+\*---------------------------------------------------------------------------*/
+
+evaluate ::= _target_ (a) . { driver->setResult(a); }
+
+rule_field_from_value(_target_, vvalue, FACE_EXPR)
+rule_get_field(_target_, SVECTOR_ID)
+
+rules_standard(_target_, _value_type_, _logic_)
+rules_inplace_gUnary(_target_)
+rules_vector_operations()
+rules_vector_functions()
+
+_target_ (lhs) ::= VECTOR_FUNCTION_ID (name) LPAREN _scalar_arg_ (values) RPAREN.
+{
+    lhs = _new_target_;
+    driver->fillFunctionValues<_value_type_>
+    (
+        *lhs,
+        make_obj(name.name_),
+        make_obj(values)
+    );
+}
+
+
+/*---------------------------------------------------------------------------*\
+ * Productions (surfaceSphericalTensorField)
+dnl
+define([_scalar_arg_],  [ssfield])dnl
+define([_target_],      [shfield])dnl
+define([_value_type_],  [Foam::sphericalTensor])dnl
+dnl
+\*---------------------------------------------------------------------------*/
+
+evaluate ::= _target_ (a) . { driver->setResult(a); }
+
+rule_get_field(_target_, SSPH_TENSOR_ID)
+rules_standard(_target_, _value_type_, _logic_)
+rules_inplace_gUnary(_target_)
+rules_sphTensor_operations()
+rules_sphTensor_functions()
+
+
+/*---------------------------------------------------------------------------*\
+ * Productions (surfaceSymmTensorField)
+dnl
+define([_scalar_arg_],  [ssfield])dnl
+define([_target_],      [syfield])dnl
+define([_value_type_],  [Foam::symmTensor])dnl
+dnl
+\*---------------------------------------------------------------------------*/
+
+evaluate ::= _target_ (a) . { driver->setResult(a); }
+
+rule_get_field(_target_, SSYM_TENSOR_ID)
+
+rules_standard(_target_, _value_type_, _logic_)
+rules_inplace_gUnary(_target_)
+rules_symTensor_operations()
+rules_symTensor_functions()
+
+
+/*---------------------------------------------------------------------------*\
+ * Productions (surfaceTensorField)
+dnl
+define([_scalar_arg_],  [ssfield])dnl
+define([_target_],      [stfield])dnl
+define([_value_type_],  [Foam::tensor])dnl
+dnl
+\*---------------------------------------------------------------------------*/
+
+evaluate ::= _target_ (a) . { driver->setResult(a); }
+
+rule_get_field(_target_, STENSOR_ID)
+
+rules_standard(_target_, _value_type_, _logic_)
+rules_inplace_gUnary(_target_)
+rules_tensor_operations()
+rules_tensor_functions()
+
+
+/*---------------------------------------------------------------------------*\
+ * Logic field productions (surfaceScalarField)
+dnl
+define([_target_],      [slfield])dnl
+define([_value_type_],  [Foam::scalar])dnl
+dnl
+\*---------------------------------------------------------------------------*/
+
+evaluate ::= _target_ (a) . { driver->setResult(a, true); /* Logical */ }
+
+_logic_ (lhs) ::= FACE_EXPR LPAREN LTRUE RPAREN .  { lhs = _new_slfield(_logic_true_); }
+_logic_ (lhs) ::= FACE_EXPR LPAREN LFALSE RPAREN . { lhs = _new_slfield(_logic_false_); }
+
+rule_cast_logical(_target_, _target_)
+rule_cast_logical(_target_, _scalar_, Foam::scalar)
+
+rules_logical_operations(_logic_, _value_type_)
+
+
+/*---------------------------------------------------------------------------*\
+ * General Surface-related productions
+\*---------------------------------------------------------------------------*/
+
+rules_driver_surface_functions()
+
+dnl> %endif
+// End disable_surface_fields
+
+
+/* * * * * * * * * * * * * * * * Point Fields  * * * * * * * * * * * * * * * *\
+dnl
+define([_logic_],       [plfield])dnl
+define([_scalar_],      [psfield])dnl
+define([_vector_],      [pvfield])dnl
+define([_sphTensor_],   [phfield])dnl
+define([_symTensor_],   [pyfield])dnl
+define([_tensor_],      [ptfield])dnl
+dnl
+dnl Several functions are incomplete for point fields
+dnl
+pushdef([incomplete_rule_unary_func], [])
+pushdef([incomplete_rule_binary_func], [])
+\* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+dnl> %ifndef disable_point_fields
+
+/*---------------------------------------------------------------------------*\
+ * Productions (pointScalarField)
+dnl
+define([_scalar_arg_],  [psfield])dnl
+define([_target_],      [psfield])dnl
+define([_new_target_],  [_new_psfield])dnl
+define([_value_type_],  [Foam::scalar])dnl
+dnl
+\*---------------------------------------------------------------------------*/
+
+evaluate ::= _target_ (a) . { driver->setResult(a); }
+
+rule_field_from_value(_target_, svalue, POINT_EXPR)
+rule_get_field(_target_, PSCALAR_ID)
+
+rules_standard(_target_, _value_type_, _logic_)
+rules_inplace_gUnary(_target_)
+
+// Non-standard but manage via FieldOps::assign
+rule_unary_assign(_target_, _target_, FLOOR, Foam::floorOp<_value_type_>())
+rule_unary_assign(_target_, _target_, CEIL, Foam::ceilOp<_value_type_>())
+rule_unary_assign(_target_, _target_, ROUND, Foam::roundOp<_value_type_>())
+
+// Non-standard but manage via FieldOps::assign
+rule_binary_assign(_target_, _target_, _target_, HYPOT, Foam::hypotOp<_value_type_>())
+
+_target_ (lhs) ::= SCALAR_FUNCTION_ID (name) LPAREN _scalar_arg_ (values) RPAREN.
+{
+    lhs = _new_target_;
+    driver->fillFunctionValues<_value_type_>
+    (
+        *lhs,
+        make_obj(name.name_),
+        make_obj(values)
+    );
+}
+
+
+/*---------------------------------------------------------------------------*\
+ * Some special handling for point fields.
+ * Some operators are incomplete, or ambiguous.
+ * Just calculate directly on the primitiveField, which is not as bad as it
+ * sounds since most of the pointPatchField operators are dummies (no-op)
+ * anyhow.
+dnl
+pushdef([rule_binary_op],
+[$1 (lhs) ::= $2 (a) $4 $3 (b) .
+{
+    lhs = _new_$1();
+    (*lhs).primitiveFieldRef() =
+        (make_obj(a).primitiveField() $5 make_obj(b).primitiveField());
+}]
+)dnl>
+dnl
+pushdef([rule_unary_func],
+[$1 (lhs) ::= $3 LPAREN $2 (a) RPAREN .
+{
+    lhs = _new_$1();
+    (*lhs).primitiveFieldRef() = $4 (make_obj(a).primitiveField());
+}]
+)dnl>
+dnl
+pushdef([rule_binary_func],
+[$1 (lhs) ::= $4 LPAREN $2 (a) COMMA $3 (b) RPAREN .
+{
+    lhs = _new_$1();
+    (*lhs).primitiveFieldRef() =
+        $5(make_obj(a).primitiveField(), make_obj(b).primitiveField());
+}]
+)dnl>
+dnl
+\*---------------------------------------------------------------------------*/
+
+rules_scalar_operations()
+rules_scalar_functions()
+
+dnl/* Restore definitions
+popdef([rule_binary_op])dnl
+popdef([rule_unary_func])dnl
+popdef([rule_binary_func])dnl
+popdef([incomplete_rule_unary_func])dnl
+popdef([incomplete_rule_binary_func])dnl
+dnl*/
+
+
+/*---------------------------------------------------------------------------*\
+ * Productions (pointVectorField)
+dnl
+define([_scalar_arg_],  [psfield])dnl
+define([_target_],      [pvfield])dnl
+define([_new_target_],  [_new_pvfield])dnl
+define([_value_type_],  [Foam::vector])dnl
+dnl
+\*---------------------------------------------------------------------------*/
+
+evaluate ::= _target_ (a) . { driver->setResult(a); }
+
+rule_field_from_value(_target_, vvalue, POINT_EXPR)
+rule_get_field(_target_, PVECTOR_ID)
+
+rules_standard(_target_, _value_type_, _logic_)
+rules_inplace_gUnary(_target_)
+rules_vector_operations()
+rules_vector_functions()
+
+_target_ (lhs) ::= VECTOR_FUNCTION_ID (name) LPAREN _scalar_arg_ (values) RPAREN.
+{
+    lhs = _new_target_;
+    driver->fillFunctionValues<_value_type_>
+    (
+        *lhs,
+        make_obj(name.name_),
+        make_obj(values)
+    );
+}
+
+/*---------------------------------------------------------------------------*\
+ * Productions (pointSphericalTensorField)
+dnl
+define([_scalar_arg_],  [psfield])dnl
+define([_target_],      [phfield])dnl
+define([_value_type_],  [Foam::sphericalTensor])dnl
+dnl
+\*---------------------------------------------------------------------------*/
+
+evaluate ::= _target_ (a) . { driver->setResult(a); }
+
+rule_get_field(_target_, PSPH_TENSOR_ID)
+
+rules_standard(_target_, _value_type_, _logic_)
+rules_inplace_gUnary(_target_)
+rules_sphTensor_operations()
+rules_sphTensor_functions()
+
+
+/*---------------------------------------------------------------------------*\
+ * Productions (pointSymmTensorField)
+dnl
+define([_scalar_arg_],  [psfield])dnl
+define([_target_],      [pyfield])dnl
+define([_value_type_],  [Foam::symmTensor])dnl
+dnl
+\*---------------------------------------------------------------------------*/
+
+evaluate ::= _target_ (a) . { driver->setResult(a); }
+
+rule_get_field(_target_, PSYM_TENSOR_ID)
+
+rules_standard(_target_, _value_type_, _logic_)
+rules_inplace_gUnary(_target_)
+rules_symTensor_operations()
+rules_symTensor_functions()
+
+
+/*---------------------------------------------------------------------------*\
+ * Productions (pointTensorField)
+dnl
+define([_scalar_arg_],  [psfield])dnl
+define([_target_],      [ptfield])dnl
+define([_value_type_],  [Foam::tensor])dnl
+dnl
+\*---------------------------------------------------------------------------*/
+
+evaluate ::= _target_ (a) . { driver->setResult(a); }
+
+rule_get_field(_target_, PTENSOR_ID)
+
+rules_standard(_target_, _value_type_, _logic_)
+rules_inplace_gUnary(_target_)
+rules_tensor_operations()
+rules_tensor_functions()
+
+/*---------------------------------------------------------------------------*\
+ * Logic field productions (pointScalarField)
+dnl
+define([_target_],      [plfield])dnl
+define([_value_type_],  [Foam::scalar])dnl
+dnl
+\*---------------------------------------------------------------------------*/
+
+evaluate ::= _target_ (a) . { driver->setResult(a, true); /* Logical */ }
+
+_logic_ (lhs) ::= POINT_EXPR LPAREN LTRUE RPAREN .  { lhs = _new_plfield(_logic_true_); }
+_logic_ (lhs) ::= POINT_EXPR LPAREN LFALSE RPAREN . { lhs = _new_plfield(_logic_false_); }
+rules_logical_operations(_logic_, _value_type_)
+
+
+/*---------------------------------------------------------------------------*\
+ * General Point-related productions
+\*---------------------------------------------------------------------------*/
+
+rules_driver_point_functions()
+
+dnl> %endif
+// End disable_point_fields
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+/*---------------------------------------------------------------------------*\
+ * Volume field composition
+\*---------------------------------------------------------------------------*/
+
+rule_mag_logical(sfield, lfield)
+rules_mag_functions(sfield, sfield)
+rules_mag_functions(sfield, vfield)
+rules_mag_functions(sfield, tfield)
+rules_mag_functions(sfield, yfield)
+rules_mag_functions(sfield, hfield)
+
+rule_vector_zip(vfield, sfield, VECTOR)
+rule_tensor_zip(tfield, sfield, TENSOR)
+rule_symTensor_zip(yfield, sfield, SYM_TENSOR)
+rule_sphTensor_zip(hfield, sfield, SPH_TENSOR)
+
+rule_vector_components(sfield, vfield)
+rule_tensor_components(sfield, tfield)
+rule_symTensor_components(sfield, yfield)
+rule_sphTensor_components(sfield, hfield)
+
+rule_tensor_transpose(tfield)
+rule_symTensor_transpose(yfield)
+rule_sphTensor_transpose(hfield)
+
+rule_tensor_unzipDiag(vfield, yfield)
+rule_tensor_unzipAll(vfield, tfield)
+
+rule_pointToCell(sfield, psfield)
+rule_pointToCell(vfield, pvfield)
+rule_pointToCell(tfield, ptfield)
+rule_pointToCell(yfield, pyfield)
+rule_pointToCell(hfield, phfield)
+
+vfield (lhs) ::= RECONSTRUCT LPAREN ssfield (a) RPAREN.
+{
+    lhs = Foam::fvc::reconstruct(make_obj(a)).ptr();
+}
+
+
+/*---------------------------------------------------------------------------*\
+ * Surface field composition
+\*---------------------------------------------------------------------------*/
+
+rule_mag_logical(ssfield, slfield)
+rules_mag_functions(ssfield, ssfield)
+rules_mag_functions(ssfield, svfield)
+rules_mag_functions(ssfield, stfield)
+rules_mag_functions(ssfield, syfield)
+rules_mag_functions(ssfield, shfield)
+
+rule_vector_zip(svfield, ssfield, VECTOR)
+rule_tensor_zip(stfield, ssfield, TENSOR)
+rule_symTensor_zip(syfield, ssfield, SYM_TENSOR)
+rule_sphTensor_zip(shfield, ssfield, SPH_TENSOR)
+
+rule_vector_components(ssfield, svfield)
+rule_tensor_components(ssfield, stfield)
+rule_symTensor_components(ssfield, syfield)
+rule_sphTensor_components(ssfield, shfield)
+
+rule_tensor_transpose(stfield)
+rule_symTensor_transpose(syfield)
+rule_sphTensor_transpose(shfield)
+
+rule_tensor_unzipDiag(svfield, syfield)
+rule_tensor_unzipAll(svfield, stfield)
+
+rule_cellToFace(ssfield, sfield)
+rule_cellToFace(svfield, vfield)
+rule_cellToFace(stfield, tfield)
+rule_cellToFace(syfield, yfield)
+rule_cellToFace(shfield, hfield)
+
+
+/*---------------------------------------------------------------------------*\
+ * Point field composition
+ * - Use primitiveField directly
+dnl
+pushdef([field_write_access], [($1).primitiveFieldRef()])dnl
+pushdef([field_read_access], [($1).primitiveField()])dnl
+dnl
+\*---------------------------------------------------------------------------*/
+
+rule_mag_logical(psfield, plfield)
+rules_mag_functions(psfield, psfield)
+rules_mag_functions(psfield, pvfield)
+rules_mag_functions(psfield, ptfield)
+rules_mag_functions(psfield, pyfield)
+rules_mag_functions(psfield, phfield)
+
+rule_vector_zip(pvfield, psfield, VECTOR)
+rule_tensor_zip(ptfield, psfield, TENSOR)
+rule_symTensor_zip(pyfield, psfield, SYM_TENSOR)
+rule_sphTensor_zip(phfield, psfield, SPH_TENSOR)
+
+rule_vector_components(psfield, pvfield)
+rule_tensor_components(psfield, ptfield)
+rule_symTensor_components(psfield, pyfield)
+rule_sphTensor_components(psfield, phfield)
+
+rule_tensor_transpose(ptfield)
+rule_symTensor_transpose(pyfield)
+rule_sphTensor_transpose(phfield)
+
+rule_tensor_unzipDiag(pvfield, pyfield)
+rule_tensor_unzipAll(pvfield, ptfield)
+
+rule_cellToPoint(psfield, sfield)
+rule_cellToPoint(pvfield, vfield)
+rule_cellToPoint(ptfield, tfield)
+rule_cellToPoint(pyfield, yfield)
+rule_cellToPoint(phfield, hfield)
+
+
+dnl/* Restore definitions
+popdef([field_write_access])dnl
+popdef([field_read_access])dnl
+dnl*/
+
+// ************************************************************************* //
+
+/*
+ * include m4/lemon/parser-methods.m4
+include([m4/lemon/parser-methods.m4])dnl
+dnl Can revert to standard m4 quoting
+dnl ... Or not changequote([`],['])dnl Revert to standard m4 quoting
+ */
+
+
+%code
+{
+
+// * * * * * * * * * * * * * Static Member Functions * * * * * * * * * * * * //
+
+parser_code_static_methods(Foam::expressions::volumeExpr::parser)
+
+
+// * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
+
+void Foam::expressions::volumeExpr::parser::stop()
+{
+    if (lemon_)
+    {
+        ParseFree(lemon_, ::operator delete);
+        #ifndef NDEBUG
+        ParseTrace(nullptr, nullptr);
+        #endif
+        lemon_ = nullptr;
+    }
+}
+
+
+void Foam::expressions::volumeExpr::parser::start(parseDriver& driver_)
+{
+    this->stop();
+    lemon_ = ParseAlloc(::operator new, &driver_);
+
+    if ((debug & 0x4) || driver_.debugParser())
+    {
+        #ifndef NDEBUG
+        ParseTrace(stderr, const_cast<char*>(prompt_));
+        #endif
+    }
+}
+
+
+void Foam::expressions::volumeExpr::parser::parse(int tokenId)
+{
+    Parse(lemon_, tokenId, scanToken::null());
+}
+
+
+void Foam::expressions::volumeExpr::parser::parse(int tokenId, scanToken tok)
+{
+    Parse(lemon_, tokenId, tok);
+}
+
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+}  // End of %code
+
+// ************************************************************************* //

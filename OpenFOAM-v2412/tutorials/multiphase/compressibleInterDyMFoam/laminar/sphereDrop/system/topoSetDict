@@ -1,0 +1,256 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      topoSetDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+actions
+(
+    // 1. Create cellZones
+
+    // Create cellSet topBlock from cellZone topBlock created by blockMesh
+    {
+        name    topBlockCells;
+        type    cellSet;
+        action  new;
+        source  zoneToCell;
+        zone    topBlock;
+    }
+
+    // Create cellSet centralBlock from cellZone centralBlock created by blockMesh
+    {
+        name    centralBlockCells;
+        type    cellSet;
+        action  new;
+        source  zoneToCell;
+        zone    centralBlock;
+    }
+
+    // Create cellSet bottomBlock from cellZone bottomBlock created by blockMesh
+    {
+        name    bottomBlockCells;
+        type    cellSet;
+        action  new;
+        source  zoneToCell;
+        zone    bottomBlock;
+    }
+
+
+    // 2. Get the faces at the top patch
+
+    // Get all the faces in the top patch
+    {
+        name    top;
+        type    faceSet;
+        action  new;
+        source  patchToFace;
+        patch   top;
+    }
+
+    // Only keep those that border the top block topBlock
+    {
+        name    top;
+        type    faceSet;
+        action  subset;
+        source  cellToFace;
+        set     topBlockCells;
+        option  all;
+    }
+
+    // Convert top from faceSet to faceZone
+    {
+        name    top;
+        type    faceZoneSet;
+        action  new;
+        source  setAndNormalToFaceZone;
+        faceSet top;
+        normal  (0 -1 0);
+    }
+
+
+    // 3. Get the faces on the border of cellZones topBlock and centralBlock
+
+    // Get all faces in topBlock
+    {
+        name    centralTopFaces;
+        type    faceSet;
+        action  new;
+        source  cellToFace;
+        set     topBlockCells;
+        option  all;
+    }
+
+    // Get the faces that border topBlock and centralBlock
+    {
+        name    centralTopFaces;
+        type    faceSet;
+        action  subset;
+        source  cellToFace;
+        set     centralBlockCells;
+        option  all;
+    }
+
+    // Convert topBlockFaces from faceSet to faceZone
+    {
+        name    centralTopFaces;
+        type    faceZoneSet;
+        action  new;
+        source  setsToFaceZone;
+        faceSet centralTopFaces;
+        cellSet topBlockCells;
+    }
+
+
+    // 4. Get all the faces on the border of cellZones centralBlock and
+    //    bottomBlock
+
+    // Get all faces in bottomBlock
+    {
+        name    centralBottomFaces;
+        type    faceSet;
+        action  new;
+        source  cellToFace;
+        set     bottomBlockCells;
+        option  all;
+    }
+
+    // Get the faces that border centralBlock and bottomBlock
+    {
+        name    centralBottomFaces;
+        type    faceSet;
+        action  subset;
+        source  cellToFace;
+        set     centralBlockCells;
+        option  all;
+    }
+
+    // Convert centralBottomFaces from faceSet to faceZone
+    {
+        name    centralBottomFaces;
+        type    faceZoneSet;
+        action  new;
+        source  setsToFaceZone;
+        faceSet centralBottomFaces;
+        cellSet centralBlockCells;
+    }
+
+
+    // 5. Get the faces at bottom patch
+
+    // Get all the faces in the bottom patch
+    {
+        name    bottom;
+        type    faceSet;
+        action  new;
+        source  patchToFace;
+        patch   bottom;
+    }
+
+    // Only keep those that border the bottom block bottomBlockCells
+    {
+        name    bottom;
+        type    faceSet;
+        action  subset;
+        source  cellToFace;
+        set     bottomBlockCells;
+        option  all;
+    }
+
+    // Convert bottom from faceSet to faceZone
+    {
+        name    bottom;
+        type    faceZoneSet;
+        action  new;
+        source  setAndNormalToFaceZone;
+        faceSet bottom;
+        normal  (0 1 0);
+    }
+
+
+    // AJH New - create additional face zones to enable solid body motion
+    // for the majority of the action area around the sphere, and only apply
+    // layer addition-removal (LAR) at the extremities
+
+    // create cell zone at top of domain for LAR region
+    {
+        name    LARTopCells;
+        type    cellSet;
+        action  new;
+        source  cellToCell;
+        set     topBlockCells;
+    }
+    {
+        name    LARTopCells;
+        type    cellSet;
+        action  subset;
+        source  boxToCell;
+        box     (-100 0.95 -100)(100 100 100);
+    }
+    {
+        name    LARTopCells;
+        type    cellZoneSet;
+        action  new;
+        source  setToCellZone;
+        set     LARTopCells;
+    }
+
+    // upate old topBlock cellZone
+    {
+        name    topBlockCells;
+        type    cellSet;
+        action  subtract;
+        source  cellToCell;
+        set     LARTopCells;
+    }
+    {
+        name    topBlock;
+        type    cellZoneSet;
+        action  remove;
+    }
+    {
+        name    topBlock;
+        type    cellZoneSet;
+        action  new;
+        source  setToCellZone;
+        set     topBlockCells;
+    }
+
+    // generate face zone between LARTopCells and topBlockCells cellSets
+    {
+        name    LARTopFaces;
+        type    faceSet;
+        action  new;
+        source  cellToFace;
+        set     LARTopCells;
+        option  all;
+    }
+    {
+        name    LARTopFaces;
+        type    faceSet;
+        action  subset;
+        source  cellToFace;
+        set     topBlockCells;
+        option  all;
+    }
+    {
+        name    LARTopFaces;
+        type    faceZoneSet;
+        action  new;
+        source  setsToFaceZone;
+        faceSet LARTopFaces;
+        cellSet topBlockCells;
+    }
+);
+
+
+// ************************************************************************* //

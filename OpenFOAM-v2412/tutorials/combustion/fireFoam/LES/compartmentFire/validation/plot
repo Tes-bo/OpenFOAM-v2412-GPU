@@ -1,0 +1,89 @@
+#!/bin/bash
+
+createEpsT()
+{
+    OF=$1
+    OFPROBE=$2
+    EXPT=$3
+    EXPPROBE=$4
+    OUTPUT=$5
+
+    gnuplot<<EOF
+    set terminal postscript default
+    set output "($OUTPUT) OF_vs_EXPT($EXPPROBE).eps"
+    set xlabel "time [sec]"
+    set ylabel "$OUTPUT"
+    set grid
+
+    plot \
+        '$EXPT' using 1:$4 title "Exp (probe $EXPPROBE)" , \
+        '$OF' using 1:(\$$OFPROBE - 273) title "OpenFOAM"
+EOF
+}
+
+
+# Require gnuplot
+command -v gnuplot >/dev/null || {
+    echo "gnuplot not found - skipping graph creation" 1>&2
+    exit 1
+}
+
+SETSDIRT="../postProcessing/thermoCouple"
+
+[ -d $SETSDIRT ] || echo "No probe data available to create graphs" && exit 1
+
+arr=(`ls $SETSDIRT`)
+OFDATAROOTT="$SETSDIRT/${arr[0]}"
+
+# paths to data
+EXPTDATAROOT=./Probes/Temperature
+
+DATAFILET="$EXPTDATAROOT/temperature.dat"
+
+# generate temperature profiles
+OF="$OFDATAROOTT/T"
+EXPT="$DATAFILET"
+
+echo $OF
+echo $EXPT
+
+#
+
+#createEpsT $OF 2 $EXPT 12 Temperature
+#createEpsT $OF 3 $EXPT 10 Temperature
+#createEpsT $OF 5 $EXPT 3 Temperature
+
+createEpsT $OF 6 $EXPT 18 Temperature
+createEpsT $OF 7 $EXPT 19 Temperature
+createEpsT $OF 8 $EXPT 20 Temperature
+
+#createEpsT $OF 9 $EXPT 13 Temperature
+#createEpsT $OF 10 $EXPT 2 Temperature
+#createEpsT $OF 11 $EXPT 17 Temperature
+#createEpsT $OF 12 $EXPT 16 Temperature
+#createEpsT $OF 13 $EXPT 15 Temperature
+#createEpsT $OF 14 $EXPT 14 Temperature
+
+
+SETSDIRT="../postProcessing/probes_O2"
+arr=(`ls $SETSDIRT`)
+OFDATAROOTT="$SETSDIRT/${arr[0]}/O2"
+
+# paths to data
+EXPTDATAROOT=./Probes/Oxygen/oxygen.dat
+
+#createEpsT $OFDATAROOTT 3 $EXPTDATAROOT 2 O2
+#createEpsT $OFDATAROOTT 2 $EXPTDATAROOT 3 O2
+
+#SETSDIRT="../postProcessing/patchInlet_phi"
+#arr=(`ls $SETSDIRT`)
+#OFDATAROOTT="$SETSDIRT/${arr[0]}/faceSource.dat"
+
+# paths to data
+#EXPTDATAROOT=./Probes/phi/massInlet.dat
+
+#createEpsT $OFDATAROOTT 2 $EXPTDATAROOT 3 MassInlet
+
+echo Done
+
+#------------------------------------------------------------------------------

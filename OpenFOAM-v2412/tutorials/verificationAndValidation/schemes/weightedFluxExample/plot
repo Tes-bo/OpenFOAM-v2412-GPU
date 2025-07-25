@@ -1,0 +1,88 @@
+#!/bin/bash
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+# Plot temperature, heat flux vs analytical
+
+graphDir="postProcessing/singleGraph"
+
+#------------------------------------------------------------------------------
+
+plotTemperature() {
+    graphName="Tprofile.png"
+    echo "Creating temperature profile graph to $graphName"
+    gnuplot<<GNUPLOT
+    set terminal pngcairo font "Helvetica,12" size 800,600
+    set title "Temperature profile" font "Helvetica,12"
+
+    set key bottom right
+    set xlabel "z" font "Helvetica,12"
+    set ylabel "Temperature" font "Helvetica,16"
+    set output "$graphName"
+
+    set logscale y
+    set format y "10^{%L}"
+    set key font ",12"
+
+    set lmargin 10
+    set rmargin 1.5
+    set bmargin 3.2
+
+    s1=1
+    s2=1e6
+
+    fo(x)=s1/(s1+s2)+s2*x/(s1+s2)
+    fu(x)=s1/(s1+s2)+s1*x/(s1+s2)
+
+    plot \
+    (x<=0)?fu(x):fo(x) w l lc 0 t 'analytical solution', \
+    "$graphDir/1/line_T_flux.xy" u 1:2 w p pt 2 ps 2 lt rgb "red" t 'linear interpolation', \
+    "$graphDir/2/line_T_flux.xy" u 1:2 w p pt 6 ps 2 lt rgb "green" t 'harmonic interpolation'
+GNUPLOT
+}
+
+
+plotHeatFlux() {
+    graphName="heatFlux.png"
+    echo "Creating heat-flux graph to $graphName"
+    gnuplot<<GNUPLOT
+    set terminal pngcairo font "Helvetica,12" size 800,600
+    set title "Heat Flux" font "Helvetica,16"
+
+    set key top right
+    set xlabel "z" font "Helvetica,12"
+    set output "$graphName"
+
+    set logscale y
+    set format y "10^{%L}"
+    set key font ",12"
+
+    set lmargin 10
+    set rmargin 1.5
+    set bmargin 3.2
+
+    plot \
+    "$graphDir/1/line_T_flux.xy" u 1:5 w p pt 6 ps 2 lt rgb "red" t 'laplacian: linear, grad: linear', \
+    "$graphDir/2/line_T_flux.xy" u 1:5 w p pt 2 ps 2 lt rgb "blue" t 'laplacian: harmonic, grad: linear', \
+    "$graphDir/3/line_T_flux.xy" u 1:5 w l lt rgb "green" t 'laplacian: harmonic, grad: weightedFlux'
+GNUPLOT
+}
+
+
+if notTest "$@"
+then
+    # Create validation plots
+
+    # Require gnuplot
+    command -v gnuplot >/dev/null || {
+        echo "gnuplot not found - skipping graph creation" 1>&2
+        exit 1
+    }
+
+    plotTemperature
+
+    plotHeatFlux
+fi
+
+# ------------------------------------------------------------------------------

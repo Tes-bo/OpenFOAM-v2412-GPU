@@ -1,0 +1,54 @@
+/* Region models */
+regionFaModel/regionFaModel.C
+thermalShellModel/thermalShellModel.C
+thermalShellModel/thermalShellModelNew.C
+vibrationShellModel/vibrationShellModel.C
+vibrationShellModel/vibrationShellModelNew.C
+
+/* Shell models */
+thermalShell/thermalShell.C
+KirchhoffShell/KirchhoffShell.C
+
+/* Boundary conditions */
+derivedFvPatchFields/thermalShell/thermalShellFvPatchScalarField.C
+derivedFvPatchFields/vibrationShell/vibrationShellFvPatchScalarField.C
+
+/* Sub-Model */
+
+kinematic = liquidFilm/subModels/kinematic
+
+$(kinematic)/filmTurbulenceModel/filmTurbulenceModel/filmTurbulenceModel.C
+$(kinematic)/filmTurbulenceModel/filmTurbulenceModel/filmTurbulenceModelNew.C
+$(kinematic)/filmTurbulenceModel/laminar/laminar.C
+
+$(kinematic)/injectionModel/injectionModelList/injectionModelList.C
+$(kinematic)/injectionModel/injectionModel/injectionModel.C
+$(kinematic)/injectionModel/injectionModel/injectionModelNew.C
+
+$(kinematic)/injectionModel/filmSeparation/filmSeparation.C
+$(kinematic)/injectionModel/filmSeparation/filmSeparationModels/filmSeparationModel/filmSeparationModel.C
+$(kinematic)/injectionModel/filmSeparation/filmSeparationModels/filmSeparationModel/filmSeparationModelNew.C
+$(kinematic)/injectionModel/filmSeparation/filmSeparationModels/OwenRyleyModel/OwenRyleyModel.C
+$(kinematic)/injectionModel/filmSeparation/filmSeparationModels/FriedrichModel/FriedrichModel.C
+
+$(kinematic)/injectionModel/BrunDrippingInjection/BrunDrippingInjection.C
+
+$(kinematic)/force/forceList/forceList.C
+$(kinematic)/force/force/force.C
+$(kinematic)/force/force/forceNew.C
+$(kinematic)/force/contactAngleForces/contactAngleForce/contactAngleForce.C
+$(kinematic)/force/contactAngleForces/dynamicContactAngleForce/dynamicContactAngleForce.C
+
+liquidFilm/subModels/filmSubModelBase.C
+
+liquidFilm/liquidFilmBase.C
+liquidFilm/liquidFilmBaseNew.C
+
+liquidFilm/liquidFilmModel/liquidFilmModel.C
+liquidFilm/kinematicThinFilm/kinematicThinFilm.C
+derivedFvPatchFields/filmShell/velocityFilmShellFvPatchVectorField.C
+
+functionObjects/setTimeStep/setTimeStepFaRegionsFunctionObject.C
+functionObjects/surfaceCourantNumber/surfaceCourantNumber.C
+
+LIB = $(FOAM_LIBBIN)/libregionFaModels

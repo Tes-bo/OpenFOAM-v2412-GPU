@@ -1,0 +1,4 @@
+solidRegionDiffNo.C
+solidFoam.C
+
+EXE = $(FOAM_APPBIN)/solidFoam

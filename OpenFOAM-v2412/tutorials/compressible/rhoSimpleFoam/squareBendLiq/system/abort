@@ -1,0 +1,17 @@
+// -*- C++ -*-
+
+abort
+{
+    type    abort;
+    libs    (utilityFunctionObjects);
+
+    file    "<case>/ABORT";   // Instead of default name
+
+    // action  writeNow;         // If we want to see immediate results
+
+    // Or use default (nextWrite) and force with
+    // "action=writeNow" in the trigger file
+}
+
+
+// ************************************************************************* //

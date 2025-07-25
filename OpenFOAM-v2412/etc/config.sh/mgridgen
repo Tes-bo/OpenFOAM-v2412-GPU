@@ -1,0 +1,42 @@
+#----------------------------------*-sh-*--------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2017 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# File
+#     etc/config.sh/mgridgen
+#     - sourced during wmake process only.
+#
+# Description
+#     Setup for MGRIDGEN include/libraries (usually ThirdParty installation).
+#
+#     Normally used to specify the MGridGen version and location for a
+#     ThirdParty installation.
+#
+#     To disable its use:               MGRIDGEN_VERSION=mgridgen-none
+#     For system-wide installations:    MGRIDGEN_VERSION=mgridgen-system
+#
+#     For central installations not located under ThirdParty:
+#       1. use mgridgen-system
+#       2. and provide full path for MGRIDGEN_ARCH_PATH
+#
+# Note
+#     No csh version. This file is only used by wmake.
+#
+#     Can also disable by renaming/removing this file or by creating an empty
+#     file with the same name at a user or site location.
+#------------------------------------------------------------------------------
+# USER EDITABLE PART: Changes made here may be lost with the next upgrade
+
+MGRIDGEN_VERSION=ParMGridGen-1.0
+export MGRIDGEN_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER$WM_PRECISION_OPTION$WM_LABEL_OPTION/$MGRIDGEN_VERSION
+
+# END OF (NORMAL) USER EDITABLE PART
+#------------------------------------------------------------------------------

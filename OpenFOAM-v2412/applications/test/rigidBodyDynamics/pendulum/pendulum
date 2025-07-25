@@ -1,0 +1,39 @@
+bodies0
+{
+    pendulum
+    {
+        type            rigidBody;
+        mass            1;
+        //centreOfMass    (0 -1 0);
+        inertia         (0.001 0 0 0.001 0 0.001);
+        parent          root;
+        transform       (1 0 0 0 1 0 0 0 1) (0 0 0);
+        joint
+        {
+            type            Rz;
+        }
+    }
+}
+
+bodies
+{
+    hinge
+    {
+        type            masslessBody;
+        parent          root;
+        transform       (1 0 0 0 1 0 0 0 1) (0 0 0);
+        joint
+        {
+            type            Rz;
+        }
+    }
+    weight
+    {
+        type            sphere;
+        mass            1;
+        radius          0.05;
+        centreOfMass    (0 10 0);   // used with mass+radius to set intertia
+        transform       (1 0 0 0 1 0 0 0 1) (0 -1 0);
+        mergeWith       hinge;
+    }
+}

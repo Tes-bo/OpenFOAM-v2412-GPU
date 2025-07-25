@@ -1,0 +1,200 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2018-2022 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     tools/lib-dir [OPTION] DIR [LIBEXT]
+#
+# Description
+#     Since csh/tcsh doesn't have functions, this script can be used to manage
+#     slightly more complex logic.
+#
+#     Resolves for the existence of DIR/lib64 and DIR/lib, or uses the fallback
+#     LIBEXT if these failed. A DIR ending in "-none" or "-system" is skipped.
+#
+#     output -csh:     setenv LD_LIBRARY_PATH dir/lib:$LD_LIBRARY_PATH
+#     output -sh:      LD_LIBRARY_PATH=dir/lib:$LD_LIBRARY_PATH
+#     output -make:    -Ldir/lib
+#
+# Note
+#     LD_LIBRARY_PATH automatically changes to DYLD_LIBRARY_PATH for Darwin.
+#
+# Environment
+#     WM_COMPILER_LIB_ARCH
+#
+#------------------------------------------------------------------------------
+printHelp() {
+    cat<<USAGE
+
+Usage: ${0##*/} [OPTION] DIR [LIBEXT]
+
+options:
+  -sh               Emit POSIX shell syntax (default)
+  -csh              Emit C-shell shell syntax
+  -sh-verbose       Like -sh,  with additional verbosity
+  -csh-verbose      Like -csh, with additional verbosity
+  -make             Emit content for a Makefile
+  -help             Print the usage
+
+Resolves for the existence of DIR/lib64 and DIR/lib, or uses the fallback
+LIBEXT if these failed. A DIR ending in "-none" or "-system" is skipped.
+
+With -sh             LD_LIBRARY_PATH=dir/lib:\$LD_LIBRARY_PATH
+With -csh            setenv LD_LIBRARY_PATH dir/lib:\$LD_LIBRARY_PATH
+With -make           -Ldir/lib
+
+Exit status is zero (success) or non-zero (failure)
+USAGE
+    exit 0  # A clean exit
+}
+
+# Report error and exit
+die()
+{
+    exec 1>&2
+    echo
+    echo "Error encountered:"
+    while [ "$#" -ge 1 ]; do echo "    $1"; shift; done
+    echo
+    echo "See '${0##*/} -help' for usage"
+    echo
+    exit 1
+}
+
+
+#------------------------------------------------------------------------------
+
+optSyntax="sh"
+unset verboseOutput
+
+# Parse options
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    -h | -help*)
+        printHelp
+        ;;
+    -csh | -sh | -make)
+        optSyntax="${1#-}"
+        unset verboseOutput
+        ;;
+    -csh-verbose | -sh-verbose)
+        optSyntax="${1#-}"
+        verboseOutput="source "         # Report: "export/setenv ..."
+        ;;
+    --)
+        shift
+        break
+        ;;
+    -*)
+        die "unknown option: '$1'"
+        ;;
+    *)
+        break
+        ;;
+    esac
+    shift
+done
+
+#------------------------------------------------------------------------------
+
+dir="$1"   # $1 = base directory for 'lib' or 'lib64'
+alt="$2"   # $2 = fallback libname ('lib' or 'lib64')
+
+unset resolved
+
+# 0)
+# Skip entirely if directory ends in "-none" or "-system".
+# These special cases (disabled, system directories) should not require
+# adjustment of LD_LIBRARY_PATH
+
+case "$dir" in
+none |  system  | *-none | *-system)
+    unset dir
+    ;;
+esac
+
+if [ -z "$dir" ]
+then
+    exit 1
+elif [ -d "$dir" ]
+then
+    # 1) Check for dir/lib64 and dir/lib
+    for end in lib$WM_COMPILER_LIB_ARCH lib
+    do
+        if [ -d "$dir/$end" ]
+        then
+            resolved=$dir/$end
+            break
+        fi
+    done
+fi
+
+# 2) Use fallback if the previous failed
+if [ -z "$resolved" ] && [ -n "$alt" ]
+then
+    # Fallback
+    case "$alt" in
+    /*)
+        resolved="$alt"
+        ;;
+    (*)
+        resolved="$dir/$alt"
+        ;;
+    esac
+    exit 0
+fi
+
+
+if [ -n "$resolved" ]
+then
+    case "$optSyntax-$(uname -s 2>/dev/null)" in
+    make*)
+        printf "%s\n" "-L$resolved"
+        ;;
+    csh-Darwin*)
+        echo "setenv DYLD_LIBRARY_PATH $resolved:$DYLD_LIBRARY_PATH"
+        if [ -n "$verboseOutput" ]
+        then
+            echo "setenv DYLD_LIBRARY_PATH $resolved:$DYLD_LIBRARY_PATH" 1>&2
+        fi
+        ;;
+    csh*)
+        echo "setenv LD_LIBRARY_PATH $resolved:$LD_LIBRARY_PATH"
+        if [ -n "$verboseOutput" ]
+        then
+            echo "setenv LD_LIBRARY_PATH $resolved:$LD_LIBRARY_PATH" 1>&2
+        fi
+        ;;
+    sh-Darwin*)
+        echo "DYLD_LIBRARY_PATH=$resolved:$DYLD_LIBRARY_PATH"
+        if [ -n "$verboseOutput" ]
+        then
+            echo "DYLD_LIBRARY_PATH=$resolved:$DYLD_LIBRARY_PATH" 1>&2
+        fi
+        ;;
+    *)
+        # Default is -sh
+        echo "LD_LIBRARY_PATH=$resolved:$LD_LIBRARY_PATH"
+        if [ -n "$verboseOutput" ]
+        then
+            echo "LD_LIBRARY_PATH=$resolved:$LD_LIBRARY_PATH" 1>&2
+        fi
+        ;;
+    esac
+    exit 0      # Good
+else
+    exit 1      # Error
+fi
+
+
+#------------------------------------------------------------------------------

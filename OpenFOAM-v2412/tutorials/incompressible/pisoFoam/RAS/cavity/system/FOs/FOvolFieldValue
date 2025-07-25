@@ -1,0 +1,162 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+volFieldValue1_none_none
+{
+    // Mandatory entries (unmodifiable)
+    type            volFieldValue;
+    libs            (fieldFunctionObjects);
+
+    // Mandatory entries (runtime modifiable)
+    fields          (p U);
+    operation       none;
+    regionType      all;
+
+    // Optional entries (runtime modifiable)
+    postOperation   none;
+    weightField     none;
+
+    // Optional (inherited) entries
+    writeFields     true;
+    scalingFactor   1.0;
+    writePrecision  8;
+    writeToFile     true;
+    useUserTime     true;
+    region          region0;
+    enabled         true;
+    log             true;
+    timeStart       0;
+    timeEnd         1000;
+    executeControl  timeStep;
+    executeInterval 1;
+    writeControl    writeTime;
+    writeInterval   -1;
+}
+
+
+volFieldValue1_min_none
+{
+    ${volFieldValue1_none_none}
+    operation       min;
+}
+
+
+volFieldValue1_max_none
+{
+    ${volFieldValue1_none_none}
+    operation       max;
+}
+
+
+volFieldValue1_sum_none
+{
+    ${volFieldValue1_none_none}
+    operation       sum;
+}
+
+
+volFieldValue1_sumMag_none
+{
+    ${volFieldValue1_none_none}
+    operation       sumMag;
+}
+
+
+volFieldValue1_average_none
+{
+    ${volFieldValue1_none_none}
+    operation       average;
+}
+
+
+volFieldValue1_volAverage_none
+{
+    ${volFieldValue1_none_none}
+    operation       volAverage;
+}
+
+
+volFieldValue1_volIntegrate_none
+{
+    ${volFieldValue1_none_none}
+    operation       volIntegrate;
+}
+
+
+volFieldValue1_CoV_none
+{
+    ${volFieldValue1_none_none}
+    operation       CoV;
+}
+
+
+volFieldValue1_min_none_cellzone
+{
+    ${volFieldValue1_min_none}
+    regionType      cellZone;
+    name            zone1;
+}
+
+
+volFieldValue1_max_none_cellzone
+{
+    ${volFieldValue1_max_none}
+    regionType      cellZone;
+    name            zone1;
+}
+
+
+volFieldValue1_sum_none_cellzone
+{
+    ${volFieldValue1_sum_none}
+    regionType      cellZone;
+    name            zone1;
+}
+
+
+volFieldValue1_sumMag_none_cellzone
+{
+    ${volFieldValue1_sumMag_none}
+    regionType      cellZone;
+    name            zone1;
+}
+
+
+volFieldValue1_average_none_cellzone
+{
+    ${volFieldValue1_average_none}
+    regionType      cellZone;
+    name            zone1;
+}
+
+
+volFieldValue1_volAverage_none_cellzone
+{
+    ${volFieldValue1_volAverage_none}
+    regionType      cellZone;
+    name            zone1;
+}
+
+
+volFieldValue1_volIntegrate_none_cellzone
+{
+    ${volFieldValue1_volIntegrate_none}
+    regionType      cellZone;
+    name            zone1;
+}
+
+
+volFieldValue1_CoV_none_cellzone
+{
+    ${volFieldValue1_CoV_none}
+    regionType      cellZone;
+    name            zone1;
+}
+
+
+// ************************************************************************* //

@@ -1,0 +1,705 @@
+#========================================================================
+# BUILD OPTIONS:
+# Options that affect the ParaView build, in general.
+# These should begin with `PARAVIEW_BUILD_`.
+#========================================================================
+
+vtk_deprecated_setting(shared_default PARAVIEW_BUILD_SHARED_LIBS BUILD_SHARED_LIBS "ON")
+option(PARAVIEW_BUILD_SHARED_LIBS "Build ParaView with shared libraries" "${shared_default}")
+
+vtk_deprecated_setting(legacy_remove_default PARAVIEW_BUILD_LEGACY_REMOVE VTK_LEGACY_REMOVE "OFF")
+option(PARAVIEW_BUILD_LEGACY_REMOVE "Remove all legacy code completely" "${legacy_remove_default}")
+mark_as_advanced(PARAVIEW_BUILD_LEGACY_REMOVE)
+
+vtk_deprecated_setting(legacy_silent_default PARAVIEW_BUILD_LEGACY_SILENT VTK_LEGACY_SILENT "OFF")
+option(PARAVIEW_BUILD_LEGACY_SILENT "Silence all legacy code messages" "${legacy_silent_default}")
+mark_as_advanced(PARAVIEW_BUILD_LEGACY_SILENT)
+
+# Kits bundle multiple modules together into a single library, this
+# is used to dramatically reduce the number of generated libraries.
+vtk_deprecated_setting(kits_default PARAVIEW_BUILD_WITH_KITS PARAVIEW_ENABLE_KITS "OFF")
+cmake_dependent_option(PARAVIEW_BUILD_WITH_KITS "Build ParaView using kits instead of modules." OFF
+  # Static builds don't make sense with kits. Ignore the flag if shared
+  # libraries aren't being built.
+  "PARAVIEW_BUILD_SHARED_LIBS" OFF)
+mark_as_advanced(PARAVIEW_BUILD_WITH_KITS)
+
+vtk_deprecated_setting(external_default PARAVIEW_BUILD_WITH_EXTERNAL PARAVIEW_USE_EXTERNAL "OFF")
+option(PARAVIEW_BUILD_WITH_EXTERNAL "Use external copies of third party libraries by default" OFF)
+mark_as_advanced(PARAVIEW_BUILD_WITH_EXTERNAL)
+
+option(PARAVIEW_BUILD_ALL_MODULES "Build all modules by default" OFF)
+mark_as_advanced(PARAVIEW_BUILD_ALL_MODULES)
+set(_vtk_module_reason_WANT_BY_DEFAULT
+  "via `PARAVIEW_BUILD_ALL_MODULES`")
+
+vtk_deprecated_setting(examples_default PARAVIEW_ENABLE_EXAMPLES PARAVIEW_BUILD_EXAMPLES "OFF")
+option(PARAVIEW_ENABLE_EXAMPLES "Enable ParaView examples" "${examples_default}")
+set(PARAVIEW_BUILD_TESTING "OFF"
+  CACHE STRING "Enable testing")
+set_property(CACHE PARAVIEW_BUILD_TESTING
+  PROPERTY
+    STRINGS "ON;OFF;WANT;DEFAULT")
+
+cmake_dependent_option(PARAVIEW_BUILD_VTK_TESTING "Enable VTK testing" OFF
+  "PARAVIEW_BUILD_TESTING" OFF)
+option(PARAVIEW_BUILD_DEVELOPER_DOCUMENTATION "Generate ParaView C++/Python docs" "${doc_default}")
+
+option(PARAVIEW_PLUGIN_DISABLE_XML_DOCUMENTATION "Forcefully disable XML documentation generation" OFF)
+mark_as_advanced(PARAVIEW_PLUGIN_DISABLE_XML_DOCUMENTATION)
+
+set(PARAVIEW_BUILD_EDITION "CANONICAL"
+  CACHE STRING "Enable ParaView components essential for requested capabilities.")
+set_property(CACHE PARAVIEW_BUILD_EDITION
+  PROPERTY
+    STRINGS "CORE;RENDERING;CATALYST;CATALYST_RENDERING;CANONICAL")
+
+set(PARAVIEW_BUILD_CANONICAL OFF)
+set(PARAVIEW_ENABLE_RENDERING OFF)
+set(PARAVIEW_ENABLE_NONESSENTIAL OFF)
+if (PARAVIEW_BUILD_EDITION STREQUAL "CORE")
+  # all are OFF.
+elseif (PARAVIEW_BUILD_EDITION STREQUAL "RENDERING")
+  set(PARAVIEW_ENABLE_RENDERING ON)
+elseif (PARAVIEW_BUILD_EDITION STREQUAL "CATALYST")
+  set(PARAVIEW_BUILD_CANONICAL ON)
+elseif (PARAVIEW_BUILD_EDITION STREQUAL "CATALYST_RENDERING")
+  set(PARAVIEW_ENABLE_RENDERING ON)
+  set(PARAVIEW_BUILD_CANONICAL ON)
+elseif (PARAVIEW_BUILD_EDITION STREQUAL "CANONICAL")
+  set(PARAVIEW_ENABLE_RENDERING ON)
+  set(PARAVIEW_BUILD_CANONICAL ON)
+  set(PARAVIEW_ENABLE_NONESSENTIAL ON)
+endif()
+
+# We want to warn users if PARAVIEW_BUILD_EDITION is changed after first configure since the default
+# state of various other settings may not be what user expects.
+if (DEFINED _paraview_build_edition_cached AND
+    NOT _paraview_build_edition_cached STREQUAL PARAVIEW_BUILD_EDITION)
+  message(WARNING
+    "Changing `PARAVIEW_BUILD_EDITION` after first configure will not setup "
+    "defaults for others settings correctly e.g. plugins enabled. It is "
+    "recommended that you start with a clean build directory and pass the "
+    "option to CMake using "
+    "'-DPARAVIEW_BUILD_EDITION:STRING=${PARAVIEW_BUILD_EDITION}'.")
+endif()
+set(_paraview_build_edition_cached "${PARAVIEW_BUILD_EDITION}" CACHE INTERNAL "")
+
+set(VTK_GROUP_ENABLE_PARAVIEW_CORE "YES" CACHE INTERNAL "")
+if (PARAVIEW_BUILD_CANONICAL)
+  set(VTK_GROUP_ENABLE_PARAVIEW_CANONICAL "YES" CACHE INTERNAL "")
+else()
+  set(VTK_GROUP_ENABLE_PARAVIEW_CANONICAL "NO" CACHE INTERNAL "")
+endif()
+
+#========================================================================
+# CAPABILITY OPTIONS:
+# Options that affect the build capabilities.
+# These should begin with `PARAVIEW_USE_`.
+#========================================================================
+
+# XXX(VTK): External VTK is not yet actually supported.
+if (FALSE)
+option(PARAVIEW_USE_EXTERNAL_VTK "Use an external VTK." OFF)
+mark_as_advanced(PARAVIEW_USE_EXTERNAL_VTK)
+else ()
+set(PARAVIEW_USE_EXTERNAL_VTK OFF)
+endif ()
+
+option(PARAVIEW_USE_MPI "Enable MPI support for parallel computing" OFF)
+option(PARAVIEW_SERIAL_TESTS_USE_MPIEXEC
+  "Used on HPC to run serial tests on compute nodes" OFF)
+mark_as_advanced(PARAVIEW_SERIAL_TESTS_USE_MPIEXEC)
+option(PARAVIEW_USE_CUDA "Support CUDA compilation" OFF)
+option(PARAVIEW_USE_VTKM "Enable VTK-m accelerated algorithms" "${PARAVIEW_ENABLE_NONESSENTIAL}")
+if (UNIX AND NOT APPLE)
+  option(PARAVIEW_USE_MEMKIND  "Build support for extended memory" OFF)
+endif ()
+
+option(PARAVIEW_ENABLE_OPENVDB  "Enable the OpenVDB Writer" OFF)
+
+option(PARAVIEW_GENERATE_SPDX  "Generate SPDX file for each module." OFF)
+mark_as_advanced(PARAVIEW_GENERATE_SPDX)
+
+# Add option to disable Fortran
+if (NOT WIN32)
+  include(CheckFortran)
+  check_fortran_support()
+  if (CMAKE_Fortran_COMPILER)
+    set(_has_fortran TRUE)
+  else()
+    set(_has_fortran FALSE)
+  endif()
+  cmake_dependent_option(PARAVIEW_USE_FORTRAN "Enable Fortran support" ON
+    "_has_fortran" OFF)
+  mark_as_advanced(PARAVIEW_USE_FORTRAN)
+  unset(_has_fortran)
+endif()
+
+vtk_deprecated_setting(python_default PARAVIEW_USE_PYTHON PARAVIEW_ENABLE_PYTHON OFF)
+option(PARAVIEW_USE_PYTHON "Enable/Disable Python scripting support" "${python_default}")
+
+# Currently, we're making `PARAVIEW_USE_QT` available only when doing CANONICAL
+# builds with RENDERING. This is technically not necessary so we can support that
+# use-case if needed in future but will require some work to make sure the Qt components
+# work correctly with missing proxies.
+vtk_deprecated_setting(qt_gui_default PARAVIEW_USE_QT PARAVIEW_BUILD_QT_GUI "ON")
+cmake_dependent_option(PARAVIEW_USE_QT
+  "Enable Qt-support needed for graphical UI" "${qt_gui_default}"
+  "PARAVIEW_BUILD_CANONICAL;PARAVIEW_ENABLE_RENDERING;PARAVIEW_ENABLE_NONESSENTIAL" OFF)
+
+# Add an option to enable using Qt WebEngine for widgets, as needed.
+# Default is OFF. We don't want to depend on WebEngine unless absolutely needed.
+cmake_dependent_option(PARAVIEW_USE_QTWEBENGINE
+  "Use Qt WebEngine components as needed." OFF
+  "PARAVIEW_USE_QT" OFF)
+mark_as_advanced(PARAVIEW_USE_QTWEBENGINE)
+
+# Add an option to enable using Qt Help, as needed.
+# Default is ON to enable integrated help/documentation.
+cmake_dependent_option(PARAVIEW_USE_QTHELP
+  "Use Qt Help infrastructure as needed." ON
+  "PARAVIEW_USE_QT" OFF)
+mark_as_advanced(PARAVIEW_USE_QTHELP)
+
+if (PARAVIEW_USE_QTHELP AND NOT PARAVIEW_USE_QTWEBENGINE)
+  message(STATUS "Using 'QtHelp' without 'QtWebEngine' will ignore embedded javascript and *.js files for documentation")
+endif()
+
+if (PARAVIEW_ENABLE_RAYTRACING AND VTK_ENABLE_OSPRAY)
+  set(paraview_use_materialeditor ON)
+else ()
+  set(paraview_use_materialeditor OFF)
+endif ()
+
+#========================================================================
+# FEATURE OPTIONS:
+# Options that toggle features. These should begin with `PARAVIEW_ENABLE_`.
+#========================================================================
+
+vtk_deprecated_setting(raytracing_default PARAVIEW_ENABLE_RAYTRACING PARAVIEW_USE_RAYTRACING "OFF")
+option(PARAVIEW_ENABLE_RAYTRACING "Build ParaView with OSPray and/or OptiX ray-tracing support" "${raytracing_default}")
+
+set(paraview_web_default ON)
+if (PARAVIEW_USE_PYTHON AND WIN32)
+  include("${CMAKE_CURRENT_SOURCE_DIR}/VTK/CMake/FindPythonModules.cmake")
+  find_python_module(win32api have_pywin32)
+  set(paraview_web_default "${have_pywin32}")
+endif ()
+
+if (NOT PARAVIEW_BUILD_EDITION STREQUAL "CANONICAL")
+  set(paraview_web_default OFF)
+endif()
+cmake_dependent_option(PARAVIEW_ENABLE_WEB "Enable/Disable web support" "${paraview_web_default}"
+  "PARAVIEW_USE_PYTHON" OFF)
+
+# NvPipe requires an NVIDIA GPU.
+option(PARAVIEW_ENABLE_NVPIPE "Build ParaView with NvPipe remoting. Requires CUDA and an NVIDIA GPU" OFF)
+
+option(PARAVIEW_ENABLE_ALEMBIC "Enable Alembic support." OFF)
+
+option(PARAVIEW_ENABLE_GDAL "Enable GDAL support." OFF)
+
+option(PARAVIEW_ENABLE_LAS "Enable LAS support." OFF)
+
+option(PARAVIEW_ENABLE_GEOVIS "Enable GeoVis support." OFF)
+
+option(PARAVIEW_ENABLE_OPENTURNS "Enable OpenTURNS support." OFF)
+
+option(PARAVIEW_ENABLE_PDAL "Enable PDAL support." OFF)
+
+option(PARAVIEW_ENABLE_MOTIONFX "Enable MotionFX support." OFF)
+
+option(PARAVIEW_ENABLE_MOMENTINVARIANTS "Enable MomentInvariants filters" OFF)
+
+option(PARAVIEW_ENABLE_LOOKINGGLASS "Enable LookingGlass displays" OFF)
+
+option(PARAVIEW_ENABLE_VISITBRIDGE "Enable VisIt readers." OFF)
+
+option(PARAVIEW_ENABLE_CATALYST "Enable ParaViewCatalyst implementation" OFF)
+
+# default to ON for CANONICAL builds, else OFF.
+set(xdmf2_default OFF)
+if (PARAVIEW_BUILD_CANONICAL AND PARAVIEW_ENABLE_NONESSENTIAL)
+  set(xdmf2_default ON)
+endif()
+option(PARAVIEW_ENABLE_XDMF2 "Enable Xdmf2 support." "${xdmf2_default}")
+
+option(PARAVIEW_ENABLE_XDMF3 "Enable Xdmf3 support." OFF)
+
+option(PARAVIEW_ENABLE_ADIOS2 "Enable ADIOS 2.x support." OFF)
+
+option(PARAVIEW_ENABLE_FIDES "Enable Fides support." OFF)
+
+option(PARAVIEW_ENABLE_FFMPEG "Enable FFMPEG Support." OFF)
+
+option(PARAVIEW_ENABLE_OCCT "Enable OCCT Support." OFF)
+
+option(PARAVIEW_BUILD_TRANSLATIONS "Generate translation files" OFF)
+if (PARAVIEW_BUILD_TRANSLATIONS)
+  set(PARAVIEW_TRANSLATIONS_DIRECTORY "${CMAKE_BINARY_DIR}/Translations" CACHE STRING
+    "The directory containing translation files")
+endif()
+
+# If building on Unix with MPI enabled, we will present another option to
+# enable building of CosmoTools VTK extensions. This option is by default
+# OFF and set to OFF if ParaView is not built with MPI.
+cmake_dependent_option(PARAVIEW_ENABLE_COSMOTOOLS
+  "Build ParaView with CosmoTools VTK Extensions" OFF
+  "UNIX;PARAVIEW_USE_MPI" OFF)
+
+# PARAVIEW_ENABLE_CGNS_* option is only shown when PARAVIEW_ENABLE_NONESSENTIAL is
+# OFF and then it defaults to OFF. If PARAVIEW_ENABLE_NONESSENTIAL is ON, then
+# PARAVIEW_ENABLE_CGNS_* is set to ON as well and presented to the user at all.
+cmake_dependent_option(PARAVIEW_ENABLE_CGNS_READER
+  "Enable CGNS Reader Support" OFF
+  "NOT PARAVIEW_ENABLE_NONESSENTIAL" ON)
+cmake_dependent_option(PARAVIEW_ENABLE_CGNS_WRITER
+  "Enable CGNS Reader Support" OFF
+  "NOT PARAVIEW_ENABLE_NONESSENTIAL" ON)
+
+#========================================================================
+# MISCELLANEOUS OPTIONS:
+# Options that are hard to classify. Keep this list minimal.
+# These should be advanced by default.
+#========================================================================
+option(PARAVIEW_INSTALL_DEVELOPMENT_FILES "Install development files to the install tree" ON)
+mark_as_advanced(PARAVIEW_INSTALL_DEVELOPMENT_FILES)
+
+option(PARAVIEW_RELOCATABLE_INSTALL "Do not embed hard-coded paths into the install" ON)
+mark_as_advanced(PARAVIEW_RELOCATABLE_INSTALL)
+
+
+cmake_dependent_option(PARAVIEW_INITIALIZE_MPI_ON_CLIENT
+  "Initialize MPI on client-processes by default. Can be overridden using command line arguments" ON
+  "PARAVIEW_USE_MPI" OFF)
+mark_as_advanced(PARAVIEW_INITIALIZE_MPI_ON_CLIENT)
+
+set(PARAVIEW_LOGGING_TIME_PRECISION "3"
+  CACHE STRING "Precision of loguru scope timers. 3=ms, 6=us, 9=ns")
+mark_as_advanced(PARAVIEW_LOGGING_TIME_PRECISION)
+set(known_logging_precisions 3 6 9)
+set_property(CACHE PARAVIEW_LOGGING_TIME_PRECISION
+  PROPERTY
+    STRINGS ${known_logging_precisions})
+if (NOT PARAVIEW_LOGGING_TIME_PRECISION IN_LIST known_logging_precisions)
+  string(REPLACE ";" ", " known_logging_precisions_list "${known_logging_precisions}")
+  message(FATAL_ERROR
+    "`PARAVIEW_LOGGING_TIME_PRECISION` must be one of "
+    "${known_logging_precisions_list}; given '${PARAVIEW_LOGGING_TIME_PRECISION}'")
+endif ()
+
+#========================================================================
+# OBSOLETE OPTIONS: mark obsolete settings
+#========================================================================
+vtk_obsolete_setting(PARAVIEW_ENABLE_LOGGING)
+vtk_obsolete_setting(PARAVIEW_ENABLE_QT_SUPPORT)
+vtk_obsolete_setting(PARAVIEW_ENABLE_COMMANDLINE_TOOLS)
+vtk_obsolete_setting(PARAVIEW_FREEZE_PYTHON)
+vtk_obsolete_setting(PARAVIEW_USE_MPI_SSEND)
+vtk_obsolete_setting(PARAVIEW_USE_ICE_T)
+
+#========================================================================================
+# Build up list of required and rejected modules
+#========================================================================================
+set(paraview_requested_modules)
+set(paraview_rejected_modules)
+
+#[==[
+Conditionally require/reject optional modules
+
+Use this macro to conditionally require (or reject) modules.
+
+~~~
+paraview_require_module(
+  MODULES             <module>...
+  [CONDITION          <condition>]
+  [EXCLUSIVE]
+~~~
+
+The arguments are as follows:
+
+  * `MODULES`: (Required) The list of modules.
+  * `CONDITION`: (Defaults to `TRUE`) The condition under which the modules
+    specified are added to the requested list.
+  * `EXCLUSIVE`: When sepcified, if `CONDITION` is false, the module will be
+    added to the rejected modules list.
+#]==]
+macro (paraview_require_module)
+  cmake_parse_arguments(pem
+    "EXCLUSIVE"
+    ""
+    "CONDITION;MODULES"
+    ${ARGN})
+
+  if (pem_UNPARSED_ARGUMENTS)
+    message(FATAL_ERROR
+      "Unparsed arguments for `paraview_require_module`: "
+      "${pem_UNPARSED_ARGUMENTS}")
+  endif ()
+
+  if (NOT DEFINED pem_CONDITION)
+    set(pem_CONDITION TRUE)
+  endif ()
+
+  if (${pem_CONDITION})
+    # message("${pem_CONDITION} == TRUE")
+    list(APPEND paraview_requested_modules ${pem_MODULES})
+    foreach (_pem_module IN LISTS _pem_MODULES)
+      set("_vtk_module_reason_${_pem_module}"
+        "via `${pem_CONDITION}`")
+    endforeach ()
+  elseif (pem_EXCLUSIVE)
+    # message("${pem_CONDITION} == FALSE")
+    list(APPEND paraview_rejected_modules ${pem_MODULES})
+    foreach (_pem_module IN LISTS _pem_MODULES)
+      set("_vtk_module_reason_${_pem_module}"
+        "via `${pem_CONDITION}`")
+    endforeach ()
+  endif()
+
+  unset(pem_EXCLUSIVE)
+  unset(pem_CONDITION)
+  unset(pem_MODULES)
+  unset(pem_UNPARSED_ARGUMENTS)
+  unset(_pem_module)
+endmacro()
+
+# ensures that VTK::mpi module is rejected when MPI is not enabled.
+paraview_require_module(
+  CONDITION PARAVIEW_USE_MPI
+  MODULES   VTK::ParallelMPI
+            VTK::mpi
+  EXCLUSIVE)
+
+paraview_require_module(
+  CONDITION PARAVIEW_USE_MPI AND PARAVIEW_ENABLE_RENDERING
+  MODULES   VTK::RenderingParallelLIC
+  EXCLUSIVE)
+
+# ensures VTK::Python module is rejected when Python is not enabled.
+paraview_require_module(
+  CONDITION PARAVIEW_USE_PYTHON
+  MODULES   VTK::Python
+            VTK::PythonInterpreter
+  EXCLUSIVE)
+
+paraview_require_module(
+  CONDITION PARAVIEW_USE_PYTHON AND PARAVIEW_ENABLE_RENDERING AND PARAVIEW_BUILD_CANONICAL
+  MODULES   VTK::RenderingMatplotlib)
+
+paraview_require_module(
+  CONDITION PARAVIEW_USE_VTKM
+  MODULES   VTK::AcceleratorsVTKmFilters
+  EXCLUSIVE)
+
+paraview_require_module(
+  CONDITION PARAVIEW_ENABLE_RAYTRACING AND PARAVIEW_ENABLE_RENDERING
+  MODULES   VTK::RenderingRayTracing
+  EXCLUSIVE)
+
+paraview_require_module(
+  CONDITION PARAVIEW_ENABLE_RAYTRACING AND VTK_ENABLE_OSPRAY
+  MODULES   ParaView::VTKExtensionsShaderBall
+  EXCLUSIVE)
+
+paraview_require_module(
+  CONDITION PARAVIEW_ENABLE_NVPIPE
+  MODULES   ParaView::nvpipe
+  EXCLUSIVE)
+
+paraview_require_module(
+  CONDITION PARAVIEW_ENABLE_ALEMBIC
+  MODULES   VTK::IOAlembic
+  EXCLUSIVE)
+
+paraview_require_module(
+  CONDITION PARAVIEW_ENABLE_GDAL
+  MODULES   VTK::IOGDAL
+  EXCLUSIVE)
+
+paraview_require_module(
+  CONDITION PARAVIEW_ENABLE_LAS
+  MODULES   VTK::IOLAS
+  EXCLUSIVE)
+
+paraview_require_module(
+  CONDITION PARAVIEW_ENABLE_GEOVIS
+  MODULES   VTK::GeovisCore
+  EXCLUSIVE)
+
+paraview_require_module(
+  CONDITION PARAVIEW_ENABLE_OPENTURNS
+  MODULES   VTK::FiltersOpenTURNS
+  EXCLUSIVE)
+
+paraview_require_module(
+  CONDITION PARAVIEW_ENABLE_PDAL
+  MODULES   VTK::IOPDAL
+  EXCLUSIVE)
+
+paraview_require_module(
+  CONDITION PARAVIEW_ENABLE_MOTIONFX
+  MODULES   VTK::IOMotionFX
+  EXCLUSIVE)
+
+paraview_require_module(
+  CONDITION PARAVIEW_ENABLE_MOMENTINVARIANTS
+  MODULES   VTK::MomentInvariants
+  EXCLUSIVE)
+
+paraview_require_module(
+  CONDITION PARAVIEW_ENABLE_MOMENTINVARIANTS AND PARAVIEW_USE_MPI
+  MODULES   VTK::ParallelMomentInvariants
+  EXCLUSIVE)
+
+paraview_require_module(
+  CONDITION PARAVIEW_ENABLE_LOOKINGGLASS
+  MODULES   VTK::RenderingLookingGlass
+  EXCLUSIVE)
+
+paraview_require_module(
+  CONDITION PARAVIEW_ENABLE_VISITBRIDGE
+  MODULES   ParaView::IOVisItBridge
+            ParaView::VisItLib
+  EXCLUSIVE)
+
+paraview_require_module(
+  CONDITION PARAVIEW_ENABLE_XDMF2
+  MODULES   VTK::IOXdmf2
+  EXCLUSIVE)
+
+paraview_require_module(
+  CONDITION PARAVIEW_ENABLE_XDMF3
+  MODULES   VTK::IOXdmf3
+  EXCLUSIVE)
+
+paraview_require_module(
+  CONDITION PARAVIEW_ENABLE_ADIOS2
+  MODULES   VTK::IOADIOS2
+  EXCLUSIVE)
+
+paraview_require_module(
+  CONDITION PARAVIEW_ENABLE_FIDES
+  MODULES   VTK::IOFides
+  EXCLUSIVE)
+
+paraview_require_module(
+  CONDITION PARAVIEW_ENABLE_OPENVDB
+  MODULES   VTK::IOOpenVDB
+  EXCLUSIVE)
+
+paraview_require_module(
+  CONDITION PARAVIEW_ENABLE_FFMPEG
+  MODULES   VTK::IOFFMPEG
+  EXCLUSIVE)
+
+paraview_require_module(
+  CONDITION PARAVIEW_ENABLE_CGNS_READER
+  MODULES   VTK::IOCGNSReader
+  EXCLUSIVE)
+
+paraview_require_module(
+  CONDITION PARAVIEW_ENABLE_CGNS_WRITER
+  MODULES   ParaView::VTKExtensionsIOCGNSWriter
+  EXCLUSIVE)
+
+paraview_require_module(
+  CONDITION PARAVIEW_ENABLE_CGNS_WRITER AND PARAVIEW_USE_MPI
+  MODULES   ParaView::VTKExtensionsIOParallelCGNSWriter
+  EXCLUSIVE)
+
+paraview_require_module(
+  CONDITION PARAVIEW_ENABLE_WEB AND PARAVIEW_USE_PYTHON
+  MODULES   VTK::WebCore
+            VTK::WebPython
+  EXCLUSIVE)
+
+paraview_require_module(
+  CONDITION PARAVIEW_ENABLE_OCCT
+  MODULES   VTK::IOOCCT
+  EXCLUSIVE)
+
+paraview_require_module(
+  CONDITION PARAVIEW_BUILD_CANONICAL
+  MODULES ParaView::VTKExtensionsFiltersGeneral
+          VTK::DomainsChemistry
+          VTK::FiltersAMR
+          VTK::FiltersCellGrid
+          VTK::FiltersCore
+          VTK::FiltersExtraction
+          VTK::FiltersFlowPaths
+          VTK::FiltersGeneral
+          VTK::FiltersGeneric
+          VTK::FiltersGeometry
+          VTK::FiltersHybrid
+          VTK::FiltersHyperTree
+          VTK::FiltersModeling
+          VTK::FiltersOpenTURNS
+          VTK::FiltersParallel
+          VTK::FiltersParallelDIY2
+          VTK::FiltersParallelVerdict
+          VTK::FiltersSources
+          VTK::FiltersStatistics
+          VTK::FiltersTensor
+          VTK::FiltersTexture
+          VTK::FiltersVerdict
+          VTK::ImagingCore
+          VTK::ImagingFourier
+          VTK::ImagingGeneral
+          VTK::ImagingHybrid
+          VTK::ImagingSources
+          VTK::IOAsynchronous # needed for cinema
+          VTK::IOChemistry
+          VTK::IOGeometry
+          VTK::IOImage
+          VTK::IOInfovis
+          VTK::IOLegacy
+          VTK::IOParallel
+          VTK::IOParallelXML
+          VTK::IOPLY
+          VTK::IOVPIC
+          VTK::IOXML)
+
+paraview_require_module(
+  CONDITION PARAVIEW_BUILD_CANONICAL AND PARAVIEW_ENABLE_NONESSENTIAL
+  MODULES   VTK::IOAMR
+            VTK::IOCityGML
+            VTK::IOCellGrid
+            VTK::IOCONVERGECFD
+            VTK::IOFDS
+            VTK::IOIOSS
+            VTK::IOH5part
+            VTK::IOH5Rage
+            VTK::IONetCDF
+            VTK::IOOggTheora
+            VTK::IOOMF
+            VTK::IOParallelExodus
+            VTK::IOParallelLSDyna
+            VTK::IOPIO
+            VTK::IOHDF
+            VTK::IOSegY
+            VTK::IOTRUCHAS
+            VTK::IOVeraOut
+            VTK::IOTecplotTable
+            VTK::IOFLUENTCFF)
+
+paraview_require_module(
+  CONDITION PARAVIEW_ENABLE_RENDERING AND PARAVIEW_BUILD_CANONICAL
+  MODULES   VTK::FiltersTexture
+            VTK::RenderingFreeType
+            VTK::RenderingCellGrid)
+
+paraview_require_module(
+  CONDITION PARAVIEW_USE_MPI AND PARAVIEW_USE_PYTHON
+  MODULES   VTK::ParallelMPI4Py)
+
+paraview_require_module(
+  CONDITION PARAVIEW_USE_MPI AND PARAVIEW_BUILD_CANONICAL
+  MODULES   VTK::FiltersParallelFlowPaths
+            VTK::FiltersParallelGeometry
+            VTK::FiltersParallelMPI
+            VTK::IOMPIImage)
+
+paraview_require_module(
+  CONDITION PARAVIEW_USE_MPI AND PARAVIEW_BUILD_CANONICAL AND PARAVIEW_ENABLE_NONESSENTIAL
+  MODULES   VTK::IOParallelNetCDF)
+
+paraview_require_module(
+  CONDITION PARAVIEW_BUILD_CANONICAL AND PARAVIEW_ENABLE_RENDERING AND PARAVIEW_ENABLE_NONESSENTIAL
+  MODULES   ParaView::RemotingMisc
+            ParaView::RemotingExport
+            ParaView::RemotingLive
+            ParaView::RemotingAnimation)
+
+# Legacy Catalyst Python modules depends on paraview.tpl.cinema_python
+paraview_require_module(
+  CONDITION PARAVIEW_USE_PYTHON
+  MODULES   ParaView::CinemaPython)
+
+paraview_require_module(
+  CONDITION PARAVIEW_ENABLE_CATALYST
+  MODULES   VTK::IOCatalystConduit
+  EXCLUSIVE)
+
+if (NOT PARAVIEW_ENABLE_NONESSENTIAL)
+  # This ensures that we don't ever enable certain problematic
+  # modules when PARAVIEW_ENABLE_NONESSENTIAL is OFF.
+  set(nonessential_modules
+    VTK::netcdf
+    VTK::ogg
+    VTK::theora
+    VTK::xdmf2
+    VTK::xdmf3)
+
+  # PARAVIEW_ENABLE_CGNS_* are the only options that can force the need for cgns and
+  # hdf5 TPLs when PARAVIEW_ENABLE_NONESSENTIAL is true.
+  if (NOT PARAVIEW_ENABLE_CGNS_READER AND NOT PARAVIEW_ENABLE_CGNS_WRITER)
+    list(APPEND nonessential_modules
+      VTK::cgns
+      VTK::hdf5)
+  endif()
+
+  list(APPEND paraview_rejected_modules
+    ${nonessential_modules})
+  foreach (nonessential_module IN LISTS nonessential_modules)
+    set("_vtk_module_reason_${nonessential_module}"
+      "via `PARAVIEW_ENABLE_NONESSENTIAL` (via `PARAVIEW_BUILD_EDITION=${PARAVIEW_BUILD_EDITION}`)")
+  endforeach ()
+
+  function (_paraview_io_option_conflict option name)
+    if (${option})
+      message(FATAL_ERROR
+        "ParaView is configured without I/O support (via the "
+        "${PARAVIEW_BUILD_EDITION} edition) which is incompatible with the "
+        "request for ${name} support (via the `${option}` configure option)")
+    endif ()
+  endfunction ()
+
+  _paraview_io_option_conflict(PARAVIEW_ENABLE_ADIOS2 "ADIOS 2.x")
+  _paraview_io_option_conflict(PARAVIEW_ENABLE_ALEMBIC Alembic)
+  _paraview_io_option_conflict(PARAVIEW_ENABLE_FFMPEG FFmpeg)
+  _paraview_io_option_conflict(PARAVIEW_ENABLE_FIDES Fides)
+  _paraview_io_option_conflict(PARAVIEW_ENABLE_GDAL GDAL)
+  _paraview_io_option_conflict(PARAVIEW_ENABLE_LAS LAS)
+  _paraview_io_option_conflict(PARAVIEW_ENABLE_MOTIONFX MotionFX)
+  _paraview_io_option_conflict(PARAVIEW_ENABLE_OPENTURNS OpenTURNS)
+  _paraview_io_option_conflict(PARAVIEW_ENABLE_PDAL PDAL)
+  _paraview_io_option_conflict(PARAVIEW_ENABLE_VISITBRIDGE VisItBridge)
+  _paraview_io_option_conflict(PARAVIEW_ENABLE_XDMF2 xdmf2)
+  _paraview_io_option_conflict(PARAVIEW_ENABLE_XDMF3 xdmf3)
+endif()
+
+if (NOT PARAVIEW_ENABLE_RENDERING)
+  # This ensures that we don't ever enable OpenGL
+  # modules when PARAVIEW_ENABLE_RENDERING is OFF.
+  set(rendering_modules
+    VTK::glew
+    VTK::opengl)
+  list(APPEND paraview_rejected_modules
+    ${rendering_modules})
+  foreach (rendering_module IN LISTS rendering_modules)
+    set("_vtk_module_reason_${rendering_module}"
+      "via `PARAVIEW_ENABLE_RENDERING` (via `PARAVIEW_BUILD_EDITION=${PARAVIEW_BUILD_EDITION}`)")
+  endforeach ()
+
+  function (_paraview_rendering_option_conflict option name)
+    if (${option})
+      message(FATAL_ERROR
+        "ParaView is configured without Rendering support (via the "
+        "${PARAVIEW_BUILD_EDITION} edition) which is incompatible with the "
+        "request for ${name} support (via the `${option}` configure option)")
+    endif ()
+  endfunction ()
+
+  _paraview_rendering_option_conflict(PARAVIEW_ENABLE_RAYTRACING raytracing)
+  _paraview_rendering_option_conflict(PARAVIEW_USE_QT Qt)
+endif()
+
+if (paraview_requested_modules)
+  list(REMOVE_DUPLICATES paraview_requested_modules)
+endif ()
+
+if (paraview_rejected_modules)
+  list(REMOVE_DUPLICATES paraview_rejected_modules)
+endif()

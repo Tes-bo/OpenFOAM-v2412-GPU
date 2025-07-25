@@ -1,0 +1,97 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      PDRblockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+//- Point scaling (optional)
+scale   1;
+
+x
+{
+    points  ( -13.28 -0.10 6.0 19.19 );
+    nCells  ( 10 12 10 );
+    ratios  ( -5.16 1 5.16 );
+}
+
+y
+{
+    points  ( -12.98 0 5.50 18.48 );
+    nCells  ( 10 11 10 );
+    ratios  ( -5.16 1 5.16 );
+}
+
+z
+{
+    points  ( 0.00 4.80 17.26 );
+    nCells  ( 10 10 );
+    ratios  ( 1 5.16 );
+}
+
+
+defaultPatch
+{
+    name    walls;
+    type    wall;
+}
+
+
+// Faces: 0=x-min, 1=x-max, 2=y-min, 3=y-max, 4=z-min, 5=z-max
+
+boundary
+(
+    outer
+    {
+        type    patch;
+        faces   ( 0 1 2 3 5 );
+    }
+
+    mergingFaces
+    {
+        type    wall;
+        faces   ();
+    }
+
+    blockedFaces
+    {
+        type    wall;
+        faces   ();
+    }
+
+    ground
+    {
+        type    wall;
+        faces   ( 4 );
+    }
+);
+
+
+// Treatment of the outer region
+
+outer
+{
+    type        sphere;     // (none | extend | box | sphere)  [default: none]
+    onGround    true;       // Module on the ground?  [default: false]
+    expansion   relative;   // (uniform | ratio | relative)  [default: ratio]
+
+    ratios      1.1;
+
+    size        3;          // Overall outer/inner size
+    nCells      10;         // Number of cells for outer region
+
+    // size       (3 4);
+    // nCells     (10 12);
+}
+
+
+// ************************************************************************* //

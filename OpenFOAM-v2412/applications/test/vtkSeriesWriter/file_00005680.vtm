@@ -1,0 +1,4 @@
+<?xml version='1.0'?>
+<!-- case='abc' time= index='1234' note="degenerate time entry" -->
+<VTKFile type='vtkMultiBlockDataSet' version='1.0' byte_order='LittleEndian' header_type='UInt64'>
+  <vtkMultiBlockDataSet>

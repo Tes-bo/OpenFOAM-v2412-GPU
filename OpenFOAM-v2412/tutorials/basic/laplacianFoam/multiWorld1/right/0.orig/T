@@ -1,0 +1,80 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    object      T;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 0 0 1 0 0 0];
+
+internalField   uniform 0;
+
+boundaryField
+{
+    coupled
+    {
+        //type            mappedField;
+        type            mappedMixedField;
+
+        // What to sample:
+        sampleMode      nearestPatchFaceAMI;
+
+        // Simulation world to sample
+        sampleWorld     left;
+
+        // Region to sample
+        sampleRegion    region0;
+
+        // If sampleMode is nearestPatchFace : patch to find faces of
+        samplePatch     coupled;
+
+        // Use database to get data from (one-way or loose coupling in
+        // combination with functionObject)
+        //sampleDatabase  true;
+
+        // According to offsetMode (see above) supply one of
+        // offset, offsets or distance
+        offset          (0 0 0);
+
+        value           uniform 1.1;
+
+        // For mappedMixed
+        //weightField     DTV;
+        refValue        $value;
+        refGradient     uniform 0.0;
+        valueFraction   uniform 1.0;
+    }
+
+    top
+    {
+        type            zeroGradient;
+    }
+
+    bottom
+    {
+        type            zeroGradient;
+    }
+
+    right
+    {
+        type            fixedValue;
+        value           uniform 0;
+    }
+
+    frontAndBack
+    {
+        type            empty;
+    }
+}
+
+
+// ************************************************************************* //

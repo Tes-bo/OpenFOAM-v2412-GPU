@@ -1,0 +1,3 @@
+Test-copyFile.C
+
+EXE = $(FOAM_USER_APPBIN)/Test-copyFile

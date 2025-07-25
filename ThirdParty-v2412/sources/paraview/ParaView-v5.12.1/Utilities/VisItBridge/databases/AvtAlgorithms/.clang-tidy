@@ -1,0 +1,25 @@
+---
+Checks: "-*,\
+boost-*,\
+bugprone-*,\
+-bugprone-branch-clone,\
+-bugprone-easily-swappable-parameters,\
+-bugprone-narrowing-conversions,\
+clang-analyzer-*,\
+misc-*,\
+-misc-non-private-member-variables-in-classes,\
+modernize-*,\
+-modernize-avoid-c-arrays,\
+-modernize-use-trailing-return-type,\
+mpi-*,\
+openmp-*,\
+performance-*,\
+portability-*,\
+readability-*,\
+-readability-function-cognitive-complexity,\
+-readability-implicit-bool-conversion,\
+-readability-magic-numbers,\
+-readability-named-parameter,\
+"
+#WarningsAsErrors: "*"
+...

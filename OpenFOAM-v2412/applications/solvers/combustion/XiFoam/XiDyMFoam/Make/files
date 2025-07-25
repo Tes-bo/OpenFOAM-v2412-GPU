@@ -1,0 +1,3 @@
+XiDyMFoam.C
+
+EXE = $(FOAM_APPBIN)/XiDyMFoam

@@ -1,0 +1,42 @@
+// ParaView Catalyst function object for OpenFOAM (-*- C++ -*-)
+
+catalyst
+{
+    #includeEtc "caseDicts/insitu/catalyst/catalyst.cfg"
+
+    scripts
+    (
+        "<system>/scripts/slice1.py"
+        // "<system>/scripts/showT.py"
+        // "<etc>/caseDicts/insitu/catalyst/writeAll.py"
+    );
+
+    inputs
+    {
+        region
+        {
+            // All regions
+            regions     (".*");
+
+            internal    true;
+            boundary    false;
+
+            // Selected fields (words or regex)
+            fields      (T U p);
+        }
+
+
+        // Solid walls only
+        walls
+        {
+            internal    false;
+
+            regions     ( heater "(?i).*solid" );
+            patches     ( "(?i).*solid_to.*" "heater.*(Air|Water)" );
+
+            fields      (T);
+        }
+    }
+}
+
+// ************************************************************************* //

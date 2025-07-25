@@ -1,0 +1,205 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      snappyHexMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+castellatedMesh   true;
+snap              true;
+addLayers         false;
+
+geometry
+{
+    BLADES.obj
+    {
+        type    triSurfaceMesh;
+        name    BLADES;
+    }
+
+    HUB.obj
+    {
+        type    triSurfaceMesh;
+        name    HUB;
+        regions
+        {
+
+            HUB      { name HUB; }
+            HUB_DISK { name HUB_DISK; }
+        }
+    }
+
+    MRF_REGION.obj
+    {
+        type    triSurfaceMesh;
+        name    MRF_REGION;
+    }
+
+    BoxRefinement_3
+    {
+        type    box;
+        min     ( -4  -0.135 0.0085 );
+        max     ( -3.3 0.135 0.26 );
+    }
+};
+
+castellatedMeshControls
+{
+    maxLocalCells   200000000;
+    maxGlobalCells  300000000;
+    minRefinementCells 20;
+    nCellsBetweenLevels 2;
+    maxLoadUnbalance 0.1;
+    allowFreeStandingZoneFaces true;
+    resolveFeatureAngle     30;
+    features
+    (
+        {
+            file "HUB.eMesh" ;
+            level 0 ;
+        }
+        {
+            file "BLADES.eMesh" ;
+            level 0 ;
+        }
+        {
+            file "MRF_REGION.eMesh" ;
+            level 0 ;
+        }
+    );
+
+    refinementSurfaces
+    {
+        MRF_REGION
+        {
+            level (2  2);
+        }
+
+        HUB
+        {
+            level (2  2);
+        }
+        BLADES
+        {
+            level (2  4);
+        }
+    }
+
+    refinementRegions
+    {
+    }
+
+    locationInMesh  (-3.50  0.0  0.23);
+}
+
+snapControls
+{
+    tolerance       4;
+    implicitFeatureSnap true;
+    explicitFeatureSnap false;
+    multiRegionFeatureSnap true;
+
+    nSmoothPatch     5;
+    nSolveIter      100;
+    nRelaxIter       5;
+    nFeatureSnapIter 15;
+    nSmoothInternal  3;
+}
+
+addLayersControls
+{
+    layers
+    {
+        HUB
+        {
+            nSurfaceLayers 3;
+            firstLayerThickness 0.2;
+            expansionRatio 1.2;
+        }
+        BLADES
+        {
+            nSurfaceLayers 3;
+            firstLayerThickness 0.2;
+            expansionRatio 1.2;
+        }
+        HUB_DISK
+        {
+            nSurfaceLayers 3;
+            firstLayerThickness 0.1;
+            expansionRatio 1.2;
+        }
+    }
+    relativeSizes    true ;
+    expansionRatio    1.2 ;
+    firstLayerThickness   0.1 ;
+    featureAngle    85;
+    slipFeatureAngle 30;
+    nGrow           0;
+    nBufferCellsNoExtrude 0;
+    minMedialAxisAngle 90;
+    maxFaceThicknessRatio 0.2;
+    maxThicknessToMedialRatio 0.3;
+    minThickness    1e-06;
+    nLayerIter      50;
+    nRelaxIter      5;
+    nSmoothSurfaceNormals 10;
+    nSmoothNormals  3;
+    nSmoothThickness 10;
+    nRelaxedIter    10;
+    nMedialAxisIter 10;
+}
+
+meshQualityControls
+{
+    minVol          1e-25;
+    minTetQuality   1e-25;
+    minArea         1e-20;
+    minTwist        0.001;
+    minDeterminant  1e-06;
+    minFaceWeight   0.05;
+    minVolRatio     0.001;
+    minTriangleTwist -1;
+    minFlatness     0.5;
+    maxNonOrtho     70;
+    maxBoundarySkewness 20;
+    maxInternalSkewness 4;
+    maxConcave      80;
+    nSmoothScale    4;
+    errorReduction  0.75;
+    maxNonOrtho     70;
+
+    relaxed
+    {
+        minVol          1e-30;
+        minTetQuality   1e-30;
+        minArea         1e-30;
+        minTwist        0.001;
+        minDeterminant  1e-06;
+        minFaceWeight   1e-06;
+        minVolRatio     0.01;
+        minTriangleTwist -1;
+        minFlatness     0.5;
+        maxNonOrtho     75;
+        maxBoundarySkewness 20;
+        maxInternalSkewness 8;
+        maxConcave      80;
+        nSmoothScale    4;
+        errorReduction  0.75;
+    }
+}
+
+mergeTolerance  1e-08;
+
+debug           0;
+
+
+// ************************************************************************* //

@@ -1,0 +1,154 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+application     simpleFoam;
+
+startFrom       latestTime;
+
+startTime       0;
+
+stopAt          endTime;
+
+endTime         100000;
+
+deltaT          1;
+
+writeControl    timeStep;
+
+writeInterval   10000;
+
+purgeWrite      1;
+
+writeFormat     ascii;
+
+writePrecision  16;
+
+writeCompression off;
+
+timeFormat      general;
+
+timePrecision   8;
+
+runTimeModifiable false;
+
+functions
+{
+    fieldMinMax1
+    {
+        type            fieldMinMax;
+        libs            (fieldFunctionObjects);
+        writeToFile     no;
+        log             yes;
+        location        yes;
+        mode            magnitude;
+        fields          ( p U k omega epsilon );
+    }
+
+    wallShearStress1
+    {
+        type            wallShearStress;
+        libs            (fieldFunctionObjects);
+        writeFields     yes;
+        patches         ( bottom );
+        executeControl  writeTime;
+        writeControl    writeTime;
+    }
+
+    yPlus1
+    {
+        type            yPlus;
+        libs            (fieldFunctionObjects);
+        writeFields     yes;
+        executeControl  writeTime;
+        writeControl    writeTime;
+    }
+
+    writeCellCentres1
+    {
+        type            writeCellCentres;
+        libs            (fieldFunctionObjects);
+        executeControl  onEnd;
+        writeControl    onEnd;
+    }
+
+    turbulenceFields1
+    {
+        type            turbulenceFields;
+        libs            (fieldFunctionObjects);
+        fields          ( k epsilon R );
+        executeControl  writeTime;
+        writeControl    writeTime;
+    }
+
+    productionRate1
+    {
+        type            coded;
+        libs            (utilityFunctionObjects);
+        name            productionRate;
+        writeControl    writeTime;
+
+        codeExecute
+        #{
+            auto* prodPtr =
+                mesh().getObjectPtr<volScalarField>("productionRate");
+
+            if (!prodPtr)
+            {
+                Info<< "Create production rate field" << nl;
+                prodPtr = new volScalarField
+                (
+                    IOobject
+                    (
+                        "productionRate",
+                        mesh().time().timeName(),
+                        mesh(),
+                        IOobject::NO_READ,
+                        IOobject::AUTO_WRITE,
+                        IOobject::REGISTER
+                    ),
+                    mesh(),
+                    sqr(dimLength)/pow3(dimTime)
+                );
+
+                regIOobject::store(prodPtr);
+            }
+            auto& prod = *prodPtr;
+
+            Info<< "Computing production rate field\n" << endl;
+
+            const auto& U = mesh().lookupObject<volVectorField>("U");
+
+            auto* RPtr =
+                mesh().getObjectPtr<volSymmTensorField>("R");
+
+            if (!RPtr)
+            {
+                const auto& nut = mesh().lookupObject<volScalarField>("nut");
+
+                prod = 2*nut*(symm(fvc::grad(U)) && symm(fvc::grad(U)));
+            }
+            else
+            {
+                auto& R = *RPtr;
+
+                prod = 0.5*(mag(tr(-twoSymm(R & fvc::grad(U)))));
+            }
+        #};
+    }
+}
+
+
+// ************************************************************************* //

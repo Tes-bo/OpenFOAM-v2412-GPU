@@ -1,0 +1,44 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+restore0Dir
+
+runApplication chemkinToFoam \
+    chemkin/grimech30.dat chemkin/thermo30.dat chemkin/transportProperties \
+    constant/reactionsGRI constant/thermo.compressibleGasGRI
+
+runApplication blockMesh
+
+runApplication setFields
+
+if isTest "$@"
+then
+    # Test without chemistry
+    foamDictionary constant/chemistryProperties -entry chemistry -set off
+
+    runApplication $(getApplication)
+
+else
+    # Run without chemistry until 1500 to let the flow field develop
+    foamDictionary system/controlDict -entry writeInterval -set 1500
+
+    foamDictionary system/controlDict -entry endTime -set 1500
+
+    foamDictionary constant/chemistryProperties -entry chemistry -set off
+
+    runApplication $(getApplication)
+
+    # Run with chemistry until flame reaches its full size
+    foamDictionary system/controlDict -entry writeInterval -set 100
+
+    foamDictionary system/controlDict -entry endTime -set 5000
+
+    foamDictionary constant/chemistryProperties -entry chemistry -set on
+
+    runApplication -o $(getApplication)
+
+fi
+
+#------------------------------------------------------------------------------

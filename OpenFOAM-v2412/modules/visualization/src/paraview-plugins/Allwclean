@@ -1,0 +1,39 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/wmake/scripts/wmakeFunctions  # Require wmake functions
+. ${WM_PROJECT_DIR:?}/wmake/scripts/paraviewFunctions # For API info
+# -----------------------------------------------------------------------------
+
+get_pvplugin_api || echo "No ParaView plugin information found" 1>&2
+
+# Cleanup libraries
+wclean libso common
+wclean libso blockMeshReader/library
+wclean libso foamReader/library
+
+# Cleanup client-server and/or combined plugins
+if [ -n "$FOAM_PV_PLUGIN_LIBBIN" ]
+then
+    if [ -d "$FOAM_PV_PLUGIN_LIBBIN" ]
+    then
+        echo "Old plugins dir : $FOAM_PV_PLUGIN_LIBBIN"
+        echo "May wish to manually remove"
+        echo
+        echo "    rm -rf '$FOAM_PV_PLUGIN_LIBBIN'"
+        echo
+    fi
+
+    parentDir="${FOAM_PV_PLUGIN_LIBBIN%/*}"
+    if [ -d "$parentDir" ]
+    then
+        echo "May wish to manually remove"
+        echo
+        echo "    rm -rf $parentDir/libvtkPV*"
+        echo
+    fi
+fi
+
+# Cleanup generated files - remove entire top-level
+removeObjectDir "$PWD"
+
+#------------------------------------------------------------------------------

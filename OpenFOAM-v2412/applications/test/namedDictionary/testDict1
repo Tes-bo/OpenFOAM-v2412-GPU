@@ -1,0 +1,83 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      dictionary;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+entry1
+(
+    value1
+    value2 ;  // spurious trailing ';' is removed
+    this { correct true; }
+
+    { }  // Empty everything == ignore
+
+    { anonymous true; }
+);
+
+
+actions1
+(
+    starting
+    {
+        name    self;
+        type    faceSet;
+        action  new;
+        source  something;
+    }
+
+    {
+        name    self;
+        type    faceSet;
+        action  subset;
+        source  something;
+    }
+);
+
+
+actions2
+(
+    {
+        name    self;
+        type    faceSet;
+        action  new;
+        source  something;
+    }
+
+    {
+        name    self;
+        type    faceSet;
+        action  subset;
+        source  something;
+    }
+);
+
+actions3
+(
+    {
+        name    self;
+        type    faceSet;
+        action  new;
+        source  something;
+    }
+
+    subset
+    {
+        name    self;
+        type    faceSet;
+        action  subset;
+        source  something;
+    }
+);
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

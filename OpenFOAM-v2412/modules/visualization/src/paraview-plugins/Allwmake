@@ -1,0 +1,120 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+export WM_CONTINUE_ON_ERROR=true                    # Optional unit
+. ${WM_PROJECT_DIR:?}/wmake/scripts/paraviewFunctions # CMake, PV functions
+. ${WM_PROJECT_DIR:?}/wmake/scripts/AllwmakeParseArguments
+#------------------------------------------------------------------------------
+# Copyright (C) 2020 OpenCFD Ltd.
+# This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Note
+#     Build into FOAM_USER_{APPBIN,LIBBIN} unless otherwise specified with
+#     -prefix or FOAM_MODULE_{APPBIN,LIBBIN}, CMAKE_INSTALL_PREFIX env varables
+#
+# Note
+#     For paraview-5.7 (and later) plugins are built into their own subdirs.
+#     It also is not possible to suppress creation of static libraries in the
+#     process.
+#
+# Current solution (ugly)
+#     - install into a local "staged" location (within the build directory)
+#     - copy the .so files to the plugin directory
+#
+#------------------------------------------------------------------------------
+
+# Default to user location
+# - Long form to avoid dash 0.5.8 error (issue #1757)
+[ -n "$FOAM_MODULE_PREFIX" ]   || FOAM_MODULE_PREFIX="${FOAM_USER_LIBBIN%/*}"
+[ -n "$CMAKE_INSTALL_PREFIX" ] || CMAKE_INSTALL_PREFIX="$FOAM_MODULE_PREFIX"
+export FOAM_MODULE_PREFIX CMAKE_INSTALL_PREFIX
+
+cmakeOpts="-DCMAKE_INSTALL_PREFIX=$CMAKE_INSTALL_PREFIX"
+
+#------------------------------------------------------------------------------
+
+warnIncomplete()
+{
+    echo
+    echo "    WARNING: incomplete build of ParaView plugin: $@"
+    echo
+}
+
+have_pvplugin_support || {
+     exit 0  # Optional
+}
+
+
+wmakeLibPv common $cmakeOpts
+wmakeLibPv blockMeshReader/library $cmakeOpts
+wmakeLibPv foamReader/library $cmakeOpts
+
+# Early exit for objects
+if [ "$targetType" = objects ]
+then
+    exit 0
+fi
+
+
+# Still not entirely convincing
+case "$PARAVIEW_API" in
+(5.[0-6])
+    unset stagingDir # Not needed
+    ;;
+(*)
+    if stagingDir=$(findObjectDir '.')
+    then
+        stagingDir="$stagingDir/install-prefix"
+
+        # Need absolute directory for CMake
+        if [ "${stagingDir#/}" = "$stagingDir" ]
+        then
+            stagingDir="$PWD/$stagingDir"
+        fi
+    fi
+    ;;
+esac
+
+if [ -n "$stagingDir" ]
+then
+    rm -rf -- "$stagingDir"
+    cmakeOpts="$cmakeOpts -DSTAGED_INSTALL_PREFIX=$stagingDir"
+fi
+
+
+for plugin in blockMeshReader foamReader
+do
+    cmakePvInstall "$PWD"/"$plugin" "$cmakeOpts" || \
+        warnIncomplete "$plugin"
+done
+
+
+pluginDir="$FOAM_PV_PLUGIN_LIBBIN"
+if [ -n "$CMAKE_INSTALL_PREFIX" ] && [ -n "$PARAVIEW_API" ]
+then
+    pluginDir="${CMAKE_INSTALL_PREFIX}/lib/paraview-${PARAVIEW_API}"
+fi
+
+
+# Copy from staging to plugins
+if [ -d "$stagingDir" ] && [ -n "$pluginDir" ]
+then
+    [ -d "$pluginDir" ] || mkdir -p "$pluginDir"
+
+    echo
+    echo "Copy plugins: $pluginDir"
+
+    # TODO: handle via targets via CMake
+    for dir in "$stagingDir/lib" "$stagingDir/lib64"
+    do
+        if [ -d "$dir" ]
+        then
+            for libName in $(find "$dir" -name '*.so')
+            do
+                echo "    ${pluginDir##*/}/${libName##*/}"
+                cp -p "$libName" "$pluginDir"
+            done
+        fi
+    done
+fi
+
+#------------------------------------------------------------------------------

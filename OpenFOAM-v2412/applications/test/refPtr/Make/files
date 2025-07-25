@@ -1,0 +1,3 @@
+Test-refPtr.C
+
+EXE = $(FOAM_USER_APPBIN)/Test-refPtr

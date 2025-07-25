@@ -1,0 +1,28 @@
+NAME
+  VTK::ImagingHybrid
+LIBRARY_NAME
+  vtkImagingHybrid
+GROUPS
+  Imaging
+  StandAlone
+SPDX_LICENSE_IDENTIFIER
+  BSD-3-Clause
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
+DEPENDS
+  VTK::CommonCore
+  VTK::CommonExecutionModel
+PRIVATE_DEPENDS
+  VTK::CommonDataModel
+  VTK::IOImage
+  VTK::ImagingCore
+TEST_DEPENDS
+  VTK::CommonCore
+  VTK::CommonDataModel
+  VTK::FiltersSources
+  VTK::IOImage
+  VTK::ImagingStencil
+  VTK::InteractionStyle
+  VTK::RenderingOpenGL2
+  VTK::TestingCore
+  VTK::TestingRendering

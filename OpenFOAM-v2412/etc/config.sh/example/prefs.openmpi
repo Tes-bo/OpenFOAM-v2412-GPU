@@ -1,0 +1,27 @@
+#----------------------------------*-sh-*--------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2011-2016 OpenFOAM Foundation
+#     Copyright (C) 2020 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# File
+#     config.sh/example/prefs.openmpi
+#
+# Description
+#     Tuning example for openmpi (POSIX shell).
+#
+#     Copy to etc/config.sh (or ~/.OpenFOAM/config.sh) and it will be
+#     sourced by OpenFOAM-*/etc/config.sh/mpi
+#
+#------------------------------------------------------------------------------
+
+export FOAM_MPI=openmpi-4.0.5
+
+#------------------------------------------------------------------------------

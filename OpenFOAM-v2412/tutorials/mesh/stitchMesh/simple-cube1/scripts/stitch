@@ -1,0 +1,51 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+[ "$#" -gt 0 ] || {
+    echo "provide x, y, z or -all directions"
+    exit 1
+}
+
+unset optAll
+for dir
+do
+    case "$dir" in
+    -x | x) rm -rf 1 2 3 ;;
+    -y | y) rm -rf 2 3 ;;
+    -z | z) rm -rf 3 ;;
+    -all | all)
+        optAll=true
+        rm -rf 1 2 3
+        ;;
+    *)
+        echo "provide x, y, z or -all directions"
+        exit 1
+        ;;
+    esac
+done
+
+if [ "$optAll" = true ]
+then
+    set -- x y z
+fi
+
+stitch()
+{
+    local dir=$1
+    stitchMesh -partial outer$dir inner$dir | tee log.stitch-$dir
+}
+
+
+for dir
+do
+    case "$dir" in
+    -x | x) [ -d 1 ] || stitch x;;
+    -y | y) [ -d 2 ] || stitch y;;
+    -z | z) [ -d 3 ] || stitch z;;
+    esac
+done
+
+
+# -----------------------------------------------------------------------------

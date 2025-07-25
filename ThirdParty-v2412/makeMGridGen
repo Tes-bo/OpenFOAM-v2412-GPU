@@ -1,0 +1,180 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2017-2021 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     makeMGridGen
+#
+# Description
+#     Build script for MGridGen (serial)
+#
+# ----------------------------------------------
+# NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
+#------------------------------------------------------------------------------
+if :    # Run from third-party directory
+then
+    cd "${0%/*}" || exit
+    wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
+        echo "Error (${0##*/}) : not located in \$WM_THIRD_PARTY_DIR"
+        echo "    Check your OpenFOAM environment and installation"
+        exit 1
+    }
+fi
+. "${WM_THIRD_PARTY_DIR:?}"/etc/tools/ThirdPartyFunctions
+#------------------------------------------------------------------------------
+# Obtain version from OpenFOAM etc/config.sh file:
+_foamConfig mgridgen
+
+PACKAGE="${MGRIDGEN_VERSION:-none}"
+
+#------------------------------------------------------------------------------
+printVersions() { listPackageVersions mgridgen parmgridgen; exit 0; }
+printHelp() {
+    cat<<USAGE
+
+Usage: ${0##*/} [OPTION] [mgridgen-VERSION]
+options:
+  -force        Force compilation, even if include/library already exists
+  -gcc          Force use of gcc/g++
+  -list         List available unpacked source versions
+  -help         Display usage help
+
+* Build MGridGen with
+      ${PACKAGE:-[unspecified]}
+
+USAGE
+    # showDownloadHint gridgen
+    exit 0   # Clean exit
+}
+#------------------------------------------------------------------------------
+exportCompiler          # Compiler info for CMake/configure
+
+unset optForce
+
+# Parse options
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    '') ;;      # Ignore empty
+    -h | -help*) printHelp;;
+    -list)      printVersions;;
+    -gcc)       useGcc  ;;
+    -force)     optForce=true ;;
+
+    mgridgen/* | sources/*gridgen* | sources/*GridGen* | \
+    mgridgen-[0-9]* | MGridGen-[0-9]* | \
+    parmgridgen-[0-9]* | ParMGridGen-[0-9]*)
+        PACKAGE="${1%%/}"
+        ;;
+    *)
+        die "unknown option/argument: '$1'"
+        ;;
+    esac
+    shift
+done
+
+if [ -z "$PACKAGE" ]
+then
+    die "The MGRIDGEN package/version not specified"
+elif _foamIsNone "$PACKAGE" || _foamIsSystem "$PACKAGE"
+then
+    echo "Using none/system (skip ThirdParty build of MGRIDGEN)"
+    exit 0
+fi
+
+#------------------------------------------------------------------------------
+#
+# Build MGridGen
+#   *PACKAGE : name-version of the package
+#   *SOURCE  : location of original sources
+#   *PREFIX  : installation directory
+
+PKG_SOURCE="$(findSourceDir "$PACKAGE")"
+PACKAGE="$(basename "$PACKAGE")"
+PKG_PREFIX="$installBASE$WM_SIZE_OPTIONS/$PACKAGE"
+export GIT_DIR="$PKG_SOURCE/.git"
+
+: "${FOAM_MPI:=dummy}"
+
+echo
+echo ========================================
+echo "Build mgridgen library $PACKAGE"
+echo
+
+#
+# Manual installation
+#
+install()
+{
+    echo "Install into $PKG_PREFIX"
+
+    local bindir="$PKG_PREFIX"/bin
+    local incdir="$PKG_PREFIX"/include
+    local libdir="$PKG_PREFIX/lib$WM_COMPILER_LIB_ARCH"
+
+    for dir in "$PKG_PREFIX" "$bindir" "$incdir" "$libdir"
+    do
+        mkdir -m 0755 -p "$dir"
+    done
+
+    cp -vf mgridgen.h   "$incdir"
+    cp -vf libmgrid.a   "$libdir"
+    cp -vf mgridgen     "$bindir"
+
+    chmod -R 0644 "$incdir"/* "$libdir"/*
+    chmod -R 0755 "$bindir"/*
+}
+
+
+# Needs future adjustment
+# - for shared library
+# - for mpi-specific library locations
+if [ -z "$optForce" ] \
+&& [ -f "$PKG_PREFIX/include/mgridgen.h" ] \
+&& {
+     [ -r "$PKG_PREFIX/lib/libmgrid.a" ] \
+  || [ -r "$PKG_PREFIX/lib$WM_COMPILER_LIB_ARCH/libmgrid.a" ]
+}
+then
+    echo "    MGridGen already built : $PKG_PREFIX"
+else
+(
+    cd "$PKG_SOURCE" || exit
+    [ -e Makefile ] && make realclean 2>/dev/null
+
+    # Remove any existing build folder and recreate
+    rm -rf "$PKG_PREFIX"
+
+    serial="$(whichCC)"             # CC (serial compiler) default=gcc
+    # parallel=$(whichMpicc)        # PARCC (parallel compiler) default=mpicc
+    # PARCC=$parallel
+    # PARLD=$parallel
+    # PARLIBS="-L../.. -lparmgrid -lmgrid -lm"
+
+    make \
+        COPTIONS="-fPIC"  \
+        LDOPTIONS="-fPIC" \
+        CC="$serial" \
+        LD="$serial" \
+        LIBDIR="-L../.." \
+        LIBS="-L../.. -lmgrid -lm" \
+        make=make \
+        serial \
+    && install \
+    && echo "Built: $PACKAGE"
+) || {
+    echo "Error building: $PACKAGE"
+    exit 1
+}
+fi
+
+#------------------------------------------------------------------------------

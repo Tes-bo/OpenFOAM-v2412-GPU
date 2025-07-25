@@ -1,0 +1,17 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+runApplication blockMesh
+runApplication decomposePar
+
+# Swap point 2 and 6 in processor1
+(   cd processor1/constant/polyMesh && \
+    sed -i -e 's/(1 1 0)/point1/;s/(1 1 2)/(1 1 0)/;s/point1/(1 1 2)/' points && \
+    sed -i -e 's/^4\([^2]*\)2/4\1TWO/;s/^4\([^6]*\)6/4\12/;s/TWO/6/' faces \
+)
+
+runParallel Test-syncTools
+
+#------------------------------------------------------------------------------

@@ -1,0 +1,23 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+# Run serial
+./Allrun.pre
+echo "Begin run - interworld communication"
+mpirun -app ./mpirun_full.schema
+
+# Run with database
+if false
+then
+    ./Allrun.addDatabase
+    rm -f log.run* 2>/dev/null
+    echo "Begin run - database data exchange"
+    mpirun -app ./mpirun_full.schema
+fi
+
+echo "Can load with:  paraview --script=load-worlds.py &"
+echo "End"
+
+#------------------------------------------------------------------------------

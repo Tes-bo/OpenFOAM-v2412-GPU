@@ -1,0 +1,22 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Version:  v2412
+    \\  /    A nd           | Website:  www.openfoam.com
+     \\/     M anipulation  |
+-------------------------------------------------------------------------------
+Description
+    Writes the turbulent flame-speed and reaction-rate volScalarFields for the
+    Xi-based combustion models.
+
+\*---------------------------------------------------------------------------*/
+
+type            XiReactionRate;
+libs            (fieldFunctionObjects);
+
+fields          (b Xi Su);
+
+executeControl  writeTime;
+writeControl    writeTime;
+
+// ************************************************************************* //

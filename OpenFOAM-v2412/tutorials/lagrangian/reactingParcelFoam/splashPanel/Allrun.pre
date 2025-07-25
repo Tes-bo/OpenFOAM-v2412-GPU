@@ -1,0 +1,32 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+restore0Dir
+
+runApplication blockMesh
+
+#If using batch mode
+#runApplication -s wallFilmRegion \
+#    setSet -batch wallFilmRegion.setSet
+
+#If using dictionary mode
+runApplication -s wallFilmRegion \
+    topoSet -dict system/wallFilmRegion.topoSet
+
+runApplication extrudeToRegionMesh -overwrite
+
+#If using batch mode
+#runApplication -s createWallFilmRegionPatches \
+#    setSet -region wallFilmRegion \
+#           -batch createWallFilmRegionPatches.setSet
+
+#If using dictionary mode
+runApplication -s createWallFilmRegionPatches \
+    topoSet -region wallFilmRegion \
+            -dict system/createWallFilmRegionPatches.topoSet
+
+runApplication createPatch -region wallFilmRegion -overwrite
+
+#------------------------------------------------------------------------------

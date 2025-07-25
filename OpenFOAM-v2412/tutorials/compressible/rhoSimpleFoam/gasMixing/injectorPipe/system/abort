@@ -1,0 +1,13 @@
+// -*- C++ -*-
+
+ABORT
+{
+    type    abort;
+    libs    (utilityFunctionObjects);
+    //file    "<case>/ABORT";   // default name
+    // action  writeNow;
+    action  nextWrite;
+}
+
+
+// ************************************************************************* //

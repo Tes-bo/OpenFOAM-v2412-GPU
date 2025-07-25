@@ -1,0 +1,20 @@
+Test that -ioRanks selections perform as expected and that sub-rank
+selection is also doing the correct thing.
+
+For example,
+
+mpirun -np 10 --oversubscribe Test-fileHandler-ranks1 -parallel -ioRanks host
+mpirun -np 10 --oversubscribe Test-fileHandler-ranks1 -parallel -ioRanks '(0 3 14)'
+mpirun -np 10 --oversubscribe Test-fileHandler-ranks1 -parallel -ioRanks 14,15,2,0,10,15,0,0,0,
+mpirun -np 10 --oversubscribe Test-fileHandler-ranks1 -parallel -ioRanks '0,3,10'
+mpirun -np 10 --oversubscribe Test-fileHandler-ranks1 -parallel -ioRanks '0,3,11'
+mpirun -np 10 --oversubscribe Test-fileHandler-ranks1 -parallel -ioRanks '0,3,14'
+mpirun -np 10 --oversubscribe Test-fileHandler-ranks1 -parallel -ioRanks '0,3,15'
+mpirun -np 10 --oversubscribe Test-fileHandler-ranks1 -parallel -ioRanks '0,3,12,115'
+mpirun -np 10 --oversubscribe Test-fileHandler-ranks1 -parallel -ioRanks '0,3,10,12,115'
+mpirun -np 10 --oversubscribe Test-fileHandler-ranks1 -parallel -ioRanks host -pick '1,2,3,4'
+mpirun -np 10 --oversubscribe Test-fileHandler-ranks1 -parallel -pick '2,4,6,8'
+mpirun -np 10 --oversubscribe Test-fileHandler-ranks1 -parallel -ioRanks '0,3' -pick '2,4,6,8'
+mpirun -np 10 --oversubscribe Test-fileHandler-ranks1 -parallel -ioRanks '0,4' -pick '2,4,6,8'
+mpirun -np 10 --oversubscribe Test-fileHandler-ranks1 -parallel -ioRanks '0,6' -pick '2,4,6,8'
+mpirun -np 10 --oversubscribe Test-fileHandler-ranks1 -parallel -ioRanks '0,6' -pick '2,4,6,8'

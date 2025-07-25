@@ -1,0 +1,154 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      topoSetDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+actions
+(
+    // filter
+    {
+        name    filterCells;
+        type    cellSet;
+        action  new;
+        source  boxToCell;
+        box     (1.5 -10 -10) (2 10 10);
+    }
+    {
+        name    filter;
+        type    cellZoneSet;
+        action  new;
+        source  setToCellZone;
+        set     filterCells;
+    }
+
+    {
+        name    leftFluidCells;
+        type    cellSet;
+        action  new;
+        source  boxToCell;
+        box     (-10 -10 -10) (1.5 10 10);
+    }
+    {
+        name    leftFluid;
+        type    cellZoneSet;
+        action  new;
+        source  setToCellZone;
+        set     leftFluidCells;
+    }
+    {
+        name    rightFluidCells;
+        type    cellSet;
+        action  new;
+        source  boxToCell;
+        box     (2 -1 -1) (10 10 10);
+    }
+    {
+        name    rightFluid;
+        type    cellZoneSet;
+        action  new;
+        source  setToCellZone;
+        set     rightFluidCells;
+    }
+
+
+    // cycLeft
+    {
+        name    cycLeftFaces;
+        type    faceSet;
+        action  new;
+        source  cellToFace;
+        set     filterCells;
+        option  all;
+    }
+    {
+        name    cycLeftFaces;
+        type    faceSet;
+        action  subset;
+        source  cellToFace;
+        set     leftFluidCells;
+        option  all;
+    }
+    // Create faceZone from cycLeft
+    {
+        name    cycLeft;
+        type    faceZoneSet;
+        action  new;
+        source  setToFaceZone;
+        faceSet cycLeftFaces;    // name of faceSet
+    }
+
+    // cycRight
+    {
+        name    cycRightFaces;
+        type    faceSet;
+        action  new;
+        source  cellToFace;
+        set     filterCells;
+        option  all;
+    }
+    {
+        name    cycRightFaces;
+        type    faceSet;
+        action  subset;
+        source  cellToFace;
+        set     rightFluidCells;
+        option  all;
+    }
+    // Create faceZone from cycRight
+    {
+        name    cycRight;
+        type    faceZoneSet;
+        action  new;
+        source  setToFaceZone;
+        faceSet cycRightFaces;   // name of faceSet
+    }
+
+
+    // Additional zones inside filter
+
+    // heater inside filter
+    {
+        name    heaterCells;
+        type    cellSet;
+        action  new;
+        source  boxToCell;
+        box     (1.7 -10 -10) (1.8 10 10);
+    }
+    // Note: could be done directly using boxToCell
+    {
+        name    heater;
+        type    cellZoneSet;
+        action  new;
+        source  setToCellZone;
+        set     heaterCells;
+    }
+    {
+        name    heaterOutsideFaces;
+        type    faceSet;
+        action  new;
+        source  cellToFace;
+        set     heaterCells;
+        option  outside;
+    }
+    {
+        name    heaterOutside;
+        type    faceZoneSet;
+        action  new;
+        source  setToFaceZone;
+        faceSet heaterOutsideFaces;   // name of faceSet
+    }
+);
+
+
+// ************************************************************************* //

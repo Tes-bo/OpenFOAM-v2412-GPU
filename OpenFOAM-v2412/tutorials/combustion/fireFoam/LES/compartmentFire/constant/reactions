@@ -1,0 +1,18 @@
+species
+(
+    O2
+    H2O
+    C7H16
+    CO2
+    N2
+);
+
+reactions
+{
+    HepthaneReaction
+    {
+        type irreversibleinfiniteReaction;
+        //reaction     "C3H8 + 5O2 + 18.8N2 = 3CO2 + 4H2O + 18.8N2";
+        reaction "C7H16 + 11O2 + 41.36N2 = 7CO2 + 8H2O + 41.36N2";
+    }
+}

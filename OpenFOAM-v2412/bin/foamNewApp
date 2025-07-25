@@ -1,0 +1,66 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#-------------------------------------------------------------------------------
+#     Copyright (C) 2015-2017 OpenFOAM Foundation
+#     Copyright (C) 2020 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     foamNewApp
+#
+# Description
+#     Create directory with source and compilation files for a new application
+#
+#------------------------------------------------------------------------------
+Script=${0##*/}
+DIR="$WM_PROJECT_DIR/etc/codeTemplates/app"
+
+usage() {
+    while [ "$#" -ge 1 ]; do echo "$1"; shift; done
+    cat<<USAGE
+Usage: $Script [-h | -help] <applicationName>
+
+* Create directory with source and compilation files for a new application
+  <applicationName> (dir)
+  - <applicationName>.C
+  - Make (dir)
+    - files
+    - options
+  Compiles an executable named <applicationName> in \$FOAM_USER_APPBIN:
+  $FOAM_USER_APPBIN
+USAGE
+    exit 1
+}
+
+case "$1" in
+(-h | -help*)
+    usage
+    ;;
+-*)
+    usage "$1 is not a valid filename"
+    ;;
+esac
+
+[ "$#" -eq 1 ] || usage "Wrong number of arguments"
+[ -d "$1" ] && usage "$1 directory already exists, aborting..."
+
+NAME=$1
+YEAR=$(date +%Y)
+
+echo "Creating application code directory $NAME" && mkdir $NAME
+sed -e "s#NAME#${NAME}#g" \
+    -e "s#YEAR#${YEAR}#g" \
+    ${DIR}/app.C > $NAME/$NAME.C
+
+echo "Creating Make subdirectory" && mkdir $NAME/Make
+sed "s#NAME#${NAME}#g" ${DIR}/Make/files > $NAME/Make/files
+cp ${DIR}/Make/options $NAME/Make
+
+#------------------------------------------------------------------------------

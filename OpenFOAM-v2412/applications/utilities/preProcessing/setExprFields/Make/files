@@ -1,0 +1,3 @@
+setExprFields.C
+
+EXE = $(FOAM_APPBIN)/setExprFields

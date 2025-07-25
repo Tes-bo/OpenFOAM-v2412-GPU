@@ -1,0 +1,44 @@
+<?xml version="1.0" ?>
+<pqevents>
+  <!-- Test UI initialisation -->
+  <pqcheck object="pqClientMainWindow/pqAudioPlayer/pqAudioPlayer/SampleRateSpinBox" property="value" arguments="44100" />
+  <pqcheck object="pqClientMainWindow/pqAudioPlayer/pqAudioPlayer/DataSelectionComboBox" property="currentText" arguments="" />
+  <pqcheck object="pqClientMainWindow/pqAudioPlayer/pqAudioPlayer/PlayButton" property="enabled" arguments="false" />
+  <pqcheck object="pqClientMainWindow/pqAudioPlayer/pqAudioPlayer/StopButton" property="enabled" arguments="false" />
+
+  <!-- Create audio source (programmable source) & test UI -->
+  <pqevent object="pqClientMainWindow/menubar" command="activate" arguments="menuSources" />
+  <pqevent object="pqClientMainWindow/menubar/menuSources/Alphabetical" command="activate" arguments="ProgrammableSource" />
+  <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/PropertiesFrame/ProxyPanel/OutputDataSetType/ComboBox" command="activated" arguments="vtkTable" />
+  <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/scrollArea/qt_scrollarea_viewport/scrollAreaWidgetContents/PropertiesFrame/ProxyPanel/Script/Script" command="set_string" arguments="
+    from mpi4py import MPI&#xA;
+    comm = MPI.COMM_WORLD&#xA;
+    rank = comm.Get_rank()&#xA;
+    if rank == 0:&#xA;
+    &#x9;time = numpy.linspace(0, 2, 40000, endpoint=True)&#xA;
+    &#x9;signal = numpy.sin(2 * numpy.pi * 1000 * time)&#xA;
+    &#x9;output.RowData.append(time, &quot;time&quot;)&#xA;
+    &#x9;output.RowData.append(signal, &quot;Signal&quot;)" />
+  <pqevent object="pqClientMainWindow/propertiesDock/propertiesPanel/Accept" command="activate" arguments="" />
+  <pqcheck object="pqClientMainWindow/pqAudioPlayer/pqAudioPlayer/PlayButton" property="visible" arguments="true" />
+  <pqcheck object="pqClientMainWindow/pqAudioPlayer/pqAudioPlayer/PlayButton" property="enabled" arguments="true" />
+  <pqcheck object="pqClientMainWindow/pqAudioPlayer/pqAudioPlayer/PauseButton" property="visible" arguments="false" />
+  <pqcheck object="pqClientMainWindow/pqAudioPlayer/pqAudioPlayer/StopButton" property="enabled" arguments="false" />
+  <pqcheck object="pqClientMainWindow/pqAudioPlayer/pqAudioPlayer/SampleRateSpinBox" property="value" arguments="20000" />
+
+  <!-- Change active source & test UI -->
+  <pqevent object="pqClientMainWindow/pqAudioPlayer/pqAudioPlayer/VolumeSlider" command="set_int" arguments="70" />
+  <pqevent object="pqClientMainWindow/pipelineBrowserDock/pipelineBrowser" command="mousePress" arguments="1,1,0,39,10,/0:0" />
+  <pqevent object="pqClientMainWindow/pipelineBrowserDock/pipelineBrowser" command="mouseRelease" arguments="1,0,0,39,10,/0:0" />
+  <pqcheck object="pqClientMainWindow/pqAudioPlayer/pqAudioPlayer/PlayButton" property="enabled" arguments="false" />
+  <pqcheck object="pqClientMainWindow/pqAudioPlayer/pqAudioPlayer/StopButton" property="enabled" arguments="false" />
+  <pqcheck object="pqClientMainWindow/pqAudioPlayer/pqAudioPlayer/SampleRateSpinBox" property="value" arguments="44100" />
+
+  <pqevent object="pqClientMainWindow/pipelineBrowserDock/pipelineBrowser" command="mousePress" arguments="1,1,0,40,8,/0:0/0:0" />
+  <pqevent object="pqClientMainWindow/pipelineBrowserDock/pipelineBrowser" command="mouseRelease" arguments="1,0,0,40,8,/0:0/0:0" />
+  <pqcheck object="pqClientMainWindow/pqAudioPlayer/pqAudioPlayer/PlayButton" property="enabled" arguments="true" />
+  <pqcheck object="pqClientMainWindow/pqAudioPlayer/pqAudioPlayer/StopButton" property="enabled" arguments="false" />
+  <pqcheck object="pqClientMainWindow/pqAudioPlayer/pqAudioPlayer/VolumeSlider" property="value" arguments="5" />
+  <pqcheck object="pqClientMainWindow/pqAudioPlayer/pqAudioPlayer/SampleRateSpinBox" property="value" arguments="20000" />
+
+</pqevents>

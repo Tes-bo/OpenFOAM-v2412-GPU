@@ -1,0 +1,13 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+#------------------------------------------------------------------------------
+
+# Toolchain binaries (wmake)
+"${WM_DIR:-${WM_PROJECT_DIR}/wmake}"/src/Allmake
+
+library/Allwmake
+
+# Does not use libOpenFOAM or libPstream...
+wmake -no-openfoam
+
+#------------------------------------------------------------------------------

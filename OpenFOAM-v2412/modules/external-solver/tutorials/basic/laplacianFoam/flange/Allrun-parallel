@@ -1,0 +1,17 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+#------------------------------------------------------------------------------
+
+./Allrun.init
+
+dst=run
+
+if [ -f "$dst/Allrun-parallel" ]
+then
+    "$dst"/Allrun-parallel
+
+    # Copy back log files
+    cp -f "$dst"/log.* .
+fi
+
+#------------------------------------------------------------------------------

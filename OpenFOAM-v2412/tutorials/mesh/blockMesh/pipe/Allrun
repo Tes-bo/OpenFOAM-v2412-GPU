@@ -1,0 +1,39 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+mkdir -p constant/geometry
+
+cp -f \
+    "$FOAM_TUTORIALS"/resources/geometry/curve2.vtk.gz \
+    constant/geometry
+
+runApplication blockMesh
+
+# See if we can improve the mesh with a bit of smoothing (whilst freezing
+# the features)
+# - feature-edge attraction conflicts with mesh smoothing so faces with
+#   three vertices on feature edge get distorted.
+
+#- Analyse mesh and
+#   - generate pointMesh with additional feature patches
+#     (in constant/pointMesh/boundary).
+#   - write .obj file with outside of mesh
+mkdir -p constant/triSurface
+runApplication surfaceMeshExtract -featureAngle 50 \
+    constant/triSurface/blockMesh.obj
+
+#- Extract features from surface (original of blockMesh). Writes .eMesh.
+runApplication surfaceFeatureExtract
+
+#- Set the initial field
+restore0Dir
+
+#- Run mesh smoother
+runApplication moveDynamicMesh
+
+#- Check mesh, generate postprocessing fields
+runApplication checkMesh -writeFields '(nonOrthoAngle)'
+
+#------------------------------------------------------------------------------

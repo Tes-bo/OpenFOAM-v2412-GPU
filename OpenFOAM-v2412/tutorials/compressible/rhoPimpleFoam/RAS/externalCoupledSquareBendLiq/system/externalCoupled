@@ -1,0 +1,62 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+// Control for external coupled simulation
+externalCoupled
+{
+    // Mandatory entries
+    type            externalCoupled;
+    libs            (fieldFunctionObjects);
+
+    // Directory to use for communication
+    commsDir        "<case>/comms";
+
+    // Does external process start first
+    initByExternal  true;
+
+    regions
+    {
+        // Region name (wildcards allowed)
+        ".*"
+        {
+            // Patch or patchGroup
+            coupleGroup
+            {
+                // Fields to output in commsDir
+                writeFields (T);
+
+                // Fields to read from commsDir
+                readFields  (T);
+            }
+        }
+    }
+
+    // Enabled or not?
+    #sinclude "<case>/externalCoupled.control"
+
+    // Optional entries
+    waitInterval        1;
+    // timeOut             100;
+    statusDone          done;  // Any arbitrary status=... value
+    calcFrequency       1;
+
+    // Optional (inherited) entries
+    region              region0;
+    enabled             true;
+    log                 true;
+    executeControl      timeStep;
+    /*timeStart           0;
+    timeEnd             1000;
+    executeControl      timeStep;
+    executeInterval     1;
+    writeControl        timeStep;
+    writeInterval       1;*/
+}
+
+
+// ************************************************************************* //

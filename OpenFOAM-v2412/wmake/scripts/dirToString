@@ -1,0 +1,90 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2019-2022 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     dirToString
+#
+# Usage
+#     dirToString path/to/file
+#
+# Description
+#     Converts a directory path into a camelCase string.
+#     Leading [./] characters are stripped by default.
+#
+#     For example,
+#         input:  dir1/dir2/dir3
+#         output: dir1Dir2Dir3
+#
+#------------------------------------------------------------------------------
+usage() {
+    exec 1>&2
+    while [ "$#" -ge 1 ]; do echo "$1"; shift; done
+    cat<<USAGE
+
+Usage: ${0##*/} [OPTION] dir
+
+options:
+  -no-strip         Do not ignore leading [./] characters
+  -strip            Ignore leading [./] characters (default)
+  -h, -help         Print the usage
+
+Converts a directory path into a camelCase string
+
+USAGE
+    exit 1
+}
+
+
+#------------------------------------------------------------------------------
+# Parse arguments and options
+#------------------------------------------------------------------------------
+
+optStrip=true
+
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    ('') ;;
+    (- | --) shift; break ;;  # Stop option parsing
+
+    # Print help
+    (-h | -help*)
+        usage
+        ;;
+    (-s | -strip)
+        optStrip=true
+        ;;
+    (-no-strip)
+        unset optStrip
+        ;;
+    (*)
+        break
+        ;;
+    esac
+    shift
+done
+
+if [ -z "$optStrip" ]
+then
+    dirName="$1"
+else
+    # Ignore any leading ./ characters
+    dirName="$(echo ""$1"" | sed -e 's@^[./]*@@')"
+fi
+
+dirName=$(echo "$dirName" | \
+awk 'BEGIN{FS="";RS="/";ORS=""} {if (FNR>1) {$0=toupper(substr($0,1,1))substr($0,2)}} 1')
+
+echo "$dirName"
+
+#------------------------------------------------------------------------------

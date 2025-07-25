@@ -1,0 +1,286 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      PDRProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+StSmoothCoef    1000.0;
+
+//No smooth if >100
+
+schelkin
+{
+    subGridSchelkin true;
+    uPrimeCoef  1.0;
+    lCoef       0.336;
+    maxSchFac   100.0;
+    nrCoef      0.1;
+    nrExp       0.0;
+    nrExp2      0.05;
+}
+
+PDRDragModel    basic;
+
+basicCoeffs
+{
+    drag        on;
+    Csu         0.5;
+    Csk         0.05;
+}
+
+basicSchCoeffs
+{
+    drag        on;
+    $schelkin;
+    Csu         0.0;
+    Csk         0.0;
+}
+
+XiModel         transport;
+
+algebraicCoeffs
+{
+    XiShapeCoef 1;
+    XpShapeCoef 1;
+    CpfiDot     0.0;
+    CpfiCross   0.0;
+    GEtaExp     0.0;
+    LOverCw     0.01;
+}
+
+transportTwoEqsCoeffs
+{
+    XiShapeCoef 1;
+    XpShapeCoef 1;
+    CpfiDot     0.0;
+    CpfiCross   0.0;
+    GEtaExp     0.0;
+    LOverCw     0.01;
+}
+
+k3Coeffs
+{
+    k3Obs       10.0;
+    k3Open      1.0;
+}
+
+transportThreeEqsCoeffs
+{
+    $transportTwoEqsCoeffs;
+    $k3Coeffs;
+}
+
+transportFourEqsCoeffs
+{
+    $transportTwoEqsCoeffs;
+    $k3Coeffs;
+}
+
+transportOneEqObsCoeffs
+{
+    XiShapeCoef 1;
+    Cpfi        0.0;
+    GEtaExp     0.0;
+}
+
+transportXp
+{
+}
+
+transportCoeffs
+{
+    XiShapeCoef 1;
+    GEtaExp     0.28;
+}
+
+fixedCoeffs
+{
+}
+
+
+/*---------------------------------------------------------------------------*\
+                          XiEqModel : Model for XiEq
+\*---------------------------------------------------------------------------*/
+
+XiEqModel       instability;
+
+BLMcoeffs
+{
+    XiEqCoef    1.0;
+    alphaCoefP  0.023;
+    alphaCoefN  0.085;
+    betaCoefP   -0.0103;
+    betaCoefN   -0.0075;
+    maLim       30.0;
+    maLim1      7.0;
+    quenchCoef  34.0;
+    quenchExp   -1.8;
+    quenchM     -4.0;
+    quenchRate1 0.6;
+    quenchRate2 0.14;
+}
+
+instability2XiEqCoeffs
+{
+    defaultCIn  12.6;
+    XiEqInFade  1.0;
+
+    XiEqModel   BLMgMaXiEq;
+
+    BLMgMaXiEqCoeffs
+    {
+        $schelkin;
+        gulderCoef  1.0; //this value is not usssed 1.0.
+        kaCoef      0.25;
+        lowK0       0.1;
+        lowKg       0.0;
+        gMaCoef     0.032; //not used
+        gMaCoef1    0.0;  // not used
+        $BLMcoeffs;
+    }
+
+    BLMXiEqCoeffs
+    {
+        $schelkin;
+        gulderCoef  0.31;
+        kaCoef      0.25;
+        lowK1       0.02;
+        lowK2       0.05;
+        $BLMcoeffs;
+     }
+}
+
+instabilityCoeffs
+{
+
+    XiEqIn      2.5;
+    XiEqModel   Gulder;
+    GulderCoeffs
+    {
+        uPrimeCoef      1.0;
+        subGridSchelkin true;
+        XiEqCoef        0.62;
+    }
+
+    SCOPEBlendCoeffs
+    {
+        XiEqModelL
+        {
+            XiEqModel   Gulder;
+
+            GulderCoeffs
+            {
+                $schelkin;
+                XiEqCoef    0.62;
+            }
+        }
+
+        XiEqModelH
+        {
+            XiEqModel       SCOPEXiEq;
+
+            SCOPEXiEqCoeffs
+            {
+                $schelkin;
+                XiEqCoef    1.6;
+                XiEqExp     0.33333;
+            }
+        }
+    }
+}
+
+
+/*---------------------------------------------------------------------------*\
+                     XiGModel : Model for generation of Xi
+\*---------------------------------------------------------------------------*/
+
+XiGModel            instabilityG;
+
+instability2GCoeffs
+{
+    lambdaIn        0.0001;
+    defaultCIn      10.0;
+    GInMult         5.0;
+    GInFade         4.0;
+
+    XiGModel KTS;
+
+    KTSCoeffs
+    {
+        GEtaCoef    0.28;
+    }
+}
+
+instabilityGCoeffs
+{
+    lambdaIn        4.5e-3;
+    GIn             1.917;
+
+    XiGModel        KTS;
+    KTSCoeffs
+    {
+         GEtaCoef   0.28;
+    }
+}
+
+
+/*---------------------------------------------------------------------------*\
+                          XpEqGModel : Model for XpEq
+\*---------------------------------------------------------------------------*/
+
+XpEqModel       normBasicSubGrid;
+
+normBasicSubGridCoeffs
+{
+    Cxpe1       800.0;
+    Cxpe2       40.0;
+    Cxpe3       400.0;
+    Cxpe4       1.0;
+}
+
+basicSubGridCoeffs
+{
+}
+
+
+/*---------------------------------------------------------------------------*\
+                     XpGModel : Model for generation of Xp
+\*---------------------------------------------------------------------------*/
+
+XpGModel        normBasicSubGridG;
+
+normBasicSubGridGCoeffs
+{
+    k1          0.0;
+    kb1         14.0;
+    kbe         1.5;
+    kbx         0.4;
+    k2          1.0;
+    LOverCw     0.01;
+    Cxpe1       800.0;
+    Cxpe2       40.0;
+    Cxpe3       400.0;
+    Cxpe4       1.0;
+}
+
+basicSubGridGCoeffs
+{
+    XpGModel    KTS;
+    KTSCoeffs
+    {
+        GEtaCoef    0.28;
+    }
+}
+
+
+// ************************************************************************* //

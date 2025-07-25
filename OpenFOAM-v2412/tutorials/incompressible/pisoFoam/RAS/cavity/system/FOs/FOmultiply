@@ -1,0 +1,54 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+multiply1_scalar_scalar
+{
+    // Mandatory entries
+    type            multiply;
+    libs            (fieldFunctionObjects);
+    fields          (k k_0);
+
+    // Optional (inherited) entries
+    result          k2;
+    region          region0;
+    enabled         true;
+    log             true;
+    timeStart       0;
+    timeEnd         10;
+    executeControl  timeStep;
+    executeInterval 1;
+    writeControl    runTime;
+    writeInterval   1;
+}
+
+
+multiply1_vector_vector
+{
+    ${multiply1_scalar_scalar}
+    fields          (U U_0);
+    result          U2;
+}
+
+
+multiply1_scalar_vector
+{
+    ${multiply1_scalar_scalar}
+    fields          (k U);
+    result          kU;
+}
+
+
+multiply1_scalar_tensor
+{
+    ${multiply1_scalar_scalar}
+    fields          (k U2);
+    result          kU2;
+}
+
+
+// ************************************************************************* //

@@ -1,0 +1,311 @@
+#----------------------------------*-sh-*--------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2011-2016 OpenFOAM Foundation
+#     Copyright (C) 2016-2022 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# File
+#     etc/config.sh/settings
+#     - sourced by OpenFOAM-*/etc/bashrc
+#
+# Description
+#     Settings for OpenFOAM.
+#
+#------------------------------------------------------------------------------
+export WM_ARCH="$(uname -s)"  # System name
+
+archOption="${WM_ARCH_OPTION:-64}"
+unset WM_ARCH_OPTION        # Compiling 32-bit on 64-bit system
+unset WM_COMPILER_ARCH      # Host compiler type (when different than target)
+unset WM_COMPILER_LIB_ARCH  # Ending for lib directories
+
+
+# Adjust according to system and architecture
+case "$WM_ARCH" in
+Linux)
+    WM_ARCH=linux
+
+    case "$(uname -m)" in
+    x86_64)
+        if [ "$archOption" = 32 ]
+        then
+            export WM_ARCH_OPTION=32        # Propagate?
+            export WM_COMPILER_ARCH=64      # 64-bit compiler, 32-bit target
+        else
+            WM_ARCH=linux64                 # 64-bit compiler/target
+            export WM_COMPILER_LIB_ARCH=64  # Use lib64
+        fi
+        ;;
+
+    aarch64)
+        WM_ARCH=linuxARM64
+        export WM_COMPILER_LIB_ARCH=64  # Use lib64
+        ;;
+
+    ppc64)
+        WM_ARCH=linuxPPC64
+        export WM_COMPILER_LIB_ARCH=64  # Use lib64
+        ;;
+
+    ppc64le)
+        WM_ARCH=linuxPPC64le
+        export WM_COMPILER_LIB_ARCH=64  # Use lib64
+        ;;
+
+    i686)
+        WM_ARCH=linux
+        ;;
+
+    *)
+        echo "openfoam: ($(uname -m)) - unknown Linux processor type" 1>&2
+        ;;
+    esac
+    ;;
+
+# arm64 or x86_64 architectures
+Darwin)
+    WM_ARCH=darwin64
+    # Defult to clang (not gcc) as system compiler
+    if [ "$WM_COMPILER" = Gcc ]
+    then
+        WM_COMPILER=Clang
+        echo "openfoam (darwin): using clang instead of gcc" 1>&2
+    fi
+    ;;
+
+# Presume x86_64, with mingw cross-compiled
+MINGW* | MSYS*)
+    WM_ARCH=win64
+    [ "$WM_COMPILER" = Gcc ] && WM_COMPILER=Mingw
+    export WM_COMPILER_LIB_ARCH=64  # Consistent with linux64Mingw
+    echo "openfoam: windows support (mingw64) is runtime only" 1>&2
+    ;;
+
+SunOS*)
+    WM_ARCH=solaris64
+    export WM_COMPILER_LIB_ARCH=64
+    ;;
+
+*)
+    /bin/cat << UNSUPPORTED 1>&2
+===============================================================================
+Operating system '$WM_ARCH' is unsupported by this OpenFOAM release.
+For further assistance, please contact www.openfoam.com
+===============================================================================
+UNSUPPORTED
+    ;;
+esac
+
+#------------------------------------------------------------------------------
+
+# wmake configuration
+export WM_DIR="$WM_PROJECT_DIR/wmake"
+export WM_LABEL_OPTION="Int$WM_LABEL_SIZE"
+export WM_OPTIONS="$WM_ARCH$WM_COMPILER$WM_PRECISION_OPTION$WM_LABEL_OPTION$WM_COMPILE_OPTION"
+
+# Base executables/libraries
+export FOAM_APPBIN="$WM_PROJECT_DIR/platforms/$WM_OPTIONS/bin"
+export FOAM_LIBBIN="$WM_PROJECT_DIR/platforms/$WM_OPTIONS/lib"
+
+# Site-specific (group) files
+
+# Default
+siteDir="$WM_PROJECT_DIR/site"
+
+# User override
+if [ -d "$WM_PROJECT_SITE" ] && [ "$WM_PROJECT_SITE" != "$siteDir" ]
+then
+    siteDir="$WM_PROJECT_SITE"
+    export WM_PROJECT_SITE
+else
+    unset WM_PROJECT_SITE
+fi
+
+# Shared site (group) executables/libraries
+export FOAM_SITE_APPBIN="$siteDir/$FOAM_API/platforms/$WM_OPTIONS/bin"
+export FOAM_SITE_LIBBIN="$siteDir/$FOAM_API/platforms/$WM_OPTIONS/lib"
+
+# User executables/libraries
+export FOAM_USER_APPBIN="$WM_PROJECT_USER_DIR/platforms/$WM_OPTIONS/bin"
+export FOAM_USER_LIBBIN="$WM_PROJECT_USER_DIR/platforms/$WM_OPTIONS/lib"
+
+
+# Prepend wmake to the path - not required for runtime-only environment
+_foamFoundDir="$WM_PROJECT_DIR/wmake"
+if [ -d "$WM_DIR" ]
+then
+    _foamFoundDir="${WM_DIR}"
+fi
+if [ -d "$_foamFoundDir" ]
+then
+    PATH="$_foamFoundDir:$PATH"
+else
+    unset WM_DIR
+fi
+
+# Prepend OpenFOAM scripts to the path
+export PATH="$WM_PROJECT_DIR/bin:$PATH"
+
+# Prepend site-specific scripts to path - only if they exist
+if [ -d "$siteDir/bin" ]                # Generic
+then
+    _foamAddPath "$siteDir/bin"
+fi
+if [ -d "$siteDir/$FOAM_API/bin" ]      # API-specific
+then
+    _foamAddPath "$siteDir/$FOAM_API/bin"
+fi
+
+# OpenFOAM executables (user, group, standard)
+_foamAddPath "$FOAM_USER_APPBIN:$FOAM_SITE_APPBIN:$FOAM_APPBIN"
+
+# Dummy versions of external libraries. To be found last in library path
+_foamAddLib  "$FOAM_LIBBIN/dummy"
+
+# External (ThirdParty) libraries. Also allowed to be unset
+if [ -d "$WM_THIRD_PARTY_DIR" ]
+then
+    export FOAM_EXT_LIBBIN="$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER$WM_PRECISION_OPTION$WM_LABEL_OPTION/lib"
+else
+    unset FOAM_EXT_LIBBIN
+fi
+
+
+#------------------------------------------------------------------------------
+
+# Convenience
+# ~~~~~~~~~~~
+
+export FOAM_ETC="$WM_PROJECT_DIR/etc"
+export FOAM_APP="$WM_PROJECT_DIR/applications"
+export FOAM_SRC="$WM_PROJECT_DIR/src"
+export FOAM_TUTORIALS="$WM_PROJECT_DIR/tutorials"
+export FOAM_UTILITIES="$WM_PROJECT_DIR/applications/utilities"
+export FOAM_SOLVERS="$WM_PROJECT_DIR/applications/solvers"
+export FOAM_RUN="$WM_PROJECT_USER_DIR/run"
+
+#------------------------------------------------------------------------------
+
+# Compiler settings
+# ~~~~~~~~~~~~~~~~~
+
+# Default to system compiler
+: "${WM_COMPILER_TYPE:=system}"; export WM_COMPILER_TYPE
+
+# Non-POSIX systems and cross-compiling
+case "$WM_COMPILER" in
+(Mingw*)
+    export WM_OSTYPE=MSwindows
+    ;;
+esac
+
+# Clear prior to sourcing
+unset gcc_version gmp_version mpfr_version mpc_version clang_version
+unset GMP_ARCH_PATH MPFR_ARCH_PATH
+
+# Load pre-defined compiler versions
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+_foamEtc -config compiler
+
+# ThirdParty base for compilers
+archDir="$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER_ARCH"
+
+case "$WM_COMPILER_TYPE-$WM_COMPILER" in
+ThirdParty-Gcc*)
+    gccDir="$archDir/$gcc_version"
+    gmpDir="$archDir/${gmp_version:-gmp-system}"
+    mpfrDir="$archDir/${mpfr_version:-mpfr-system}"
+    mpcDir="$archDir/${mpc_version:-mpc-system}"
+
+    # Check that the compiler directory can be found
+    [ -d "$gccDir" ] || /bin/cat << GCC_NOT_FOUND 1>&2
+===============================================================================
+Warning in $WM_PROJECT_DIR/etc/config.sh/settings:
+Cannot find '$WM_COMPILER' compiler installation
+    $gccDir
+
+    Either install this compiler version, or use the system compiler by setting
+    WM_COMPILER_TYPE to 'system' in \$WM_PROJECT_DIR/etc/bashrc.
+===============================================================================
+GCC_NOT_FOUND
+
+    _foamAddMan     "$gccDir"/man
+    _foamAddPath    "$gccDir"/bin
+
+    # Add ThirdParty compiler libraries to run-time environment
+    _foamAddLib     "$gccDir/lib$WM_COMPILER_LIB_ARCH"
+
+    # Add gmp/mpfr/mpc libraries to run-time environment.
+    # Require that they exist, automatically find lib64/ or lib/.
+    _foamAddLibAuto "$gmpDir"  && \
+        export GMP_ARCH_PATH="$gmpDir"    # For non-system CGAL
+
+    _foamAddLibAuto "$mpfrDir" && \
+        export MPFR_ARCH_PATH="$mpfrDir"  # For non-system CGAL
+
+    _foamAddLibAuto "$mpcDir"
+
+    if [ -n "$FOAM_VERBOSE" ] && [ -n "$PS1" ]
+    then
+        echo "Using ThirdParty compiler"
+        echo "    ${gccDir##*/}  (${gmpDir##*/}  ${mpfrDir##*/}  ${mpcDir##*/})"
+    fi
+    ;;
+
+ThirdParty-Clang*)
+    clangDir="$archDir/$clang_version"
+
+    # Check that the compiler directory can be found
+    [ -d "$clangDir" ] || /bin/cat << CLANG_NOT_FOUND 1>&2
+===============================================================================
+Warning in $WM_PROJECT_DIR/etc/config.sh/settings:
+Cannot find '$WM_COMPILER' compiler installation
+    $clangDir
+
+    Either install this compiler version, or use the system compiler by setting
+    WM_COMPILER_TYPE to 'system' in \$WM_PROJECT_DIR/etc/bashrc.
+===============================================================================
+CLANG_NOT_FOUND
+
+    _foamAddMan     "$clangDir"/share/man
+    _foamAddPath    "$clangDir"/bin
+    _foamAddLib     "$clangDir"/lib  # For things like libomp (openmp) etc
+
+    if [ -n "$FOAM_VERBOSE" ] && [ -n "$PS1" ]
+    then
+        echo "Using ThirdParty compiler"
+        echo "    ${clangDir##*/}"
+    fi
+    ;;
+
+-* | system-* | ThirdParty-*)
+    # Using empty (system), system compiler or other ThirdParty compiler
+    ;;
+
+*)
+    /bin/cat << UNKNOWN_TYPE 1>&2
+===============================================================================
+Unknown WM_COMPILER_TYPE="$WM_COMPILER_TYPE" - treating as 'system'
+Please check your settings
+===============================================================================
+UNKNOWN_TYPE
+    export WM_COMPILER_TYPE=system
+    ;;
+
+esac
+
+# Cleanup
+# ~~~~~~~
+unset archOption archDir siteDir _foamFoundDir
+unset gcc_version gccDir
+unset gmp_version gmpDir  mpfr_version mpfrDir  mpc_version mpcDir
+unset clang_version clangDir
+
+#------------------------------------------------------------------------------

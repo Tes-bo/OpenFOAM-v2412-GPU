@@ -1,0 +1,64 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2018-2022 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     wmake/scripts/makeDepend
+#
+# Description
+#     Wrapping for cpp -M with argument/options compatible with
+#     <wmake/rules/General/transform> calls of wmkdepend or wmkdep.
+#
+#     This is for testing purposes only, but could used as a hook for
+#     other dependency generation systems (eg, ninja).
+#
+# Note
+#     The order of the calling options is fragile.
+#     Handling of '-eENV' not working.
+#
+# Usage
+#     makeDepend [-eENV...] [-q] [-oFile] ...
+#
+#         -eENV     Environment variable path substitutions.
+#         -oFile    Write output to File.
+#         -q        Suppress 'No such file' warnings.
+#         -v        Verbose
+#
+#------------------------------------------------------------------------------
+unset envChanges output
+
+while [ "$#" -gt 1 ]
+do
+    case "$1" in
+    -q* | -v*)   # quiet/verbose- ignore
+    ;;
+
+    -e*)  # -eENV - Not working
+        envChanges="$envChanges ${1#-e}"
+        ;;
+
+    -o*)  # -oFILE
+        output="${1#-o}"
+        ;;
+
+    *)
+        break
+        ;;
+    esac
+    shift
+done
+
+cpp -x c++ -std=c++11 -M  \
+    -DWM_"$WM_PRECISION_OPTION" -DWM_LABEL_SIZE="$WM_LABEL_SIZE" \
+    $@ $output
+
+#------------------------------------------------------------------------------

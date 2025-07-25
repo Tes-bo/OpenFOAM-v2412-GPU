@@ -1,0 +1,46 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+./Allrun.pre
+
+if ! canCompile
+then
+   echo "-- No dynamicCode: replace coded Function1 with constant value"
+   foamDictionary -entry boundaryField/inlet/massFlowRate -set 'constant 5' 0/U
+fi
+
+runApplication decomposePar
+
+#- Run without processorAgglomerator
+runParallel $(getApplication)
+
+#- Run with processorAgglomerator
+foamDictionary -entry solvers/p/processorAgglomerator -set masterCoarsest system/fvSolution
+runParallel -s masterCoarsest $(getApplication)
+
+#- Run with processorAgglomerator+nCellsInMasterLevel
+foamDictionary -entry solvers/p/nCellsInMasterLevel -set 1 system/fvSolution
+runParallel -s nCellsInMasterLevel $(getApplication)
+
+#- Run with processorAgglomerator - multiple masters 
+foamDictionary -entry solvers/p/nMasters -set 2 system/fvSolution
+runParallel -s masterCoarsest2 $(getApplication)
+
+#- Run with processorAgglomerator
+foamDictionary -entry solvers/p/processorAgglomerator -set procFaces system/fvSolution
+foamDictionary -entry solvers/p/nAgglomeratingCells -set 100 system/fvSolution
+runParallel -s procFaces $(getApplication)
+foamDictionary -entry solvers/p/nAgglomeratingCells -remove system/fvSolution
+
+#- Run with processorAgglomerator
+foamDictionary -entry solvers/p/processorAgglomerator -set eager system/fvSolution
+runParallel -s eager $(getApplication)
+
+#- Run with processorAgglomerator
+foamDictionary -entry solvers/p/processorAgglomerator -set manual system/fvSolution
+foamDictionary -entry solvers/p/processorAgglomeration -set '((9 ((0 1 2 3)(4 5 6 7))))' system/fvSolution
+runParallel -s manual $(getApplication)
+
+#------------------------------------------------------------------------------

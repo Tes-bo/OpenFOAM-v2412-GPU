@@ -1,0 +1,10 @@
+#!/bin/sh
+cd "${0%/*}" || exit    # Run from this directory
+
+wclean libso regionModel
+wclean libso pyrolysisModels
+wclean libso surfaceFilmModels
+wclean libso thermalBaffleModels
+wclean libso regionCoupling
+
+#------------------------------------------------------------------------------

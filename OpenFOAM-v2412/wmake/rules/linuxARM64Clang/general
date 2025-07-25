@@ -1,0 +1,13 @@
+CPP        = cpp -traditional-cpp $(GFLAGS)
+
+include $(GENERAL_RULES)/standard
+include $(GENERAL_RULES)/Clang/openmp
+
+ifneq (,$(findstring ~openmp,$(WM_COMPILE_CONTROL)))
+    include $(GENERAL_RULES)/no-openmp
+endif
+
+include $(DEFAULT_RULES)/c
+include $(DEFAULT_RULES)/c++
+
+# -----------------------------------------------------------------------------

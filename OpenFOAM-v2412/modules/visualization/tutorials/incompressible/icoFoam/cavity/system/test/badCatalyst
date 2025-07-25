@@ -1,0 +1,26 @@
+// ParaView Catalyst function object for OpenFOAM (-*- C++ -*-)
+
+catalyst
+{
+    #includeEtc "caseDicts/insitu/catalyst/catalyst.cfg"
+
+    scripts
+    (
+//        "<system>/test/badCatalyst0.py"
+//        "<system>/test/badCatalyst1.py"
+//        "<system>/test/badCatalyst2.py"
+//        "<system>/test/contourGood.py"
+//        "<system>/test/contourBad1.py"
+        "<system>/test/contourBad2.py"
+    );
+
+    inputs
+    {
+        region
+        {
+            fields  (".*");
+        }
+    }
+}
+
+// ************************************************************************* //

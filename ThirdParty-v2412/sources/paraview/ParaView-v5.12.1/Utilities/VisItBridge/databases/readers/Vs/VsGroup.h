@@ -1,0 +1,38 @@
+/**
+ * @file VsGroup.h
+ *
+ * @brief Represents an hdf5 group from an hdf5 file.
+ *
+ * Provides accessors to get attributes and datasets
+ * from a group in an hdf5 file.
+ *
+ */
+
+#ifndef VS_GROUP_H_
+#define VS_GROUP_H_
+
+#include <string>
+#include <vector>
+#include <map>
+
+#include "VsObject.h"
+#include <vtk_hdf5.h>
+
+class VsAttribute;
+class VsDataset;
+
+class VsGroup : public VsObject {
+
+  public:
+
+    VsGroup(VsRegistry* r, VsObject* parentObject, std::string groupName,
+        hid_t id);
+
+    virtual ~VsGroup();
+
+    void write() const;
+
+};
+
+#endif // VS_GROUP_H_
+

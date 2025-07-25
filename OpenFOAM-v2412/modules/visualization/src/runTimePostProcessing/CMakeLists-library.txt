@@ -1,0 +1,34 @@
+#-----------------------------------------------------------------------------
+# OpenFOAM insitu VTK - library dependencies
+
+set(OPENFOAM_LINK_DIRS
+    ${FOAM_LIBBIN}
+    ${FOAM_LIBBIN}/dummy
+)
+
+set(OPENFOAM_INCLUDE_DIRS
+    ${LIB_SRC}/OpenFOAM/include
+    ${LIB_SRC}/OpenFOAM/lnInclude
+    ${LIB_SRC}/OSspecific/${WM_OSTYPE}/lnInclude
+    ${LIB_SRC}/fileFormats/lnInclude
+    ${LIB_SRC}/surfMesh/lnInclude
+    ${LIB_SRC}/meshTools/lnInclude
+    ${LIB_SRC}/conversion/lnInclude
+    ${LIB_SRC}/finiteArea/lnInclude
+    ${LIB_SRC}/finiteVolume/lnInclude
+    ${LIB_SRC}/sampling/lnInclude
+)
+
+# OpenFOAM libraries (from FOAM_LIBBIN)
+set(OPENFOAM_LIBNAMES
+    OpenFOAM
+    fileFormats
+    surfMesh
+    meshTools
+    conversion
+    finiteArea
+    finiteVolume
+    sampling
+)
+
+#-----------------------------------------------------------------------------

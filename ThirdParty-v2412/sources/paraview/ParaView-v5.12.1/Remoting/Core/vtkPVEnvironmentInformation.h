@@ -1,0 +1,59 @@
+// SPDX-FileCopyrightText: Copyright (c) Kitware Inc.
+// SPDX-License-Identifier: BSD-3-Clause
+/**
+ * @class   vtkPVEnvironmentInformation
+ * @brief   Information object that can
+ * be used to obtain values of environment variables.
+ *
+ * vtkPVEnvironmentInformation can be used to get values of environment
+ * variables.
+ */
+
+#ifndef vtkPVEnvironmentInformation_h
+#define vtkPVEnvironmentInformation_h
+
+#include "vtkPVInformation.h"
+#include "vtkRemotingCoreModule.h" //needed for exports
+
+class VTKREMOTINGCORE_EXPORT vtkPVEnvironmentInformation : public vtkPVInformation
+{
+public:
+  static vtkPVEnvironmentInformation* New();
+  vtkTypeMacro(vtkPVEnvironmentInformation, vtkPVInformation);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
+
+  /**
+   * Transfer information about a single object into this object.
+   * The object must be a vtkPVEnvironmentInformationHelper.
+   */
+  void CopyFromObject(vtkObject* object) override;
+
+  ///@{
+  /**
+   * Manage a serialized version of the information.
+   */
+  void CopyToStream(vtkClientServerStream*) override;
+  void CopyFromStream(const vtkClientServerStream*) override;
+  ///@}
+
+  ///@{
+  /**
+   * Get the value of an environment variable
+   */
+  vtkGetStringMacro(Variable);
+  ///@}
+
+protected:
+  vtkPVEnvironmentInformation();
+  ~vtkPVEnvironmentInformation() override;
+
+  char* Variable; // value of an environment variable
+
+  vtkSetStringMacro(Variable);
+
+private:
+  vtkPVEnvironmentInformation(const vtkPVEnvironmentInformation&) = delete;
+  void operator=(const vtkPVEnvironmentInformation&) = delete;
+};
+
+#endif

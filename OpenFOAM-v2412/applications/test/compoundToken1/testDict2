@@ -1,0 +1,65 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      dictionary;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+internalField   uniform 1;
+
+// Regular syntax
+valuesT  List<scalar> (123 456 890);
+
+// Test some non-standard syntax
+temperature  List<scalar>
+{
+    transport adios;
+    length    10;
+    values    (270 271 272 273 274 275 276 277 278 279);
+};
+
+// Test some non-standard syntax
+velocity  List<vector>
+{
+    transport adios;
+    length    10;
+    values    (270 271 272 273 274 275 276 277 278 279);
+};
+
+// Test some non-standard syntax
+isGood  List<bool>
+{
+    transport adios;
+    length    10;
+    values    (true false true);
+};
+
+// Test some non-standard syntax
+master  List<label>
+{
+    transport adios;
+    length    10;
+    values    (0 100 35 50);
+};
+
+// Test some non-standard syntax
+edges  List<edge>
+{
+    transport adios;
+    length    10;
+    values    ((0 1) (2 1));
+};
+
+pressure 1e5;
+
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

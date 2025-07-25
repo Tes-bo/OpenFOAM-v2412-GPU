@@ -1,0 +1,241 @@
+#---------------------------------*- sh -*-------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2016-2023 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# File
+#     etc/tools/vtkFunctions
+#
+# Description
+#     VTK (library) make/install helper functions.
+#     To be loaded *after* etc/tools/CMakeFunctions, ParaViewFunctions
+#
+#------------------------------------------------------------------------------
+
+# Variables referenced by the functions. Initialization at the end of the file.
+unset CMAKE_VARIABLES
+
+# sourceBASE, buildBASE, installBASE and BUILD_SUFFIX
+#   are defined in tools/ThirdPartyFunctions
+#------------------------------------------------------------------------------
+
+#
+# Where things are or should be put
+#   VTK_VERSION and VTK_MAJOR should already have been set
+#
+#   VTK_SOURCEDIR : location of the original sources
+#   VTK_BUILDDIR  : location of the build
+#   VTK_DIR       : location of the installed program
+#
+setVtkDirs()
+{
+    set -- "VTK-$VTK_VERSION" "VTK-v$VTK_VERSION"
+    unset VTK_SOURCEDIR VTK_BUILDDIR
+
+    # search
+    # - ThirdParty/PACKAGE
+    # - ThirdParty/sources/PACKAGE
+    # - ThirdParty/sources/vtk/PACKAGE
+    # - ThirdParty/sources/paraview/PACKAGE
+    for package in "$@"
+    do
+        for check in \
+            "$package" \
+            "sources/$package" \
+            "sources/vtk/$package" \
+            "sources/paraview/$package" \
+        ;
+        do
+            if [ -d "$sourceBASE/$check" ]
+            then
+                echo "Found sources: $check" 1>&2
+                VTK_SOURCEDIR="$sourceBASE/$check"
+                break 2
+            fi
+        done
+    done
+
+    [ -d "$VTK_SOURCEDIR" ] || {
+        echo "Did not locate VTK version:"
+        while [ "$#" -ge 1 ]; do echo "    $1"; shift; done
+        echo
+        echo "In the directory:"
+        echo "    $sourceBASE"
+        echo "    \-- sources/paraview"
+        echo "       |-- vtk"
+        echo "       \\-- paraview"
+        echo
+        echo "abort build"
+        exit 1
+    }
+
+    VTK_BUILDDIR="$buildBASE/VTK-$VTK_VERSION$BUILD_SUFFIX"
+    VTK_DIR="$installBASE/VTK-$VTK_VERSION$BUILD_SUFFIX"
+    export GIT_DIR="$VTK_SOURCEDIR/.git"   # Avoid seeing our own git-repo
+
+    export VTK_SOURCEDIR VTK_BUILDDIR VTK_DIR
+
+    echo
+    echo "VTK_DIR=$VTK_DIR"
+    echo "VTK_SOURCEDIR=$VTK_SOURCEDIR"
+    echo "VTK_BUILDDIR=$VTK_BUILDDIR"
+}
+
+
+#
+# Set VTK_VERSION and adjust VTK_MAJOR accordingly
+#
+# $1 can contain something something like 4.4.0, vtk-4.4.0, VTK-4.0.0
+#
+setVtkVersion()
+{
+    [ $# -gt 0 ] || {
+        echo "Error: function setVtkVersion() called without an argument"
+        exit 1
+    }
+
+    VTK_VERSION="${1##*-}"
+
+    # The major version is "<digits>.<digits>"
+    VTK_MAJOR=$(echo $VTK_VERSION | \
+        sed -e 's/^\([0-9][0-9]*\.[0-9][0-9]*\).*$/\1/')
+
+    export VTK_VERSION VTK_MAJOR
+}
+
+
+#------------------------------------------------------------------------------
+
+#
+# Apply source-code patch if possible
+#
+patchVTK()
+{
+    applyPatch "vtk-$VTK_VERSION" "$VTK_SOURCEDIR"
+}
+
+
+#
+# Configure via cmake, but don't actually build anything
+#
+configVTK()
+{
+    local cmake=$(findCMake)
+
+    # Remove any existing build folder and recreate
+    if [ -d "$VTK_BUILDDIR" ]
+    then
+        echo "removing old build directory"
+        echo "    $VTK_BUILDDIR"
+        rm -rf "$VTK_BUILDDIR"
+    fi
+    mkdir -p "$VTK_BUILDDIR"
+
+    addCMakeVariable "CMAKE_BUILD_TYPE=$BUILD_TYPE"
+
+    cd "$VTK_BUILDDIR" || exit  # Change to build folder
+
+    echo "----"
+    echo "Configuring VTK-$VTK_VERSION"
+    echo "    MESA   support : ${withMESA:-false}"
+    echo "    Source         : $VTK_SOURCEDIR"
+    echo "    Build          : $VTK_BUILDDIR"
+    echo "    Target         : $VTK_DIR"
+    echo "    cmake          : $cmake"
+    echo "    Build suffix   : ${BUILD_SUFFIX:-none}"
+    echo "----"
+    echo
+    echo "$cmake" \
+        -DCMAKE_INSTALL_PREFIX="$VTK_DIR" \
+        $CMAKE_VARIABLES \
+        "$VTK_SOURCEDIR"
+    echo
+    echo "----"
+    echo
+
+    # Run cmake to create Makefiles
+    $cmake \
+        -DCMAKE_INSTALL_PREFIX="$VTK_DIR" \
+        $CMAKE_VARIABLES \
+        "$VTK_SOURCEDIR"
+}
+
+
+#
+# MPI support for VTK
+#
+unset -f addMpiSupport 2>/dev/null
+addMpiSupport()
+{
+    if [ "${withMPI:=false}" != true ]
+    then
+        return
+    fi
+
+    addCMakeVariable "VTK_Group_MPI=ON"
+    addCMakeVariable "Module_vtkRenderingParallel=ON"
+    addCMakeVariable "Module_vtkParallelMPI=ON"
+
+    if [ "${MPI_MAX_PROCS:=0}" -gt 1 ]
+    then
+        addCMakeVariable "VTK_MPI_MAX_NUMPROCS=$MPI_MAX_PROCS"
+    fi
+
+    echo "----"
+    echo "MPI information:"
+    echo "    home           : $MPI_HOME"
+}
+
+
+#
+# Invoke make
+# also link bin/ to lib/paraview-* for development without installation
+#
+makeVTK()
+{
+    cd "$VTK_BUILDDIR" || exit  # Change to build folder
+    echo "    Starting make"
+    time make -j $WM_NCOMPPROCS
+
+    # Remove lib if it is a link
+    # (how this was previously handled before 'make install' worked)
+    [ -L lib ] && rm -f lib 2>/dev/null
+
+    echo "    Done make"         # Last statement for clean return code
+}
+
+
+#
+# Install the program
+#
+installVTK()
+{
+    cd "$VTK_BUILDDIR" || exit  # Change to build folder
+    echo "    Installing VTK to $VTK_DIR"
+
+    make install
+
+    /bin/cat<<INFO
+
+====
+Installation complete for vtk-$VTK_VERSION as
+    VTK_DIR=$VTK_DIR
+====
+INFO
+}
+
+
+#------------------------------------------------------------------------------
+
+# Start with these general settings
+addCMakeVariable "BUILD_SHARED_LIBS=ON" "BUILD_TESTING=OFF"
+
+
+#------------------------------------------------------------------------------

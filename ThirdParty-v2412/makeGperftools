@@ -1,0 +1,148 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2012 OpenFOAM Foundation
+#     Copyright (C) 2016-2021 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     makeGperftools
+#
+# Description
+#     Build script for gperftools
+#
+# ----------------------------------------------
+# NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
+#------------------------------------------------------------------------------
+if :    # Run from third-party directory
+then
+    cd "${0%/*}" || exit
+    wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
+        echo "Error (${0##*/}) : not located in \$WM_THIRD_PARTY_DIR"
+        echo "    Check your OpenFOAM environment and installation"
+        exit 1
+    }
+fi
+. "${WM_THIRD_PARTY_DIR:?}"/etc/tools/ThirdPartyFunctions
+#------------------------------------------------------------------------------
+# Obtain version from OpenFOAM etc/config.sh file:
+_foamConfig gperftools
+
+PACKAGE="${gperftools_version:-none}"
+
+#------------------------------------------------------------------------------
+printVersions() { listPackageVersions gperf; exit 0; }
+printHelp() {
+    cat<<USAGE
+
+Usage: ${0##*/} [gperftools-VERSION]
+options:
+  -force        Force compilation, even if include/library already exists
+  -gcc          Force use of gcc/g++
+  -list         List available unpacked source versions
+  -help         Display usage help
+
+* Build gperftools
+      ${PACKAGE:-[unspecified]}
+
+USAGE
+    showDownloadHint gperftools
+    exit 0  # Clean exit
+}
+#------------------------------------------------------------------------------
+exportCompiler          # Compiler info for CMake/configure
+
+unset optForce
+
+# Parse options
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    '') ;;      # Ignore empty
+    -h | -help*) printHelp;;
+    -list)      printVersions;;
+    -gcc)       useGcc  ;;
+    -force)     optForce=true ;;
+
+    gperftools/* | sources/gperftools* |\
+    gperftools-[0-9]* | gperftools-svn* | gperftools-git)
+        PACKAGE="${1%%/}"
+        ;;
+    *)
+        die "unknown option/argument: '$1'"
+        ;;
+    esac
+    shift
+done
+
+if [ -z "$PACKAGE" ]
+then
+    die "The GPERFTOOLS package/version not specified"
+elif _foamIsNone "$PACKAGE" || _foamIsSystem "$PACKAGE"
+then
+    echo "Using none/system (skip ThirdParty build of GPERFTOOLS)"
+    exit 0
+fi
+
+#------------------------------------------------------------------------------
+#
+# Build gperftools
+#   *PACKAGE : name-version of the package
+#   *SOURCE  : location of original sources
+#   *PREFIX  : installation directory
+
+PKG_SOURCE="$(findSourceDir "$PACKAGE")"
+PACKAGE="$(basename "$PACKAGE")"
+PKG_PREFIX="$installBASE/$PACKAGE"
+export GIT_DIR="$PKG_SOURCE/.git"
+
+echo "---------------"
+if [ -z "$optForce" ] \
+&& [ -d "$PKG_PREFIX" ]
+then
+    echo "Already built: $PACKAGE"
+else
+    echo "Starting build: $PACKAGE"
+    (
+        PKG_BUILD="$buildBASE/$PACKAGE"
+        cd "$PKG_SOURCE" || exit
+
+        make distclean 2>/dev/null || true
+
+        rm -rf "$PKG_PREFIX"
+        rm -rf "$PKG_BUILD"
+        mkdir -p "$PKG_BUILD"
+
+        cd "$PKG_BUILD" && set -x && \
+        "$PKG_SOURCE"/configure \
+            --prefix="$PKG_PREFIX" \
+        && set +x \
+        && make -j $WM_NCOMPPROCS \
+        && make install \
+        && echo "Built: $PACKAGE" \
+    ) || {
+        echo "Error building: $PACKAGE"
+        exit 1
+    }
+
+    # Unneeded generated files
+    for dir in share/doc share/info share/man
+    do
+        if [ -d "$PKG_PREFIX/$dir" ]
+        then
+            echo "Discard $dir files to save space: $PACKAGE"
+            rm -rf "$PKG_PREFIX/$dir"
+        fi
+    done
+    rmdir "$PKG_PREFIX"/share 2>/dev/null || true
+
+fi
+
+#------------------------------------------------------------------------------

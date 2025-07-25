@@ -1,0 +1,329 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2011-2016 OpenFOAM Foundation
+#     Copyright (C) 2017-2022 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     wclean
+#
+# Usage
+#     wclean [OPTION] [dir]
+#     wclean [OPTION] target [dir [MakeDir]]
+#     wclean -subcommand ...
+#
+# Description
+#     Clean up the wmake control directory Make/\$WM_OPTIONS and remove the
+#     lnInclude directories generated for libraries.
+#
+#------------------------------------------------------------------------------
+Script="${0##*/}"                   # Need 'Script' for wmakeFunctions messages
+scriptsDir="${0%/*}"/scripts        # wmake/scripts directory
+. "$scriptsDir"/wmakeFunctions      # Source wmake functions
+
+printHelp() {
+    cat<<HELP_HEAD
+
+Usage: $Script [OPTION] [dir]
+       $Script [OPTION] target [dir [MakeDir]]
+       $Script -subcommand ...
+
+options:
+  -a | -all         All subdirectories, uses Allwclean, Allclean if they exist
+  -s | -silent      Silent mode (ignored - for compatibility with wmake)
+  -help             Display short help and exit
+  -help-full        Display full help and exit
+
+subcommands (wclean subcommand -help for more information):
+HELP_HEAD
+
+if [ -n "$1" ]
+then
+cat<<HELP_SUBCOMMANDS
+  -build           Remove specified build/ object directories
+  -platform        Remove specified platforms/ object directories
+HELP_SUBCOMMANDS
+else
+cat<<HELP_SUBCOMMANDS
+  -build -platform
+HELP_SUBCOMMANDS
+fi
+
+cat<<HELP_TAIL_COMMON
+
+Clean up the wmake control directory Make/\$WM_OPTIONS and remove the
+lnInclude directories generated for libraries.
+
+HELP_TAIL_COMMON
+
+cat<<HELP_TAIL_FULL
+Special targets:
+  all               Same as -all option
+  exe | lib | libo | libso
+  empty             Remove empty sub-directories for the requested dir.
+                    If executed in the main project directory, it will also
+                    remove deprecated object directories and respective binaries
+                    that refer to no-longer-existing source code.
+
+HELP_TAIL_FULL
+    exit 0 # clean exit
+}
+
+# Report error and exit
+die()
+{
+    exec 1>&2
+    echo
+    echo "Error encountered:"
+    while [ "$#" -ge 1 ]; do echo "    $1"; shift; done
+    echo
+    echo "See '${0##*/} -help' for usage"
+    echo " or '${0##*/} -help-full' for extended usage"
+    echo
+    exit 1
+}
+
+
+#------------------------------------------------------------------------------
+# Parse arguments and options
+#------------------------------------------------------------------------------
+
+unset dir targetType
+MakeDir=Make
+
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    ('') ;;
+    (- | --) shift; break ;;  # Stop option parsing
+
+    -help-f*)   # Full help
+        printHelp -full
+        ;;
+    -h | -help*) # Short help
+        printHelp
+        ;;
+
+    # Forward to scripts/wclean-build
+    -build) shift
+        exec "$scriptsDir/wclean-build" "$@"
+        exit $?
+        ;;
+
+    # Forward to scripts/wclean-platform
+    -platform*) shift
+        exec "$scriptsDir/wclean-platform" "$@"
+        exit $?
+        ;;
+
+    -a | -all | all)
+        targetType=all
+        ;;
+    -s | -silent | -quiet)
+        export WM_QUIET=true
+        ;;
+    -*)
+        die "unknown option: '$1'"
+        ;;
+    *)
+        break
+        ;;
+    esac
+    shift
+done
+
+#------------------------------------------------------------------------------
+# Check arguments and change to the directory in which to run wclean.
+# The variables 'targetType' and 'MakeDir' are considered global
+#------------------------------------------------------------------------------
+
+if [ $# -ge 1 ]
+then
+    if [ -d "$1" ]
+    then
+        dir="${1%/}"
+    elif [ -f "$1" ]
+    then
+        dir="${1%/*}"
+        : "${dir:=.}"
+    else
+        targetType="$1"
+    fi
+
+    # Specified directory name:
+    [ $# -ge 2 ] && dir="${2%/}"
+
+    # Specified alternative name for the Make sub-directory:
+    [ $# -ge 3 ] && MakeDir="${3%/}"
+
+    if [ -n "$dir" ]
+    then
+        cd "$dir" 2>/dev/null || {
+            echo "$Script error: could not change to directory '$dir'" 1>&2
+            exit 1
+        }
+    fi
+
+    # Print command, trim off leading './' for readability
+    echo "$Script $targetType${targetType:+ }${dir#./}"
+fi
+
+
+#------------------------------------------------------------------------------
+# If target not specified search up the directory tree for the Make
+# sub-directory, check the existence of the 'files' file and clean there if
+# present
+# ------------------------------------------------------------------------------
+
+[ -n "$targetType" ] || cdSource
+
+
+#------------------------------------------------------------------------------
+# Remove empty sub-directories and exit
+#------------------------------------------------------------------------------
+
+if [ "$targetType" = empty ]
+then
+    # First pass: clean up empty source code directories
+    echo "Removing empty directories..."
+
+    # Get sub-directories avoiding particular directories
+    for d in $(find . -mindepth 1 -maxdepth 1 \
+                      -name .git -prune -o -type d -print)
+    do
+        echo "    searching: ${d#./}"
+        find "$d" -depth -empty -type d -delete -print
+    done
+
+    # Second pass: clean up object directories with WM_PROJECT_DIR that don't
+    # have respective source code folders, along with the respective binaries
+
+    if "$scriptsDir"/wmake-check-dir "$WM_PROJECT_DIR" && \
+        objectsDir=$(findObjectDir . 2>/dev/null)
+    then
+        if [ -d "$objectsDir" ]
+        then
+            echo "    Removing redundant object directories in $objectsDir"
+
+            find "$objectsDir" -name 'variables' -print | \
+            while read variablesFile
+            do
+                # Hack'ish way of getting the original source code path
+                depFile=$(dirname $variablesFile)
+                sourceFile=$(depToSource $depFile)
+
+                # Check if the original source code directory exists
+                if [ ! -r "$sourceFile" ]
+                then
+                    # Delete the respective binary first
+                    binaryFile=$(cat $variablesFile |
+                                grep -e '^ *\(EXE\|LIB\) *= *' )
+
+                    # Catch all file extension (o,a,so,?+) for libraries
+                    if echo $binaryFile | grep -qe '^ *LIB *= *'
+                    then
+                        binaryFile="${binaryFile}.*"
+                    fi
+
+                    # Isolate path and translate environment variables
+                    binaryFile=$(echo $binaryFile | \
+                                 sed -e 's/^ *\(EXE\|LIB\) *= *//' \
+                                     -e 's/(/{/g' -e 's/)/}/g' )
+
+                    # Expand environment variables for path
+                    binaryFile=$(eval echo $binaryFile)
+
+                    # Verbosely remove binary file
+                    if [ -n "$binaryFile" ] && [ -e "$binaryFile" ]
+                    then
+                        rm -vf "$binaryFile" 2>/dev/null
+                    fi
+
+                    # Remove the deprecated object directory
+                    rm -rvf "$depFile" 2>/dev/null
+                fi
+            done
+        fi
+    fi
+
+    exit 0
+fi
+
+
+#------------------------------------------------------------------------------
+# Recurse the directories tree
+#------------------------------------------------------------------------------
+
+unset exitCode
+
+if [ "$targetType" = all ]
+then
+    if [ -e Allwclean ]       # Symmetric with Allwmake
+    then
+        ./Allwclean
+        exitCode="$?"
+    elif [ -e Allclean ]      # Tutorial cases
+    then
+        ./Allclean
+        exitCode="$?"
+    fi
+
+    if [ -n "$exitCode" ]
+    then
+        exit "$exitCode"
+    fi
+
+
+    # For all directories containing a 'Make' directory, or an 'Allwclean' file
+    for dir in $(find . -name Allwclean -o -name Make)
+    do
+        echo "${dir%/*}"
+    done | sort | uniq | while read dir
+    do
+        # Use Allwclean if it exists, otherwise wclean
+        if [ -e "$dir"/Allwclean ]
+        then
+            "$dir"/Allwclean
+        elif [ -d "$dir"/Make ]
+        then
+            $0 "$dir"
+        fi
+    done
+fi
+
+
+#------------------------------------------------------------------------------
+# Clean the 'Make' directory if present
+#------------------------------------------------------------------------------
+
+if [ -d "$MakeDir" ] && [ -n "$WM_OPTIONS" ]
+then
+    # Remove in-source directory (if any)
+    rm -rf "$MakeDir/$WM_OPTIONS" 2>/dev/null
+
+    # Remove out-of-source directory (if applicable)
+    relativeDir="${PWD#${WM_PROJECT_DIR}/}"
+    if [ "$relativeDir" != "$PWD" ]
+    then
+        objectsDir="${WM_PROJECT_DIR}/build/${WM_OPTIONS}/${relativeDir}"
+        rm -rf "$objectsDir" 2>/dev/null
+    fi
+fi
+
+#------------------------------------------------------------------------------
+# Remove the lnInclude directory if present
+#------------------------------------------------------------------------------
+
+[ -d lnInclude ] && rm -rf lnInclude 2>/dev/null
+
+exit 0 # clean exit
+
+#------------------------------------------------------------------------------

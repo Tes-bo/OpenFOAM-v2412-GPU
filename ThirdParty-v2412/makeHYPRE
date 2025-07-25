@@ -1,0 +1,167 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2018-2021 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     makeHYPRE
+#
+# Description
+#     Build script for HYPRE
+#
+# ----------------------------------------------
+# NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
+#------------------------------------------------------------------------------
+if :    # Run from third-party directory
+then
+    cd "${0%/*}" || exit
+    wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
+        echo "Error (${0##*/}) : not located in \$WM_THIRD_PARTY_DIR"
+        echo "    Check your OpenFOAM environment and installation"
+        exit 1
+    }
+fi
+. "${WM_THIRD_PARTY_DIR:?}"/etc/tools/ThirdPartyFunctions
+#------------------------------------------------------------------------------
+# Obtain version from etc/config.sh file:
+_foamConfig hypre
+
+PACKAGE="${hypre_version:-none}"
+targetType=libso
+
+if nonStandardPlatforms  # Possibly unreliable inherited values
+then
+    unset HYPRE_ARCH_PATH
+fi
+
+#------------------------------------------------------------------------------
+printVersions() { listPackageVersions hypre; exit 0; }
+printHelp() {
+    cat<<USAGE
+
+Usage: ${0##*/} [OPTION] [lib|libso] [HYPRE-VERSION] [-- configure-options]
+options:
+  -force        Force compilation, even if include/library already exists
+  -gcc          Force use of gcc/g++
+  -list         List available unpacked source versions
+  -help         Display usage help
+
+* Build HYPRE with
+      ${PACKAGE:-[unspecified]}
+
+USAGE
+    showDownloadHint hypre
+    exit 0  # Clean exit
+}
+#------------------------------------------------------------------------------
+exportCompiler          # Compiler info for CMake/configure
+
+unset optForce
+
+# Parse options
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    '') ;;      # Ignore empty
+    --) break;; # Extra configure options (leave on $@ for later detection)
+    -h | -help*) printHelp;;
+    -list)      printVersions;;
+    -gcc)       useGcc  ;;
+    -force)     optForce=true ;;
+
+    lib|libso)
+        targetType="$1"
+        ;;
+
+    hypre/* | sources/hypre* |\
+    hypre-[0-9]* | hypre-git)
+        PACKAGE="${1%%/}"
+        unset HYPRE_ARCH_PATH  # Avoid inconsistency
+        ;;
+    *)
+        die "unknown option/argument: '$1'"
+        ;;
+    esac
+    shift
+done
+
+if [ -z "$PACKAGE" ]
+then
+    die "The HYPRE package/version not specified"
+elif _foamIsNone "$PACKAGE" || _foamIsSystem "$PACKAGE"
+then
+    echo "Using none/system (skip ThirdParty build of HYPRE)"
+    exit 0
+fi
+
+#------------------------------------------------------------------------------
+#
+# Build HYPRE
+#
+#   HYPRE_ARCH_PATH : installation directory (as per config file)
+#
+#   *PACKAGE : name-version of the package
+#   *SOURCE  : location of original sources
+#   *PREFIX  : installation directory
+
+PKG_SOURCE="$(findSourceDir "$PACKAGE")"
+PACKAGE="$(basename "$PACKAGE")"
+PKG_PREFIX="$installBASE$WM_SIZE_OPTIONS/$PACKAGE"
+export GIT_DIR="$PKG_SOURCE/.git"
+
+# Override as per config file (if any)
+[ -n "$HYPRE_ARCH_PATH" ] && PKG_PREFIX="$HYPRE_ARCH_PATH"
+
+[ -d "$PKG_SOURCE" ] || {
+    echo "Missing sources: '$PACKAGE'"
+    showDownloadHint hypre
+    exit 1
+}
+
+
+# Compilers
+CC="$(whichMpicc)"
+CXX="$(whichMpicxx)"
+
+echo "Starting build: $PACKAGE ($targetType)"
+echo
+(
+    # Configuration options
+    unset configOpt
+
+    # Additional configure options
+    if [ "$1" = "--" ]
+    then
+        shift
+        configOpt="$configOpt $@"
+    fi
+
+    cd "$PKG_SOURCE/src" || exit
+
+    rm -rf "$PKG_PREFIX"
+    make distclean 2>/dev/null || true
+
+    set -x && \
+    ./configure \
+       --prefix="$PKG_PREFIX" \
+       --disable-fortran \
+       --enable-shared \
+       $configOpt \
+    && make -j $WM_NCOMPPROCS \
+    && echo "Built: hypre" \
+    && make install \
+    && echo "Installed: $PACKAGE"
+) || {
+    echo "Error building: $PACKAGE"
+    exit 1
+}
+
+#------------------------------------------------------------------------------

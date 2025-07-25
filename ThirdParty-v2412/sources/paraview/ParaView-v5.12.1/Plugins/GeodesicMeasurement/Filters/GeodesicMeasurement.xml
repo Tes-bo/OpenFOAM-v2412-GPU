@@ -1,0 +1,137 @@
+<ServerManagerConfiguration>
+  <ProxyGroup name="filters">
+    <SourceProxy name="GeodesicMeasurement"
+                 class="vtkGeodesicsBetweenPoints"
+                 label="Geodesic Measurement">
+      <Documentation
+          long_help=""
+          short_help="">
+      </Documentation>
+      <InputProperty
+          name="Input"
+          command="SetInputConnection">
+        <ProxyGroupDomain name="groups">
+          <Group name="sources"/>
+          <Group name="filters"/>
+        </ProxyGroupDomain>
+        <DataTypeDomain name="input_type">
+          <DataType value="vtkPolyData"/>
+        </DataTypeDomain>
+      </InputProperty>
+      <InputProperty command="SetEndpointsConnection"
+                     name="Endpoints"
+                     panel_visibility="default">
+        <ProxyGroupDomain name="groups">
+          <Group name="sources" />
+          <Group name="filters" />
+        </ProxyGroupDomain>
+        <DataTypeDomain name="input_type">
+          <DataType value="vtkPointSet" />
+        </DataTypeDomain>
+        <Documentation>The input that provides the endpoints between
+        which geodesic paths will be computed.
+        </Documentation>
+      </InputProperty>
+      <IntVectorProperty command="SetLoop"
+                         name="Loop"
+                         label="Create Loop"
+                         number_of_elements="1"
+                         default_values="0">
+        <BooleanDomain name="bool"/>
+        <Documentation>
+          If on, enables loop creation by computing a path from the
+          last point to first point in the endpoints.
+        </Documentation>
+      </IntVectorProperty>
+      <IntVectorProperty command="SetLoopWithLine"
+                         name="LoopWithLine"
+                         label="Create Loop with Line"
+                         number_of_elements="1"
+                         default_values="0">
+        <BooleanDomain name="bool"/>
+        <Documentation>
+          If on and if Create Loop is on, uses a straight line segment
+          to connect the last point to the first point in the endpoints.
+        </Documentation>
+        <Hints>
+          <PropertyWidgetDecorator type="EnableWidgetDecorator">
+            <Property name="Loop" function="boolean" index="0" />
+          </PropertyWidgetDecorator>
+        </Hints>
+      </IntVectorProperty>
+    </SourceProxy>
+  </ProxyGroup>
+  <ProxyGroup name="filters">
+    <SourceProxy name="FastMarchingGeodesicDistanceField"
+                 class="vtkFastMarchingGeodesicDistance"
+                 label="Fast-Marching Geodesic Distance-Field From Binary Field">
+      <Documentation
+          short_help="Compute the distances to a set of seeds."
+          long_help="Compute the distance of points of the mesh to chosen seeds">
+          Compute the distance of each point of the mesh to a set of seeds
+          defined as points with non-zero value. Internal Fast-Marching-Method
+          plugin is used for computational efficiency.
+      </Documentation>
+      <InputProperty name="Input" command="SetInputConnection">
+        <ProxyGroupDomain name="groups">
+          <Group name="sources"/>
+          <Group name="filters"/>
+        </ProxyGroupDomain>
+        <DataTypeDomain name="input_type">
+          <DataType value="vtkPolyData"/>
+        </DataTypeDomain>
+        <InputArrayDomain name="SeedsNonZeroField"
+                          number_of_components="1"
+                          optional="0" />
+        <InputArrayDomain name="IsotropicMetricTensorLength"
+                          number_of_components="1"
+                          optional="1" />
+      </InputProperty>
+      <StringVectorProperty command="SetInputArrayToProcess"
+                            default_values="0"
+                            element_types="0 0 0 0 2"
+                            name="SeedsNonZeroField"
+                            label="Seeds Non-Zero Field"
+                            optional="0"
+                            number_of_elements="5">
+        <ArrayListDomain attribute_type="Scalars"
+                         input_domain_name="SeedsNonZeroField"
+                         name="array_list">
+          <RequiredProperties>
+            <Property function="Input"
+                      name="Input" />
+          </RequiredProperties>
+        </ArrayListDomain>
+        <Documentation>
+        Select the input array to be treated as defining seeds.
+        A point having a non-zero value will be considered as being a seed.
+        </Documentation>
+      </StringVectorProperty>
+      <StringVectorProperty command="SetInputArrayToProcess"
+                            default_values="1"
+                            element_types="0 0 0 0 2"
+                            name="IsotropicMetricTensorLength"
+                            number_of_elements="5">
+        <ArrayListDomain attribute_type="Scalars"
+                         input_domain_name="IsotropicMetricTensorLength"
+                         name="array_list"
+                         none_string="None">
+          <RequiredProperties>
+            <Property function="Input" name="Input" />
+          </RequiredProperties>
+        </ArrayListDomain>
+        <Documentation>Select the input array to be treated as the Metric
+        Tensor.It can only be an isometric tensor, and the selected field should
+        contain the length of the metric tensor at each polydata point.
+        </Documentation>
+      </StringVectorProperty>
+      <StringVectorProperty command="SetFieldDataName"
+                            default_values="DistanceField"
+                            name="OutputFieldName">
+        <Documentation>
+        Set the output field name.
+        </Documentation>
+      </StringVectorProperty>
+    </SourceProxy>
+  </ProxyGroup>
+</ServerManagerConfiguration>

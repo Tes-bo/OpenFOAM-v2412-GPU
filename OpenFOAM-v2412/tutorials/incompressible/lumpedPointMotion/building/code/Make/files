@@ -1,0 +1,3 @@
+building-motion.C
+
+EXE = $(PWD)/building-motion

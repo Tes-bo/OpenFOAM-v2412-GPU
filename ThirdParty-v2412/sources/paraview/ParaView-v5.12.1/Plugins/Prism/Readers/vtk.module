@@ -1,0 +1,17 @@
+NAME
+  Prism::vtkPrismReaders
+LIBRARY_NAME
+  vtkPrismReaders
+SPDX_LICENSE_IDENTIFIER
+  BSD-3-Clause
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Kitware Inc.
+DEPENDS
+  ParaView::VTKExtensionsIOCore
+  Prism::vtkPrismServerManager
+  VTK::CommonExecutionModel
+PRIVATE_DEPENDS
+  VTK::CommonCore
+  VTK::CommonDataModel
+  VTK::CommonMisc
+  VTK::FiltersGeometry

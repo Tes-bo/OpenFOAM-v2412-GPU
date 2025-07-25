@@ -1,0 +1,41 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      viewFactorsDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+
+writeViewFactorMatrix       true;
+writePatchViewFactors       false;
+
+// Write rays as lines to .obj file
+//dumpRays                    true;
+
+
+// Switch on debug for faceAgglomerate
+//debug                       1;
+writeFacesAgglomeration     true;
+patchAgglomeration
+{
+    // Do all of the view-factor patches
+    viewFactorWall
+    {
+        nFacesInCoarsestLevel   10;
+        featureAngle            45;
+    }
+}
+
+maxDynListLength          200000;
+
+
+// ************************************************************************* //

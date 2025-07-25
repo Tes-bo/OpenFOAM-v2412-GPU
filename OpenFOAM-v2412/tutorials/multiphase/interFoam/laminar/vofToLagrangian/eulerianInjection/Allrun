@@ -1,0 +1,29 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+runApplication blockMesh
+
+runApplication -s createBlockage \
+    topoSet -dict system/topoSetDict.createBlockage
+
+runApplication subsetMesh -overwrite blockage -patch bottom
+
+runApplication -s createPatch \
+    topoSet -dict system/topoSetDict.createPatch
+
+runApplication -s createCollector \
+    topoSet -dict system/topoSetDict.createCollector
+
+restore0Dir
+
+runApplication decomposePar
+
+runParallel setFields
+
+runParallel $(getApplication)
+
+runApplication reconstructPar
+
+#------------------------------------------------------------------------------

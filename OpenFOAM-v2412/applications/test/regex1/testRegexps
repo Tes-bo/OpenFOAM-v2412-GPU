@@ -1,0 +1,39 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// Pattern, String
+(
+    ( true  "a.*"  "abc" )
+    ( true  "a.*"  "abc" )
+    ( false "a.*"  "bac" )        // partial match only
+    ( true  "a.*"  "abcd" )
+    ( false "a.*"  "def" )
+    ( false ".*a.*"  "Abc" )
+    ( true  "(?i).*a.*"  "Abc" )
+    ( true  "d(.*)([xy]*)([f-p])"  "def" )
+    ( false "d(.*)([xy]*)([f-p])"  "xxdef" )
+    ( true
+        " *([A-Za-z]+) *= *([^ /]+) *(//.*)?"
+        "   keyword  = value // comment"
+    )
+    (
+        false   // partial match only
+        "[[:digit:]]"
+        "contains 1 or more digits"
+    )
+    (
+        true
+        "[[:digit:]]+-[[:digit:]]+-[[:digit:]]+-[[:digit:]]+"
+        "1-905-123-2234"
+    )
+
+)
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

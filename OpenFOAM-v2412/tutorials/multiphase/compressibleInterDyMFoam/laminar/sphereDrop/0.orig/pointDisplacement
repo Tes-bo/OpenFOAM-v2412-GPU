@@ -1,0 +1,117 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       pointVectorField;
+    object      pointDisplacement;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+__blockMeshDict
+{
+    #include "<system>/blockMeshDict"
+}
+
+// Sphere properties
+sphereProperties
+{
+    centreOfMass    (0 ${/__blockMeshDict/sphereCentreHeight} 0);
+    momentOfInertia (2e-3 2e-3 2e-3);
+    velocity        (0 -3.77 0);
+    mass            2.08e-3;  // sphere mass 0.15 kg, 5 degree wedge
+}
+
+#remove __blockMeshDict
+
+// ------------------------------------------------------------------------- //
+
+dimensions      [0 1 0 0 0 0 0];
+
+internalField   uniform (0 0 0);
+
+boundaryField
+{
+    farFieldWall
+    {
+        type            fixedValue;
+        value           uniform (0 0 0);
+    }
+
+    bottom
+    {
+        type            fixedValue;
+        value           uniform (0 0 0);
+    }
+
+    top
+    {
+        type            fixedValue;
+        value           uniform (0 0 0);
+    }
+
+    sphere
+    {
+        type            sixDoFRigidBodyDisplacement;
+        $/sphereProperties;
+        accelerationRelaxation  1;
+        accelerationDamping     1;
+
+//      rhoInf          -1;       // needed only for solvers solving for
+                                  // kinematic pressure
+        report          on;
+
+        constraints
+        {
+            maxIterations   500;
+
+            fixedLine1
+            {
+                sixDoFRigidBodyMotionConstraint line;
+                centreOfRotation (0 0.147 0);
+                direction       (0 1 0);
+            }
+
+            fixedOrientation1
+            {
+                sixDoFRigidBodyMotionConstraint orientation;
+            }
+        }
+
+        solver
+        {
+            type Newmark;
+        }
+
+        value           uniform ( 0 0 0 );
+    }
+
+    innerAMI
+    {
+        type            cyclicAMI;
+    }
+
+    outerAMI
+    {
+        type            cyclicAMI;
+    }
+
+    back
+    {
+        type            wedge;
+    }
+
+    front
+    {
+        type            wedge;
+    }
+}
+
+
+// ************************************************************************* //

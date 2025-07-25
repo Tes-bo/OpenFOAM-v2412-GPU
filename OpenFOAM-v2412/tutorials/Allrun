@@ -1,0 +1,130 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2011-2016 OpenFOAM Foundation
+#     Copyright (C) 2017-2021 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     Allrun
+#
+# Description
+#     Run tutorial cases and summarize the outcome as 'testLoopReport'
+#
+#------------------------------------------------------------------------------
+cd "${0%/*}" || exit    # Run from this directory
+
+printHelp()
+{
+    cat<<USAGE
+
+Usage: ${0##*/} [OPTION]
+options:
+  -collect          Collect logs only. Can be useful for aborted runs.
+  -no-collect       Run without collecting logs
+  -test             Pass -test argument to scripts, end of option processing
+  --                End of option processing
+  -help             print the usage
+
+Run tutorial cases and summarize the outcome as 'testLoopReport'
+
+USAGE
+    exit 0  # A clean exit
+}
+
+# Report error and exit
+die()
+{
+    exec 1>&2
+    echo
+    echo "Error encountered:"
+    while [ "$#" -ge 1 ]; do echo "    $1"; shift; done
+    echo
+    echo "See '${0##*/} -help' for usage"
+    echo
+    exit 1
+}
+
+#------------------------------------------------------------------------------
+unset optCollect
+
+# Parse options
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    ('') ;;
+    (- | --)
+        shift
+        break   # Stop option parsing
+        ;;
+    (-h | -help* | --help*)
+        printHelp
+        ;;
+
+    -collect)       optCollect=true ;;
+    -no-collect)    optCollect=false ;;
+    -test) break;;  # Pass-thru option, and stop option parsing
+
+    -*) die "unknown option: $1" ;;
+    *)  break;;     # Pass-thru arguments
+    esac
+    shift
+done
+
+#------------------------------------------------------------------------------
+. ${WM_PROJECT_DIR:?}/bin/tools/LogFunctions    # Tutorial log-file functions
+
+printRunHeader()
+{
+    echo "========================================"
+    date "+%Y-%m-%d %H:%M:%S %z" 2>/dev/null || echo "date is unknown"
+    echo "$@: ${WM_PROJECT_DIR##*/}"
+    echo "  $WM_COMPILER ${WM_COMPILER_TYPE:-system} compiler"
+    echo "  ${WM_OPTIONS}, with ${WM_MPLIB} ${FOAM_MPI}"
+    echo "========================================"
+}
+
+printRunEnviron()
+{
+    echo "PATH:$PATH" | sed 's/::*/\n  /g'
+    echo ==
+    if [ -n "$DYLD_LIBRARY_PATH" ]
+    then
+        echo "DYLD_LIBRARY_PATH:$DYLD_LIBRARY_PATH" | sed 's/::*/\n  /g'
+        echo ==
+    fi
+    if [ -n "$LD_LIBRARY_PATH" ]
+    then
+        echo "LD_LIBRARY_PATH:$LD_LIBRARY_PATH" | sed 's/::*/\n  /g'
+        echo ==
+    fi
+}
+
+
+if [ "$optCollect" != true ]
+then
+    printRunHeader "Starting run" | tee log.Allrun
+    printRunEnviron | tee -a log.Allrun
+
+    foamRunTutorials -self $*   # Run recursively but avoid self
+
+    printRunHeader "Finishing run" | tee -a log.Allrun
+fi
+
+if [ "$optCollect" = false ]
+then
+    echo "Collecting log files - disabled"
+else
+    # Collect log files as 'testLoopReport'
+    collectLogs
+fi
+
+
+#------------------------------------------------------------------------------

@@ -1,0 +1,11 @@
+/* Run-time selectable implicitFunctions */
+implicitFunctions/implicitFunction.C
+implicitFunctions/sphere/sphereImplicitFunction.C
+implicitFunctions/sin/sinImplicitFunction.C
+implicitFunctions/ellipsoid/ellipsoidImplicitFunction.C
+implicitFunctions/paraboloid/paraboloidImplicitFunction.C
+implicitFunctions/plane/planeImplicitFunction.C
+implicitFunctions/cylinder/cylinderImplicitFunction.C
+implicitFunctions/composedFunction/composedFunctionImplicitFunction.C
+
+LIB = $(FOAM_LIBBIN)/libalphaFieldFunctions

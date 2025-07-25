@@ -1,0 +1,61 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      obstaclesDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+_21
+{
+    groupId 21;
+
+    zpipe { direction z; length 0.947; diameter 0.026; }
+
+    obstacles
+    (
+        box { point (0.831   0.8     0.05 ); size (1.338   0.05    0.006); }
+        box { point (0.831   0.8     0.997); size (1.338   0.05    0.006); }
+        box { point (0.8     0.831   0.05 ); size (0.05    1.338   0.006); }
+        box { point (0.8     0.831   0.997); size (0.05    1.338   0.006); }
+        box { point (0.831   2.2     0.05 ); size (1.338   0.05    0.006); }
+        box { point (0.831   2.2     0.997); size (1.338   0.05    0.006); }
+        box { point (2.2     0.831   0.05 ); size (0.05    1.338   0.006); }
+        box { point (2.2     0.831   0.997); size (0.05    1.338   0.006); }
+
+        cyl { point (0.875   0.825   0.056); $zpipe; }
+        cyl { point (1.125   0.825   0.056); $zpipe; }
+        cyl { point (1.375   0.825   0.056); $zpipe; }
+        cyl { point (1.625   0.825   0.056); $zpipe; }
+        cyl { point (1.875   0.825   0.056); $zpipe; }
+        cyl { point (2.125   0.825   0.056); $zpipe; }
+        cyl { point (0.875   2.225   0.056); $zpipe; }
+        cyl { point (1.125   2.225   0.056); $zpipe; }
+        cyl { point (1.375   2.225   0.056); $zpipe; }
+        cyl { point (1.625   2.225   0.056); $zpipe; }
+        cyl { point (1.875   2.225   0.056); $zpipe; }
+        cyl { point (2.125   2.225   0.056); $zpipe; }
+        cyl { point (0.825   0.875   0.056); $zpipe; }
+        cyl { point (0.825   1.125   0.056); $zpipe; }
+        cyl { point (0.825   1.375   0.056); $zpipe; }
+        cyl { point (0.825   1.625   0.056); $zpipe; }
+        cyl { point (0.825   1.875   0.056); $zpipe; }
+        cyl { point (0.825   2.125   0.056); $zpipe; }
+        cyl { point (2.225   0.875   0.056); $zpipe; }
+        cyl { point (2.225   1.125   0.056); $zpipe; }
+        cyl { point (2.225   1.375   0.056); $zpipe; }
+        cyl { point (2.225   1.625   0.056); $zpipe; }
+        cyl { point (2.225   1.875   0.056); $zpipe; }
+        cyl { point (2.225   2.125   0.056); $zpipe; }
+    );
+}
+
+// ************************************************************************* //

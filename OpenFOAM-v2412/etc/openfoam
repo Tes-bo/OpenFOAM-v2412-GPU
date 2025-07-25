@@ -1,0 +1,365 @@
+#!/bin/bash
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2019-2023 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     openfoam [options] [args]
+#
+# Description
+#     Open an interactive bash session with an OpenFOAM environment,
+#     or run an OpenFOAM application (with arguments) after first sourcing
+#     the OpenFOAM etc/bashrc file from the project directory.
+#
+# Note
+#     See OpenFOAM etc/bashrc for (command-line) preferences.
+#     Some equivalent settings:
+#       -sp     | -DWM_PRECISION_OPTION=SP
+#       -dp     | -DWM_PRECISION_OPTION=DP
+#       -int32  | -DWM_LABEL_SIZE=32
+#       -int64  | -DWM_LABEL_SIZE=64
+#
+#     Can use '-D' options for even more flexibility. For example,
+#
+#         openfoam -DWM_COMPILER=Clang
+#
+# Warning
+#     This script is to be located in one of the following locations:
+#       - $WM_PROJECT_DIR/
+#       - $WM_PROJECT_DIR/etc/
+#       - $WM_PROJECT_DIR/share/
+#
+#     Do not copy/move/link to other locations.
+#     Use instead an edited copy of `bin/tools/openfoam.in`
+#     with a hard-coded projectDir entry.
+#
+# SeeAlso
+#     META-INFO/README.md for other routines that also use META-INFO.
+#
+#------------------------------------------------------------------------------
+# Auto-detect from location
+projectDir="$(\cd "$(dirname "$0")" && \pwd -L)"
+
+# Handle common sub-directory locations
+case "$projectDir" in
+(*/etc | */share)
+    projectDir="${projectDir%/*}"
+    ;;
+esac
+
+#------------------------------------------------------------------------------
+printHelp() {
+    cat<<HELP_USAGE
+
+Usage: ${0##*/} [OPTION] [[--] application ...]
+
+options:
+  -c                Shell commands read from the first non-option argument
+  -Dkey[=value]     Define key/value to pass as a preference
+  -sp               Single precision
+  -dp               Double precision
+  -spdp             Mixed single/double precision
+  -int32            Label-size 32
+  -int64            Label-size 64
+  -etc=DIR          Additional project etc/ directory
+  -prefix=DIR       Alternative OpenFOAM project directory
+  -show-api         Print META-INFO api value and exit
+  -show-patch       Print META-INFO patch value and exit
+  -show-prefix      Print project directory and exit
+  -test-tutorial    Forward arguments to bin/foamTestTutorial
+  -init=FILE        Alternative initialization file (expert option)
+  -version          Same as -show-api
+  -verbose          Set FOAM_VERBOSE=true (interactive only)
+  --                The end of option processing.
+                    An argument of - or / is equivalent to --.
+  -help             Print the usage
+
+Open an interactive bash session with an OpenFOAM environment,
+or run an OpenFOAM application (with arguments) after first sourcing
+the OpenFOAM etc/bashrc file from the project directory:
+(${projectDir:-???})
+
+For a persistent OpenFOAM environment, the following can be added to your
+~/.bashrc file:
+
+    source ${projectDir:-???}/etc/bashrc
+
+For more information: www.openfoam.com
+
+HELP_USAGE
+    exit 0 # A clean exit
+}
+
+
+#-------------------------------------------------------------------------------
+
+# Get a value from META-INFO/api-info
+# $1 : keyword
+getApiInfo()
+{
+    value="$(sed -ne 's@^'"$1"' *= *\([0-9][0-9]*\).*@\1@p' "$projectDir"/META-INFO/api-info 2>/dev/null)"
+
+    if [ -n "$value" ]
+    then
+        echo "$value"
+    else
+        echo "Could not determine OPENFOAM '$1' value" 1>&2
+        return 1
+    fi
+}
+
+#-------------------------------------------------------------------------------
+
+# - No inheritance of FOAM_SETTINGS
+# - No default verbosity (only as command-line option)
+unset FOAM_CONFIG_ETC FOAM_SETTINGS FOAM_VERBOSE
+unset _foam_config_etc _foam_bashrcFile
+unset _foamSettings _foamScriptCommand
+unset optTestTut
+
+# Parse options
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    ('') ;;     # Ignore empty option
+    (- | -- | /)
+        shift
+        break   # Stop option parsing
+        ;;
+    (-h | -help* | --help*)
+        printHelp
+        ;;
+    -show-api | -version | --version)  # Show API and exit
+        getApiInfo api
+        exit $?
+        ;;
+    -show-patch)  # Show patch level and exit
+        getApiInfo patch
+        exit $?
+        ;;
+    -show-prefix)  # Show project directory and exit
+        echo "$projectDir"
+        exit $?
+        ;;
+
+    -test-tutorial)  # Run bin/foamTestTutorial
+        optTestTut=true
+        ;;
+
+    (-c)  # Shell command
+        _foamScriptCommand="-c"
+        ;;
+
+    -D*)  # Define key/value to pass as preference
+        setting="${1#-D}"
+        if [ -n "$setting" ]
+        then
+            _foamSettings="$_foamSettings${_foamSettings:+ }$setting"
+        fi
+        ;;
+
+    -sp | -dp | -spdp)
+        # WM_PRECISION_OPTION=(SP|DP|SPDP)
+        setting=$(echo "${1#-}" | sed -e 's/-//g;y/sdp/SDP/')
+        _foamSettings="$_foamSettings${_foamSettings:+ }WM_PRECISION_OPTION=$setting"
+        ;;
+
+    -int32 | -int64)
+        # WM_LABEL_SIZE=...
+        _foamSettings="$_foamSettings${_foamSettings:+ }WM_LABEL_SIZE=${1#-int}"
+        ;;
+
+#TDB: -etc-*)
+#TDB:     # Define FOAM_CONFIG_ETC for finding files
+#TDB:     _foam_config_etc="${1#*-}"
+#TDB:     ;;
+
+    -etc=*)
+        # Define FOAM_CONFIG_ETC for finding files
+        _foam_config_etc="${1#*=}"
+        ;;
+
+    -prefix=*)
+        projectDir="${1#*=}"
+        ;;
+
+    -init=*)
+        _foam_bashrcFile="${1#*=}"
+        ;;
+
+    -verbose)
+        export FOAM_VERBOSE=true
+        ;;
+    -*)
+        echo "$0: unknown option: '$1'" 1>&2
+        exit 1
+        ;;
+    *)
+        break
+        ;;
+    esac
+    shift
+done
+
+#-------------------------------------------------------------------------------
+
+# Sanity check (installed under /bin, /usr/bin, /usr/local/bin)
+# This should not happen.
+# If copied to a system dir, should also be using hard-coded values!
+
+if [ "${projectDir%/bin}" != "$projectDir" ]
+then
+    echo "Warning: suspicious project dir: $projectDir" 1>&2
+fi
+
+[ -d "$projectDir/META-INFO" ] || {
+    echo "Warning: missing META-INFO in OpenFOAM directory:" 1>&2
+    echo "    $projectDir" 1>&2
+}
+
+
+# Remove current OpenFOAM environment
+if [ -d "$WM_PROJECT_DIR" ] && [ -f "$WM_PROJECT_DIR"/etc/config.sh/unset ]
+then
+    . "$WM_PROJECT_DIR"/etc/config.sh/unset || true
+fi
+
+
+unset interactive
+
+if [ -n "$_foamScriptCommand" ]
+then
+    if [ "$#" -eq 0 ]
+    then
+        echo "$0: -c: option requires an argument" 1>&2
+        exit 1
+    fi
+elif [ "$#" -eq 0 ] && [ -z "$optTestTut" ]
+then
+    interactive=true
+fi
+
+if [ -z "$_foam_bashrcFile" ]
+then
+    if [ -n "$interactive" ]
+    then
+        # Interactive shell, chain off via a file
+        _foam_bashrcFile="$projectDir/bin/tools/source-bashrc"
+    else
+        # Default: OPENFOAM etc/bashrc
+        _foam_bashrcFile="$projectDir/etc/bashrc"
+    fi
+fi
+
+
+[ -f "$_foam_bashrcFile" ] || {
+    echo "Error: file not found: $_foam_bashrcFile" 1>&2
+    exit 2
+}
+
+
+# FOAM_CONFIG_ETC: additional etc directory
+case "$_foam_config_etc" in
+('')    # Empty - ignore
+    ;;
+
+(/*)    # Absolute
+    [ -d "$_foam_config_etc" ] || unset _foam_config_etc
+    ;;
+
+(*)     # Relative
+    if [ -d "$_foam_config_etc" ]
+    then
+        # Qualify local dir
+        _foam_config_etc="$PWD/$_foam_config_etc"
+    else
+        [ -d "$projectDir/$_foam_config_etc" ] || unset _foam_config_etc
+    fi
+    ;;
+esac
+
+if [ -n "$_foam_config_etc" ]
+then
+    export FOAM_CONFIG_ETC="$_foam_config_etc"
+fi
+
+if [ -n "$interactive" ]
+then
+    # Interactive shell
+    # -----------------
+
+    # Source ~/.bashrc and OpenFOAM etc/bashrc in one of two ways:
+    #   1) Generate and use a tmp file
+    #   2) Chain off to a dedicated file  [This is what we use]
+
+    if [ -n "$_foamSettings" ]
+    then
+        # Pass preferences via the FOAM_SETTINGS mechanism
+        export FOAM_SETTINGS="$_foamSettings"
+    fi
+
+    ## echo "Source with $_foam_bashrcFile with '$FOAM_SETTINGS'" 1>&2
+
+    # Newer bash can use --init-file instead of --rcfile
+    exec bash --rcfile "$_foam_bashrcFile" -i
+    exit $? # Safety
+fi
+
+
+# Non-interactive shell
+# ---------------------
+
+# Source bashrc within a function to preserve command-line arguments
+# Suppresses aliases as a side-effect, but non-interactive anyhow.
+sourceBashrc()
+{
+    . "$_foam_bashrcFile" $_foamSettings
+}
+
+
+if [ -n "$_foamScriptCommand" ]
+then
+    # A shell command
+    sourceBashrc
+    exec bash -c "$@"
+    exit $? # Safety
+fi
+
+if [ -n "$optTestTut" ]
+then
+    # Test tutorial(s)
+    sourceBashrc
+    exec "$WM_PROJECT_DIR"/bin/foamTestTutorial "$@"
+    exit $? # Safety
+fi
+
+
+# An application or a shell script
+
+# It may actually be a script with a '#!/project-path/bin/openfoam',
+# so we need to catch this to avoid infinite recursion.
+if [ -f "$1" ] \
+&& [ -n "$(sed -ne '1{/^#!.*\/openfoam$/p; q}' "$1" 2>/dev/null)" ]
+then
+    # A shell script
+
+    sourceBashrc
+    exec bash "$@"
+
+else
+    # An application
+
+    sourceBashrc
+    exec "$@"
+
+fi
+
+#------------------------------------------------------------------------------

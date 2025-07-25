@@ -1,0 +1,19 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+restore0Dir
+
+# create mesh
+runApplication blockMesh
+
+# create sets
+runApplication topoSet
+
+# create baffles and fields
+runApplication createBaffles -overwrite
+
+runApplication $(getApplication)
+
+#------------------------------------------------------------------------------

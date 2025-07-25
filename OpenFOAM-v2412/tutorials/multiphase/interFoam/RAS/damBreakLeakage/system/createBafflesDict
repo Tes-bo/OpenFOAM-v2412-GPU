@@ -1,0 +1,105 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      createBafflesDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// Whether to convert internal faces only (so leave boundary faces intact).
+// This is only relevant if your face selection type can pick up boundary
+// faces.
+internalFacesOnly true;
+
+
+// Baffles to create.
+baffles
+{
+    cyclicFaces
+    {
+        //- Select faces and orientation through a searchableSurface
+        type        searchableSurface;
+        surface     plate;
+        origin      (0.3042 0.0493 -100);
+        span        (0 0.1584  200);
+
+        patches
+        {
+            master
+            {
+                //- Master side patch
+
+                name            coupled_half0;
+                type            cyclicACMI;
+                neighbourPatch  coupled_half1;
+                nonOverlapPatch wall_block;
+                scale
+                {
+                    type        coded;
+                    //type        table;
+
+                    code
+                    #{
+                        const vector axis(0, 1, 0);
+                        const polyPatch& pp = this->patch();
+                        const scalar tm = this->time().value();
+                        const scalarField Fy(pp.faceCentres() & axis);
+                        auto tv = tmp<scalarField>::New(pp.size(), Zero);
+                        auto& v = tv.ref();
+                        if (tm > 0.5)
+                        {
+                            forAll(Fy, i)
+                            {
+                                if(Fy[i] > 0.07 && Fy[i] < 0.1)
+                                {
+                                    v[i] = 1.0;
+                                }
+                            }
+                        }
+                        return tv;
+
+                    #};
+
+                    //values
+                    //4
+                    //(
+                    //    (0.00   0.0)
+                    //    (0.50   0.0)
+                    //    (0.501  1.0)
+                    //    (1.00   1.0)
+                    //);
+                }
+
+            }
+            slave
+            {
+                //- Slave side patch
+                name            coupled_half1;
+                type            cyclicACMI;
+                neighbourPatch  coupled_half0;
+                nonOverlapPatch wall_block2;
+            }
+            master2
+            {
+                name            wall_block;
+                type            symmetry;
+            }
+            slave2
+            {
+                name            wall_block2;
+                type            symmetry;
+            }
+        }
+    }
+}
+
+
+// ************************************************************************* //

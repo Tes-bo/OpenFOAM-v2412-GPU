@@ -1,0 +1,49 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      topoSetDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+actions
+(
+    // Remove existing cellZone (from splitMeshRegions; contains all cells)
+    // so we don't have any cells in multiple cellZones (gives complaints
+    // in e.g. reconstructParMesh)
+    {
+        name            domain0;
+        type            cellZoneSet;
+        action          remove;
+    }
+
+    {
+        name            v_MRF_set;
+        type            cellSet;
+        action          new;
+        source          searchableSurfaceToCell;
+        surfaceType     cylinder;
+        point1          (-0.0032 0.037517 -0.058);
+        point2          (-0.015 0.037517 -0.058);
+        radius          0.021;
+    }
+
+    {
+        name            v_MRF;
+        type            cellZoneSet;
+        action          new;
+        source          setToCellZone;
+        set             v_MRF_set;
+    }
+);
+
+// ************************************************************************* //

@@ -1,0 +1,48 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+vertices
+(
+    (-0.5  -0.125  -0.25)
+    ( 1.5  -0.125  -0.25)
+    ( 1.5   0.125  -0.25)
+    (-0.5   0.125  -0.25)
+    (-0.5  -0.125   0.25)
+    ( 1.5  -0.125   0.25)
+    ( 1.5   0.125   0.25)
+    (-0.5   0.125   0.25)
+);
+
+blocks
+(
+    hex (0 1 2 3 4 5 6 7) (32 4 8) simpleGrading (1 1 1)
+);
+
+edges
+();
+
+// Synthesise 'defaultFaces' as type patch instead of 'empty' to avoid
+// warnings from decomposePar with hierarchical
+boundary
+(
+    defaultFaces
+    {
+        type    patch;
+        faces   ();
+    }
+);
+
+// ************************************************************************* //

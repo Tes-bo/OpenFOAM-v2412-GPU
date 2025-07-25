@@ -1,0 +1,10 @@
+Test-wmake1.C
+
+/* #if OPENFOAM == 1812 */
+#if OPENFOAM > 1812
+newStub.C
+#else
+oldStub.C
+#endif
+
+EXE = $(FOAM_USER_APPBIN)/Test-wmake1

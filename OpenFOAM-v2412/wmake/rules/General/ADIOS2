@@ -1,0 +1,11 @@
+#------------------------------------------------------------------------------
+# ADIOS2 includes/libraries
+
+include $(GENERAL_RULES)/mpi-rules
+
+# May need to strip off rpath ...
+
+ADIOS_FLAGS := $(shell $(ADIOS2_ARCH_PATH)/bin/adios2-config --cxx-flags)
+ADIOS_LIBS  := $(shell $(ADIOS2_ARCH_PATH)/bin/adios2-config --cxx-libs)
+
+#------------------------------------------------------------------------------

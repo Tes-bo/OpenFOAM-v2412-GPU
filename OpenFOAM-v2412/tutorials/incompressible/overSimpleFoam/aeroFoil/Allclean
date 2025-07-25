@@ -1,0 +1,16 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/CleanFunctions      # Tutorial clean functions
+#------------------------------------------------------------------------------
+
+for caseName in aeroFoil_snappyHexMesh background_snappyHexMesh
+do
+    ( cd $caseName && cleanCase )
+done
+
+for caseName in aeroFoil_overset background_overset
+do
+    ( cd $caseName && cleanCase0 )
+done
+
+#------------------------------------------------------------------------------

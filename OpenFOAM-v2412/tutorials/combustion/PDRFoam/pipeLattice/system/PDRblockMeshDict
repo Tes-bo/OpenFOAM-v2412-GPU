@@ -1,0 +1,80 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      PDRblockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+scale   1.0;
+
+x
+{
+    points  ( -19.4 0 4.26 23.66 );
+    nCells  ( 14 13 14 );
+    ratios  ( 0.0887187064230887 1 10.6993205379072 );
+}
+
+y
+{
+    points  ( -19.42 0 4.26 23.68 );
+    nCells  ( 14 13 14 );
+    ratios  ( 0.0887187064230887 1 10.6993205379072 );
+}
+
+z
+{
+    points  (0 2.13 23.17  );
+    nCells  ( 6 14 );
+    ratios  ( 1 10.6993205379072 );
+}
+
+
+// Or could use defaultFaces = outer instead
+defaultPatch
+{
+    name    defaultFaces;
+    type    wall;
+}
+
+
+// Faces: 0 = xmin, 1 = xmax, 2 = ymin, 3 = ymax, 4 = zmin, 5 = zmax
+
+boundary
+(
+    // Or with defaultFaces = outer
+    outer
+    {
+        type    patch;
+        faces   ( 0 1 2 3 5 );
+    }
+
+    mergingFaces
+    {
+        type    wall;
+        faces   ();
+    }
+
+    blockedFaces
+    {
+        type    wall;
+        faces   ();
+    }
+
+    wallFaces
+    {
+        type    wall;
+        faces   ( 4 );
+    }
+);
+
+
+//***************************************************************************//

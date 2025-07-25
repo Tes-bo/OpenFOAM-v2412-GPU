@@ -1,0 +1,79 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       pointVectorField;
+    object      pointDisplacement;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 1 0 0 0 0 0];
+
+internalField   uniform (0 0 0);
+
+boundaryField
+{
+    #includeEtc "caseDicts/setConstraintTypes"
+
+    inlet
+    {
+        type            fixedValue;
+        value           $internalField;
+    }
+
+    outlet
+    {
+        type            fixedValue;
+        value           $internalField;
+    }
+
+    sides
+    {
+        type            fixedValue;
+        value           $internalField;
+    }
+
+    wing1
+    {
+        type            fixedValue;
+        value           $internalField;
+    }
+
+    wing2
+    {
+        // Make wing2 rotate around its centre
+        type        solidBodyMotionDisplacement;
+        solidBodyMotionFunction  oscillatingRotatingMotion;
+        oscillatingRotatingMotionCoeffs
+        {
+           origin      (-0.41 0 0);
+           axis        (0 0 1);
+           omega       10;          // rad/s, 1rad/s=9.5rpm
+           amplitude   (0 0 10);    // max amplitude (degrees)
+        }
+    }
+
+    AMI_dualWing
+    {
+        patchType       cyclicAMI;
+        type            fixedValue;
+        value           $internalField;
+    }
+
+    AMI_dualWing_slave
+    {
+        patchType       cyclicAMI;
+        type            fixedValue;
+        value           $internalField;
+    }
+}
+
+
+// ************************************************************************* //

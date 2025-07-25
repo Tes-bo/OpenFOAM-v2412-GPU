@@ -1,0 +1,167 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2021 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     etc/list-sources
+#
+# Description
+#     Extract package names from SOURCES.md and resolve their respective
+#     (unpacked) directory paths.
+#
+#     The input source file is assumed to be Markdown formatted with
+#     sections for each OpenFOAM version, followed by a '-' bulleted
+#     list of the software package/versions.
+#
+# Example,
+#     # OpenFOAM-2106
+#
+#     - ADIOS2-2.6.0
+#     - CGAL-4.12.2
+#     ...
+#
+#------------------------------------------------------------------------------
+. "${WM_THIRD_PARTY_DIR:?}"/etc/tools/ThirdPartyFunctions
+
+#------------------------------------------------------------------------------
+printHelp() {
+    cat<<USAGE
+
+Usage: ${0##*/} [OPTION]
+Options:
+  -dirs         Resolve source directories (relative dir names)
+  -full         Resolve source directories (absolute dir names)
+  -file=FILE    Alternative file to process (default: SOURCES.md)
+  -vDIGITS | -DIGITS
+                OpenFOAM version (eg, -v2106, -2106) to process.
+                The default is to process the first (latest) section.
+  -help
+
+Extract package names from SOURCES.md and optionally
+resolve their respective (unpacked) directory paths.
+
+USAGE
+    exit 0  # Clean exit
+}
+#------------------------------------------------------------------------------
+
+inputFile="SOURCES.md"
+unset version optResolve
+
+# Process options/arguments
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    '') ;;      # Ignore empty
+    -h | -help*) printHelp;;
+
+    # Resolve (relative) directories
+    -dir*)
+        : "${optResolve:=-relative}"
+        ;;
+
+    # Resolve (full) directories
+    -full)
+        optResolve="-absolute"
+        ;;
+    -file=*)
+        inputFile="${1#*=}"
+        ;;
+
+    -[0-9]*)  version="${1#*-}" ;;
+    -v[0-9]*) version="${1#*-v}" ;;
+
+    -*) echo "Ignore unknown option" 1>&2 ;;
+    esac
+    shift
+done
+
+# Resolve file (if necessary)
+file="$inputFile"
+
+if [ ! -f "$file" ]
+then
+    file="$WM_THIRD_PARTY_DIR/$inputFile"
+    [ -f "$file" ] || die "No such file: $inputFile"
+fi
+
+## echo "processing: $file" 1>&2
+
+# Parse this type of input:
+#
+#  # OpenFOAM-2106
+#
+#  - ADIOS2-2.6.0
+#  - CGAL-4.12.2
+#  - ParaView-v5.9.1    *update*
+#  - boost_1_66_0
+#  - fftw-3.3.7
+#  - openmpi-4.0.3
+#  - scotch_6.1.0       *update*
+#  - kahip-2.12
+
+# By default use the top section, unless '$version' is specified
+
+unset active section
+while read -r line
+do
+    case "$line" in
+    ('#'*)
+        # A markdown section
+        if [ -n "$active" ]
+        then
+            break  # Done
+        elif [ -z "$version" ]
+        then
+            active=true   # No version: take the first section
+        else
+            # Match version (eg, '2106') vs these types of input:
+            # - '## OpenFOAM-2106'
+            # - '## OpenFOAM-v2106 update1'
+
+            item="$(echo "$line" | sed 's/^#*.*-v*//')"
+            case "$item" in
+            ("$version"*) active=true;;
+            esac
+        fi
+        continue
+        ;;
+    esac
+
+    # Strip leading space
+    line="$(echo "$line" | sed 's/^ *//')"
+
+    case "$line" in
+    ([-*]' '*)
+        # A markdown list item. Extract first after the bullet
+        item="$(echo "$line" | sed 's/^[-*] *//;s/ .*$//')"
+        if [ "$active" != true ] || [ -z "$item" ]
+        then
+            continue
+        elif [ -n "$optResolve" ]
+        then
+            dir="$(findSourceDir "$optResolve" "$item" 2>/dev/null)"
+            if [ -n "$dir" ]
+            then
+                echo "$dir"
+            else
+                echo "missing: $item" 1>&2
+            fi
+        else
+            echo "$item"  # Report item without resolving
+        fi
+        ;;
+    esac
+done < "$file"
+
+
+#------------------------------------------------------------------------------

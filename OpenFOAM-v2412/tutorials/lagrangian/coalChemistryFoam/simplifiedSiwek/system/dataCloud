@@ -1,0 +1,15 @@
+// -*- C++ -*-
+// Minimal example of using the dataCloud function object.
+
+dataCloud
+{
+    type    dataCloud;
+    libs    (lagrangianFunctionObjects);
+    log     true;
+
+    cloud   coalCloud1;
+    field   d;
+}
+
+
+// ************************************************************************* //

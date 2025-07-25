@@ -1,0 +1,20 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+./Allrun.pre
+
+# Decompose
+runApplication -s cabin decomposePar -region cabin
+runApplication -s ice decomposePar -region ice
+runApplication -s exterior decomposePar -region exterior
+
+runParallel $(getApplication)
+
+# Reconstruct
+runApplication -s cabin reconstructPar -region cabin
+runApplication -s ice reconstructPar -region ice
+runApplication -s exterior reconstructPar -region exterior
+
+#------------------------------------------------------------------------------

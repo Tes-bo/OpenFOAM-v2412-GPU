@@ -1,0 +1,16 @@
+NAME
+  Prism::vtkPrismFilters
+LIBRARY_NAME
+  vtkPrismFilters
+SPDX_LICENSE_IDENTIFIER
+  BSD-3-Clause
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Kitware Inc.
+DEPENDS
+  VTK::CommonExecutionModel
+PRIVATE_DEPENDS
+  VTK::CommonCore
+  VTK::CommonDataModel
+  VTK::FiltersCore
+  VTK::FiltersGeneral
+  VTK::fmt

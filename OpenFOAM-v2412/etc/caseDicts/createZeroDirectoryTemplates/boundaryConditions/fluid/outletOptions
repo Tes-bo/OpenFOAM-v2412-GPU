@@ -1,0 +1,117 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "templates";
+    object      outletOptions;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+returnFlow
+{
+    default
+    {
+        p
+        {
+            type        fixedValue;
+            value       ${:VALUE.p};
+        }
+        U
+        {
+            type        pressureInletOutletVelocity;
+            value       ${:VALUE.U};
+        }
+        k
+        {
+            type        inletOutlet;
+            inletValue  ${:VALUE.k};
+            value       ${:VALUE.k};
+        }
+        epsilon
+        {
+            type        inletOutlet;
+            inletValue  ${:VALUE.epsilon};
+            value       ${:VALUE.epsilon};
+        }
+        omega
+        {
+            type        inletOutlet;
+            inletValue  ${:VALUE.omega};
+            value       ${:VALUE.omega};
+        }
+    }
+    wall
+    {
+        p
+        {
+            type        fixedValue;
+            value       ${:VALUE.p};
+        }
+        U
+        {
+            type        inletOutlet;
+            inletValue  uniform (0 0 0);
+            value       ${:VALUE.U};
+        }
+        k
+        {
+            type        zeroGradient;
+        }
+        epsilon
+        {
+            type        zeroGradient;
+        }
+        omega
+        {
+            type        zeroGradient;
+        }
+    }
+    atmosphere
+    {
+        p
+        {
+            type        totalPressure;
+            U           U;
+            phi         phi;
+            rho         none;
+            psi         none;
+            gamma       1;
+            p0          ${:VALUE.p};
+            value       ${:VALUE.p};
+        }
+        U
+        {
+            type        pressureInletOutletVelocity;
+            value       ${:VALUE.U};
+        }
+        k
+        {
+            type        inletOutlet;
+            inletValue  ${:VALUE.k};
+            value       ${:VALUE.k};
+        }
+        epsilon
+        {
+            type        inletOutlet;
+            inletValue  ${:VALUE.epsilon};
+            value       ${:VALUE.epsilon};
+        }
+        omega
+        {
+            type        inletOutlet;
+            inletValue  ${:VALUE.omega};
+            value       ${:VALUE.omega};
+        }
+    }
+}
+
+
+// ************************************************************************* //

@@ -1,0 +1,133 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#-------------------------------------------------------------------------------
+#     Copyright (C) 2011-2015 OpenFOAM Foundation
+#     Copyright (C) 2020-2022 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     wmake/scripts/wmake-check-dir
+#     Backend for "wmake -check-dir"
+#
+#     wmake/wmakeCheckPwd (1912 and earlier)
+#
+# Usage
+#     wmake-check-dir <dir>
+#     wmake-check-dir <dir> <dir2>
+#
+# Description
+#     Check that two directories are identical after resolving the absolute
+#     paths. If only a single directory is specified, check against the
+#     working directory.
+#
+#     Exit status 0 when directories are identical.
+#
+#-------------------------------------------------------------------------------
+printHelp() {
+    cat<<USAGE
+
+Usage: ${0##*/} [OPTION] dir [dir2]
+
+options:
+  -q | -quiet       suppress all normal output
+  -h | -help        display short help and exit
+
+Check that two directories are identical after resolving the absolute paths.
+If only a single directory is specified, check against the working directory.
+
+Exit status 0 when directories are identical
+Exit status 1 on error
+
+USAGE
+    exit 0  # A clean exit
+}
+
+# Report error and exit
+unset optQuiet
+die()
+{
+    if [ -z "$optQuiet" ]
+    then
+        exec 1>&2
+        echo "${0##*/}: $1"
+        shift
+        while [ "$#" -ge 1 ]; do echo "    $1"; shift; done
+    fi
+    exit 1
+}
+
+#------------------------------------------------------------------------------
+
+# Parse options
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    ('') ;;
+    (- | --) shift; break ;;  # Stop option parsing
+
+    -h | -help*)
+        printHelp
+        ;;
+    -q | -quiet | -s | -silent)
+        optQuiet=true
+        ;;
+    -*)
+        die "Unknown option: '$1'"  "See '${0##*/} -help' for usage"
+        ;;
+    *)
+        break
+        ;;
+    esac
+    shift
+done
+
+dirName1="${1%/}"
+dirName2="${2%/}"
+
+: "${dirName1:=/}"
+: "${dirName2:=$PWD}"
+
+[ "$#" -eq 1 ] || \
+[ "$#" -eq 2 ] || \
+    die "Expected 1 or 2 arguments, was given $#"
+
+
+# Simple lexical check
+[ "$dirName1" = "$dirName2" ] && exit 0
+
+# Check existence
+[ -d "$dirName1" ] || die "Directory does not exist '$dirName1'"
+
+resolved1="$(cd "$dirName1" 2>/dev/null && pwd -P)"
+if [ "$#" -eq 1 ]
+then
+    resolved2="$(pwd -P)"
+else
+    # Check existence
+    [ -d "$dirName2" ] || die "Directory does not exist '$dirName2'"
+
+    resolved2="$(cd "$dirName2" 2>/dev/null && pwd -P)"
+fi
+
+
+# Compare absolute paths, without symlinks
+if [ "$resolved1" = "$resolved2" ]
+then
+    exit 0
+fi
+
+if [ "$#" -eq 1 ]
+then
+    die "Current directory is not '$dirName1'"
+else
+    die "Directories are different"
+fi
+
+#------------------------------------------------------------------------------

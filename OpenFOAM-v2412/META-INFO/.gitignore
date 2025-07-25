@@ -1,0 +1,10 @@
+# Do not track build information
+build-info
+
+# Do not track time-stamp
+time-stamp
+
+# Do not track any manifest files
+*[Mm]anifest.txt
+
+####

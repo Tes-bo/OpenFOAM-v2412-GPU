@@ -1,0 +1,176 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      reactingCloud1Properties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+solution
+{
+    active          true;
+    coupled         true;
+    transient       yes;
+    cellValueSourceCorrection on;
+    maxCo           0.3;
+
+    sourceTerms
+    {
+        schemes
+        {
+            rho             explicit 1;
+            U               explicit 1;
+            Yi              explicit 1;
+            h               explicit 1;
+            radiation       explicit 1;
+        }
+    }
+
+    interpolationSchemes
+    {
+        rho             cell;
+        U               cellPoint;
+        thermo:mu       cell;
+        T               cell;
+        Cp              cell;
+        kappa           cell;
+        p               cell;
+    }
+
+    integrationSchemes
+    {
+        U               Euler;
+        T               analytical;
+    }
+}
+
+constantProperties
+{
+    rho0            1000;
+    T0              300;
+    Cp0             4100;
+
+    constantVolume  false;
+}
+
+subModels
+{
+    particleForces
+    {
+        sphereDrag;
+    }
+
+    injectionModels
+    {
+        patchInjector
+        {
+            type            patchInjection;
+            parcelBasisType fixed;
+            patch           inlet1;
+            U0              (1 0.0 0.0);
+            parcelsPerSecond 10;
+            nParticle       1;
+            sizeDistribution
+            {
+                type uniform;
+                uniformDistribution
+                {
+                    minValue        0.0001;
+                    maxValue        0.001;
+                }
+            }
+            flowRateProfile constant 1;
+            massTotal       1;
+            SOI             0.0;
+            duration        100.0;
+        }
+    }
+
+    dispersionModel none;
+
+    patchInteractionModel multiInteraction;
+
+    heatTransferModel RanzMarshall;
+
+    compositionModel singleMixtureFraction;
+
+    phaseChangeModel liquidEvaporation;
+
+    devolatilisationModel none;
+
+    surfaceReactionModel none;
+
+    stochasticCollisionModel none;
+
+    surfaceFilmModel none;
+
+    radiation       off;
+
+    multiInteractionCoeffs
+    {
+        oneInteractionOnly no;
+
+        model2
+        {
+            patchInteractionModel    recycleInteraction;
+            recycleInteractionCoeffs
+            {
+                recyclePatches ((outlet inlet2));
+                recycleFraction 0.8;
+            }
+        }
+        model1
+        {
+            patchInteractionModel    standardWallInteraction;
+            standardWallInteractionCoeffs
+            {
+                type            rebound;
+            }
+
+            writeToFile     yes;
+        }
+    }
+
+    RanzMarshallCoeffs
+    {
+        BirdCorrection  true;
+    }
+
+    singleMixtureFractionCoeffs
+    {
+        phases
+        (
+            gas
+            {
+            }
+            liquid
+            {
+                H2O         1;
+            }
+            solid
+            {
+            }
+        );
+        YGasTot0        0;
+        YLiquidTot0     1;
+        YSolidTot0      0;
+    }
+
+    liquidEvaporationCoeffs
+    {
+        enthalpyTransfer enthalpyDifference;
+
+        activeLiquids   ( H2O );
+    }
+}
+
+
+// ************************************************************************* //

@@ -1,0 +1,56 @@
+ParaView C++ API Documentation                      {#index}
+===============================
+
+**Version: @PARAVIEW_VERSION_FULL@**
+
+This is doxygen generated documentation for the C++ API for developers of
+ParaView as well as those writing plugins and custom applications based on
+ParaView.
+
+Navigation
+-----------
+
+Page | Description
+-----|----------------------------------------
+[Environment Variables](@ref EnvironmentVariables) | Environment variables that affect application behavior.
+[Major API Changes](@ref MajorAPIChanges) | Descriptions for major API changes.
+[Plugin Howto](@ref PluginHowto) | Tutorial on using and creating Plugins.
+[Proxy Hints And Annotations](@ref ProxyHints) | ServerManager XML hints for Proxies.
+[Property Hints](@ref PropertyHints) | ServerManager XML hints for Properties.
+[Proxy Documentation Formatting](@ref ProxyDocumentationFormatting) | Formatting options for proxy documentation.
+[Community Atmosphere Model (CAM5) Catalyst Adaptor](@ref Cam5Adaptor) | Analyze Cam5 output with ParaView Catalyst.
+[ParaView and Offscreen Rendering](@ref Offscreen) | Configuring and using ParaView in offscreen and/or headless environments.
+[Anatomy of Catalyst Python Module (Version 2.0)](@ref CatalystPythonScriptsV2) | Understanding Catalyst Python modules.
+[String Formatting Arguments](@ref StringFormattingArguments) | String formatting arguments that are used for formatting formattable strings.
+[Localization Howto](@ref LocalizationHowto) | Description of the translation workflow and how comply to it.
+
+
+ParaView Catalyst
+-----------------
+
+These pages includes documentation for ParaView Catalyst library, the
+[Catalyst API](https://catalyst-in-situ.readthedocs.io/en/latest/)
+implementation introduced with ParaView 5.9.
+
+Page | Description
+-----|----------------------------------------
+[ParaView-Catalyst](@ref ParaViewCatalyst) | Design/Implementation details
+[ParaView-Catalyst Blueprint](@ref ParaViewCatalystBlueprint) | Blueprint for ParaView Catalyst
+
+
+Design/Implementation Details
+-----------------------------
+
+Page | Description
+-----|---------------------------------------------------------------
+[Slice View](@ref DesignSliceView) | Implementing the **Slice View**
+[String Encoding](@ref DesignStringEncoding) | How to encode string when developing for ParaView
+
+Developer notes
+----------------
+
+This file is available in the ParaView source repository as
+**Utilities/Doxygen/pages/index.md.in**. All other pages to document the code
+are also available under that directory.
+As new pages are added, please ensure that the *Navigation* table above it
+kept up-to-date to make it easier to navigate the documentation.

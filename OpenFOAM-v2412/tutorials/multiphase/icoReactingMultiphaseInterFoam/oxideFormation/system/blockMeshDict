@@ -1,0 +1,136 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+scale   0.001;
+
+x0      70.0;
+x1      130.0;
+x2      200.0;
+y       10.0;
+z       100.0;
+
+nx1     35;
+nx2     30;
+nx3     35;
+ny      5;
+nz      50;
+
+vertices
+(
+    (0    0   0)
+    ($x0  0   0)
+    ($x0  $y  0)
+    (0    $y  0)
+
+    (0    0   $z)
+    ($x0  0   $z)
+    ($x0  $y  $z)
+    (0    $y  $z)
+
+    ($x1  0   0)
+    ($x1  0   $z)
+    ($x1  $y  0)
+    ($x1  $y  $z)
+
+    ($x2  0   0)
+    ($x2  0   $z)
+    ($x2  $y  0)
+    ($x2  $y  $z)
+);
+
+blocks
+(
+    hex (0 1 2 3 4 5 6 7) ($nx1 $ny $nz) simpleGrading (1 1 1)
+    hex (8 1 5 9 10 2 6 11) ($nx2 $nz $ny) simpleGrading (1 1 1)
+    hex (12 8 9 13 14 10 11 15) ($nx3 $nz $ny) simpleGrading (1 1 1)
+);
+
+boundary
+(
+    left
+    {
+        type wall;
+        faces
+        (
+            (0 3 7 4)
+        );
+    }
+    right
+    {
+        type wall;
+        faces
+        (
+            (12 13 15 14)
+        );
+    }
+    front
+    {
+        type wall;
+        faces
+        (
+            (0 4 5 1)
+            (1 5 9 8)
+            (8 9 13 12)
+        );
+    }
+    back
+    {
+        type wall;
+        faces
+        (
+            (3 2 6 7)
+            (2 10 11 6)
+            (10 14 15 11)
+        );
+    }
+    bottomLeft
+    {
+        type wall;
+        faces
+        (
+            (0 3 2 1)
+        );
+    }
+    bottomInlet
+    {
+        type patch;
+        faces
+        (
+            (1 2 10 8)
+        );
+    }
+    bottomRight
+    {
+        type wall;
+        faces
+        (
+            (8 10 14 12)
+        );
+    }
+    topOutlet
+    {
+        type patch;
+        faces
+        (
+            (4 5 6 7)
+            (5 9 11 6)
+            (9 13 15 11)
+        );
+    }
+);
+
+
+// ************************************************************************* //

@@ -1,0 +1,74 @@
+# ----------------------------------------------------------------------------
+# CGAL definitions - several possibilities
+#
+#  - missing
+#  - header-only
+#  - header-only, no mpfr
+#  - library, no mpfr
+#  - library, with mpfr (default for older CGAL)
+#
+# Dispatch according to the defined 'CGAL_FLAVOUR'
+# - names may change [see wmake/scripts/have_cgal]
+# (no-cgal | cgal-header | cgal-header-no-mpfr | cgal-no-mpfr | cgal-mpfr)
+
+cgal_subrule := cgal-mpfr
+ifneq (,$(findstring no-mpfr,$(CGAL_FLAVOUR)))
+    cgal_subrule := cgal-no-mpfr
+    ifneq (,$(findstring header,$(CGAL_FLAVOUR)))
+        cgal_subrule := cgal-header-no-mpfr
+    endif
+else
+    ifneq (,$(findstring header,$(CGAL_FLAVOUR)))
+        cgal_subrule := cgal-header-only
+    endif
+endif
+
+# ----------------------------------------------------------------------------
+# BOOST include/library directories - synthesize from ARCH_PATH as required
+
+ifeq (,$(strip $(BOOST_INC_DIR)))
+ifneq (,$(strip $(BOOST_ARCH_PATH)))
+  BOOST_INC_DIR = $(BOOST_ARCH_PATH)/include
+  BOOST_LIB_DIR = $(BOOST_ARCH_PATH)/lib \
+    $(BOOST_ARCH_PATH)/lib$(WM_COMPILER_LIB_ARCH)
+endif
+endif
+
+# ----------------------------------------------------------------------------
+# CGAL include/library directories - synthesize from ARCH_PATH as required
+
+ifeq (,$(strip $(CGAL_INC_DIR)))
+ifneq (,$(strip $(CGAL_ARCH_PATH)))
+  CGAL_INC_DIR = $(CGAL_ARCH_PATH)/include
+  CGAL_LIB_DIR = $(CGAL_ARCH_PATH)/lib \
+    $(CGAL_ARCH_PATH)/lib$(WM_COMPILER_LIB_ARCH)
+endif
+endif
+
+# ----------------------------------------------------------------------------
+
+CGAL_INC  =
+CGAL_LIBS =
+
+include $(GENERAL_RULES)/$(cgal_subrule)
+
+# Override
+sinclude $(DEFAULT_RULES)/cgal
+sinclude $(DEFAULT_RULES)/$(cgal_subrule)
+
+# DEBUG
+# -----
+
+## $(info CGAL_FLAVOUR $(CGAL_FLAVOUR))
+## $(info subrule $(cgal_subrule))
+
+## CGAL_INC += -Wp,-v
+## $(info CGAL_INC: $(CGAL_INC))
+## $(info CGAL_LIB: $(CGAL_LIBS))
+
+## $(info BOOST_INC_DIR: $(BOOST_INC_DIR))
+## $(info BOOST_LIB_DIR: $(BOOST_LIB_DIR))
+## $(info CGAL_INC_DIR: $(CGAL_INC_DIR))
+## $(info CGAL_LIB_DIR: $(CGAL_LIB_DIR))
+
+# ---------------------------------------------------------------------------

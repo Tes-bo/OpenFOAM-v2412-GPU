@@ -1,0 +1,65 @@
+/*---------------------------------------------------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volVectorField;
+    object      U;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 1 -1 0 0 0 0];
+
+internalField   uniform (2 0 0);
+
+/*
+A=[2 1]
+M=[28.8504 16.0428]
+AFR=17.1256917852
+T=300
+p=1e5
+R=8314.3
+rho=p/R/T.*M
+U=[2 NaN]
+U(2)=rho(1)*U(1)*A(1)/(rho(2)*A(2))/AFR
+*/
+
+boundaryField
+{
+    "(walls|cylinder)"
+    {
+        type            fixedValue;
+        value           uniform (0 0 0);
+    }
+
+    inletAir
+    {
+        type            fixedValue;
+        value           uniform (2 0 0);
+    }
+
+    inletFuel
+    {
+        type            fixedValue;
+        value           uniform (0.42003 0 0);
+    }
+
+    outlet
+    {
+        type            zeroGradient;
+    }
+
+    frontAndBack
+    {
+        type            empty;
+    }
+}
+
+
+// ************************************************************************* //

@@ -1,0 +1,34 @@
+// -*- C++ -*-
+
+type            sets;
+libs            (sampling);
+interpolationScheme cellPoint;
+setFormat       raw;
+writeControl    onEnd;
+
+fields
+(
+    columnAverage(UMean)
+);
+
+sets
+{
+    inletPatch
+    {
+        type        face;
+        axis        z;
+        start       (0.0 1.57 0);
+        end         (0.0 1.57 2);
+    }
+
+    inletCell
+    {
+        type        midPoint;
+        axis        z;
+        start       (0.062832 1.57 0);
+        end         (0.062832 1.57 2);
+    }
+}
+
+
+// ************************************************************************* //

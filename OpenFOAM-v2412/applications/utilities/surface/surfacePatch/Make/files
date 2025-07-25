@@ -1,0 +1,7 @@
+searchableSurfaceModifier/searchableSurfaceModifier.C
+searchableSurfaceModifier/autoPatch.C
+searchableSurfaceModifier/cut.C
+
+surfacePatch.C
+
+EXE = $(FOAM_APPBIN)/surfacePatch

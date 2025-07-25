@@ -1,0 +1,34 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+./Allrun.pre
+
+# Remove lock file on interrupt
+trap '\rm -f comms/OpenFOAM.lock 2>/dev/null' INT
+
+#-- Run on single processor
+#runApplication $(getApplication) &
+# Simulated external solver
+#runApplication ./externalSolver
+
+# Decompose
+runApplication decomposePar -allRegions
+
+## Can verify parallel operation of createExternalCoupledPatchGeometry
+# rm -f log.createExternalCoupledPatchGeometry
+# runParallel createExternalCoupledPatchGeometry \
+#     -regions '(topAir heater)' coupleGroup \
+#     -commsDir $PWD/comms
+
+# Run OpenFOAM
+runParallel $(getApplication) &
+
+# Simulated external solver
+runApplication ./externalSolver
+
+# Reconstruct
+runApplication reconstructPar -allRegions
+
+#------------------------------------------------------------------------------

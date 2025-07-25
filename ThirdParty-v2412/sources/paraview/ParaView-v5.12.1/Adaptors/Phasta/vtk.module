@@ -1,0 +1,19 @@
+NAME
+  ParaView::AdaptorsPhasta
+LIBRARY_NAME
+  vtkPVAdaptorsPhasta
+SPDX_LICENSE_IDENTIFIER
+  BSD-3-Clause
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Kitware Inc.
+GROUPS
+  PARAVIEW_CANONICAL
+CONDITION
+  PARAVIEW_USE_FORTRAN
+DEPENDS
+  ParaView::Catalyst
+  VTK::CommonCore
+  VTK::CommonDataModel
+OPTIONAL_DEPENDS
+  VTK::ParallelMPI
+EXCLUDE_WRAP

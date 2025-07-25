@@ -1,0 +1,38 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2406                                  |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+FoamFile
+{
+    version         2;
+    format          ascii;
+    class           dictionary;
+    object          meshDict;
+}
+
+maxCellSize     0.006;
+
+surfaceFile     fileName;
+
+boundaryCellSize 0.004;
+
+boundaryCellSizeRefinementThickness 0.015;
+
+boundaryLayers
+{
+    patchBoundaryLayers
+    {
+        "lower.*|upper.*|left.*|right.*|topOPatch"
+        {
+            nLayers         5;
+            thicknessRatio  1.8;
+        }
+    }
+}
+
+
+// ************************************************************************* //

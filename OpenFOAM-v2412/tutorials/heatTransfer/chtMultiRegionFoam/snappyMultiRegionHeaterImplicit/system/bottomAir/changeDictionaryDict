@@ -1,0 +1,148 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      changeDictionaryDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+boundary
+{
+    minX
+    {
+        type            wall;
+    }
+    maxX
+    {
+        type            wall;
+    }
+}
+
+U
+{
+    internalField   uniform (0.01 0 0);
+
+    boundaryField
+    {
+        ".*"
+        {
+            type            fixedValue;
+            value           uniform (0 0 0);
+        }
+        "procBoundary.*"
+        {
+            type            processor;
+        }
+    }
+}
+
+T
+{
+    internalField   uniform 300;
+
+    boundaryField
+    {
+        ".*"
+        {
+            type            zeroGradient;
+        }
+
+        "procBoundary.*"
+        {
+            type            processor;
+        }
+
+        "bottomAir_to_.*"
+        {
+            type            compressible::turbulentTemperatureRadCoupledMixed;
+            Tnbr            T;
+            kappaMethod     fluidThermo;
+            value           uniform 300;
+            useImplicit     true;
+        }
+    }
+}
+
+epsilon
+{
+    // Set the value on all bc to non-zero. Not used in simulation
+    // since zeroGradient; only used in initialisation.
+    internalField   uniform 0.01;
+
+    boundaryField
+    {
+        ".*"
+        {
+            type            epsilonWallFunction;
+            value           uniform 0.01;
+        }
+        "procBoundary.*"
+        {
+            type            processor;
+        }
+    }
+}
+
+k
+{
+    internalField   uniform 0.1;
+
+    boundaryField
+    {
+        ".*"
+        {
+            type            kqRWallFunction;
+            value           uniform 0.1;
+        }
+        "procBoundary.*"
+        {
+            type            processor;
+        }
+    }
+}
+
+p_rgh
+{
+    internalField   uniform 1e5;
+
+    boundaryField
+    {
+        ".*"
+        {
+            type            fixedFluxPressure;
+            value           uniform 1e5;
+        }
+        "procBoundary.*"
+        {
+            type            processor;
+        }
+    }
+}
+
+p
+{
+    internalField   uniform 1e5;
+
+    boundaryField
+    {
+        ".*"
+        {
+            type            calculated;
+            value           uniform 1e5;
+        }
+        "procBoundary.*"
+        {
+            type            processor;
+        }
+    }
+}
+
+// ************************************************************************* //

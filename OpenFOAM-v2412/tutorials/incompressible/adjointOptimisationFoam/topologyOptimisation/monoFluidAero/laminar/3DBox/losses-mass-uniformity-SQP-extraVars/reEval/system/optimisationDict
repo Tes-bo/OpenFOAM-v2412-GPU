@@ -1,0 +1,104 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      optimisationDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+optimisationManager singleRun;
+
+primalSolvers
+{
+    op1
+    {
+        active                 true;
+        type                   incompressible;
+        solver                 simple;
+        solutionControls
+        {
+            nIters 3000;
+            residualControl
+            {
+                "p.*"       5.e-7;
+                "U.*"       5.e-7;
+            }
+        }
+    }
+}
+
+adjointManagers
+{
+    adjManager1
+    {
+        primalSolver             op1;
+        adjointSolvers
+        {
+            as1
+            {
+                // choose adjoint solver
+                //----------------------
+                active                 false;
+                type                   incompressible;
+                solver                 adjointSimple;
+                computeSensitivities   false;
+                // manage objectives
+                //------------------
+                objectives
+                {
+                    type  incompressible;
+                    objectiveNames
+                    {
+                        losses
+                        {
+                            weight            1.; 
+                            type              PtLosses;
+                            patches           ("inlet.*" "outlet.*");
+                        }
+                        uniformity
+                        {
+                            weight            1.; 
+                            type              uniformityPatch;
+                            patches           (outlet1 outlet2);
+                        }
+                        mass
+                        {
+                            weight            1.; 
+                            type              flowRatePartition;
+                            inletPatches      (inlet);
+                            outletPatches     (outlet1 outlet2);
+                            targetFractions   (0.5 0.5);
+                        }
+                    }
+                }
+                // ATC treatment
+                //--------------
+                ATCModel
+                {
+                    ATCModel        standard;
+                }
+                // solution control
+                //------------------
+                solutionControls
+                {
+                    nIters 300;
+                    residualControl
+                    {
+                        "pa.*"       5.e-7;
+                        "Ua.*"       5.e-7;
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ************************************************************************* //

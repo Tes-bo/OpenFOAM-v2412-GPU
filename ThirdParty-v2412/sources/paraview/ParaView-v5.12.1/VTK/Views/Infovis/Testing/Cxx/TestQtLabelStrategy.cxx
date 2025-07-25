@@ -1,0 +1,131 @@
+// SPDX-FileCopyrightText: Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
+// SPDX-FileCopyrightText: Copyright 2008 Sandia Corporation
+// SPDX-License-Identifier: LicenseRef-BSD-3-Clause-Sandia-USGov
+#include "vtkActor2D.h"
+#include "vtkCellArray.h"
+#include "vtkCellData.h"
+#include "vtkCommand.h"
+#include "vtkDataRepresentation.h"
+#include "vtkDoubleArray.h"
+#include "vtkGraphLayoutView.h"
+#include "vtkIdTypeArray.h"
+#include "vtkInteractorEventRecorder.h"
+#include "vtkLabelPlacementMapper.h"
+#include "vtkPointData.h"
+#include "vtkPointSetToLabelHierarchy.h"
+#include "vtkPolyData.h"
+#include "vtkPolyDataMapper.h"
+#include "vtkQtLabelRenderStrategy.h"
+#include "vtkRegressionTestImage.h"
+#include "vtkRenderWindow.h"
+#include "vtkRenderWindowInteractor.h"
+#include "vtkRenderer.h"
+#include "vtkStringArray.h"
+#include "vtkStringToNumeric.h"
+#include "vtkTestUtilities.h"
+#include "vtkTextProperty.h"
+#include "vtkXMLTreeReader.h"
+
+#include <sstream>
+#include <time.h>
+
+#include <QApplication>
+#include <QFontDatabase>
+
+using std::string;
+
+#include "vtkSmartPointer.h"
+#define VTK_CREATE(type, name) vtkSmartPointer<type> name = vtkSmartPointer<type>::New()
+
+int TestQtLabelStrategy(int argc, char* argv[])
+{
+  int n = 1000;
+
+  VTK_CREATE(vtkTesting, testHelper);
+  testHelper->AddArguments(argc, const_cast<const char**>(argv));
+  QString fontFileName = testHelper->GetDataRoot();
+  fontFileName.append("/Data/Infovis/martyb_-_Ridiculous.ttf");
+
+  QApplication app(argc, argv);
+
+  QFontDatabase::addApplicationFont(fontFileName);
+
+  VTK_CREATE(vtkPolyData, pd);
+  VTK_CREATE(vtkPoints, pts);
+  VTK_CREATE(vtkCellArray, verts);
+  VTK_CREATE(vtkDoubleArray, orient);
+  orient->SetName("orientation");
+  VTK_CREATE(vtkStringArray, label);
+  label->SetName("label");
+
+  srand(time(nullptr));
+
+  for (int i = 0; i < n; i++)
+  {
+    pts->InsertNextPoint((double)(rand() % 100), (double)(rand() % 100), (double)(rand() % 100));
+    verts->InsertNextCell(1);
+    verts->InsertCellPoint(i);
+    orient->InsertNextValue((double)(rand() % 100) * 3.60);
+    std::string s;
+    std::stringstream out;
+    out << i;
+    s = out.str();
+    label->InsertNextValue(s);
+  }
+
+  pd->SetPoints(pts);
+  pd->SetVerts(verts);
+  pd->GetPointData()->AddArray(label);
+  pd->GetPointData()->AddArray(orient);
+
+  VTK_CREATE(vtkPointSetToLabelHierarchy, hier);
+  hier->SetInputData(pd);
+  hier->SetOrientationArrayName("orientation");
+  hier->SetLabelArrayName("label");
+  hier->GetTextProperty()->SetColor(0.0, 0.0, 0.0);
+  //  hier->GetTextProperty()->SetFontFamilyAsString("Talvez assim");
+  hier->GetTextProperty()->SetFontFamilyAsString("Ridiculous");
+  //  hier->GetTextProperty()->SetFontFamilyAsString("Sketchy");
+  hier->GetTextProperty()->SetFontSize(72);
+
+  VTK_CREATE(vtkLabelPlacementMapper, lmapper);
+  lmapper->SetInputConnection(hier->GetOutputPort());
+  lmapper->SetShapeToRoundedRect();
+  lmapper->SetBackgroundColor(1.0, 1.0, 0.7);
+  lmapper->SetBackgroundOpacity(0.8);
+  lmapper->SetMargin(3);
+
+  VTK_CREATE(vtkQtLabelRenderStrategy, strategy);
+  lmapper->SetRenderStrategy(strategy);
+
+  VTK_CREATE(vtkActor2D, lactor);
+  lactor->SetMapper(lmapper);
+
+  VTK_CREATE(vtkPolyDataMapper, mapper);
+  mapper->SetInputData(pd);
+  VTK_CREATE(vtkActor, actor);
+  actor->SetMapper(mapper);
+
+  VTK_CREATE(vtkRenderer, ren);
+  ren->AddActor(lactor);
+  ren->AddActor(actor);
+  ren->ResetCamera();
+
+  VTK_CREATE(vtkRenderWindow, win);
+  win->SetSize(600, 600);
+  win->AddRenderer(ren);
+
+  VTK_CREATE(vtkRenderWindowInteractor, iren);
+  iren->SetRenderWindow(win);
+
+  int retVal = vtkRegressionTestImageThreshold(win, 200);
+  if (retVal == vtkRegressionTester::DO_INTERACTOR)
+  {
+    iren->Initialize();
+    iren->Start();
+
+    retVal = vtkRegressionTester::PASSED;
+  }
+
+  return !retVal;
+}

@@ -1,0 +1,31 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+mkdir -p constant/triSurface
+
+cp -f \
+    "$FOAM_TUTORIALS"/resources/geometry/airfoilWithLayers/*.gz \
+    constant/triSurface
+
+runApplication blockMesh
+
+runApplication surfaceFeatureExtract
+
+mkdir -p 0
+
+cp -f system/fvSchemes system/fvSchemes.bck
+
+# Run with basic
+foamDictionary system/fvSchemes -entry geometry/type -set basic
+runApplication -s basic snappyHexMesh
+runApplication -s basic checkMesh -writeAllFields
+foamListTimes -rm
+
+# Run with highAspectRatio
+foamDictionary system/fvSchemes -entry geometry/type -set highAspectRatio
+runApplication -s highAspectRatio snappyHexMesh
+runApplication -s highAspectRatio checkMesh -writeAllFields
+
+#------------------------------------------------------------------------------

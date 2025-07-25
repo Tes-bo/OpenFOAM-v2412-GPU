@@ -1,0 +1,23 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# Script
+#     git-find-non-ascii
+#
+# Description
+#     Use git grep to find source files with non-ASCII characters.
+#     Use cached files for speed.
+#
+#     C files:      .c .h
+#     C++ files:    .C .cc .cpp .cxx .H .hh .hpp .hxx
+#
+#------------------------------------------------------------------------------
+
+git grep --cached --line-number -P '[\x00-\x08\x0E-\x1F\x80-\xFF]'
+    -- \
+    '*.[CHch]' \
+    '*.cc' \
+    '*.hh' \
+    '*.[ch]pp' \
+    '*.[ch]xx'
+
+#------------------------------------------------------------------------------

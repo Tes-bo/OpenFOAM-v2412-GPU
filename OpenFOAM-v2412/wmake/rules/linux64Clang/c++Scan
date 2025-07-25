@@ -1,0 +1,10 @@
+#------------------------------------------------------------------------------
+# Static analyzer with clang and Opt.
+# Call top-level Allwmake with 'scan-build' and corresponding compiler
+
+sinclude $(GENERAL_RULES)/common/c++Opt
+
+cxx_compiler := $(shell which clang++)
+CC         := $(shell echo "$(cxx_compiler)" | sed -e 's@/bin/[^/]*@/libexec/c++-analyzer@') -std=c++17 -m64
+
+#------------------------------------------------------------------------------

@@ -1,0 +1,102 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+//           outlet1
+//             +-+
+//             | |
+//             | |
+//             | |
+//             | |
+// +-----------+-+
+// |inlet      | |
+// +-----------+-+
+//             | |
+//             | |
+//             | |
+//             | |
+//             +-+
+//           outlet2
+
+scale   1;
+
+vertices
+(
+    (0.19 -0.02 0)  //4=0
+    (0.23 -0.02 0)  //5=1
+    (0.23  0.02 0)  //6=2
+    (0.19  0.02 0)  //7=3
+
+    (0.19 -0.02 0.01)   //20=4
+    (0.23 -0.02 0.01)   //21=5
+    (0.23  0.02 0.01)   //22=6
+    (0.19  0.02 0.01)   //23=7
+);
+
+blocks
+(
+    // central block
+    hex (0 1 2 3 4 5 6 7) central (12 12 1) simpleGrading (1 1 1)
+);
+
+edges
+(
+);
+
+boundary
+(
+    central_walls
+    {
+        type wall;
+        faces
+        (
+            // Central block
+            (1 2 6 5)
+        );
+    }
+
+    // Connecting to inlet
+    central_inlet
+    {
+        type            wall;
+        faces
+        (
+            (0 4 7 3)
+        );
+    }
+
+    // Connecting to bottom
+    central_bottom
+    {
+        type            wall;
+        faces
+        (
+            (0 1 5 4)
+        );
+    }
+
+    // Connecting to top
+    central_top
+    {
+        type            wall;
+        faces
+        (
+            (2 3 7 6)
+        );
+    }
+);
+
+
+// ************************************************************************* //

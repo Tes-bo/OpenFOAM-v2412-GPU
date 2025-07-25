@@ -1,0 +1,42 @@
+// -*- C++ -*-
+
+dataCloud
+{
+    type    dataCloud;
+    libs    (lagrangianFunctionObjects);
+    log     true;
+
+    // Nothing happens before this anyhow
+    timeStart 0.5;
+
+    writeControl    writeTime;
+
+    // cloud   reactingCloud1;
+    clouds  ( ".*" );
+
+    // Field to output
+    field   d;
+
+    // Optional selection mechanism
+    selection
+    {
+        // Reduced number of output parcels
+        stride
+        {
+            action  use;
+            source  stride;
+            stride  4;
+        }
+
+        Umin
+        {
+            action  subtract;
+            source  field;
+            field   U;
+            accept  (less 0.2);
+        }
+    }
+}
+
+
+// ************************************************************************* //

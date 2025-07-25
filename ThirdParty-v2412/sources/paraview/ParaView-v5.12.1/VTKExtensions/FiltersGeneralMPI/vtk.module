@@ -1,0 +1,21 @@
+NAME
+  ParaView::VTKExtensionsFiltersGeneralMPI
+LIBRARY_NAME
+  vtkPVVTKExtensionsFiltersGeneralMPI
+SPDX_LICENSE_IDENTIFIER
+  BSD-3-Clause
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Kitware Inc.
+CONDITION
+  PARAVIEW_USE_MPI
+GROUPS
+  PARAVIEW_CANONICAL
+KIT
+  ParaView::CoreKit
+DEPENDS
+  VTK::FiltersParallelFlowPaths
+  VTK::CommonCore
+  VTK::CommonDataModel
+  VTK::CommonExecutionModel
+PRIVATE_DEPENDS
+  VTK::ParallelMPI

@@ -1,0 +1,297 @@
+#----------------------------------*-sh-*--------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2016 OpenFOAM Foundation
+#     Copyright (C) 2016-2024 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# File
+#     etc/config.csh/compiler
+#     - sourced by OpenFOAM-*/etc/config.csh/settings
+#
+# Description
+#     Setup for custom compiler versions for OpenFOAM
+#     Per-compiler overrides in "compiler-$WM_COMPILER" files
+#
+# Note
+#     The default values for gcc/clang are not a recommendation,
+#     but typically correspond to the minimum usable version.
+#
+#     I_MPI_CC, I_MPI_CXX environment variables may be defined for the
+#     Intel mpicc/mpicxx wrappers
+#
+# Caveat
+#     Not all compiler versions listed here are necessarily currently tested,
+#     but can generally be expected to work.
+#
+#------------------------------------------------------------------------------
+
+# Initial mpi/compiler associations
+switch ("$WM_COMPILER")
+case Icc*:
+    setenv I_MPI_CC icc
+    setenv I_MPI_CXX icpc
+    breaksw
+case Icx*:
+    setenv I_MPI_CC icx
+    setenv I_MPI_CXX icpx
+    breaksw
+case Gcc*:
+    switch ("$WM_MPLIB")
+    case INTELMPI*:
+        setenv I_MPI_CC gcc
+        setenv I_MPI_CXX g++
+        breaksw
+    endsw
+    breaksw
+endsw
+
+#------------------------------------------------------------------------------
+
+switch ("$WM_COMPILER_TYPE")
+case ThirdParty:
+    # Default/minimum versions (compiler, GMP, MPFR, MPC) - override as needed
+
+    set default_clang_version=llvm-5.0.2
+    set default_gcc_version=gcc-7.5.0
+
+    set default_gmp_version=gmp-system
+    set default_mpfr_version=mpfr-system
+    set default_mpc_version=mpc-system
+
+    # Clear any old values
+    set gcc_version=''
+    set clang_version=''
+
+    switch ("$WM_COMPILER")
+    case Gcc:
+        set gcc_version="$default_gcc_version"
+        breaksw
+    case Gcc141*:
+        set gcc_version=gcc-14.1.0
+        breaksw
+    case Gcc133*:
+        set gcc_version=gcc-13.3.0
+        breaksw
+    case Gcc132*:
+        set gcc_version=gcc-13.2.0
+        breaksw
+    case Gcc131*:
+        set gcc_version=gcc-13.1.0
+        breaksw
+    case Gcc123*:
+        set gcc_version=gcc-12.3.0
+        breaksw
+    case Gcc122*:
+        set gcc_version=gcc-12.2.0
+        breaksw
+    case Gcc121*:
+        set gcc_version=gcc-12.1.0
+        breaksw
+    case Gcc114*:
+        set gcc_version=gcc-11.4.0
+        breaksw
+    case Gcc113*:
+        set gcc_version=gcc-11.3.0
+        breaksw
+    case Gcc112*:
+        set gcc_version=gcc-11.2.0
+        breaksw
+    case Gcc111*:
+        set gcc_version=gcc-11.1.0
+        breaksw
+    case Gcc105*:
+        set gcc_version=gcc-10.5.0
+        breaksw
+    case Gcc104*:
+        set gcc_version=gcc-10.4.0
+        breaksw
+    case Gcc103*:
+        set gcc_version=gcc-10.3.0
+        breaksw
+    case Gcc102*:
+        set gcc_version=gcc-10.2.0
+        breaksw
+    case Gcc101*:
+        set gcc_version=gcc-10.1.0
+        breaksw
+    case Gcc95*:
+        set gcc_version=gcc-9.5.0
+        breaksw
+    case Gcc94*:
+        set gcc_version=gcc-9.4.0
+        breaksw
+    case Gcc93*:
+        set gcc_version=gcc-9.3.0
+        breaksw
+    case Gcc92*:
+        set gcc_version=gcc-9.2.0
+        breaksw
+    case Gcc91*:
+        set gcc_version=gcc-9.1.0
+        breaksw
+    case Gcc85*:
+        set gcc_version=gcc-8.5.0
+        breaksw
+    case Gcc84*:
+        set gcc_version=gcc-8.4.0
+        breaksw
+    case Gcc83*:
+        set gcc_version=gcc-8.3.0
+        breaksw
+    case Gcc82*:
+        set gcc_version=gcc-8.2.0
+        breaksw
+    case Gcc81*:
+        set gcc_version=gcc-8.1.0
+        breaksw
+    case Gcc75*:
+        set gcc_version=gcc-7.5.0
+        breaksw
+    # Older : no assurance that they still work for OpenFOAM
+    case Gcc74*:
+        set gcc_version=gcc-7.4.0
+        breaksw
+    case Gcc73*:
+        set gcc_version=gcc-7.3.0
+        breaksw
+    case Gcc72*:
+        set gcc_version=gcc-7.2.0
+        breaksw
+    case Gcc71*:
+        set gcc_version=gcc-7.1.0
+        breaksw
+
+    # Older GCC series that receive no further bugfixes
+    case Gcc65*:
+        set gcc_version=gcc-6.5.0
+        breaksw
+    case Gcc64*:
+        set gcc_version=gcc-6.4.0
+        breaksw
+    case Gcc63*:
+        set gcc_version=gcc-6.3.0
+        breaksw
+    case Gcc62*:
+        set gcc_version=gcc-6.2.0
+        breaksw
+    case Gcc61*:
+        set gcc_version=gcc-6.1.0
+        breaksw
+    case Gcc55*:
+        set gcc_version=gcc-5.5.0
+        breaksw
+    #ancient# case Gcc54*:
+    #ancient#     set gcc_version=gcc-5.4.0
+    #ancient#     breaksw
+    #ancient# case Gcc53*:
+    #ancient#     set gcc_version=gcc-5.3.0
+    #ancient#     breaksw
+    #ancient# case Gcc52*:
+    #ancient#     set gcc_version=gcc-5.2.0
+    #ancient#     breaksw
+    #ancient# case Gcc51*:
+    #ancient#     set gcc_version=gcc-5.1.0
+    #ancient#     breaksw
+    #ancient# case Gcc49*:
+    #ancient#     set gcc_version=gcc-4.9.4
+    #ancient#     breaksw
+    #ancient# case Gcc48*:
+    #ancient#     set gcc_version=gcc-4.8.5
+    #ancient#     breaksw
+
+    case Clang:
+        set clang_version="$default_clang_version"
+        breaksw
+    case Clang181*:
+        set clang_version=llvm-18.1.6
+        breaksw
+    case Clang170*:
+        set clang_version=llvm-17.0.6
+        breaksw
+    case Clang160*:
+        set clang_version=llvm-16.0.6
+        breaksw
+    case Clang150*:
+        set clang_version=llvm-15.0.7
+        breaksw
+    case Clang140*:
+        set clang_version=llvm-14.0.6
+        breaksw
+    case Clang130*:
+        set clang_version=llvm-13.0.1
+        breaksw
+    case Clang120*:
+        set clang_version=llvm-12.0.1
+        breaksw
+    case Clang111*:
+        set clang_version=llvm-11.1.0
+        breaksw
+    case Clang110*:
+        set clang_version=llvm-11.0.1
+        breaksw
+    case Clang100*:
+        set clang_version=llvm-10.0.1
+        breaksw
+    case Clang90*:
+        set clang_version=llvm-9.0.1
+        breaksw
+    case Clang80*:
+        set clang_version=llvm-8.0.1
+        breaksw
+    case Clang71*:
+        set clang_version=llvm-7.1.0
+        breaksw
+    case Clang70*:
+        set clang_version=llvm-7.0.1
+        breaksw
+    case Clang60*:
+        set clang_version=llvm-6.0.1
+        breaksw
+    case Clang50*:
+        set clang_version=llvm-5.0.2
+        breaksw
+    #ancient# case Clang40*:
+    #ancient#     set clang_version=llvm-4.0.1
+    #ancient#     breaksw
+    #ancient# case Clang39*:
+    #ancient#     set clang_version=llvm-3.9.1
+    #ancient#     breaksw
+    #ancient# case Clang38*:
+    #ancient#     set clang_version=llvm-3.8.1
+    #ancient#     breaksw
+    #ancient# case Clang37*:
+    #ancient#     set clang_version=llvm-3.7.1
+    #ancient#     breaksw
+
+    endsw
+
+    _foamEtc -config prefs.compiler             ## Optional adjustments
+    _foamEtc -config "compiler-$WM_COMPILER"    ## Per-compiler override
+
+    # Trap errors
+    if ( "${gcc_version}${clang_version}" == "" ) then
+        /bin/cat << UNKNOWN_COMPILER
+===============================================================================
+Warning in $WM_PROJECT_DIR/etc/config.csh/compiler:
+Unknown ThirdParty compiler type/version - '$WM_COMPILER'
+
+Please check your settings
+===============================================================================
+UNKNOWN_COMPILER
+    endif
+    breaksw
+endsw
+
+#------------------------------------------------------------------------------
+
+unset default_gcc_version default_clang_version
+unset default_gmp_version default_mpfr_version default_mpc_version
+
+#------------------------------------------------------------------------------

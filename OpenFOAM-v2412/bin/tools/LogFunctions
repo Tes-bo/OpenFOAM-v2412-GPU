@@ -1,0 +1,123 @@
+#---------------------------------*- sh -*-------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2017-2022 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     LogFunctions
+#
+# Description
+#     Miscellaneous functions for running tutorials in a loop and for
+#     analyzing the output.
+#
+#     Output is normally summarized as 'testLoopReport'
+#
+#------------------------------------------------------------------------------
+
+# logReport <logfile>
+# Extracts useful info from log file.
+logReport()
+{
+    local logfile="$1"
+
+    # logfile is path/to/case/log.application
+    caseName=$(dirname $logfile | sed -e 's/\(.*\)\.\///g')
+    app=$(echo $logfile | sed -e 's/\(.*\)log\.//g')
+    appAndCase="Application $app - case $caseName"
+
+    if grep -q "FOAM FATAL" $logfile
+    then
+        echo "$appAndCase: ** FOAM FATAL ERROR **"
+        return 1
+    fi
+
+    # Check for solution singularity on U equation
+    for eqn in Ux Uy Uz
+    do
+        if grep -q -E "${eqn}[:| ]*solution singularity" $logfile
+        then
+            if [ "$eqn" = Uz ]
+            then
+                # Can only get here if Ux,Uy,Uz all failed
+                echo "$appAndCase: ** Solution singularity **"
+                return 1
+            fi
+        else
+            break
+        fi
+    done
+
+    if grep -q -E "^[\t ]*[Ee]nd" $logfile
+    then
+        # Extract time from this type of content
+        ## ExecutionTime = 60.2 s  ClockTime = 63 s --> "60.2 s"
+        completionTime=$(tail -10 $logfile | \
+            sed -n -e '/Execution/{s/^[^=]*=[ \t]*//; s/\( s\) .*$/\1/; p}')
+
+        echo "$appAndCase: completed${completionTime:+ in }$completionTime"
+    else
+        echo "$appAndCase: unconfirmed completion"
+    fi
+}
+
+
+# Collect and analyse all log files
+collectLogs()
+{
+    echo "Collecting log files..." 1>&2
+    rm -f logs testLoopReport
+    touch logs testLoopReport
+
+    local appDir log logFiles
+
+    echo "====" > testLoopReport
+    for appDir in *
+    do
+        [ -d $appDir ] || continue
+        echo -n "    $appDir..." 1>&2
+
+        logFiles=$(find -L $appDir -name 'log.*' -type f)
+        if [ -n "$logFiles" ]
+        then
+            echo 1>&2
+        else
+            echo " (no logs)" 1>&2
+            continue
+        fi
+
+        # Sort logs by time-stamp
+        for log in $(echo $logFiles | xargs ls -rt)
+        do
+            # Concatenate and summarize logs
+            cat "$log" >> logs 2>/dev/null
+            logReport $log
+        done
+        echo
+    done >> testLoopReport
+    echo "====" >> testLoopReport
+    echo "====" 1>&2
+}
+
+
+removeLogs()
+{
+    echo "Removing backup files" 1>&2
+
+    find . \(   \
+        -name '*~' -o -name '*.bak'         \
+        -name core -o -name 'core.[1-9]*'   \
+        -name '*.pvs' -o -name '*.foam' -o -name '*.OpenFOAM' \
+        \) -type f -delete
+
+    rm -f logs testLoopReport log.Allrun log.Alltest
+}
+
+
+#------------------------------------------------------------------------------

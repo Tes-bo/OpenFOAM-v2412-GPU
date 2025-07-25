@@ -1,0 +1,19 @@
+NAME
+  ParaView::smTestDriver
+LIBRARY_NAME
+  smTestDriver
+SPDX_LICENSE_IDENTIFIER
+  BSD-3-Clause
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Kitware Inc.
+GROUPS
+  PARAVIEW_CORE
+PRIVATE_DEPENDS
+  VTK::CommonCore
+  # Link to `CommonDataModel` to avoid a weird issue with `kissfft` symbols
+  # being reported as missing. https://github.com/spack/spack/issues/37710#issuecomment-1816191621
+  VTK::CommonDataModel
+  VTK::vtksys
+TEST_LABELS
+  ParaView
+EXCLUDE_WRAP

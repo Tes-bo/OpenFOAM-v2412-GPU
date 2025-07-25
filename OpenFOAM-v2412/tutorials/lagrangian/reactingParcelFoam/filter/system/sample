@@ -1,0 +1,47 @@
+// -*- C++ -*-
+
+sample1
+{
+    type        sets;
+    libs        (sampling);
+    setFormat   gltf;
+    writeControl    writeTime;
+    interpolationScheme cellPointFace;
+
+    formatOptions
+    {
+        // Optionally add colours to fields
+        // - default: colour map limits set to field limits
+        colour          yes;
+
+        fieldInfo
+        {
+            T
+            {
+                colourMap   fire;
+                //alpha       1.0;
+            }
+        }
+    }
+
+    fields          ( p T k epsilon U );
+
+    sets
+    {
+        line
+        {
+            type            face;
+            axis            xyz;
+            start           (0 0.5 0);
+            end             (4 0.5 0.05);
+            nPoints         10;
+        }
+        cells
+        {
+            type            cellCentre;
+        }
+    }
+}
+
+
+// ************************************************************************* //

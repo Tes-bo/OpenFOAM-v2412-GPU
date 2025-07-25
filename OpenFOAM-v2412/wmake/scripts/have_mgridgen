@@ -1,0 +1,207 @@
+#----------------------------------*-sh-*--------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2018-2020 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     have_mgridgen
+#
+# Description
+#     Detection/setup of MGRIDGEN
+#
+# Requires
+#     config.sh/mgridgen
+#
+# Functions provided
+#     have_mgridgen, no_mgridgen, echo_mgridgen, query_mgridgen, search_mgridgen
+#
+# Variables set on success
+#     HAVE_MGRIDGEN
+#     MGRIDGEN_ARCH_PATH
+#     MGRIDGEN_INC_DIR
+#     MGRIDGEN_LIB_DIR
+#
+#------------------------------------------------------------------------------
+. ${WM_PROJECT_DIR:?}/wmake/scripts/sysFunctions    # General system functions
+
+#------------------------------------------------------------------------------
+
+# Reset
+no_mgridgen()
+{
+    unset HAVE_MGRIDGEN MGRIDGEN_ARCH_PATH MGRIDGEN_INC_DIR MGRIDGEN_LIB_DIR
+    unset MGRIDGEN_VERSION
+}
+
+
+# Report
+echo_mgridgen()
+{
+    echo "mgridgen=${HAVE_MGRIDGEN:-false}"
+    echo "root=\"$MGRIDGEN_ARCH_PATH\""
+    echo "include=\"$MGRIDGEN_INC_DIR\""
+    echo "library=\"$MGRIDGEN_LIB_DIR\""
+}
+
+
+# Search
+# $1 : prefix (*_ARCH_PATH, system, ...)
+#
+# On success, return 0 and export variables
+# -> HAVE_MGRIDGEN, MGRIDGEN_ARCH_PATH, MGRIDGEN_INC_DIR, MGRIDGEN_LIB_DIR
+search_mgridgen()
+{
+    local warn="==> skip mgridgen"
+    local incName="mgridgen.h"
+    local libName="libMGridGen"
+    local libName2="libmgrid"
+
+    local prefix="${1:-system}"
+    local header library
+
+    # ----------------------------------
+    if isNone "$prefix"
+    then
+        #silent# [ -n "$warn" ] && echo "$warn (disabled)"
+        return 1
+    elif hasAbsdir "$prefix"
+    then
+        header=$(findFirstFile "$prefix/include/$incName")
+        library=$(findExtLib "$libName" "$libName2")
+    elif isSystem "$prefix"
+    then
+        header=$(findSystemInclude -name="$incName")
+        prefix=$(sysPrefix "$header")
+    else
+        unset prefix
+    fi
+    # ----------------------------------
+
+    # Header
+    [ -n "$header" ] || {
+        #silent# [ -n "$warn" ] && echo "$warn (no header)"
+        return 2
+    }
+
+    # Library
+    [ -n "$library" ] \
+    || library=$(findLibrary -prefix="$prefix" -name="$libName") \
+    || library=$(findLibrary -prefix="$prefix" -name="$libName2") \
+    || {
+        #silent# [ -n "$warn" ] && echo "$warn (no library)"
+        return 2
+    }
+
+    # ----------------------------------
+
+    local label scalar
+
+    # Ensure consistent sizes with OpenFOAM and mgridgen header
+    # Extract typedef for idxtype, realtype
+    label=$(sed -ne \
+        's/^.*typedef *\([^ ]*\) *idxtype.*/\1/ip' \
+        "$header")
+    scalar=$(sed -ne \
+        's/^.*typedef *\([^ ]*\) *realtype.*/\1/ip' \
+        "$header")
+
+    : "${label:=unknown}"
+    : "${scalar:=unknown}"
+
+    case "$WM_LABEL_SIZE:$label" in
+    (32:int32_t | 32:int | 64:int64_t | 64:long)
+        ;;
+
+    (*)
+        if [ -n "$warn" ]
+        then
+            echo "$warn (label='$WM_LABEL_SIZE', ${header##*/} has '$label')"
+        fi
+        no_mgridgen
+        return 1
+        ;;
+    esac
+    case "$WM_PRECISION_OPTION:$scalar" in
+    (SP:float | SPDP:float | DP:double)
+        ;;
+
+    (*)
+        if [ -n "$warn" ]
+        then
+            echo "$warn (scalar='$WM_PRECISION_OPTION', ${header##*/} has '$scalar')"
+        fi
+        no_mgridgen
+        return 1
+        ;;
+    esac
+
+    # OK
+    echo "mgridgen (label=$label, scalar=$scalar) - $prefix"
+    export HAVE_MGRIDGEN=true
+    export MGRIDGEN_ARCH_PATH="$prefix"
+    export MGRIDGEN_INC_DIR="${header%/*}"     # Basename
+    export MGRIDGEN_LIB_DIR="${library%/*}"    # Basename
+    export MGRIDGEN_VERSION
+}
+
+
+# Output as per search_* function
+have_mgridgen()
+{
+    local warn="==> skip mgridgen"
+    local config="config.sh/mgridgen"
+    local file
+
+    if file="$("$WM_PROJECT_DIR"/bin/foamEtcFile "$config")"
+    then
+        . "$file"
+    else
+        #silent# [ -n "$warn" ] && echo "$warn (no $config)"
+        return 2
+    fi
+
+    search_mgridgen "$MGRIDGEN_ARCH_PATH"
+}
+
+
+# Query settings
+query_mgridgen()
+{
+    local config="config.sh/mgridgen"
+    local file
+
+    if file="$("$WM_PROJECT_DIR"/bin/foamEtcFile -mode=o "$config")"
+    then
+        . "$file"
+        _process_query mgridgen "$MGRIDGEN_ARCH_PATH"
+    else
+        echo "(no $config)" 1>&2
+        echo "mgridgen=unknown"
+    fi
+}
+
+
+#------------------------------------------------------------------------------
+
+# Reset
+no_mgridgen
+
+# Test/query
+case "$1" in
+-test)
+    have_mgridgen
+    echo_mgridgen
+    ;;
+-query)
+    query_mgridgen
+    ;;
+esac
+
+#------------------------------------------------------------------------------

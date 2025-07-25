@@ -1,0 +1,160 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2023 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     get-descriptions
+#
+# Description
+#     Extract descriptions from test applications
+#
+# Requires
+#     perl
+#
+#------------------------------------------------------------------------------
+scriptPath="$(realpath "$0")"  # Capture realpath before changing directory
+cd "${0%/*}" || exit  # Run from this directory
+
+printHelp() {
+    cat<<USAGE
+
+usage: ${0##*/} [OPTION]
+
+options:
+  -git          Use git to retrieve the tutorials
+  -no-git       Do not use git to retrieve the tutorials
+  -help         Print the usage
+
+Extract descriptions from test applications.
+Detects and uses 'git' to obtain a fresh set of files when possible.
+
+USAGE
+    exit 0 # A clean exit
+}
+
+# Report error and exit
+die()
+{
+    exec 1>&2
+    echo
+    echo "Error encountered:"
+    while [ "$#" -ge 1 ]; do echo "    $1"; shift; done
+    echo
+    echo "See '${0##*/} -help' for usage"
+    echo
+    exit 1
+}
+
+#------------------------------------------------------------------------------
+
+useGit=auto
+
+# Parse options
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    -h* | -help*)   printHelp ;;
+    -git)
+        useGit=true
+        ;;
+    -no-git)
+        unset useGit
+        ;;
+    *)
+        die "Unknown option/argument: '$1'"
+        ;;
+    esac
+    shift
+done
+
+
+if [ -n "$useGit" ]
+then
+    if git rev-parse --is-inside-work-tree > /dev/null 2>&1
+    then
+        gitbase="$(git rev-parse --show-toplevel 2>/dev/null)"
+    fi
+
+    case "$useGit" in
+    auto)
+        if [ -n "$gitbase" ]
+        then
+            echo "Detected git repository" 1>&2
+        else
+            echo "No git repository detected" 1>&2
+        fi
+        ;;
+
+    true)
+        [ -n "$gitbase" ] || die "Not in a git repository"
+        ;;
+    esac
+fi
+
+if [ -n "$gitbase" ]
+then
+    git ls-tree --name-only -r HEAD
+else
+    find . -maxdepth 2 -name '*.C' -o -name '*.cpp' -o -name '*.cxx'
+fi | \
+perl -ne 's{^\./}{}; m{^[^/]+/[^/]+?\.(?:C|cpp|cxx)$} and print' |  sort |\
+while read file
+do
+    # echo "process $file" 1>&2
+    perl -x "$scriptPath" "$file"
+done
+
+exit 0
+#------------------------------------------------------------------------------
+#!/usr/bin/perl -w
+use strict;
+
+my $state = undef;
+
+while (<>) {
+    unless ( defined $state ) {
+        my ( $dir, $file ) = $ARGV =~ m{^(.+?)/(.+)$};
+        $file =~ s{\.(?:C|cpp|cxx)$}{};    # strip extension
+
+        ## Restrict to files starting with "Test"
+        if ( $file =~ m{^Test}i ) {
+            print "\n## $file  (directory: $dir)\n\n";
+            $state = 0;
+        }
+        else {
+            $state = -1;                   # Unwanted file
+        }
+        next;
+    }
+
+    if (/^Description/) {
+        $state = 1 unless $state;
+    }
+    elsif (m{\*/})    # End C-comment
+    {
+        print "- no description\n" unless $state;
+        ## print "done: $_";
+        $state = 2;
+    }
+    elsif ( $state == 1 ) {
+        ## s/^\s{4}//;  # Strip leading 4-spaces
+        print;
+    }
+}
+continue {
+    if (eof) {    # Not eof()
+        undef $state;
+        close ARGV;
+    }
+}
+
+#------------------------------------------------------------------------------

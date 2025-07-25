@@ -1,0 +1,29 @@
+# -----------------------------------------------------------------------------
+# CGAL (library version) with mpfr/gmp
+
+CGAL_INC  =
+CGAL_LIBS =
+
+ifneq (,$(strip $(GMP_ARCH_PATH)))
+  CGAL_INC  += -I$(GMP_ARCH_PATH)/include
+  CGAL_LIBS += -L$(GMP_ARCH_PATH)/lib$(WM_COMPILER_LIB_ARCH)
+endif
+ifneq (,$(strip $(MPFR_ARCH_PATH)))
+  CGAL_INC  += -I$(MPFR_ARCH_PATH)/include
+  CGAL_LIBS += -L$(MPFR_ARCH_PATH)/lib$(WM_COMPILER_LIB_ARCH)
+endif
+
+CGAL_INC  += \
+    $(foreach dir,$(BOOST_INC_DIR),-I$(dir)) \
+    $(foreach dir,$(CGAL_INC_DIR),-I$(dir))
+
+CGAL_LIBS += \
+    $(foreach dir,$(BOOST_LIB_DIR),-L$(dir)) \
+    $(foreach dir,$(CGAL_LIB_DIR),-L$(dir)) \
+    -lCGAL -lmpfr -lgmp
+
+# ----
+# Extra failsafe - still needed? (2020-05-15)
+## CGAL_INC  += -I/usr/local/include -I/usr/include
+
+# -----------------------------------------------------------------------------

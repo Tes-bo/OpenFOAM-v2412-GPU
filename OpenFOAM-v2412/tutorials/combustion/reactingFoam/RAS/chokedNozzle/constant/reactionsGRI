@@ -1,0 +1,13 @@
+species
+(
+    O2
+    N2
+)
+;
+
+reactions
+{}
+
+
+elements
+();

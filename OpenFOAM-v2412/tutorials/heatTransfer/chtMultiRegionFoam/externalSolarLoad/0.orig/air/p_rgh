@@ -1,0 +1,67 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    object      p_rgh;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [ 1 -1 -2 0 0 0 0 ];
+
+internalField   uniform 100000;
+
+boundaryField
+{
+    maxY
+    {
+        type            totalPressure;
+        p0              $internalField;
+    }
+
+    minX
+    {
+        type            totalPressure;
+        p0              $internalField;
+    }
+
+    maxX
+    {
+        type            totalPressure;
+        p0              $internalField;
+    }
+
+    minY
+    {
+        type            totalPressure;
+        p0              $internalField;
+    }
+
+    maxZ
+    {
+        type            totalPressure;
+        p0              $internalField;
+    }
+
+    air_to_floor
+    {
+        type            fixedFluxPressure;
+        p0              $internalField;
+    }
+
+    air_to_solid
+    {
+        type            fixedFluxPressure;
+        p0              $internalField;
+    }
+}
+
+
+// ************************************************************************* //

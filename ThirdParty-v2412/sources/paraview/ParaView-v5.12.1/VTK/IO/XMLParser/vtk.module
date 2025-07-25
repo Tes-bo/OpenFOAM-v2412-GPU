@@ -1,0 +1,19 @@
+NAME
+  VTK::IOXMLParser
+LIBRARY_NAME
+  vtkIOXMLParser
+KIT
+  VTK::IO
+GROUPS
+  StandAlone
+SPDX_LICENSE_IDENTIFIER
+  BSD-3-Clause
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
+DEPENDS
+  VTK::CommonCore
+  VTK::CommonDataModel
+PRIVATE_DEPENDS
+  VTK::IOCore
+  VTK::expat
+  VTK::vtksys

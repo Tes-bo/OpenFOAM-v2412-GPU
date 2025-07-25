@@ -1,0 +1,9 @@
+NAME
+  CDIReader
+DESCRIPTION
+  Irregular Grid netCDF/GRIB Reader
+REQUIRES_MODULES
+  ParaView::VTKExtensionsIOCore
+  VTK::CommonCore
+  VTK::CommonExecutionModel
+  VTK::netcdf

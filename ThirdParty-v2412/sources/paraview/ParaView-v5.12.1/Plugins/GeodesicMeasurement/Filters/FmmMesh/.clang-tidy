@@ -1,0 +1,10 @@
+---
+# We really don't want to check third party code at all with `clang-tidy`, so
+# we enable a single set of checks (because disabling all checks is an error).
+Checks: "-*,\
+bugprone-*,\
+-bugprone-easily-swappable-parameters,\
+-bugprone-narrowing-conversions,\
+-bugprone-unhandled-self-assignment,\
+"
+...

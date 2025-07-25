@@ -1,0 +1,108 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2016 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     foamGrepExeTargets
+#
+# Description
+#     Trivial script to lists all "EXE =" targets for solvers and utilities.
+#     Uses git for the grep operation.
+#
+# Examples
+#     Confirm that all available EXE targets have actually been created:
+#
+#       foamGrepExeTargets           > targets-available
+#       foamGrepExeTargets -appbin   > targets-created
+#       diff -uw targets-available targets-created
+#
+#------------------------------------------------------------------------------
+usage() {
+    exec 1>&2
+    while [ "$#" -ge 1 ]; do echo "$1"; shift; done
+    cat<<USAGE
+usage: ${0##*/}
+  -appbin       list contents of \$FOAM_APPBIN (no git required)
+  -help
+
+List available EXE= targets. Requires git.
+
+USAGE
+    exit 1
+}
+
+# Report error and exit
+die()
+{
+    exec 1>&2
+    echo
+    echo "Error encountered:"
+    while [ "$#" -ge 1 ]; do echo "    $1"; shift; done
+    echo
+    echo "See '${0##*/} -help' for usage"
+    echo
+    exit 1
+}
+
+#------------------------------------------------------------------------------
+
+unset projectdir
+for i in "./.git" "$WM_PROJECT_DIR/.git"
+do
+    if [ -d "$i" ]
+    then
+        projectdir="${i%/*}"
+        break
+    fi
+done
+
+
+# Parse options
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    -h | -help*)
+        usage
+        ;;
+
+    -appbin)
+        test -n "$FOAM_APPBIN" && cd "$FOAM_APPBIN" || \
+            die "FOAM_APPBIN is not valid"
+
+        /bin/ls -1
+        exit 0
+        ;;
+    *)
+        die "unknown option/argument: '$1'"
+        ;;
+    esac
+done
+
+# Default is grep (via git)
+
+[ -d "$projectdir" ] || \
+    die "Cannot locate OpenFOAM project, or it does not have a git directory"
+
+
+# Run from top-level directory - otherwise the grep is quite difficult
+# A version with 'find' is likewise possible, but not as fast.
+
+# Check 'src' too, in case somehow something is there as well.
+(
+    cd "$projectdir" && \
+    git grep --cached -P '^\s*EXE\s*=' \
+        applications/solvers \
+        applications/utilities \
+        src
+) | sed -e 's@.*/@@' | sort | uniq
+
+# -----------------------------------------------------------------------------

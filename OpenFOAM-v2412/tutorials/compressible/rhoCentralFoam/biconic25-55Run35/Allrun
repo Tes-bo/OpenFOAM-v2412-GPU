@@ -1,0 +1,24 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+restore0Dir
+
+runApplication blockMesh
+
+cp -f "$FOAM_TUTORIALS"/resources/geometry/grid256.dat.gz .
+
+gunzip -f grid256.dat.gz
+
+runApplication datToFoam grid256.dat
+
+runApplication collapseEdges -overwrite
+
+echo "Overwriting 'patch' type as 'wedge' type in 'boundary' dictionary"
+sed -if '/wedge1/,/nFaces/{s/patch/wedge/};/wedge2/,/nFaces/{s/patch/wedge/}'\
+    constant/polyMesh/boundary
+
+runApplication $(getApplication)
+
+#------------------------------------------------------------------------------

@@ -1,0 +1,68 @@
+caseInfo1
+{
+    type        caseInfo;
+    libs        (utilityFunctionObjects);
+
+    writeControl writeTime;
+
+    writeFormat json;
+
+    dictionaries
+    {
+        fvSolution
+        {
+            name        "fvSolution";
+
+            // include all entries by default
+        }
+        timeScheme
+        {
+            name        "fvSchemes";
+
+            include
+            (
+                "/ddtSchemes/default"
+            );
+        }
+        turbulence
+        {
+            name        "turbulenceProperties";
+
+            // include all entries by default
+        }
+        controlDict
+        {
+            path        "<system>/controlDict";
+
+            include
+            (
+                "application"
+                "deltaT"
+                "startTime"
+                "endTime"
+            );
+        }
+        field_p
+        {
+            path        "0/p"; // note: master proc for parallel
+
+            include
+            (
+                "boundaryField/inlet/type"
+                "boundaryField/outlet/type"
+            );
+        }
+        field_U
+        {
+            path        "0/U"; // note: master proc for parallel
+
+            include
+            (
+                "boundaryField/inlet/type"
+                "boundaryField/outlet/type"
+            );
+        }
+    }
+
+    functionObjects (sample1);
+}

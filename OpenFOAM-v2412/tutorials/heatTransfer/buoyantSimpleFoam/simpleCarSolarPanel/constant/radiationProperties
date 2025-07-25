@@ -1,0 +1,81 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      radiationProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+radiation       on;
+
+radiationModel  solarLoad;
+
+solarLoadCoeffs
+{
+    sunDirectionModel       constant;
+
+        sunDirection            (-1 0.7 -1.5);
+        localStandardMeridian   -8;    // GMT offset (hours)
+        startDay                22;    // day of the year
+        startTime               10;    // time of the day (hours decimal)
+        longitude               -118.243683; // longitude (degrees)
+        latitude                34.052235;   // latitude (degrees)
+        gridUp                  (0 0 1);     // grid orientation
+        gridEast                (0 1 0);
+
+
+    sunLoadModel            fairWeather;
+
+        // Fair Weather Conditions Model Constants.
+        // Calculate beta from the Solar calculator or input
+        skyCloudCoverFraction   0;
+        groundReflectivity      0.2;
+        A       2229.78119355;   // Apparent solar irradiation at air mass m = 0
+        B       0.142064516129;  // Atmospheric extinction coefficient
+        C       0.058064516129;  // Solar diffusivity constant
+        //beta    45;    // Solar altitude (in degrees) above the horizontal
+
+
+    // see solarCalculator.H for other model examples and details
+
+
+    // Energy spectrum
+    spectralDistribution    (2 1);
+
+
+    // Radiative flux coupling flags
+    solidCoupled    false; // Couple through Qr the solid regions (default true)
+    wallCoupled     true;  // Couple through Qr wall patches (default false)
+
+    // Reflecting rays
+    useReflectedRays true;
+    reflecting
+    {
+        nPhi        10;
+        nTheta      10;
+    }
+
+    absorptionEmissionModel none;
+    scatterModel            none;
+    sootModel               none;
+}
+
+// Number of flow iterations per radiation iteration
+solverFreq 1;
+
+absorptionEmissionModel none;
+
+scatterModel    none;
+
+sootModel       none;
+
+
+// ************************************************************************* //

@@ -1,0 +1,7 @@
+<!-- SPDX-FileCopyrightText: Copyright (c) Kitware Inc. -->
+<!-- SPDX-License-Identifier: BSD-3-Clause -->
+<RCC>
+  <qresource prefix="/Prism">
+    <file>SESAMEConversions.xml</file>
+  </qresource>
+</RCC>

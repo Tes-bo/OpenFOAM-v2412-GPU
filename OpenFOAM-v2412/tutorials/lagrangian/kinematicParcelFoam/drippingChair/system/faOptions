@@ -1,0 +1,40 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      faOPtions;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+/*
+dampHeight1
+{
+    active      yes;
+    type        dampHeight;
+    region      velocityFilmShell;
+    h           hf_film;
+    selectionMode all;
+    max         0.001;
+    c           1;
+}
+*/
+
+limitHeight1
+{
+    active      yes;
+    type        limitHeight;
+    region      velocityFilmShell;
+    h           hf_film;
+    selectionMode all;
+    max         0.005;
+}
+
+// ************************************************************************* //

@@ -1,0 +1,106 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      thermophysicalProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+thermoType
+{
+    type            heheuPsiThermo;
+    mixture         inhomogeneousMixture;
+    transport       sutherland;
+    thermo          janaf;
+    equationOfState perfectGas;
+    specie          specie;
+    energy          absoluteEnthalpy;
+}
+
+stoichiometricAirFuelMassRatio stoichiometricAirFuelMassRatio [ 0 0 0 0 0 0 0 ] 17.1256917852272;
+
+fuel
+{
+    specie
+    {
+        molWeight       16.0428;
+    }
+    thermodynamics
+    {
+        Tlow            200;
+        Thigh           6000;
+        Tcommon         1000;
+        highCpCoeffs    ( 1.68347900000000e+00   1.02372400000000e-02  -3.87512900000000e-06
+                          6.78558500000000e-10  -4.50342300000000e-14  -1.00807900000000e+04
+                          9.62339500000000e+00 );
+        lowCpCoeffs     ( 7.78741500000000e-01   1.74766800000000e-02  -2.78340900000000e-05
+                          3.04970800000000e-08  -1.22393100000000e-11  -9.82522900000000e+03
+                          1.37221900000000e+01);
+    }
+    transport
+    {
+        As              1.67212e-06;
+        Ts              170.672;
+    }
+}
+
+oxidant
+{
+    specie
+    {
+        molWeight       28.8504;
+    }
+    thermodynamics
+    {
+        Tlow            200;
+        Thigh           6000;
+        Tcommon         1000;
+        highCpCoeffs    ( 3.10621870999231e+00   1.28428498601527e-03  -4.65380802511688e-07
+                          8.15860818565581e-11  -5.44497272650050e-15  -9.95271410040158e+02
+                         -3.84458215280579e+00 );
+        lowCpCoeffs     ( 3.27870489047439e+00   1.34284246978981e-03  -3.17412859038611e-06
+                          4.63345514388486e-09  -2.07961247020324e-12  -1.01725432889533e+03
+                          4.43589451598939e+00 );
+    }
+    transport
+    {
+        As              1.67212e-06;
+        Ts              170.672;
+    }
+}
+
+burntProducts
+{
+    specie
+    {
+        molWeight       27.6333203887463;
+    }
+    thermodynamics
+    {
+        Tlow            200;
+        Thigh           6000;
+        Tcommon         1000;
+        highCpCoeffs    ( 3.12621199152579e+00   1.93235833404466e-03  -7.13659150075058e-07
+                          1.24291624549546e-10  -8.21247028136899e-15  -1.17845644935839e+04
+                         -3.62860244355855e+00 );
+        lowCpCoeffs     ( 3.15477967054864e+00   2.95287447890381e-03  -5.23511418470824e-06
+                          5.99137516254551e-09  -2.40292638317596e-12  -1.18040651744366e+04
+                          4.72596689098416e+00 );
+    }
+    transport
+    {
+        As              1.67212e-06;
+        Ts              170.672;
+    }
+}
+
+
+// ************************************************************************* //

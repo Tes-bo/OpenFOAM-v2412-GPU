@@ -1,0 +1,2 @@
+EXE_INC = -I../../TestTools
+/* EXE_LIBS = -lfiniteVolume */

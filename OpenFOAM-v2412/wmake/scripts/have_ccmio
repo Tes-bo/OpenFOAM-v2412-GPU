@@ -1,0 +1,183 @@
+#----------------------------------*-sh-*--------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2018-2020 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     have_ccmio
+#
+# Description
+#     Detection/setup of CCMIO
+#
+# Requires
+#     config.sh/ccmio
+#
+# Functions provided
+#     have_ccmio, no_ccmio, echo_ccmio, query_ccmio, search_ccmio
+#
+# Variables set on success
+#     HAVE_CCMIO
+#     CCMIO_ARCH_PATH
+#     CCMIO_INC_DIR
+#     CCMIO_LIB_DIR
+#
+#------------------------------------------------------------------------------
+. ${WM_PROJECT_DIR:?}/wmake/scripts/sysFunctions    # General system functions
+
+#------------------------------------------------------------------------------
+
+# Reset
+no_ccmio()
+{
+    unset HAVE_CCMIO CCMIO_INC_DIR CCMIO_LIB_DIR
+}
+
+
+# Report
+echo_ccmio()
+{
+    echo "ccmio=${HAVE_CCMIO:-false}"
+    echo "root=\"$CCMIO_ARCH_PATH\""
+    echo "include=\"$CCMIO_INC_DIR\""
+    echo "library=\"$CCMIO_LIB_DIR\""
+}
+
+
+# Search
+# $1 : prefix (*_ARCH_PATH, system, ...)
+#
+# On success, return 0 and export variables
+# -> HAVE_CCMIO, CCMIO_INC_DIR, CCMIO_LIB_DIR
+search_ccmio()
+{
+    local warn="==> skip ccmio"
+    local incName="libccmio/ccmio.h"
+    local libName="libccmio.a"
+    # Link with static libccmio only (fewer issues)
+
+    local prefix="${1:-system}"
+    local header library
+
+    # ----------------------------------
+    if isNone "$prefix"
+    then
+        [ -n "$warn" ] && echo "$warn (disabled)"
+        return 1
+    elif hasAbsdir "$prefix"
+    then
+        header=$(findFirstFile "$prefix/include/$incName")
+        library=$(findExtLib "$libName")
+    else
+        unset prefix
+    fi
+    # ----------------------------------
+
+    # Header
+    [ -n "$header" ] || {
+        [ -n "$warn" ] && echo "$warn (no header)"
+        return 2
+    }
+
+    # Library
+    [ -n "$library" ] \
+    || library=$(findLibrary -prefix="$prefix" -name="$libName") \
+    || {
+        [ -n "$warn" ] && echo "$warn (no library)"
+        return 2
+    }
+
+    # ----------------------------------
+
+    # The libccmio uses int32_t.
+    # The OpenFOAM adapter thus requires additional work for 64-bit labels.
+    # The OpenFOAM adapter was originally only designed for 'double'
+
+    local good
+
+    if [ "$WM_LABEL_SIZE" = 32 ]
+    then
+        if [ "$WM_PRECISION_OPTION" = DP ]
+        then
+            good=true
+        else
+            [ -n "$warn" ] && echo "$warn (double precision only)"
+            no_ccmio
+            return 1
+        fi
+    else
+        [ -n "$warn" ] && echo "$warn (32-bit labels only)"
+        no_ccmio
+        return 1
+    fi
+
+
+    header="${header%/*}"   # Strip one-level (include/libccmio/...)
+
+    # OK
+    export HAVE_CCMIO=true
+    export CCMIO_ARCH_PATH="$prefix"
+    export CCMIO_INC_DIR="${header%/*}"     # Basename
+    export CCMIO_LIB_DIR="${library%/*}"    # Basename
+}
+
+
+# Output as per search_* function
+have_ccmio()
+{
+    local warn="==> skip ccmio"
+    local config="config.sh/ccmio"
+    local file
+
+    if file="$("$WM_PROJECT_DIR"/bin/foamEtcFile "$config")"
+    then
+        . "$file"
+    else
+        [ -n "$warn" ] && echo "$warn (no $config)"
+        return 2
+    fi
+
+    search_ccmio "$CCMIO_ARCH_PATH"
+}
+
+
+# Query settings
+query_ccmio()
+{
+    local config="config.sh/ccmio"
+    local file
+
+    if file="$("$WM_PROJECT_DIR"/bin/foamEtcFile -mode=o "$config")"
+    then
+        . "$file"
+        _process_query ccmio "$CCMIO_ARCH_PATH"
+    else
+        echo "(no $config)" 1>&2
+        echo "ccmio=unknown"
+    fi
+}
+
+
+#------------------------------------------------------------------------------
+
+# Reset
+no_ccmio
+
+# Test/query
+case "$1" in
+-test)
+    have_ccmio
+    echo_ccmio
+    ;;
+-query)
+    query_ccmio
+    ;;
+esac
+
+#------------------------------------------------------------------------------

@@ -1,0 +1,120 @@
+#!/bin/bash
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+# settings
+
+    # operand setups
+    setups="
+    kOmegaSST
+    kEpsilon
+    "
+
+    # operand setups for the wall-normal height of the first-cell centre
+    yps="
+    0.05
+    1
+    2
+    5
+    10
+    30
+    50
+    100
+    "
+
+
+#------------------------------------------------------------------------------
+
+plot_Rex_vs_Cf() {
+
+    setup="$1"
+    yp="$2"
+    Uref="$3"
+    nu="$4"
+
+    sampleFile="results/$setup/$yp/profiles.dat"
+    image="plots/$setup/Rex_vs_Cf_$yp.png"
+
+    gnuplot<<PLT_REX_VS_CF
+    set terminal pngcairo font "helvetica,20" size 1000, 1000
+    set grid
+    set xrange [0:1e7]
+    set yrange [0:0.006]
+    set key right top
+    set xlabel "Re_x"
+    set ylabel "C_f"
+    set output "$image"
+    set title "Setup: $setup, y+: $yp" noenhanced
+
+    # Benchmark - theoretical
+
+        # Blasius - laminar
+        laminar(x) = 0.664/(sqrt(x))
+
+        # Weighardt - turbulent
+        weighardt(x) = 0.288*(log10(x))**(-2.45)
+
+    # OpenFOAM
+        samples="$sampleFile"
+        Uref="$Uref"
+        nu="$nu"
+        x0=0 # Location of start of plate
+
+    plot \
+        weighardt(x) t "Weighardt"  w lines lc "red" lw 2, \
+        samples u (\$1 - x0)*Uref/nu:(sqrt(\$2*\$2 + \$3*\$3 + \$4*\$4)/(0.5*Uref*Uref)) \
+            t "$setup y^+ ${yp}" w l lc "black" lw 2
+PLT_REX_VS_CF
+}
+
+
+#------------------------------------------------------------------------------
+
+# Requires gnuplot
+command -v gnuplot >/dev/null || {
+    echo "gnuplot not found - skipping graph creation" 1>&2
+    exit 1
+}
+
+# Requires awk
+command -v awk >/dev/null || {
+    echo "awk not found - skipping graph creation" 1>&2
+    exit 1
+}
+
+# Check "results" directory
+[ -d "results" ] || {
+    echo "No results directory found - skipping graph creation" 1>&2
+    exit 1
+}
+
+
+#------------------------------------------------------------------------------
+
+for setup in $setups
+do
+    for yp in $yps
+    do
+        echo ""
+        echo "# Plots for the setup and y+: $setup - $yp"
+        echo ""
+
+        resultsDir="results/$setup/$yp"
+        [ -d "$resultsDir" ] || {
+            echo "No $resultsDir directory found - skipping graph creation" 1>&2
+            continue
+        }
+
+        dirPlots="plots/$setup"
+        [ -d "$dirPlots" ] || mkdir -p "$dirPlots"
+
+        Uref=$(foamDictionary $resultsDir/0/U -entry internalField | sed 's/^.*(\s*\([^ ]*\).*/\1/g')
+        nu=$(foamDictionary $resultsDir/constant/transportProperties -entry nu | sed 's|^.*\s\(.*\);|\1|g')
+
+        plot_Rex_vs_Cf "$setup" "$yp" "$Uref" "$nu"
+    done
+done
+
+
+#------------------------------------------------------------------------------

@@ -1,0 +1,109 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+scale   1;
+
+// Geometric parameters
+rxo 2;
+ryo 3;
+rzo 4;
+
+// Divisions in x/y/z directions. Can be unequal.
+nx   30;
+ny   24;
+nz   20;
+
+geometry
+{
+    sphere
+    {
+        type    sphere;
+        origin  (0 0 0);
+        radius  ($rxo $ryo $rzo);
+    }
+}
+
+// Box sizes
+vxo ${{sqrt(1.0/3.0) * $rxo}};
+vyo ${{sqrt(1.0/3.0) * $ryo}};
+vzo ${{sqrt(1.0/3.0) * $rzo}};
+
+vertices
+(
+    // Outer block points
+    project (-$vxo -$vyo -$vzo) (sphere)
+    project ( $vxo -$vyo -$vzo) (sphere)
+    project ( $vxo  $vyo -$vzo) (sphere)
+    project (-$vxo  $vyo -$vzo) (sphere)
+    project (-$vxo -$vyo  $vzo) (sphere)
+    project ( $vxo -$vyo  $vzo) (sphere)
+    project ( $vxo  $vyo  $vzo) (sphere)
+    project (-$vxo  $vyo  $vzo) (sphere)
+);
+
+blocks
+(
+    hex (0 1 2 3 4 5 6 7) ($nx $ny $nz) grading (1 1 1)
+);
+
+edges
+(
+    // Outer edges
+    project 0 1 (sphere)
+    project 2 3 (sphere)
+    project 6 7 (sphere)
+    project 4 5 (sphere)
+
+    project 0 3 (sphere)
+    project 1 2 (sphere)
+    project 5 6 (sphere)
+    project 4 7 (sphere)
+
+    project 0 4 (sphere)
+    project 1 5 (sphere)
+    project 2 6 (sphere)
+    project 3 7 (sphere)
+);
+
+faces
+(
+    project (0 0) sphere  // x-min
+    project (0 1) sphere  // x-max
+    project (0 2) sphere  // y-min
+    project (0 3) sphere  // y-max
+    project (0 4) sphere  // z-min
+    project (0 5) sphere  // z-max
+);
+
+boundary
+(
+    walls
+    {
+        type wall;
+        faces
+        (
+            (0 0)  // x-min
+            (0 1)  // x-max
+            (0 2)  // y-min
+            (0 3)  // y-max
+            (0 4)  // z-min
+            (0 5)  // z-max
+        );
+    }
+);
+
+
+// ************************************************************************* //

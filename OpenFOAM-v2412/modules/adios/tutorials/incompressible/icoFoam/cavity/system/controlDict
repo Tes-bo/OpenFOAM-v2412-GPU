@@ -1,0 +1,94 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v1912                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+application     icoFoam;
+
+startFrom       startTime;
+
+startTime       0;
+
+stopAt          endTime;
+
+endTime         1;
+
+deltaT          0.005;
+
+writeControl    timeStep;
+
+writeInterval   5;
+
+purgeWrite      0;
+
+writeFormat     ascii;
+
+writePrecision  6;
+
+writeCompression off;
+
+timeFormat      general;
+
+timePrecision   6;
+
+runTimeModifiable true;
+
+functions
+{
+    fieldAverage1
+    {
+        type    fieldAverage;
+        libs    ("libfieldFunctionObjects.so");
+        writeControl    outputTime;
+        fields
+        (
+            p
+            {
+                mean        on;
+                prime2Mean  on;
+                base        time;
+            }
+        );
+    }
+
+    Lambda2
+    {
+        type    Lambda2;
+        libs    ("libfieldFunctionObjects.so");
+
+        writeControl    outputTime;
+    }
+
+    Q
+    {
+        type    Q;
+        libs    ("libfieldFunctionObjects.so");
+
+        writeControl    outputTime;
+    }
+
+    vorticity
+    {
+        type    vorticity;
+        libs    ("libutilityFunctionObjects.so");
+
+        writeControl    outputTime;
+    }
+
+    #include "adiosWrite"
+}
+
+
+// ************************************************************************* //

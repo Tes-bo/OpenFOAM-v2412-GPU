@@ -1,0 +1,24 @@
+// -*- C++ -*-
+
+// ************************************************************************* //
+
+#include "derivedFields"
+#include "fieldTransfer"
+#include "fluxSummary"
+
+#include "surfaceFieldValue.cfg"
+
+#include "avg-tracer0"
+#include "sum-tracer0"
+// #include "sum-tracer0Mean"
+
+
+// #include "averaging.1612"            // generate time-averaged fields
+// #include "spatialDeviation.1612"     // spatial deviation compared to a mean field
+// #include "statistics.1612"           // transcribe volume fields -> surface
+
+// Cleanup
+#remove "__.*"
+
+
+// ************************************************************************* //

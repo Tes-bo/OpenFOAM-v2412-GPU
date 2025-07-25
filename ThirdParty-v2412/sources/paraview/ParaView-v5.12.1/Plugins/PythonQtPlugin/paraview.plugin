@@ -1,0 +1,13 @@
+NAME
+  PythonQtPlugin
+DESCRIPTION
+  PythonQt Plugin
+CONDITION
+  PARAVIEW_USE_QT AND PARAVIEW_USE_PYTHON
+REQUIRES_MODULES
+  VTK::CommonCore
+  VTK::Python
+  VTK::PythonInterpreter
+  VTK::WrappingPythonCore
+  ParaView::pqApplicationComponents
+  ParaView::pqPython

@@ -1,0 +1,43 @@
+| directive         | context           | content           | line oriented?
+|-------------------|-------------------|-------------------|-----------------
+  #inputMode        | dict              | word
+  #default          | dict              | entry introducer
+  #merge            | dict              | entry introducer
+  #overwrite        | dict              | entry introducer
+  #warn             | dict              | entry introducer
+  #error            | dict              | entry introducer
+  #remove           | dict              | keyType or List<keyType>
+                    |                   |
+  #include          | dict/primitive    | string
+  #sinclude         | dict/primitive    | string
+  #includeEtc       | dict/primitive    | string
+  #sincludeEtc      | dict/primitive    | string
+  #includeFunc      | dict              | word
+                    |                   |
+  #message          | dict/primitive    | string or braced content
+  #word             | dict/primitive    | string or braced content
+  #eval             | primitive         | string or braced content
+                    |                   |
+  #calc             | dict/primitive    | string
+  #codeStream       | dict/primitive    | dictionary
+  #if               | dict              | string
+  #ifeq             | dict              | entry entry
+
+
+Deprecated
+
+| directive         | comments                              |
+|-------------------|---------------------------------------|
+  #includeIfPresent | same as #sinclude                     |
+
+
+Pending future extensions (considered reserved)
+
+| directive         | context           | content           | line oriented?
+|-------------------|-------------------|-------------------|-----------------
+  #define           | dict              | entry introducer
+  #local            | dict              | entry introducer
+  #undef            | dict              | keyType or List<keyType>
+
+
+2021-11-24

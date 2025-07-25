@@ -1,0 +1,144 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      changeDictionaryDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+U
+{
+    internalField   uniform (0 0 0);
+
+    boundaryField
+    {
+        maxY
+        {
+            type            inletOutlet;
+            inletValue      uniform (0 0 0);
+        }
+
+        ".*"
+        {
+            type            fixedValue;
+            value           uniform (0 0 0);
+        }
+    }
+}
+
+T
+{
+    internalField   uniform 300;
+
+    boundaryField
+    {
+        maxY
+        {
+            type            inletOutlet;
+            inletValue      uniform 300;
+        }
+
+        ".*"
+        {
+            type            fixedValue;
+            value           uniform 300;
+        }
+
+        "water_to_.*"
+        {
+            type            compressible::turbulentTemperatureRadCoupledMixed;
+            Tnbr            T;
+            kappaMethod     fluidThermo;
+            qrNbr           none;
+            qr              none;
+            value           uniform 300;
+        }
+    }
+}
+
+epsilon
+{
+    internalField   uniform 0.01;
+
+    boundaryField
+    {
+
+        maxY
+        {
+            type            inletOutlet;
+            inletValue      uniform 0.01;
+        }
+
+        ".*"
+        {
+            type            epsilonWallFunction;
+            value           uniform 0.01;
+        }
+    }
+}
+
+k
+{
+    internalField   uniform 0.1;
+
+    boundaryField
+    {
+        maxY
+        {
+            type            inletOutlet;
+            inletValue      uniform 0.1;
+        }
+
+        ".*"
+        {
+            type            kqRWallFunction;
+            value           uniform 0.1;
+        }
+    }
+}
+
+p_rgh
+{
+    internalField   uniform 0;
+
+    boundaryField
+    {
+        maxY
+        {
+            type            prghTotalHydrostaticPressure;
+            p0              $internalField;
+            value           uniform 0;
+        }
+
+        ".*"
+        {
+            type            fixedFluxPressure;
+            value           $internalField;
+        }
+    }
+}
+
+p
+{
+    internalField   uniform 0;
+
+    boundaryField
+    {
+        ".*"
+        {
+            type            calculated;
+            value           uniform 0;
+        }
+    }
+}
+
+
+// ************************************************************************* //

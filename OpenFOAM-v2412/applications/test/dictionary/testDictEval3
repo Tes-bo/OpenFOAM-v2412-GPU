@@ -1,0 +1,75 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      dictionary;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+expr1   "hypot(3,4)";
+
+expr2   hypot(6,8);
+
+eval1   #eval
+#{
+    (
+        ${FOAM_API} >= 1812 && !${FOAM_API} > 2100
+      ? $expr1
+      : $expr2
+    )
+#};
+
+eval2   #eval
+#{
+    (false ? pi() * 2 * $expr1 : pi() * 2 * $expr2)
+#};
+
+
+eval3   #eval
+#{
+    (bool(0.1) ? 10 : 0)
+#};
+
+
+eval4   #eval
+#{
+    2 * mag(true) * pi()
+#};
+
+
+eval4b   #eval
+#{
+    2 * mag(!false) * pi()
+#};
+
+
+eval5   #eval
+#{
+    2 * mag(${FOAM_API} >= 1909) * pi()
+#};
+
+
+// Can use round or floor for this:
+apiYear    #eval{ round($FOAM_API / 100) };
+
+// Should not need round or floor:
+apiMonth   #eval{ ($FOAM_API % 100) };
+
+
+// Could flag as an input error or treat as zero
+empty  #eval "";
+
+
+// Field of specified length
+random  #eval 4  { vector(rand(), 0, 0) ; /* trailing rubbish */ ; };
+
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

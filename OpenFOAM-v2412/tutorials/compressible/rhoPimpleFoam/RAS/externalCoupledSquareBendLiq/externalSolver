@@ -1,0 +1,218 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+# Dummy external solver to communicate with OpenFOAM via externalCoupled
+# functionObject
+#
+# Functionality is hard-coded for particular test case
+# - it simply return a patch temperature of 500K.
+#   Since the default temperature on the patch is 250K, this can be used
+#   to readily detect if the external values are being used.
+#
+# -----------------------------------------------------------------------------
+
+action="$1"
+
+# Check for unassigned variables
+set -u
+
+commsDir="comms"
+patchDir="coupleGroup"
+fieldName="T"
+
+lockFile="${commsDir}/OpenFOAM.lock"
+dataFile="${commsDir}/${patchDir}/${fieldName}"
+waitSec=5
+timeOut=100
+nSteps=1000 # maximum number of time steps. Note: should be more than
+            # number of iterations on the OpenFOAM side
+
+stopAt=600  # external solver signals OpenFOAM to stop
+
+refValue1=500
+refGrad=0
+valueFraction=1
+
+# Remove any old junk
+rm -f "$lockFile"
+
+log()
+{
+    echo "External: $@"
+}
+
+
+# Create lock file to pass control to OpenFOAM
+useMaster()
+{
+    log "creating lock file '${lockFile}'"
+    echo "status=openfoam" >| ${lockFile}
+}
+
+# Lock file with special content to stop OpenFOAM master
+stopMasterNow()
+{
+    log "writeNow terminate via lock file '${lockFile}'"
+    echo "action=writeNow" >| ${lockFile}
+}
+
+# Patch size (inletWalls)
+nFaces1=$(getNumberOfPatchFaces inletWalls) || exit $?
+
+
+init()
+{
+    log "init - creating ${dataFile}.in"
+    cat /dev/null >| "${dataFile}.in"
+
+    # Local face counter, Local refValue
+    local nFaces refValue
+
+    # Patch inletWalls
+
+    nFaces="$nFaces1"
+    refValue="$refValue1"
+
+    log "init - adding $nFaces data elements with refValue $refValue"
+
+    while [ "$nFaces" -gt 0 ]
+    do
+        nFaces=$((nFaces - 1))
+        # Hard-coded output for patch
+        echo "$refValue $refGrad $valueFraction"
+    done >> "${dataFile}.in"
+
+
+    # Verify line count?
+    # log "init ($(wc -l ${dataFile}.in))"
+
+    # Give time for T.in file to flush
+    sleep 1
+
+    useMaster
+}
+
+
+# Calculate average temperature
+# Extract from:
+#
+# ----
+# # Values: area Twall qDot htc
+# 6.25e-06 500 3.53296e+06 20884
+# ----
+avgTemperature()
+{
+    local file="$1"
+    local tempType
+    local avg
+
+    tempType=$(sed -ne '1{s/^.* \(T[^ ]*\).*$/\1/p; q}' "$file")
+    avg=$(awk 'BEGIN {area=0; sum=0;}END{print sum/area}{if (/^[0-9]/) {area += $1; sum += ($1 * $2);}}' "$file")
+
+    echo "${file##*/} : $tempType avg=$avg"
+}
+
+
+loop()
+{
+    echo "Executing dummy external solver"
+
+    local totalWait=0
+    local step=0
+    local nFaces refValue
+
+    while [ $step -lt $nSteps ]
+    do
+        if [ -f $lockFile ]
+        then
+            if grep -q "status=done" ${lockFile}
+            then
+                 log "found lock file '${lockFile}' with 'status=done' - finished"
+                 break
+            elif [ -s $lockFile ]
+            then
+                 log "found lock file '${lockFile}' containing '$(< $lockFile)' - waiting"
+            else
+                 log "found lock file '${lockFile}' - waiting"
+            fi
+
+            totalWait=$(expr $totalWait + $waitSec)
+            if [ $totalWait -gt $timeOut ]
+            then
+                log "timeout"
+                break
+            else
+                sleep $waitSec
+            fi
+        else
+            totalWait=0
+            step=$(expr $step + 1)
+            log "step $step"
+            log "lock not present - taking control"
+
+            log "sleeping for $waitSec secs to simulate external process"
+            sleep $waitSec
+
+            log "updating ${dataFile}.in from ${dataFile}.out"
+
+            if [ -f "${dataFile}.out" ]
+            then
+
+                avgTemperature "${dataFile}.out"
+
+                cat /dev/null >| "${dataFile}.in"
+
+                # Hard-coded output for patch
+                nFaces="$nFaces1"
+                refValue="$refValue1"
+
+                while [ "$nFaces" -gt 0 ]
+                do
+                    nFaces=$((nFaces - 1))
+                    echo "$refValue $refGrad $valueFraction"
+                done >> "${dataFile}.in"
+
+            else
+                log "Warning: no such file ${dataFile}.out"
+            fi
+
+            if [ "${stopAt:-0}" -eq $step ]
+            then
+                stopMasterNow
+            else
+                useMaster
+            fi
+        fi
+    done
+}
+
+
+# Create the comms directory
+mkdir -p ${commsDir}/${patchDir}
+
+case "$action" in
+   -once | once)
+        echo "One-shot triggering"
+        init
+        ;;
+
+    *)
+        # Tutorial case uses 'initByExternal' option,
+        # so we must provide initial values
+        init
+
+        loop
+
+        log "done"
+
+        # Cleanup. Remove the lock file
+        rm -f "$lockFile"
+        ;;
+esac
+
+# For log collector:
+echo "End"
+
+#------------------------------------------------------------------------------

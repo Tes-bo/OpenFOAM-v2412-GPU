@@ -1,0 +1,3 @@
+sphereSurfactantFoam.C
+
+EXE = $(FOAM_APPBIN)/sphereSurfactantFoam

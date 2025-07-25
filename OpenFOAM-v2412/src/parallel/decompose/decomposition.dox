@@ -1,0 +1,318 @@
+/*---------------------------------------------------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     |
+    \\  /    A nd           | www.openfoam.com
+     \\/     M anipulation  |
+-------------------------------------------------------------------------------
+    Copyright (C) 2017-2018 OpenCFD Ltd.
+-------------------------------------------------------------------------------
+License
+    This file is part of OpenFOAM.
+
+    OpenFOAM is free software: you can redistribute it and/or modify it under
+    the terms of the GNU General Public License as published by the Free
+    Software Foundation, either version 3 of the License, or (at your option)
+    any later version.
+
+    OpenFOAM is distributed in the hope that it will be useful, but WITHOUT ANY
+    WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+    FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+    details.
+
+    You should have received a copy of the GNU General Public License along with
+    OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+\page domainDecomposition Domain decomposition
+
+\section secIntroduction Introduction
+
+When running a simulation in parallel, the geometry must first be decomposed
+(segmented) into individual geometries for each MPI process. These separate
+geometries are \a connected together with special processor boundary patches.
+The processor-specific \c constant/polyMesh/boundary files will contain this
+type of entry:
+
+\verbatim
+    procBoundary0to14
+    {
+        type            processor;
+        inGroups        1(processor);
+        nFaces          131;
+        startFace       34983;
+        matchTolerance  0.0001;
+        transform       unknown;
+        myProcNo        0;
+        neighbProcNo    14;
+    }
+\endverbatim
+
+The decomposePar utility is a commonly used method to decompose domains
+and subsequently distribute the fields.
+The reconstructPar and reconstructParMesh utilities
+can be used to reconstruct a single domain from the processor sub-domains.
+
+\section secDecomposeParDict The decomposeParDict
+
+The \c decomposeParDict is required by decompose utilities and for any solvers
+or utilities running in parallel. It is normally located in the simulation
+\c system directory. The <tt>-decomposeParDict name</tt> command-line option
+can be used to specify an alternate file.
+
+The \a numberOfSubdomains entry is mandatory:
+\verbatim
+    numberOfSubdomains  <int>;
+\endverbatim
+
+The \a method entry is required for the decomposePar utility and specifies
+the decomposition method type:
+\verbatim
+    method  <word>;
+\endverbatim
+The \a method entry is generally not required when running a simulation.
+
+OpenFOAM offers a variety of decomposition methods and interfaces to external,
+third-party decomposition routines. The types of decomposition methods
+available will thus depend on your particular installation.
+
+\table
+    Name                | Class
+    none                | #Foam::noDecomp
+    manual              | #Foam::manualDecomp
+    simple              | #Foam::simpleGeomDecomp
+    hierarchical        | #Foam::hierarchGeomDecomp
+    kahip               | #Foam::kahipDecomp
+    metis               | #Foam::metisDecomp
+    scotch              | #Foam::scotchDecomp
+    structured          | #Foam::structuredDecomp
+    multiLevel          | #Foam::multiLevelDecomp
+\endtable
+
+If a decomposition method requires any additional configuration controls,
+these are specified either within in a generic \c coeffs dictionary that
+or a method-specific version. For example,
+
+\verbatim
+    method  hierarchical;
+
+    coeffs
+    {
+        n   (4 2 3);
+    }
+
+    // -----
+
+    method  metis;
+
+    metisCoeffs
+    {
+        method  k-way;
+    }
+\endverbatim
+
+For simplicity, the generic \c coeffs dictionary is generally preferrable.
+However, for some specific decomposition methods
+(eg, \ref subsecMultiLevel "multiLevel") only the
+method-specific coefficients dictionary is permitted.
+
+
+\subsection subsecRegions Multi-region
+
+When running multi-region simulations, it may be desirable to use different
+decomposition methods for one or more regions, or even to have fewer
+processors allocated to a particular region.
+If, for example, the multi-region simulation contains a large fluid region
+and a very small solid region, it can be advantageous to decompose the solid
+onto fewer processors.
+
+The region-wise specification is contained in a \a regions subdictionary with
+decomposeParDict. For example,
+
+\verbatim
+    numberOfSubdomains  2048;
+    method  metis;
+
+    regions
+    {
+        heater
+        {
+            numberOfSubdomains  2;
+            method  hierarchical;
+            coeffs
+            {
+                n   (2 1 1);
+            }
+        }
+
+        "*.solid"
+        {
+            numberOfSubdomains  16;
+            method  scotch;
+        }
+    }
+\endverbatim
+
+\note
+The top-level numberOfSubdomains remains mandatory, since this specifies the
+number of domains for the entire simulation. The individual regions may use
+the same number or fewer domains. The \a numberOfSubdomains entry within
+a region specification is only needed if the value differs.
+
+
+\subsection subsecMultiLevel Multi-level decomposition
+
+The #Foam::multiLevelDecomp decomposition provides a general means of
+successively decomposing with different methods. Each application of the
+decomposition is termed a level. For example,
+
+\verbatim
+    numberOfSubdomains  2048;
+    method  multiLevel;
+
+    multiLevelCoeffs
+    {
+        nodes
+        {
+            numberOfSubdomains 128;
+            method  hierarchical;
+            coeffs
+            {
+                n   (16 4 2);
+            }
+        }
+        cpus
+        {
+            numberOfSubdomains 2;
+            method  scotch;
+        }
+        cores
+        {
+            numberOfSubdomains 8;
+            method  metis;
+        }
+    }
+\endverbatim
+
+For cases where the same method is applied at each level, this can also be
+conveniently written in a much shorter form:
+\verbatim
+    numberOfSubdomains  2048;
+    method  multiLevel;
+
+    multiLevelCoeffs
+    {
+        method  scotch
+        domains (128 2 8);
+    }
+\endverbatim
+
+When the specified \a domains is smaller than \a numberOfSubdomains
+but can be resolved as an integral multiple, this integral multiple
+is used as the first level.  This can make it easier to manage when
+changing the number of domains for the simulation.
+For example,
+\verbatim
+    numberOfSubdomains  1024;
+    method  multiLevel;
+
+    multiLevelCoeffs
+    {
+        method  scotch
+        domains (2 8);    //< inferred as   domains (64 2 8);
+    }
+\endverbatim
+
+
+\subsection subsecConstraints Constraints
+
+\verbatim
+    constraints
+    {
+        // Keep owner and neighbour of baffles on same processor
+        // (ie, keep it detectable as a baffle).
+        // Baffles are two boundary face sharing the same points
+        baffles
+        {
+            type    preserveBaffles;
+            enabled true;
+        }
+
+        // Keep owner and neighbour on same processor for faces in zones
+        faces
+        {
+            type    preserveFaceZones;
+            zones   (".*");
+            enabled true;
+        }
+
+        // Keep owner and neighbour on same processor for faces in patches
+        // (only makes sense for cyclic patches. Not suitable for e.g.
+        // cyclicAMI since these are not coupled on the patch level.
+        // Use singleProcessorFaceSets for those.
+        patches
+        {
+            type    preservePatches;
+            patches (".*");
+            enabled true;
+        }
+
+        // Keep all of faceSet on a single processor. This puts all cells
+        // connected with a point, edge or face on the same processor.
+        // (just having face connected cells might not guarantee a balanced
+        // decomposition)
+        // The processor can be -1 (the decompositionMethod chooses the
+        // processor for a good load balance) or explicitly provided (upsets
+        // balance)
+        processors
+        {
+            type    singleProcessorFaceSets;
+            sets    ((f1 -1));
+            enabled true;
+        }
+
+        // Decompose cells such that all cell originating from single cell
+        // end up on same processor
+        refinement
+        {
+            type    refinementHistory;
+            enabled true;
+        }
+
+        // Prevent decomposition splitting of the geometric regions
+        // Uses any topoSetFaceSource for selecting the constrained faces
+        geometric
+        {
+            type    geometric;
+
+            grow    false;
+
+            selection
+            {
+                box1
+                {
+                    source  box;
+                    min     (-10 -10 -10);
+                    max     (1 1 1);
+                }
+
+                ball1
+                {
+                    source  sphere;
+                    origin  (-2 -2 1);
+                    radius  1;
+                }
+
+                arbitrary
+                {
+                    source  surface;
+                    surfaceType  triSurfaceMesh;
+                    surfaceName  blob.obj;
+                }
+            }
+        }
+    }
+\endverbatim
+
+\*---------------------------------------------------------------------------*/

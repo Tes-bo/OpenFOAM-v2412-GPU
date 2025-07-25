@@ -1,0 +1,20 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+runApplication blockMesh
+
+runApplication snappyHexMesh -overwrite
+
+rm -rf 0/
+
+restore0Dir
+
+runApplication setFields
+
+runApplication transformPoints -rotate-y -90
+
+runApplication checkMesh -allGeometry -allTopology
+
+#------------------------------------------------------------------------------

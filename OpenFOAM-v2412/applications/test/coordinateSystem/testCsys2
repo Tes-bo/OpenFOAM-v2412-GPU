@@ -1,0 +1,59 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      testCsys1;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// This dictionary only works in combination with constant/coordinateSystems
+
+mycs1
+{
+    type   indirect;
+    name   cs1;
+}
+
+mycs2
+{
+    type   indirect;
+    name   cs2;
+}
+
+mycs3
+{
+    type   indirect;
+    name   cs3;
+}
+
+mycyl
+{
+    type   indirect;
+    name   cyl;
+}
+
+
+mycy2
+{
+    coordinateSystem
+    {
+        type   indirect;
+        name   cyl;
+    }
+}
+
+mycy3
+{
+    coordinateSystem cyl;
+}
+
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

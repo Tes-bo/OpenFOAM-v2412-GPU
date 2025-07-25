@@ -1,0 +1,80 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      binary;
+    class       volScalarField;
+    object      T;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 0 0 1 0 0 0];
+
+internalField   uniform 300;
+
+boundaryField
+{
+    // Heater on at 60s
+    inlet
+    {
+        type            uniformFixedValue;
+        value           $internalField;
+        uniformValue
+        {
+            type        expression;
+            // arg() and time() are identical here
+            expression  #{ (arg() < 60) ? 273 : 308 #};
+        }
+    }
+
+    outlet
+    {
+        type            inletOutlet;
+        inletValue      $internalField;
+        value           $internalField;
+    }
+
+    symmetry
+    {
+        type            symmetryPlane;
+    }
+
+    walls
+    {
+        type            zeroGradient;
+    }
+
+    cabin_to_windshield
+    {
+        type            humidityTemperatureCoupledMixed;
+        kappaMethod     fluidThermo;
+        kappa           none;
+
+        // Mode of operation: inert, condensation, vaporization,
+        // condensationAndEvaporation
+        mode            condensationAndEvaporation;
+        specie          H2O;
+        carrierMolWeight  28.9 ;//Air from thermophysicalProperties
+        L               0.1;
+        Tvap            273;    //Minimum temperature for evaporation
+
+        liquid
+        {
+            H2O
+            {
+                defaultCoeffs       yes;
+            }
+        }
+
+        value           $internalField;
+    }
+}
+
+
+// ************************************************************************* //

@@ -1,0 +1,24 @@
+decompositionMethod/decompositionMethod.C
+geomDecomp/geomDecomp.C
+simpleGeomDecomp/simpleGeomDecomp.C
+hierarchGeomDecomp/hierarchGeomDecomp.C
+manualDecomp/manualDecomp.C
+multiLevelDecomp/multiLevelDecomp.C
+metisLikeDecomp/metisLikeDecomp.C
+structuredDecomp/structuredDecomp.C
+randomDecomp/randomDecomp.C
+noDecomp/noDecomp.C
+
+
+constraints = decompositionConstraints
+
+$(constraints)/decompositionConstraint/decompositionConstraint.C
+$(constraints)/preserveBaffles/preserveBafflesConstraint.C
+$(constraints)/preserveFaceZones/preserveFaceZonesConstraint.C
+$(constraints)/preservePatches/preservePatchesConstraint.C
+$(constraints)/geometric/geometricConstraint.C
+$(constraints)/singleProcessorFaceSets/singleProcessorFaceSetsConstraint.C
+$(constraints)/refinementHistory/refinementHistoryConstraint.C
+
+
+LIB = $(FOAM_LIBBIN)/libdecompositionMethods

@@ -1,0 +1,90 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    object      T;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [ 0 0 0 1 0 0 0 ];
+
+internalField   uniform 300;
+
+boundaryField
+{
+    maxY
+    {
+        type            zeroGradient;
+        value           uniform 300;
+    }
+
+    minX
+    {
+        type            zeroGradient;
+        value           uniform 300;
+    }
+
+    maxX
+    {
+        type            zeroGradient;
+        value           uniform 300;
+    }
+
+    minY
+    {
+        type            zeroGradient;
+        value           uniform 300;
+    }
+
+    minZ
+    {
+        type            externalWallHeatFluxTemperature;
+        mode            coefficient;
+        Ta              uniform 313;
+        h               uniform 1000000;
+        thicknessLayers ( 1 2 );
+        kappaLayers     ( 100 200 );
+        kappaMethod     solidThermo;
+        kappa           none;
+        value           uniform 300;
+    }
+
+    floor_to_domain3
+    {
+        type            zeroGradient;
+        value           uniform 300;
+    }
+
+    floor_to_air
+    {
+        type            compressible::turbulentTemperatureRadCoupledMixed;
+        value           uniform 300;
+        Tnbr            T;
+        kappaMethod     solidThermo;
+        qrNbr           qr;
+        qr              none;
+        kappa           none;
+    }
+
+    floor_to_solid
+    {
+        type            compressible::turbulentTemperatureRadCoupledMixed;
+        value           uniform 300;
+        Tnbr            T;
+        kappaMethod     solidThermo;
+        qrNbr           none;
+        qr              none;
+        kappa           none;
+    }
+}
+
+
+// ************************************************************************* //

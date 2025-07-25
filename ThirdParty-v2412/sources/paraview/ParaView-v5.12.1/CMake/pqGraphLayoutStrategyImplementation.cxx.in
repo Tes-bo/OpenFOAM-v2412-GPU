@@ -1,0 +1,28 @@
+// SPDX-FileCopyrightText: Copyright (c) Kitware Inc.
+// SPDX-FileCopyrightText: Copyright (c) Sandia Corporation
+// SPDX-License-Identifier: BSD-3-Clause
+// Generated file.  Do not edit.
+
+
+#include "@_paraview_graph_layout_strategy_STRATEGY_TYPE@Implementation.h"
+#include "vtk@_paraview_graph_layout_strategy_STRATEGY_TYPE@.h"
+
+@_paraview_graph_layout_strategy_STRATEGY_TYPE@Implementation::@_paraview_graph_layout_strategy_STRATEGY_TYPE@Implementation(QObject* o)
+  : QObject(o)
+{
+  setObjectName("@_paraview_graph_layout_strategy_STRATEGY_TYPE@");
+}
+
+QStringList @_paraview_graph_layout_strategy_STRATEGY_TYPE@Implementation::graphLayoutStrategies() const
+{
+  return QStringList() << "@_paraview_graph_layout_strategy_STRATEGY_LABEL@";
+}
+
+vtkGraphLayoutStrategy* @_paraview_graph_layout_strategy_STRATEGY_TYPE@Implementation::getGraphLayoutStrategy(const QString& layoutStrategy)
+{
+  if(layoutStrategy == "@_paraview_graph_layout_strategy_STRATEGY_LABEL@")
+  {
+    return vtk@_paraview_graph_layout_strategy_STRATEGY_TYPE@::New();
+  }
+  return nullptr;
+}

@@ -1,0 +1,213 @@
+// -*- C++ -*-
+
+type                sets;
+libs                (sampling);
+interpolationScheme cellPoint;
+setFormat           raw;
+
+fields
+(
+    columnAverage(UPrime2Mean)
+);
+
+sets
+{
+    inletPatch
+    {
+        type        face;
+        axis        y;
+        start       (0.0 0 1.57);
+        end         (0.0 2 1.57);
+    }
+
+    inletCell
+    {
+        type        midPoint;
+        axis        y;
+        start       (0.062832 0 1.57);
+        end         (0.062832 2 1.57);
+    }
+
+    l1 // 1, 5, 10, ... delta
+    {
+        type        uniform;
+        axis        distance;
+        start       (0.1 0.0 1.57);
+        end         (0.1 2.0 1.57);
+        nPoints     200;
+    }
+
+    l5
+    {
+        type        uniform;
+        axis        distance;
+        start       (5.0 0.0 1.57);
+        end         (5.0 2.0 1.57);
+        nPoints     200;
+    }
+
+    l10
+    {
+        type        uniform;
+        axis        distance;
+        start       (10.0 0.0 1.57);
+        end         (10.0 2.0 1.57);
+        nPoints     200;
+    }
+
+    l15
+    {
+        type        uniform;
+        axis        distance;
+        start       (15.0 0.0 1.57);
+        end         (15.0 2.0 1.57);
+        nPoints     200;
+    }
+
+    l20
+    {
+        type        uniform;
+        axis        distance;
+        start       (20.0 0.0 1.57);
+        end         (20.0 2.0 1.57);
+        nPoints     200;
+    }
+
+    l25
+    {
+        type        uniform;
+        axis        distance;
+        start       (25.0 0.0 1.57);
+        end         (25.0 2.0 1.57);
+        nPoints     200;
+    }
+
+    l30
+    {
+        type        uniform;
+        axis        distance;
+        start       (30.0 0.0 1.57);
+        end         (30.0 2.0 1.57);
+        nPoints     200;
+    }
+
+    l35
+    {
+        type        uniform;
+        axis        distance;
+        start       (35.0 0.0 1.57);
+        end         (35.0 2.0 1.57);
+        nPoints     200;
+    }
+
+    l40
+    {
+        type        uniform;
+        axis        distance;
+        start       (40.0 0.0 1.57);
+        end         (40.0 2.0 1.57);
+        nPoints     200;
+    }
+
+    l45
+    {
+        type        uniform;
+        axis        distance;
+        start       (45.0 0.0 1.57);
+        end         (45.0 2.0 1.57);
+        nPoints     200;
+    }
+
+    l50
+    {
+        type        uniform;
+        axis        distance;
+        start       (50.0 0.0 1.57);
+        end         (50.0 2.0 1.57);
+        nPoints     200;
+    }
+
+    l55
+    {
+        type        uniform;
+        axis        distance;
+        start       (55.0 0.0 1.57);
+        end         (55.0 2.0 1.57);
+        nPoints     200;
+    }
+
+    Poletto0 // Poletto et al.
+    {
+        type        uniform;
+        axis        distance;
+        start       (0.1 0.0 1.57);
+        end         (0.1 2.0 1.57);
+        nPoints     200;
+    }
+
+    Poletto36
+    {
+        type        uniform;
+        axis        distance;
+        start       (3.6 0.0 1.57);
+        end         (3.6 2.0 1.57);
+        nPoints     200;
+    }
+
+    Poletto75
+    {
+        type        uniform;
+        axis        distance;
+        start       (7.5 0.0 1.57);
+        end         (7.5 2.0 1.57);
+        nPoints     200;
+    }
+
+    Poletto113
+    {
+        type        uniform;
+        axis        distance;
+        start       (11.3 0.0 1.57);
+        end         (11.3 2.0 1.57);
+        nPoints     200;
+    }
+
+    Poletto151
+    {
+        type        uniform;
+        axis        distance;
+        start       (15.1 0.0 1.57);
+        end         (15.1 2.0 1.57);
+        nPoints     200;
+    }
+
+    Poletto226
+    {
+        type        uniform;
+        axis        distance;
+        start       (22.6 0.0 1.57);
+        end         (22.6 2.0 1.57);
+        nPoints     200;
+    }
+
+    Poletto302
+    {
+        type        uniform;
+        axis        distance;
+        start       (30.2 0.0 1.57);
+        end         (30.2 2.0 1.57);
+        nPoints     200;
+    }
+
+    Poletto377
+    {
+        type        uniform;
+        axis        distance;
+        start       (37.7 0.0 1.57);
+        end         (37.7 2.0 1.57);
+        nPoints     200;
+    }
+}
+
+
+// ************************************************************************* //

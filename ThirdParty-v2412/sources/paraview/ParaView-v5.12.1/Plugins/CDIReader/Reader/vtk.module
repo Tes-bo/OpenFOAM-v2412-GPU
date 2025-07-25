@@ -1,0 +1,19 @@
+NAME
+  CDIReader::vtkCDIReader
+LIBRARY_NAME
+  vtkCDIReader
+SPDX_LICENSE_IDENTIFIER
+  BSD-3-Clause
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Kitware Inc.
+  Copyright (c) 2018 Niklas Roeber, DKRZ Hamburg
+DEPENDS
+  ParaView::VTKExtensionsCore
+  VTK::CommonCore
+  VTK::CommonExecutionModel
+PRIVATE_DEPENDS
+  ParaView::VTKExtensionsIOCore
+  VTK::ParallelCore
+  VTK::netcdf
+OPTIONAL_DEPENDS
+  VTK::ParallelMPI

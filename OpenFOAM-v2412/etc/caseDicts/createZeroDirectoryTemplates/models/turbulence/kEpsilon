@@ -1,0 +1,52 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "templates";
+    object      kEpsilon;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+fluidFields
+{
+    k
+    {
+        type        scalar;
+        dimensions  [0 2 -2 0 0];
+    }
+    epsilon
+    {
+        type        scalar;
+        dimensions  [0 2 -3 0 0];
+    }
+    nut
+    {
+        type        scalar;
+        dimensions  [0 2 -1 0 0];
+    }
+}
+
+
+incompressibleFields
+{}
+
+
+compressibleFields
+{
+    alphat
+    {
+        type        scalar;
+        dimensions  [1 -1 -1 0 0];
+    }
+}
+
+
+// ************************************************************************* //

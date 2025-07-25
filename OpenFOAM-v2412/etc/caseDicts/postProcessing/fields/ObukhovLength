@@ -1,0 +1,23 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Version:  v2412
+    \\  /    A nd           | Website:  www.openfoam.com
+     \\/     M anipulation  |
+-------------------------------------------------------------------------------
+Description
+    Computes the Obukhov length field and associated friction velocity field.
+
+\*---------------------------------------------------------------------------*/
+
+type            ObukhovLength;
+libs            (fieldFunctionObjects);
+
+U               <fieldName>;
+kappa           0.4;
+beta            3e-3;
+
+executeControl  writeTime;
+writeControl    writeTime;
+
+// ************************************************************************* //

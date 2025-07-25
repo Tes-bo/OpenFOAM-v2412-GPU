@@ -1,0 +1,45 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      decomposeParDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+numberOfSubdomains  3;
+
+// method          assembleDecomp;
+// method          hierarchical;
+// method          simple;
+// method          manual;
+method  scotch;
+
+constraints
+{
+    faces
+    {
+        type    preserveFaceZones;
+        zones
+        (
+            heater_to_bottomAir
+            heater_to_leftSolid
+            heater_to_rightSolid
+            heater_to_topAir
+            leftSolid_to_bottomAir
+            leftSolid_to_topAir
+            rightSolid_to_bottomAir
+            rightSolid_to_topAir
+        );
+        enabled true;
+    }
+}
+
+// ************************************************************************* //

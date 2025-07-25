@@ -1,0 +1,17 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+time=$(foamDictionary ../system/controlDict -entry endTime -value)
+cp ../optimisation/topOIsoSurfaces/topOIsoSurface$time.stl .
+runApplication surfaceToFMS topOIsoSurface$time.stl
+foamDictionary system/meshDict -entry surfaceFile -set topOIsoSurface$time.fms > /dev/null
+sed -i 's/empty/wall/g' topOIsoSurface$time.fms
+sed -i 's/inlet wall/inlet patch/g' topOIsoSurface$time.fms
+sed -i 's/outlet wall/outlet patch/g' topOIsoSurface$time.fms
+runApplication cartesian2DMesh
+runApplication decomposePar
+runParallel $(getApplication)
+
+#------------------------------------------------------------------------------

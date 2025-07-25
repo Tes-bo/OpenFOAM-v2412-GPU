@@ -1,0 +1,253 @@
+#----------------------------------*-sh-*--------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2014-2017 OpenFOAM Foundation
+#     Copyright (C) 2019-2023 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# File
+#     wmake/scripts/AllwmakeParseArguments
+#
+# Description
+#     Allwmake argument parser
+#
+# Usage
+#     # Parse the arguments by sourcing this script
+#     . ${WM_PROJECT_DIR:?}/wmake/scripts/AllwmakeParseArguments
+#
+# Parsed options (make)
+#     -k | -keep-going | -non-stop
+#     -j | -jN | -j N
+#
+# Parsed options (wmake)
+#     -debug | -debug-O[g0123]
+#     -openmp | -no-openmp
+#     -strict
+#     -q | -queue
+#     -build-root=...
+#         Exports FOAM_BUILDROOT value.
+#     -module-prefix=...
+#         Exports FOAM_MODULE_PREFIX value.
+#         Unsets FOAM_MODULE_APPBIN, FOAM_MODULE_LIBBIN.
+#         Handles (user|group|openfoam) or (u|g|o) as per foamEtcFile,
+#         or absolute/relative paths
+#
+# Parsed options (special)
+#     -l | -log | -log=FILE
+#     -prefix=...   same as -module-prefix=...
+#
+# Trapped options
+#     -with-bear
+#
+#------------------------------------------------------------------------------
+# Check environment
+[ -d "$WM_PROJECT_DIR" ] || {
+    exec 1>&2
+    echo "$0"
+    echo "Error encountered:"
+    echo "    The OpenFOAM environment not set or incorrect."
+    echo "    Check your setup."
+    echo
+    exit 1
+}
+
+usage() {
+    exec 1>&2
+    while [ "$#" -ge 1 ]; do echo "$1"; shift; done
+
+    # Print normal usage options
+    cat<<USAGE
+Executing ${0##*/} is equivalent to
+
+   wmake -all [OPTIONS]
+
+With additional options:
+    -l | -log       Tee output to log.\$WM_OPTIONS
+    -log=FILE       Tee output to given filename
+    -prefix=...     Define FOAM_MODULE_PREFIX (same as wmake -module-prefix)
+    -no-recursion   Prevent recursive call (do NOT call 'wmake -all')
+    -fromWmake      Same as -no-recursion
+
+See
+    wmake -help (or wmake -help-full)
+
+USAGE
+    exit 0  # clean exit
+}
+
+
+#------------------------------------------------------------------------------
+# Parse the arguments and options.
+# Prefix with 'wmakeOpt_' to avoid affecting the sourcing environment.
+#
+#------------------------------------------------------------------------------
+
+unset wmakeOpt_frontend wmakeOpt_nonRecursive
+unset wmakeOpt_debug wmakeOpt_log wmakeOpt_openmp wmakeOpt_strict wmakeOpt_queue
+
+for arg in "$@"
+do
+    # Remove arg
+    shift
+
+    case "$arg" in
+    -h | -help*)
+        usage
+        ;;
+
+    -with-bear)
+        # Use 'bear' as frontend wrapper to wmake
+        wmakeOpt_frontend="-with-bear"
+        continue    # Argument handled, remove it
+        ;;
+
+    -no-recurs* | -fromWmake)
+        # Avoid recursion (eg, if called from wmake)
+        wmakeOpt_nonRecursive=true
+        # Pass onwards to other Allwmake scripts
+        ;;
+
+    -build-root=*)
+        # Alternative location for build intermediates
+        export FOAM_BUILDROOT="${arg#*=}"
+        echo "Build-root = ${FOAM_BUILDROOT:-[]}" 1>&2
+        continue    # Argument handled, remove it
+        ;;
+
+    -module-prefix=* | -prefix=* | --prefix=*)
+        # As per setModulePrefix (wmakeFunctions)
+        export FOAM_MODULE_PREFIX="${arg#*=}"
+        case "$FOAM_MODULE_PREFIX" in
+        # Prefix: user
+        (u | user)      FOAM_MODULE_PREFIX="${FOAM_USER_LIBBIN%/*}" ;;
+
+        # Prefix: group
+        (g | group)     FOAM_MODULE_PREFIX="${FOAM_SITE_LIBBIN%/*}" ;;
+
+        # Prefix: openfoam (other)
+        (o | openfoam)  FOAM_MODULE_PREFIX="${FOAM_LIBBIN%/*}" ;;
+
+        # Prefix: false | none (ie, 'disabled')
+        (false | none)  FOAM_MODULE_PREFIX=false ;;
+
+        # Prefix: directory (absolute or relative)
+        (*)
+            : "${FOAM_MODULE_PREFIX:=/usr/local}"  # Fallback (autoconf-like)
+
+            # Require absolute path
+            [ "${FOAM_MODULE_PREFIX#/}" != "${FOAM_MODULE_PREFIX}" ] || \
+                FOAM_MODULE_PREFIX="${PWD}/${FOAM_MODULE_PREFIX}"
+            ;;
+        esac
+
+        # Avoid potential conflicts
+        unset FOAM_MODULE_APPBIN FOAM_MODULE_LIBBIN
+        echo "Module prefix = ${FOAM_MODULE_PREFIX:-[]}" 1>&2
+        continue    # Argument handled, remove it
+        ;;
+
+    -k | -keep-going | -non-stop)
+        # Keep going, ignoring errors
+        export WM_CONTINUE_ON_ERROR=true
+        continue    # Argument handled, remove it
+        ;;
+
+    -l | -log)
+        wmakeOpt_log="log.${WM_OPTIONS:-build}"
+        continue    # Argument handled, remove it
+        ;;
+
+    -log=*)
+        wmakeOpt_log="${arg##*=}"
+        if [ -d "$wmakeOpt_log" ]
+        then
+            wmakeOpt_log="${wmakeOpt_log%/}/log.${WM_OPTIONS:-build}"
+        elif [ -z "$wmakeOpt_log" ]
+        then
+            wmakeOpt_log="log.${WM_OPTIONS:-build}"
+        fi
+        continue    # Argument handled, remove it
+        ;;
+
+    -debug | -debug-O[g0123])
+        wmakeOpt_debug="$arg"
+        continue    # Argument handled, remove it
+        ;;
+
+    -strict)
+        wmakeOpt_strict="$arg"
+        continue    # Argument handled, remove it
+        ;;
+
+    -openmp | -no-openmp)
+        wmakeOpt_openmp="$arg"
+        continue    # Argument handled, remove it
+        ;;
+
+    -q | -queue)
+        wmakeOpt_queue="-queue"
+        continue    # Argument handled, remove it
+        ;;
+
+    lib | libo | libso | dep | objects)
+        # Target type
+        targetType="$arg"
+        ;;
+    esac
+
+    # Re-insert arg
+    set -- "$@" "$arg"
+done
+
+
+#------------------------------------------------------------------------------
+# Execute wmake -all if not called from wmake
+#------------------------------------------------------------------------------
+
+if [ -z "$wmakeOpt_nonRecursive" ]
+then
+    if [ -z "$wmakeOpt_log" ]
+    then
+        exec wmake $wmakeOpt_frontend -all \
+            $wmakeOpt_debug $wmakeOpt_strict $wmakeOpt_queue $wmakeOpt_openmp $*
+        exit $? # Unneeded, but just in case something went wrong
+    else
+        echo "Logging wmake -all output to '$wmakeOpt_log'" 1>&2
+        echo 1>&2
+        exec wmake $wmakeOpt_frontend -all \
+            $wmakeOpt_debug $wmakeOpt_strict $wmakeOpt_queue $wmakeOpt_openmp $* 2>&1 | \
+            /usr/bin/tee $wmakeOpt_log
+        # Need to cleanup after the tee
+        rc=$? # Error code from tee (not wmake), but not entirely important
+        echo "Done logging to '$wmakeOpt_log'" 1>&2
+        exit "$rc"
+    fi
+fi
+
+
+#------------------------------------------------------------------------------
+# Activate the shell option "stop on error" unless WM_CONTINUE_ON_ERROR is set
+#------------------------------------------------------------------------------
+
+if [ -z "${WM_CONTINUE_ON_ERROR}" ]
+then
+    set -e
+fi
+
+
+#------------------------------------------------------------------------------
+# Cleanup local variables and functions
+#------------------------------------------------------------------------------
+
+unset wmakeOpt_frontend wmakeOpt_nonRecursive
+unset wmakeOpt_debug wmakeOpt_log wmakeOpt_openmp wmakeOpt_strict wmakeOpt_queue
+unset -f usage
+
+
+#------------------------------------------------------------------------------

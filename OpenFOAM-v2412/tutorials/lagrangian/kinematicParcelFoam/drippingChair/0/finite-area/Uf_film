@@ -1,0 +1,47 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       areaVectorField;
+    object      Uf_film;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 1 -1 0 0 0 0];
+
+internalField   uniform (0 0 0);
+
+boundaryField
+{
+    #includeEtc "caseDicts/setConstraintTypes"
+
+    top
+    {
+        type            fixedValue;
+        value           uniform (0 -0.1 0);
+    }
+
+    bottom
+    {
+        // zeroGradient is probably enough
+        type            inletOutlet;
+        phi             phif_film;
+        value           $internalField;
+        inletValue      uniform (0 0 0);
+    }
+
+    frontAndBack
+    {
+        type            zeroGradient;
+    }
+}
+
+
+// ************************************************************************* //

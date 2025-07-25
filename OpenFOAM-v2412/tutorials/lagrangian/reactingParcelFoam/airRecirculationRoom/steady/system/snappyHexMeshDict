@@ -1,0 +1,330 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      snappyHexMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+castellatedMesh true;
+snap            true;
+addLayers       false;
+
+geometry
+{
+    roomRecirculation.stl
+    {
+        type    triSurfaceMesh;
+        name    roomRecirculation ;
+        regions
+        {
+            inlet
+            {
+                name    inlet;
+            }
+            outlet
+            {
+                name    outlet;
+            }
+            roof
+            {
+                name    roof;
+            }
+            floor
+            {
+                name    floor;
+            }
+            sideWall
+            {
+                name    sideWall;
+            }
+            humanBody
+            {
+                name    humanBody;
+            }
+            mouth
+            {
+                name    mouth;
+            }
+            // additional recirculation patches
+            intake1
+            {
+                name    intake1;
+            }
+            intake2
+            {
+                name    intake2;
+            }
+            intake3
+            {
+                name    intake3;
+            }
+            intake4
+            {
+                name    intake4;
+            }
+            exhaust_maxX
+            {
+                name    exhaust_maxX;
+            }
+            exhaust_minX
+            {
+                name    exhaust_minX;
+            }
+            exhaust_maxY
+            {
+                name    exhaust_maxY;
+            }
+            exhaust_minY
+            {
+                name    exhaust_minY;
+            }
+        }
+    }
+};
+
+castellatedMeshControls
+{
+    maxLocalCells   200000000;
+    maxGlobalCells  300000000;
+    minRefinementCells 20;
+    nCellsBetweenLevels 4;
+    maxLoadUnbalance 0.1;
+    allowFreeStandingZoneFaces true;
+    resolveFeatureAngle     30;
+    features
+    (
+        {
+            file "roomRecirculation.eMesh" ;
+            level 0 ;
+        }
+    );
+
+    refinementSurfaces
+    {
+        roomRecirculation
+        {
+            level (0 0);
+            regions
+            {
+                inlet
+                {
+                    level (3  3);
+                    patchInfo
+                    {
+                        type     patch;
+                    }
+                }
+                outlet
+                {
+                    level (3  3);
+                    patchInfo
+                    {
+                        type     patch;
+                    }
+                }
+                roof
+                {
+                    level (1  1);
+                    patchInfo
+                    {
+                        type     wall;
+                    }
+                }
+                floor
+                {
+                    level (1  1);
+                    patchInfo
+                    {
+                        type     wall;
+                    }
+                }
+                sideWall
+                {
+                    level (1  1);
+                    patchInfo
+                    {
+                        type     wall;
+                    }
+                }
+                humanBody
+                {
+                    level (4  4);
+                    patchInfo
+                    {
+                        type     wall;
+                    }
+                }
+                mouth
+                {
+                    level (4  4);
+                    patchInfo
+                    {
+                        type     patch;
+                    }
+                }
+                intake1
+                {
+                    level (3  3);
+                    patchInfo
+                    {
+                        type     patch;
+                    }
+                }
+                intake2
+                {
+                    level (3  3);
+                    patchInfo
+                    {
+                        type     patch;
+                    }
+                }
+                intake3
+                {
+                    level (3  3);
+                    patchInfo
+                    {
+                        type     patch;
+                    }
+                }
+                intake4
+                {
+                    level (3  3);
+                    patchInfo
+                    {
+                        type     patch;
+                    }
+                }
+                exhaust_maxX
+                {
+                    level (3  3);
+                    patchInfo
+                    {
+                        type     patch;
+                    }
+                }
+                exhaust_minX
+                {
+                    level (3  3);
+                    patchInfo
+                    {
+                        type     patch;
+                    }
+                }
+                exhaust_maxY
+                {
+                    level (3  3);
+                    patchInfo
+                    {
+                        type     patch;
+                    }
+                }
+                exhaust_minY
+                {
+                    level (3  3);
+                    patchInfo
+                    {
+                        type     patch;
+                    }
+                }
+            }
+        }
+    }
+
+    refinementRegions
+    {
+    }
+
+    locationInMesh ( 2 2 1.5 ) ;
+}
+
+snapControls
+{
+    tolerance       2;
+    implicitFeatureSnap false;
+    explicitFeatureSnap true;
+    multiRegionFeatureSnap true;
+    detectNearSurfacesSnap true;
+    nSmoothPatch    3;
+    nSolveIter      50;
+    nRelaxIter      5;
+    nFeatureSnapIter 10;
+    nSmoothInternal 3;
+    nFaceSplitInterval -1;
+}
+
+addLayersControls
+{
+    layers
+    {
+    }
+    relativeSizes    true ;
+    expansionRatio    1.2 ;
+    firstLayerThickness   0.1 ;
+    featureAngle    180;
+    slipFeatureAngle 30;
+    nGrow           0;
+    nBufferCellsNoExtrude 0;
+    minMedialAxisAngle 90;
+    maxFaceThicknessRatio 0.2;
+    maxThicknessToMedialRatio 0.3;
+    minThickness    1e-06;
+    nLayerIter      50;
+    nRelaxIter      5;
+    nSmoothSurfaceNormals 10;
+    nSmoothNormals  3;
+    nSmoothThickness 10;
+    nRelaxedIter    10;
+    nMedialAxisIter 10;
+}
+
+meshQualityControls
+{
+    minVol          1e-13;
+    minTetQuality   1e-16;
+    minArea         1e-13;
+    minTwist        0.05;
+    minDeterminant  1e-06;
+    minFaceWeight   0.02;
+    minVolRatio     0.01;
+    minTriangleTwist -1;
+    minFlatness     0.5;
+    maxNonOrtho     70;
+    maxBoundarySkewness 20;
+    maxInternalSkewness 4;
+    maxConcave      80;
+    nSmoothScale    4;
+    errorReduction  0.75;
+
+    relaxed
+    {
+        minVol          1e-30;
+        minTetQuality   1e-30;
+        minArea         1e-30;
+        minTwist        0.001;
+        minDeterminant  1e-06;
+        minFaceWeight   1e-06;
+        minVolRatio     0.01;
+        minTriangleTwist -1;
+        minFlatness     0.5;
+        maxNonOrtho     75;
+        maxBoundarySkewness 20;
+        maxInternalSkewness 8;
+        maxConcave      80;
+        nSmoothScale    4;
+        errorReduction  0.75;
+    }
+}
+mergeTolerance  1e-07;
+debug           0;
+
+
+// ************************************************************************* //

@@ -1,0 +1,88 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    object      T;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 0 0 1 0 0 0];
+
+internalField   uniform 0;
+
+_mappedMixedField
+{
+    type            mappedMixedField;
+
+    // What/how to sample:
+    sampleMode      nearestPatchFaceAMI;
+
+    // Simulation world to sample
+    // Overwrite -> sampleWorld     top;
+
+    // Region to sample
+    sampleRegion    region0;
+
+    // If sampleMode is nearestPatchFace : patch to find faces of
+    // Overwrite -> samplePatch     right_to_left;
+
+    // Use database to get data from (one-way or loose coupling in
+    // combination with functionObject)
+    //sampleDatabase    false;    //true;
+
+    // According to offsetMode (see above) supply one of
+    // offset, offsets or distance
+    offset          (0 0 0);
+
+    value           uniform 0.0;
+
+    // For mappedMixed
+    //weightField     DTV;
+    refValue        $value;
+    refGradient     uniform 0.0;
+    valueFraction   uniform 1.0;
+}
+
+boundaryField
+{
+    slab3_to_2
+    {
+        $_mappedMixedField;
+        sampleWorld     slab2;
+        samplePatch     slab2_to_3;
+    }
+
+    slab3_to_4
+    {
+        $_mappedMixedField;
+        sampleWorld     slab4;
+        samplePatch     slab4_to_3;
+    }
+
+    to_top
+    {
+        $_mappedMixedField;
+        sampleWorld     top;
+        samplePatch     top_to_3;
+    }
+
+    bottom
+    {
+        type            zeroGradient;
+    }
+
+    frontAndBack
+    {
+        type            empty;
+    }
+}
+
+// ************************************************************************* //

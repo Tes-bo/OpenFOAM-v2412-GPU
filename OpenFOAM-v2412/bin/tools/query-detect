@@ -1,0 +1,169 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2020 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     query-detect
+#
+# Description
+#     Calls various wmake 'have_*' scripts with -test to report the
+#     detected software locations
+#
+# Environment
+#     Needs the OpenFOAM environment
+#
+#------------------------------------------------------------------------------
+printHelp() {
+    cat<<USAGE
+
+Usage: ${0##*/} [OPTIONS] [name1 .. [nameN]]
+options:
+  -all              Test all
+  -mode=MODE        Pass-through option for foamEtcFile
+  -help             Display short help and exit
+
+Calls various wmake 'have_*' scripts with -test to report the
+detected software locations
+
+USAGE
+    exit 0  # A clean exit
+}
+
+
+# Report error and exit
+die()
+{
+    exec 1>&2
+    echo
+    echo "Error encountered:"
+    while [ "$#" -ge 1 ]; do echo "    $1"; shift; done
+    echo
+    echo "See '${0##*/} -help' for usage"
+    echo
+    exit 1
+}
+
+
+#-------------------------------------------------------------------------------
+# Parse options
+unset optAall optMode
+
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    (-h | -help*)
+        printHelp
+        ;;
+    (-all | all)
+        optAll=true
+        ;;
+    (-mode=[ugo]*)
+        optMode="${1#*=}"
+        ;;
+    (--)
+        shift
+        break    # Stop here
+        ;;
+    (-*)
+        echo "Ignore unknown option: $1" 1>&2
+        ;;
+    (*)
+        break
+        ;;
+    esac
+    shift
+done
+
+
+#------------------------------------------------------------------------------
+projectDir="$WM_PROJECT_DIR"
+scriptsDir="$projectDir/wmake/scripts"
+
+[ -d "$projectDir" ] || {
+    echo "OpenFOAM environment appears to be missing" 1>&2
+    echo "    $projectDir" 1>&2
+    exit 2
+}
+[ -d "$scriptsDir" ] || {
+    echo "No scripts directory: $scriptsDir" 1>&2
+    exit 2
+}
+
+if [ "$#" = 0 ] && [ -z "$optAll" ]
+then
+    echo "Nothing specified" 1>&2
+    exit 0
+fi
+
+if [ -n "$optMode" ]
+then
+    export FOAM_CONFIG_MODE="$optMode"
+fi
+
+
+#------------------------------------------------------------------------------
+
+# Examine the "wmake/scripts/have_..." scripts for query_...() functions,
+# assume they also have a -query option
+
+if [ -n "$optAll" ]
+then
+    set -- $(
+        for script in "$scriptsDir"/have_*
+        do
+            if [ -f "$script" ]
+            then
+                script="${script##*/}"
+
+                case "$script" in
+                (*.bak | *.orig)
+                    ;;
+
+                (*)
+                    echo "${script#have_}"
+                    ;;
+                esac
+            fi
+        done
+    )
+fi
+
+
+## echo "Test: $@" 1>&2
+
+echo "#----------------"
+# Assume they each have a -test option
+for name
+do
+    script="$scriptsDir/have_${name}"
+    case "$name" in
+    (*.bak | *.orig)
+        continue
+        ;;
+    esac
+
+    echo
+    if [ -f "$script" ]
+    then
+        echo "# Detection for '$name'"
+        bash "$script" -test
+    else
+        echo "# No detection support for '$name'"
+    fi
+done
+
+echo
+echo "#----------------"
+
+exit 0  # A clean exit
+
+#------------------------------------------------------------------------------

@@ -1,0 +1,155 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// A flat plate that is only partial covered by the finiteArea mesh.
+// Depending on the decomposition, the outflow boundary may
+// coincide with a processor patch.
+
+// Additionally the plate is split into two top zones (top1 top2)
+// with different inlet boundary conditions
+
+scale   0.1;
+
+height  0.1;
+width   1;
+len     3;
+out     1;
+out     #eval{ $out + $len };
+
+width_2 #eval{ 0.5 * $width };
+
+nx 60;
+ny 20;
+nz 1;
+nout 20;
+
+vertices
+(
+    // bottom
+    /* 0*/ (0 0 0)
+    /* 1*/ ($len 0 0)
+    /* 2*/ ($out 0 0)
+
+    /* 3*/ (0 $width_2 0)
+    /* 4*/ ($len $width_2 0)
+    /* 5*/ ($out $width_2 0)
+
+    /* 6*/ (0 $width 0)
+    /* 7*/ ($len $width 0)
+    /* 8*/ ($out $width 0)
+
+    // top
+    /* 9*/ (0 0 $height)
+    /*10*/ ($len 0 $height)
+    /*11*/ ($out 0 $height)
+
+    /*12*/ (0 $width_2 $height)
+    /*13*/ ($len $width_2 $height)
+    /*14*/ ($out $width_2 $height)
+
+    /*15*/ (0 $width $height)
+    /*16*/ ($len $width $height)
+    /*17*/ ($out $width $height)
+);
+
+blocks
+(
+    hex (0 1 4 3   9 10 13 12) ($nx   $ny $nz) grading (1 1 1)
+    hex (1 2 5 4  10 11 14 13) ($nout $ny $nz) grading (1 1 1)
+
+    hex (3 4 7 6  12 13 16 15) ($nx   $ny $nz) grading (1 1 1)
+    hex (4 5 8 7  13 14 17 16) ($nout $ny $nz) grading (1 1 1)
+);
+
+boundary
+(
+    inlet
+    {
+        type patch;
+        faces
+        (
+            (0 9 12 3)
+            (3 12 15 6)
+        );
+    }
+
+    bound
+    {
+        type wall;
+        faces
+        (
+            (0 1 10 9)
+            (1 2 11 10)
+
+            (7 6 15 16)
+            (8 7 16 17)
+        );
+    }
+
+    outlet
+    {
+        type patch;
+        faces
+        (
+            (2 5 14 11)
+            (5 8 17 14)
+        );
+    }
+
+    bottom
+    {
+        type patch;
+        faces
+        (
+            (0 3 4 1)
+            (1 4 5 2)
+
+            (3 6 7 4)
+            (4 7 8 5)
+         );
+    }
+
+    top1
+    {
+        type patch;
+        faces
+        (
+            (9 10 13 12)
+        );
+    }
+
+    top2
+    {
+        type patch;
+        faces
+        (
+            (12 13 16 15)
+        );
+    }
+
+    outflow
+    {
+        type patch;
+        faces
+        (
+            (10 11 14 13)
+            (13 14 17 16)
+        );
+    }
+);
+
+
+// ************************************************************************* //

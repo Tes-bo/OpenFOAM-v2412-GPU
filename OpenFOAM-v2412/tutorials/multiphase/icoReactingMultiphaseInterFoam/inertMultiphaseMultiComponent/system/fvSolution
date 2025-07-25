@@ -1,0 +1,122 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      fvSolution;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+solvers
+{
+    ".*(rho|rhoFinal)"
+    {
+        solver          diagonal;
+    }
+
+    "alpha.*"
+    {
+        solver          PBiCG;
+        preconditioner  DILU;
+        tolerance       1e-08;
+        relTol          0.0;
+
+        cAlphas         (
+                            (liquid and gas)     1
+                            (mercury and gas)    1
+                            (oil and gas)        1
+                            (mercury and liquid) 1
+                            (mercury and oil)    1
+                            (liquid and oil)     1
+                        );
+
+        nAlphaCorr      2;
+        nAlphaSubCycles 3;
+
+        // Compressiion factor for species in each alpha phase
+        // NOTE: It should be similar to cAlpha
+        cYi             1;
+
+    }
+
+    "U.*"
+    {
+        solver          smoothSolver;
+        smoother        symGaussSeidel;
+        tolerance       1e-7;
+        relTol          0;
+    };
+
+    "(T.*)"
+    {
+        solver          PBiCGStab;
+        preconditioner  DILU;
+        tolerance       1e-08;
+        relTol          0.0;
+        residualAlpha   1e-7;
+    }
+
+    "XCO2.gas.*|Xvapour.gas.*|XO2.liquid.*"
+    {
+        solver          smoothSolver;
+        smoother        symGaussSeidel;
+        tolerance       1e-7;
+        relTol          0;
+    }
+
+    p_rgh
+    {
+        solver              GAMG;
+        smoother            DICGaussSeidel;
+        tolerance           1e-11;
+        relTol              0.01;
+        cacheAgglomeration  true;
+        nCellsInCoarsestLevel 10;
+        agglomerator        faceAreaPair;
+        mergeLevels         1;
+    };
+
+    p_rghFinal
+    {
+        $p_rgh;
+        relTol          0;
+    };
+
+    "pcorr.*"
+    {
+        solver          PCG;
+        preconditioner  DIC;
+        tolerance       1e-5;
+        relTol          0;
+    }
+}
+
+PIMPLE
+{
+    correctPhi          false;
+    momentumPredictor   false;
+    nOuterCorrectors    1;
+    nCorrectors         4;
+    nNonOrthogonalCorrectors 0;
+}
+
+relaxationFactors
+{
+    fields
+    {
+    }
+    equations
+    {
+        ".*"            1;
+    }
+}
+
+
+// ************************************************************************* //

@@ -1,0 +1,109 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#include "solverControls"
+
+application     chtMultiRegionFoam;
+
+startFrom       startTime;
+
+startTime       0;
+
+stopAt          endTime;
+
+endTime         90;
+
+deltaT          0.01;
+
+writeControl    adjustable;
+
+purgeWrite      0;
+
+writeFormat     ascii;
+
+writePrecision  10;
+
+writeCompression off;
+
+timeFormat      general;
+
+timePrecision   6;
+
+runTimeModifiable true;
+
+adjustTimeStep  yes;
+
+maxDi           10e3;
+
+functions
+{
+    H2O
+    {
+        type            scalarTransport;
+        libs            (solverFunctionObjects);
+        resetOnStartUp  no;
+        region          cabin;
+        field           H2O;
+
+        fvOptions
+        {
+        }
+
+        writeControl    writeTime;
+    }
+
+    fileUpdate
+    {
+        type                timeActivatedFileUpdate;
+        libs                (utilityFunctionObjects);
+        writeControl        timeStep;
+        writeInterval       1;
+        region              cabin;
+        fileToUpdate        "<system>/solverControls";
+
+        timeVsFile
+        (
+            ( 1     "<system>/solverControls.0" )
+            ( 5     "<system>/solverControls.5" )
+            ( 20    "<system>/solverControls.20")
+            ( 60    "<system>/solverControls.60")
+        );
+    }
+
+    // Verify values for sampling multiple faceZones
+    inletFaces
+    {
+        type    surfaces;
+        libs    (sampling);
+        writeControl    onEnd;
+        region          cabin;
+        surfaceFormat   vtk;
+        fields  (H2O U);
+
+        surfaces
+        {
+            inletFaces
+            {
+                type    faceZone;
+                zones   (inletFaces f1Zone);
+                interpolate false;
+            }
+        }
+    }
+}
+
+
+// ************************************************************************* //

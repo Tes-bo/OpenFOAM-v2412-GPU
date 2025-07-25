@@ -1,0 +1,19 @@
+adiosFoam.C
+
+core/adiosCore.C
+controls/adiosRegionControl.C
+
+read/adiosReader.C
+read/adiosReaderCloud.C
+read/adiosReaderField.C
+
+write/adiosCoreWrite.C
+write/adiosCoreWriteAttr.C
+write/adiosCoreWriteVar.C
+write/adiosCoreWriteMesh.C
+write/adiosCoreWriteField.C
+write/adiosCoreWriteCloud.C
+
+time/adiosTime.C
+
+LIB = $(FOAM_MODULE_LIBBIN)/libadiosFoam

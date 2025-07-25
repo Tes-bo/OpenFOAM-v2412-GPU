@@ -1,0 +1,74 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+application     chtMultiRegionSimpleFoam;
+
+startFrom       startTime;
+
+startTime       0;
+
+stopAt          endTime;
+
+endTime         20000;
+
+deltaT          1;
+
+writeControl    timeStep;
+
+writeInterval   50;
+
+purgeWrite      2;
+
+writeFormat     ascii;
+
+writePrecision  6;
+
+writeCompression off;
+
+timeFormat      general;
+
+timePrecision   6;
+
+runTimeModifiable true;
+
+functions
+{
+    sample1
+    {
+        type            sets;
+        libs            (sampling);
+        writeControl    writeTime;
+        region          solid;
+        fields          (T jouleHeatingSource:V jouleHeatingSource:sigma);
+        interpolationScheme cellPoint;
+        setFormat       raw;
+
+        sets
+        {
+            centreLine
+            {
+                type        uniform;
+                axis        x;
+                start       (-2.5 0.05 0.05);
+                end         ( 2.5 0.05 0.05);
+                nPoints     20;
+            }
+        }
+    }
+}
+
+
+// ************************************************************************* //

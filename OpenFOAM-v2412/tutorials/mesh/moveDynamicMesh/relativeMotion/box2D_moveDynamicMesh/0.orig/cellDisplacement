@@ -1,0 +1,65 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volVectorField;
+    object      cellDisplacement;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 1 0 0 0 0 0];
+
+internalField   uniform (0 0 0);
+
+boundaryField
+{
+    #includeEtc "caseDicts/setConstraintTypes"
+
+    sides
+    {
+        type            uniformFixedValue;
+        uniformValue    (0 0 0);
+    }
+
+    inlet
+    {
+        type            uniformFixedValue;
+        uniformValue    (0 0 0);
+    }
+
+    outlet
+    {
+        type            uniformFixedValue;
+        uniformValue    (0 0 0);
+    }
+
+    "wing.*"
+    {
+        type            cellMotion;
+        value           uniform (0 0 0);
+    }
+
+    AMI_dualWing
+    {
+        patchType       cyclicAMI;
+        type            cellMotion;
+        value           uniform (0 0 0);
+    }
+
+    AMI_dualWing_slave
+    {
+        patchType       cyclicAMI;
+        type            cellMotion;
+        value           uniform (0 0 0);
+    }
+}
+
+
+// ************************************************************************* //

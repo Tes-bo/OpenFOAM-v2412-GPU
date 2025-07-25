@@ -1,0 +1,179 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+cellZoneID
+{
+    type    coded;
+    libs    (utilityFunctionObjects);
+    name    cellZoneID;
+
+    executeControl  writeTime;
+
+    localCode
+    #{
+        static const word fieldName("cellZoneID");
+
+        // Create and populate a "cellZoneID" volScalarField for cellZones.
+        // Return nullptr if there are not any such zones.
+        //
+        // Could be improved for mesh motion etc
+        // but is fairly low overhead anyhow
+        volScalarField* getZoneField(const fvMesh& mesh)
+        {
+            auto* volZonePtr = mesh.getObjectPtr<volScalarField>(fieldName);
+
+            const cellZoneMesh& zones = mesh.cellZones();
+
+            if (!zones.empty())
+            {
+                if (!volZonePtr)
+                {
+                    volZonePtr = new volScalarField
+                    (
+                        IOobject
+                        (
+                            fieldName,
+                            mesh.time().timeName(),
+                            mesh.thisDb(),
+                            IOobject::NO_READ,
+                            IOobject::AUTO_WRITE,
+                            IOobject::REGISTER
+                        ),
+                        mesh,
+                        dimless,
+                        fvPatchFieldBase::zeroGradientType()
+                    );
+                    regIOobject::store(volZonePtr);
+
+                    Info<< "Creating " << fieldName
+                        << " field for postProcessing" << nl;
+                }
+            }
+            else
+            {
+                Info<< "No cellZones - not creating " << fieldName
+                    << " field for postProcessing" << nl;
+            }
+
+            if (volZonePtr)
+            {
+                // Copy zone id as scalar.
+                // For consistency, do this whenever the volField exists,
+                // even if there are no zones.
+
+                auto& field = *volZonePtr;
+
+                auto& internal = field.primitiveFieldRef();
+                internal = scalar(-1);
+
+                for (const cellZone& zn : zones)
+                {
+                    UIndirectList<scalar>(internal, zn) = scalar(zn.index());
+                }
+
+                field.correctBoundaryConditions();
+            }
+
+            return volZonePtr;
+        }
+    #};
+
+    codeExecute
+    #{
+        // Don't need the return value, just the contents on the registry.
+        (void) getZoneField(mesh());
+    #};
+}
+
+
+plane
+{
+    type    surfaces;
+    libs    (sampling);
+
+    writeControl    writeTime;
+    fields          ( cellZoneID U );
+
+    surfaceFormat   vtk;
+
+    formatOptions
+    {
+        default
+        {
+            verbose true;
+        }
+    }
+
+    surfaces
+    {
+        zNormal
+        {
+            type        cuttingPlane;
+            point       (0 0 0);
+            normal      (0 0 1);
+            interpolate false;
+
+            surfaceFormat   ensight;
+
+            formatOptions
+            {
+                ensight
+                {
+                    scale 2;  // Some arbitrary scaling
+
+                    // Align with global x-axis, translate by arbitrary amount
+                    transform
+                    {
+                        origin  (0.05 -0.05 0);
+                        rotation axisAngle;
+                        axis    (0 0 1);
+                        angle   -45;
+                    }
+                }
+            }
+        }
+
+        slices
+        {
+            type    cuttingPlane;
+            point   (0 0 0);
+            normal  (1 0 0);
+            offsets (0.02 0.04 0.06 0.08);
+
+            interpolate true;
+
+            transform
+            {
+                origin  (0 0 0);
+                rotation axisAngle;
+                axis    (0 0 1);
+                angle   45;
+            }
+
+            formatOptions
+            {
+                vtk
+                {
+                    scale 2;  // Some arbitrary scaling
+
+                    // Align with global x-axis, translate by arbitrary amount
+                    transform
+                    {
+                        origin  (0.05 0 0);
+                        rotation axisAngle;
+                        axis    (0 0 1);
+                        angle   -45;
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+// ************************************************************************* //

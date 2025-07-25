@@ -1,0 +1,595 @@
+#----------------------------------*-sh-*--------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2011-2016 OpenFOAM Foundation
+#     Copyright (C) 2017-2022 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# File
+#     etc/config.sh/mpi
+#     - sourced by OpenFOAM-*/etc/bashrc
+#
+# Description
+#     Setup for MPI communications library for OpenFOAM
+#
+#     For USERMPI, the user is responsible for supplying an appropriate
+#     wmake/rules/General/mplibUSERMPI file and managing all settings
+#
+# User adjustments are controlled by these types of files:
+#     - config.sh/prefs.fjmpi
+#     - config.sh/prefs.intelmpi
+#     - config.sh/prefs.mpich
+#     - config.sh/prefs.mpich-gm
+#     - config.sh/prefs.msmpi
+#     - config.sh/prefs.mvapich2
+#     - config.sh/prefs.openmpi
+#     - config.sh/prefs.sys-mpi
+#     - config.sh/prefs.sys-openmpi
+#     - config.sh/prefs.user-mpi
+#
+# Note
+#     All pre-v2012 names (without the 'prefs.' prefix) are ignored.
+#
+# Environment
+#     I_MPI_CC, I_MPI_CXX environment variables define the compiler
+#     to be used by Intel mpiicc/mpiicpc wrappers
+#
+#     MPI_BUFFER_SIZE overrides 'mpiBufferSize' (controlDict entry).
+#     Eg,  export MPI_BUFFER_SIZE=20000000
+#
+#------------------------------------------------------------------------------
+unset MPI_ARCH_PATH MPI_HOME
+export FOAM_MPI=dummy  # Fallback value
+unset _foamMpiVersion  # Track mpi version as required
+
+# Location for ThirdParty installations
+_foamMpiPrefixDir="$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER"
+_foamMpiWarning="openfoam (etc/config.sh/mpi) => "  # Prefix for warnings
+
+# Version embedded in the naming
+# $1 = mpi family (eg, openmpi, mpich, ...)
+# Eg, _foamMpiEmbedVersion openmpi OPENMPI
+unset -f _foamMpiEmbedVersion 2>/dev/null
+_foamMpiEmbedVersion()
+{
+    # Version embedded in the naming. Eg, OPENMPI-4.0.3
+    _foamMpiVersion="${WM_MPLIB#*-}"
+    if [ -n "$_foamMpiVersion" ] && [ "$_foamMpiVersion" != "$WM_MPLIB" ]
+    then
+        [ -n "$1" ] && FOAM_MPI="${1}-${_foamMpiVersion}"
+        [ -n "$2" ] && WM_MPLIB="${2}-${_foamMpiVersion}"
+    else
+        [ -n "$2" ] && WM_MPLIB="${2}"
+        unset _foamMpiVersion  # Extra safety
+    fi
+}
+
+
+#------------------------------------------------------------------------------
+
+case "$WM_MPLIB" in
+
+# ----
+# The system openmpi, discover locations by orte-info, mpicc or orterun
+# Preserve major or full version for the naming
+sys-openmpi | sys-openmpi[1-9] | sys-openmpi-[1-9]* |\
+SYSTEMOPENMPI | SYSTEMOPENMPI[1-9] | SYSTEMOPENMPI-[1-9]*)
+    # Preserve version or full version for the naming
+    _foamMpiVersion="${WM_MPLIB##*MPI}"
+    _foamMpiVersion="${_foamMpiVersion##*mpi}"
+
+    export FOAM_MPI="sys-openmpi${_foamMpiVersion}"
+    export WM_MPLIB="SYSTEMOPENMPI${_foamMpiVersion}"
+
+    # Undefine OPAL_PREFIX if set to one of the paths on foamOldDirs
+    [ -z "$($foamClean -env=OPAL_PREFIX "$foamOldDirs")" ] && unset OPAL_PREFIX
+    _foamEtc -config prefs.sys-openmpi  ## Optional adjustments
+
+    unset _foamFoundCmd
+
+    # MPI_ARCH_PATH (prefs) if a valid dir, or need to discover
+    if [ -d "$MPI_ARCH_PATH" ]
+    then
+        _foamAddPath    "$MPI_ARCH_PATH"/bin
+        _foamAddLibAuto "$MPI_ARCH_PATH"
+    else
+        unset MPI_ARCH_PATH
+    fi
+
+    # Use <orte-info> (openmpi only command) to query configuration.
+    # Parse "path:prefix:<pathname>" type of output
+    if [ -z "$MPI_ARCH_PATH" ] && _foamFoundCmd="$(command -v orte-info)"
+    then
+        # prefix
+        _foamFoundDir="$("$_foamFoundCmd" --path prefix --parsable | sed -e 's#^path:[^:]*:##')"
+
+        if [ -d "$_foamFoundDir" ]
+        then
+            MPI_ARCH_PATH="${_foamFoundDir}"
+
+            # libdir
+            _foamFoundDir="$("$_foamFoundCmd" --path libdir --parsable | sed -e 's#^path:[^:]*:##')"
+            if [ -d "$_foamFoundDir" ]
+            then
+                _foamAddLib "$_foamFoundDir"
+            elif [ "$MPI_ARCH_PATH" != /usr ]
+            then
+                _foamAddLibAuto "$MPI_ARCH_PATH"
+            fi
+        fi
+    fi
+
+    # Use <mpicc> to get the link information and (slight hack)
+    # strip off 'lib' to get the prefix directory
+    if [ -z "$MPI_ARCH_PATH" ] && _foamFoundCmd="$(command -v mpicc)"
+    then
+        _foamFoundDir="$("$_foamFoundCmd" --showme:link | sed -e 's#.*-L\([^ ]*\).*#\1#')"
+
+        MPI_ARCH_PATH="${_foamFoundDir%/*}"  # Prefix from libdir
+        _foamAddLib "$_foamFoundDir"
+    fi
+
+    # Last resort (worse hack):
+    # Use <orterun> to get ../path/bin/orterun and infer prefix, libdir
+    if [ -z "$MPI_ARCH_PATH" ] && _foamFoundCmd="$(command -v orterun)"
+    then
+        _foamFoundDir="${_foamFoundCmd%/*}"  # The bin dir
+        MPI_ARCH_PATH="${_foamFoundDir%/*}"  # The prefix dir
+
+        _foamAddLibAuto "$MPI_ARCH_PATH"
+    fi
+
+    if [ -z "$MPI_ARCH_PATH" ]
+    then
+        echo "Warn: could not determine prefix for system-openmpi" 1>&2
+    fi
+    unset _foamFoundCmd _foamFoundDir
+
+    #-
+    # TBD: extra (major) version qualifier on name?
+    #-
+    ## if [ "$FOAM_MPI" = "sys-openmpi" ]
+    ## then
+    ##     _foamMpiVersion="${MPI_ARCH_PATH##*mpi}"
+    ##     case "$_foamMpiVersion" in
+    ##     ([1-9])
+    ##         FOAM_MPI="${FOAM_MPI}${_foamMpiVersion}"
+    ##         ;;
+    ##     esac
+    ## fi
+    ;;
+
+
+# ----
+openmpi | openmpi-[1-9]* |\
+OPENMPI | OPENMPI-[1-9]* )
+    export FOAM_MPI=openmpi-4.1.2
+
+    _foamMpiEmbedVersion openmpi OPENMPI
+    _foamEtc -config prefs.openmpi  ## Optional adjustments
+
+    # MPI_ARCH_PATH (prefs) if a valid dir, or ThirdParty location
+    if [ ! -d "$MPI_ARCH_PATH" ]
+    then
+        export MPI_ARCH_PATH="$_foamMpiPrefixDir/$FOAM_MPI"
+    fi
+
+    # Inform openmpi where to find its install directory
+    export OPAL_PREFIX="$MPI_ARCH_PATH"
+
+    # Could be sourced from ThirdParty with incomplete environment
+    if [ -n "$MPI_ARCH_PATH" ] && command -v _foamAddLibAuto >/dev/null
+    then
+        _foamAddPath    "$MPI_ARCH_PATH"/bin
+        _foamAddMan     "$MPI_ARCH_PATH"/share/man
+        _foamAddLibAuto "$MPI_ARCH_PATH"  "lib$WM_COMPILER_LIB_ARCH"
+    fi
+    ;;
+
+
+# ----
+# Arbitrary, user-specified mpi implementation
+# - used by spack, which populates appropriate wmake rules
+USERMPI)
+    export FOAM_MPI=user-mpi
+    _foamEtc -config prefs.user-mpi  ## Optional adjustments
+    ;;
+
+
+# ----
+# EasyBuild handles everything via <mpicc>
+EASYBUILDMPI)
+    export FOAM_MPI=eb-mpi
+    ;;
+
+
+# ----
+sys-mpi |\
+SYSTEMMPI)
+    export FOAM_MPI=sys-mpi
+    export WM_MPLIB=SYSTEMMPI
+
+    _foamEtc -config prefs.sys-mpi  ## Optional adjustments
+
+    # MPI_ARCH_PATH (prefs) or MPI_ROOT (inherited), in that order
+    if [ -n "$MPI_ARCH_PATH" ]
+    then
+        export MPI_ROOT="$MPI_ARCH_PATH"
+    elif [ -n "$MPI_ROOT" ]
+    then
+        export MPI_ARCH_PATH="$MPI_ROOT"
+    fi
+
+    _foamMpiWarning="${_foamMpiWarning}system MPI: "
+    if [ ! -d "$MPI_ARCH_PATH" ]
+    then
+        echo "${_foamMpiWarning}has invalid MPI_ROOT" 1>&2
+        echo "Please set correctly. For example," 1>&2
+        echo '    export MPI_ROOT="/opt/mpi"' 1>&2
+        echo 1>&2
+    else
+        _foamMpiWarning="${_foamMpiWarning}has unset "
+
+        [ -n "$MPI_ARCH_FLAGS" ] || {
+            exec 1>&2
+            echo "${_foamMpiWarning}MPI_ARCH_FLAGS"
+            echo "Please set correctly. For example,"
+            echo '   export MPI_ARCH_FLAGS="-DOMPI_SKIP_MPICXX"'
+            echo
+        }
+        [ -n "$MPI_ARCH_INC" ] || {
+            exec 1>&2
+            echo "${_foamMpiWarning}MPI_ARCH_INC"
+            echo "Please set correctly. For example,"
+            echo '    export MPI_ARCH_INC="-isystem $MPI_ROOT/include"'
+            echo
+        }
+        [ -n "$MPI_ARCH_LIBS" ] || {
+            exec 1>&2
+            echo "${_foamMpiWarning}MPI_ARCH_LIBS"
+            echo "Please set correctly. For example,"
+            echo '    export MPI_ARCH_LIBS="-L$MPI_ROOT/lib -lmpi'
+            echo
+        }
+    fi
+    ;;
+
+
+# ----
+mpich | mpich-[1-9]* |\
+MPICH | MPICH-[1-9]* )
+    export FOAM_MPI=mpich-3.3
+
+    _foamMpiEmbedVersion mpich MPICH
+    _foamEtc -config prefs.mpich  ## Optional adjustments
+
+    # MPI_ARCH_PATH (prefs) if a valid dir, or use ThirdParty location
+    if [ ! -d "$MPI_ARCH_PATH" ]
+    then
+        export MPI_ARCH_PATH="$_foamMpiPrefixDir/$FOAM_MPI"
+    fi
+
+    export MPI_HOME="$MPI_ARCH_PATH"
+
+    # Could be sourced from ThirdParty with incomplete environment
+    if [ -n "$MPI_ARCH_PATH" ] && command -v _foamAddLibAuto >/dev/null
+    then
+        _foamAddPath    "$MPI_ARCH_PATH"/bin
+        _foamAddMan     "$MPI_ARCH_PATH"/share/man
+        _foamAddLibAuto "$MPI_ARCH_PATH"  "lib$WM_COMPILER_LIB_ARCH"
+    fi
+    ;;
+
+
+# ----
+MPICH-GM)
+    export FOAM_MPI=mpich-gm
+    _foamEtc -config prefs.mpich-gm  ## Optional adjustments
+
+    # MPI_ARCH_PATH (prefs) if a valid dir, or system location
+    if [ ! -d "$MPI_ARCH_PATH" ]
+    then
+        export MPI_ARCH_PATH=/opt/mpi
+    fi
+
+    export MPICH_PATH="$MPI_ARCH_PATH"
+    export GM_LIB_PATH="$MPICH_PATH/lib$WM_COMPILER_LIB_ARCH"
+
+    if [ -n "$MPI_ARCH_PATH" ]
+    then
+        _foamAddPath    "$MPI_ARCH_PATH"/bin
+        _foamAddLib     "$MPI_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH"
+        _foamAddLib     "$GM_LIB_PATH"
+    fi
+    ;;
+
+
+# ----
+# MVAPICH2, renamed to contain 'MPI' in its name
+mvapich2 | mvapich2-[1-9]* |\
+MVA2MPI | MVA2MPI-[1-9]* )
+    export FOAM_MPI=mvapich2-2.3
+
+    _foamMpiEmbedVersion mvapich2 MVA2MPI
+    _foamEtc -config prefs.mvapich2  ## Optional adjustments
+
+    # MPI_ARCH_PATH (prefs) if a valid dir, or ThirdParty location
+    if [ ! -d "$MPI_ARCH_PATH" ]
+    then
+        export MPI_ARCH_PATH="$_foamMpiPrefixDir/$FOAM_MPI"
+    fi
+
+    # Could be sourced from ThirdParty with incomplete environment
+    if [ -n "$MPI_ARCH_PATH" ] && command -v _foamAddLibAuto >/dev/null
+    then
+        _foamAddPath    "$MPI_ARCH_PATH"/bin
+        _foamAddMan     "$MPI_ARCH_PATH"/share/man
+        _foamAddLibAuto "$MPI_ARCH_PATH"  "lib$WM_COMPILER_LIB_ARCH"
+    fi
+    ;;
+
+
+# ----
+CRAY-MPICH)
+    export FOAM_MPI=cray-mpich
+    export MPI_ARCH_PATH="$MPICH_DIR"
+
+    [ -d "$MPI_ARCH_PATH" ] || {
+        echo "%{_foamMpiWarning}invalid $WM_MPLIB directory" 1>&2
+        echo "    => ${MPI_ARCH_PATH:-unset}" 1>&2
+        echo "Please set MPICH_DIR correctly" 1>&2
+    }
+
+    if [ -n "$MPI_ARCH_PATH" ]
+    then
+        # _foamAddPath    "$MPI_ARCH_PATH"/bin
+        _foamAddLib     "$MPI_ARCH_PATH"/lib
+    fi
+    ;;
+
+
+# ----
+HPMPI)
+    export FOAM_MPI=hpmpi
+    export MPI_HOME=/opt/hpmpi
+    export MPI_ARCH_PATH="$MPI_HOME"
+
+    case "$(uname -m)" in
+    x86_64) _foamFoundDir=lib/linux_amd64 ;;
+    i686)   _foamFoundDir=lib/linux_ia32 ;;
+    *)      unset _foamFoundDir ;;
+    esac
+
+    if [ -n "$_foamFoundDir" ]
+    then
+        _foamAddPath "$MPI_ARCH_PATH"/bin
+        _foamAddLib  "$MPI_ARCH_PATH/$_foamFoundDir"
+    else
+        echo "openfoam: ($(uname -m)) - unsupported HP-MPI processor type" 1>&2
+    fi
+    unset _foamFoundDir
+    ;;
+
+
+# ----
+MPI)
+    export FOAM_MPI=mpi
+    export MPI_ARCH_PATH=/opt/mpi
+    ;;
+
+
+# ----
+FJMPI)
+    export FOAM_MPI=fjmpi
+    _foamEtc -config prefs.fjmpi  ## Optional adjustments
+
+    # MPI_ARCH_PATH (prefs) or MPI_ROOT (inherited), in that order
+    if [ -n "$MPI_ARCH_PATH" ]
+    then
+        export MPI_ROOT="$MPI_ARCH_PATH"
+    elif [ -n "$MPI_ROOT" ]
+    then
+        export MPI_ARCH_PATH="$MPI_ROOT"
+    fi
+
+    if [ -d "$MPI_ARCH_PATH" ]
+    then
+        export OPAL_PREFIX="$MPI_ARCH_PATH"  # An openmpi-derivative
+        _foamAddPath    "$MPI_ARCH_PATH"/bin
+        _foamAddLib     "$MPI_ARCH_PATH"/lib64
+    else
+        echo "%{_foamMpiWarning}invalid $WM_MPLIB directory" 1>&2
+        echo "    => ${MPI_ARCH_PATH:-unset}" 1>&2
+        echo "Please set MPI_ARCH_PATH or MPI_ROOT correctly" 1>&2
+    fi
+    ;;
+
+
+# ----
+QSMPI)
+    export FOAM_MPI=qsmpi
+    export MPI_ARCH_PATH=/usr/lib/mpi
+
+    _foamAddPath    "$MPI_ARCH_PATH"/bin
+    _foamAddLib     "$MPI_ARCH_PATH"/lib
+    ;;
+
+
+# ----
+SGIMPI)
+    : "${MPI_ROOT:=/dummy}"
+    MPI_ROOT="${MPI_ROOT%/}" # Remove trailing slash
+
+    export FOAM_MPI="${MPI_ROOT##*/}"
+    export MPI_ARCH_PATH="$MPI_ROOT"
+
+    [ -d "$MPI_ARCH_PATH" ] || {
+        echo "%{_foamMpiWarning}invalid $WM_MPLIB directory" 1>&2
+        echo "    => ${MPI_ARCH_PATH:-unset}" 1>&2
+        echo "Please set MPI_ROOT correctly" 1>&2
+    }
+
+    _foamAddPath    "$MPI_ARCH_PATH"/bin
+    _foamAddLib     "$MPI_ARCH_PATH"/lib
+    ;;
+
+
+# ----
+# Also support any ending (eg, INTELMPI_custom) to allow custom wmake rules
+intelmpi | intelmpi-[1-9]* |\
+INTELMPI*)  # Also includes (INTELMPI | INTELMPI-[1-9]*)
+    export FOAM_MPI=intelmpi
+
+    _foamMpiEmbedVersion intelmpi INTELMPI
+
+    # Undefine I_MPI_ROOT if set to one of the paths on foamOldDirs
+    [ -z "$($foamClean -env=I_MPI_ROOT "$foamOldDirs")" ] && unset I_MPI_ROOT
+    _foamEtc -config prefs.intelmpi  ## Optional adjustments
+
+    if [ -n "$I_MPI_ROOT" ]
+    then
+        # I_MPI_ROOT: Intel MPI Library installation directory
+        MPI_ARCH_PATH="${I_MPI_ROOT}" # Remove trailing slash
+
+    elif [ -n "$MPI_ROOT" ]
+    then
+        # MPI_ROOT: General specification
+        MPI_ARCH_PATH="${MPI_ROOT}"
+
+    elif [ -n "$MPI_ARCH_PATH" ]
+    then
+        # MPI_ARCH_PATH: Set I_MPI_ROOT accordingly
+        export I_MPI_ROOT="$MPI_ARCH_PATH"
+
+    else
+        # Final effort - check ThirdParty opt/intel locations,
+        # default is 'latest' unless otherwise specified
+
+        [ -n "${_foamMpiVersion}" ] || _foamMpiVersion=latest
+
+        for _foamFoundDir in \
+            "$WM_THIRD_PARTY_DIR/opt/intel/oneapi/mpi/$_foamMpiVersion" \
+            "$WM_THIRD_PARTY_DIR/opt/intel/mpi/$_foamMpiVersion" \
+        ;
+        do
+            if [ -d "$_foamFoundDir" ]
+            then
+                MPI_ARCH_PATH="$_foamFoundDir"
+                export I_MPI_ROOT="$MPI_ARCH_PATH"
+                break
+            fi
+        done
+    fi
+    unset _foamFoundDir
+
+    if [ -d "$MPI_ARCH_PATH" ]
+    then
+        # Remove trailing slash
+        MPI_ARCH_PATH="${MPI_ARCH_PATH%/}"
+
+        #-
+        # TBD: extra version qualifier on name?
+        #      eg, when subdir is version number only
+        #-
+        ## if [ "$FOAM_MPI" = "intelmpi" ]
+        ## then
+        ##     _foamMpiVersion="${MPI_ARCH_PATH##*mpi}"
+        ##     case "$_foamMpiVersion" in
+        ##         ([1-9]*) FOAM_MPI="intelmpi-${_foamMpiVersion}";;
+        ##     esac
+        ## fi
+    else
+        echo "${_foamMpiWarning}invalid $WM_MPLIB directory" 1>&2
+        echo "    => ${MPI_ARCH_PATH:-unset}" 1>&2
+        echo "Please set I_MPI_ROOT (or MPI_ROOT) correctly." 1>&2
+    fi
+
+    export MPI_ARCH_PATH
+
+    # With/without "intel64/" directory - handled here and in mpi rules
+
+    # Path, lib-path may have been set prior to call
+    if [ -d "$MPI_ARCH_PATH" ]
+    then
+        if [ -d "$MPI_ARCH_PATH"/intel64/bin ] \
+        && [ -d "$MPI_ARCH_PATH"/intel64/lib ]
+        then
+            _foamAddPath "$MPI_ARCH_PATH"/intel64/bin
+            _foamAddLib "$MPI_ARCH_PATH"/intel64/lib
+            _foamAddLib "$MPI_ARCH_PATH"/intel64/lib/release
+
+        elif [ -d "$MPI_ARCH_PATH"/bin ] \
+          && [ -d "$MPI_ARCH_PATH"/lib ]
+        then
+            _foamAddPath "$MPI_ARCH_PATH"/bin
+            _foamAddLib "$MPI_ARCH_PATH"/lib
+            _foamAddLib "$MPI_ARCH_PATH"/lib/release
+        fi
+    fi
+    ;;
+
+
+# ----
+msmpi | msmpi-[1-9]* |\
+MSMPI | MSMPI-[1-9]* )
+    export FOAM_MPI=msmpi
+
+    _foamMpiEmbedVersion msmpi MSMPI
+    _foamEtc -config prefs.msmpi  ## Optional adjustments
+
+    # MPI_ARCH_PATH (prefs) if a valid dir, or ThirdParty location
+    # Also consider ThirdParty 'opt/' directory (binary package)
+    if [ ! -d "$MPI_ARCH_PATH" ]
+    then
+        for _foamFoundDir in \
+            "$_foamMpiPrefixDir/$FOAM_MPI" \
+            "$WM_THIRD_PARTY_DIR/opt/$FOAM_MPI" \
+        ;
+        do
+            if [ -d "$_foamFoundDir" ]
+            then
+                MPI_ARCH_PATH="$_foamFoundDir"
+                break
+            fi
+        done
+    fi
+    unset _foamFoundDir
+
+    if [ -d "$MPI_ARCH_PATH" ]
+    then
+        # _foamAddPath    "$MPI_ARCH_PATH"/bin
+        _foamAddLib     "$MPI_ARCH_PATH"/lib/x64
+    fi
+    ;;
+
+esac
+
+
+#------------------------------------------------------------------------------
+# Final
+
+: "${FOAM_MPI:=dummy}"  # Fallback value for no MPI
+export FOAM_MPI
+
+# Ensure MPI_ARCH_PATH is marked for export
+[ -n "$MPI_ARCH_PATH" ] && export MPI_ARCH_PATH
+
+# Report
+if [ -n "$FOAM_VERBOSE" ] && [ -n "$PS1" ]
+then
+    echo "Using mpi type : $WM_MPLIB" 1>&2
+    echo "      FOAM_MPI : $FOAM_MPI" 1>&2
+    echo "        prefix : ${MPI_ARCH_PATH:-[]}" 1>&2
+fi
+
+# Cleanup
+unset _foamMpiPrefixDir _foamMpiVersion _foamMpiWarning
+unset -f _foamMpiEmbedVersion 2>/dev/null
+
+#------------------------------------------------------------------------------

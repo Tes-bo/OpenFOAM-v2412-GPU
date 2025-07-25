@@ -1,0 +1,133 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+scale   1;
+
+// Dimensions for outer box
+lo      0;      // outer lower corner
+uo      1;      // outer upper corner
+
+// Dimensions for inner box
+li      -0.1;   // inner lower corner
+
+ui      0.497;  // inner upper corner
+//      ^^^^^ very poorly handled gaps
+
+ui      0.498;  // inner upper corner
+//      ^^^^^ slave patch probably does not project onto master
+
+ui      0.499;  // inner upper corner
+//      ^^^^^ OK
+
+
+vertices
+(
+    ( $lo $lo $lo )
+    ( $uo $lo $lo )
+    ( $uo $uo $lo )
+    ( $lo $uo $lo )
+    ( $lo $lo $uo )
+    ( $uo $lo $uo )
+    ( $uo $uo $uo )
+    ( $lo $uo $uo )
+
+    ( $li $li $li )
+    ( $ui $li $li )
+    ( $ui $ui $li )
+    ( $li $ui $li )
+    ( $li $li $ui )
+    ( $ui $li $ui )
+    ( $ui $ui $ui )
+    ( $li $ui $ui )
+);
+
+blocks
+(
+    hex (0 1 2 3 4 5 6 7)       (6 6 6)    simpleGrading (1 1 1)
+    hex (8 9 10 11 12 13 14 15) (10 10 10) simpleGrading (1 1 1)
+);
+
+edges
+(
+);
+
+boundary
+(
+    wallso
+    {
+        type patch;
+        faces
+        (
+            // Walls of the outside block
+            (0 4 7 3)
+            (1 2 6 5)
+            (0 1 5 4)
+            (3 7 6 2)
+            (0 3 2 1)
+            (4 5 6 7)
+        );
+    }
+    wallsi
+    {
+        type patch;
+        faces
+        (
+            // Walls of the inside block
+            (8 12 15 11)
+            (8 9 13 12)
+            (8 11 10 9)
+        );
+    }
+
+    // Outer faces populated by subsetMesh
+    outer
+    {
+        type patch;
+        faces ();
+    }
+
+    innerx
+    {
+        type patch;
+        inGroups (inner);
+        faces
+        (
+            (9 10 14 13)
+        );
+    }
+    innery
+    {
+        type patch;
+        inGroups (inner);
+        faces
+        (
+            (11 15 14 10)
+        );
+    }
+    innerz
+    {
+        type patch;
+        inGroups (inner);
+        faces
+        (
+            (12 13 14 15)
+        );
+    }
+
+);
+
+
+// ************************************************************************* //

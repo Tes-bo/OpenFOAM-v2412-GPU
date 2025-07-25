@@ -1,0 +1,176 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2011 OpenFOAM Foundation
+#     Copyright (C) 2019-2021 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     foamCleanTutorials
+#
+# Description
+#     Recursively clean an OpenFOAM case directory,
+#     using Allclean, Allwclean (when present) or regular cleanCase.
+#
+#------------------------------------------------------------------------------
+. "${WM_PROJECT_DIR:?}"/bin/tools/CleanFunctions    # Tutorial clean functions
+
+thisScript="$0"
+if [ "/${thisScript#/}" != "$thisScript" ]
+then
+    thisScript="$PWD/$thisScript"
+fi
+
+printHelp() {
+    cat <<USAGE
+
+Usage: ${0##*/} [OPTION]
+       ${0##*/} [OPTION] directory
+options:
+  -0            Perform cleanCase, remove 0/ unconditionally
+  -auto         Perform cleanCase, remove 0/ if 0.orig/ exists [default]
+  -no-auto      Perform cleanCase only
+  -case=DIR     Specify starting directory, default is cwd
+  -self         Avoid Allclean script (prevent infinite recursion)
+  -help         Print the usage
+
+Recursively clean an OpenFOAM case directory, using Allclean or Allwclean
+when present.
+
+In the default 'auto' mode, it will use cleanCase and will automatically
+remove the 0/ directory if a corresponding 0.orig directory exists.
+
+Equivalent options:
+  | -case=DIR  | -case DIR |
+
+USAGE
+   exit 0  # A clean exit
+}
+
+# Report error and exit
+die()
+{
+    exec 1>&2
+    echo
+    echo "Error encountered:"
+    while [ "$#" -ge 1 ]; do echo "    $1"; shift; done
+    echo
+    echo "See '${0##*/} -help' for usage"
+    echo
+    exit 1
+}
+
+#------------------------------------------------------------------------------
+
+# Parse options
+unset skipSelf
+cleanType=auto
+
+if [ "$#" -gt 0 ]
+then
+    unset caseDir
+    case "$1" in
+    (- | --)
+        shift
+        break   # Stop option parsing
+        ;;
+    (-h | -help* | --help*)
+        printHelp
+        ;;
+    -auto)
+        cleanType="auto"
+        ;;
+    -no-auto)
+        cleanType="noauto"
+        ;;
+    -0)
+        cleanType="0"
+        ;;
+
+    ## long-option (internal dispatch form)
+    --clean=0 | --clean=auto | --clean=noauto)
+        cleanType="${1#*=}"
+        ;;
+    --clean=*)
+        echo "$0: unknown setting: $1" 1>&2
+        ;;
+
+    -case=*)
+        caseDir="${1#*=}"
+        ;;
+    -case)
+        caseDir="$2"
+        [ "$#" -ge 2 ] || die "'$1' option requires an argument"
+        shift
+        ;;
+    -self* | -skipFirst)
+        skipSelf=true
+        ;;
+
+    -*) die "unknown option: $1" ;;
+
+    *)
+        caseDir="$1"
+        ;;
+    esac
+    shift
+
+    if [ -n "$caseDir" ]
+    then
+        cd "$caseDir" 2>/dev/null || {
+            echo "${0##*/}: No such directory $caseDir" 1>&2
+            exit 2
+        }
+    fi
+fi
+
+
+# Use specialized script(s), but not on self
+if [ -z "$skipSelf" ]
+then
+    if [ -f ./Allwclean ]
+    then
+        ./Allwclean
+        exit "$?"
+    elif [ -f ./Allclean ]
+    then
+        ./Allclean
+        exit "$?"
+    fi
+fi
+
+if [ -d system ]
+then
+    # Tutorial case
+    cleanCase
+    case "$cleanType" in
+    (auto)
+        [ -d 0.orig ] && rm -rf 0 ;;
+    (0)
+        rm -rf 0 ;;
+    esac
+
+elif [ -d Make ]
+then
+    # Application
+    cleanApplication
+
+else
+    # Recurse into subdirectories
+    for caseName in *
+    do
+    (
+        cd "$caseName" 2>/dev/null \
+     && "$thisScript" ${cleanType:+--clean=$cleanType}
+    )
+    done
+fi
+
+#------------------------------------------------------------------------------

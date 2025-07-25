@@ -1,0 +1,48 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      fvOptions;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+pressureGradient
+{
+    type            vectorSemiImplicitSource;
+    volumeMode      specific;
+    selectionMode   all;
+    sources
+    {
+        U           ((0 0.00197805 0) 0);
+    }
+}
+
+atmCoriolisUSource1
+{
+    type            atmCoriolisUSource;
+    selectionMode   all;
+    Omega           ( 0 0 5.65156e-05 );
+}
+
+atmPlantCanopyUSource1
+{
+    type            atmPlantCanopyUSource;
+    selectionMode   all;
+}
+
+atmPlantCanopyTSource1
+{
+    type            atmPlantCanopyTSource;
+    selectionMode   all;
+}
+
+
+// ************************************************************************* //

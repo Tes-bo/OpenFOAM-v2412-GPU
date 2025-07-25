@@ -1,0 +1,184 @@
+#----------------------------------*-sh-*--------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2018-2024 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     have_zoltan
+#
+# Description
+#     Detection/setup of ZOLTAN
+#
+# Requires
+#     config.sh/zoltan
+#
+# Functions provided
+#     have_zoltan, no_zoltan, echo_zoltan, query_zoltan, search_zoltan
+#
+# Variables set on success
+#     HAVE_ZOLTAN
+#     ZOLTAN_ARCH_PATH
+#     ZOLTAN_INC_DIR
+#     ZOLTAN_LIB_DIR
+#
+#------------------------------------------------------------------------------
+. ${WM_PROJECT_DIR:?}/wmake/scripts/sysFunctions    # General system functions
+
+#------------------------------------------------------------------------------
+
+# Reset
+no_zoltan()
+{
+    unset HAVE_ZOLTAN ZOLTAN_INC_DIR ZOLTAN_LIB_DIR
+}
+
+
+# Report
+echo_zoltan()
+{
+    echo "zoltan=${HAVE_ZOLTAN:-false}"
+    echo "root=\"$ZOLTAN_ARCH_PATH\""
+    echo "include=\"$ZOLTAN_INC_DIR\""
+    echo "library=\"$ZOLTAN_LIB_DIR\""
+}
+
+
+# Search
+# $1 : prefix (*_ARCH_PATH, system, ...)
+#
+# On success, return 0 and export variables
+# -> HAVE_ZOLTAN, ZOLTAN_INC_DIR, ZOLTAN_LIB_DIR
+search_zoltan()
+{
+    local warn # warn="==> skip zoltan"
+    local incName="zoltan.h"
+    local libName="libzoltan"
+
+    local prefix="${1:-system}"
+    local header library
+
+    local mpiPrefix="$MPI_ARCH_PATH"
+    local mpiName="${MPI_ARCH_PATH##*/}"
+
+    # ----------------------------------
+    if isNone "$prefix"
+    then
+        [ -n "$warn" ] && echo "$warn (disabled)"
+        return 1
+    elif hasAbsdir "$prefix"
+    then
+        header=$(findFirstFile \
+            "$prefix/include/$FOAM_MPI/$incName" \
+            "$prefix/include/zoltan/$incName" \
+            "$prefix/include/$incName" \
+            "$mpiPrefix/include/$incName" \
+            "$prefix/include/$mpiName/$incName" \
+            "$prefix/include/${mpiName}-$(uname -m)/$incName" \
+        )
+        library=$(findExtLib \
+            "$FOAM_MPI/$libName" \
+            "$libName" \
+        )
+    elif isSystem "$prefix"
+    then
+        header=$(findFirstFile \
+            "/usr/local/include/zoltan/$incName" \
+            "/usr/local/include/$incName" \
+            "/usr/include/zoltan/$incName" \
+            "/usr/include/$incName" \
+            "$mpiPrefix/include/$incName" \
+            "/usr/include/$mpiName/$incName" \
+            "$prefix/include/${mpiName}-$(uname -m)/$incName" \
+        )
+        prefix=$(sysPrefix "$header")
+    else
+        unset prefix
+    fi
+    # ----------------------------------
+
+    # Header
+    [ -n "$header" ] || {
+        [ -n "$warn" ] && echo "$warn (no header)"
+        return 2
+    }
+
+    # Library
+    [ -n "$library" ] \
+    || library=$(findLibrary -prefix="$prefix" -name="$libName") \
+    || library=$(findLibrary -prefix="$mpiPrefix" -name="$libName") \
+    || {
+        [ -n "$warn" ] && echo "$warn (no library)"
+        return 2
+    }
+
+    # ----------------------------------
+
+    # OK
+    # echo "zoltan - $prefix"
+    export HAVE_ZOLTAN=true
+    export ZOLTAN_ARCH_PATH="$prefix"
+    export ZOLTAN_INC_DIR="${header%/*}"     # Basename
+    export ZOLTAN_LIB_DIR="${library%/*}"    # Basename
+}
+
+
+# Output as per search_* function
+have_zoltan()
+{
+    local warn # warn="==> skip zoltan"
+    local config="config.sh/zoltan"
+    local file
+
+    if file="$("$WM_PROJECT_DIR"/bin/foamEtcFile "$config")"
+    then
+        . "$file"
+    else
+        [ -n "$warn" ] && echo "$warn (no $config)"
+        return 2
+    fi
+
+    search_zoltan "$ZOLTAN_ARCH_PATH"
+}
+
+
+# Query settings
+query_zoltan()
+{
+    local config="config.sh/zoltan"
+    local file
+
+    if file="$("$WM_PROJECT_DIR"/bin/foamEtcFile -mode=o "$config")"
+    then
+        . "$file"
+        _process_query zoltan "$ZOLTAN_ARCH_PATH"
+    else
+        echo "(no $config)" 1>&2
+        echo "zoltan=unknown"
+    fi
+}
+
+
+#------------------------------------------------------------------------------
+
+# Reset
+no_zoltan
+
+# Test/query
+case "$1" in
+-test)
+    have_zoltan
+    echo_zoltan
+    ;;
+-query)
+    query_zoltan
+    ;;
+esac
+
+#------------------------------------------------------------------------------

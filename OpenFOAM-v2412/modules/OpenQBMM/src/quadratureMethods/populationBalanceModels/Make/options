@@ -1,0 +1,57 @@
+sinclude $(GENERAL_RULES)/module-path-user
+
+/* Failsafe - user location */
+ifeq (,$(strip $(FOAM_MODULE_LIBBIN)))
+    FOAM_MODULE_LIBBIN = $(FOAM_USER_LIBBIN)
+endif
+
+#if (OPENFOAM >= 2206)
+LIB_THERMO_TOOLS := -lthermoTools
+#else
+LIB_THERMO_TOOLS :=
+#endif
+
+EXE_INC = \
+    -I$(LIB_SRC)/transportModels \
+    -I$(LIB_SRC)/transportModels/compressible/lnInclude \
+    -I$(LIB_SRC)/thermophysicalModels/basic/lnInclude \
+    -I$(LIB_SRC)/TurbulenceModels/turbulenceModels/lnInclude \
+    -I$(LIB_SRC)/TurbulenceModels/incompressible/lnInclude \
+    -I$(LIB_SRC)/TurbulenceModels/compressible/lnInclude \
+    -I$(LIB_SRC)/thermophysicalModels/basic/lnInclude \
+    -I$(LIB_SRC)/finiteVolume/lnInclude \
+    -I$(LIB_SRC)/meshTools/lnInclude \
+    -I../../mappedList \
+    -I../../mappedPtrList \
+    -I../../Vandermonde \
+    -I../momentSets/lnInclude \
+    -I../quadratureNode/lnInclude \
+    -I../moments \
+    -I../momentInversion/lnInclude \
+    -I../fieldMomentInversion/lnInclude \
+    -I../quadratureApproximations/lnInclude \
+    -I../momentAdvection/lnInclude \
+    -I../PDFTransportModels/lnInclude \
+    -I../mixingModels/lnInclude  \
+    -I../realizableOdeSolver
+
+LIB_LIBS = \
+    -lincompressibleTransportModels \
+    -lcompressibleTransportModels \
+    -lfluidThermophysicalModels \
+    -lspecie \
+    -lturbulenceModels \
+    -lincompressibleTurbulenceModels \
+    -lcompressibleTurbulenceModels \
+    $(LIB_THERMO_TOOLS) \
+    -lfiniteVolume \
+    -lmeshTools \
+    -L$(FOAM_MODULE_LIBBIN) \
+    -lquadratureNode \
+    -lmomentSets \
+    -lmomentInversion \
+    -lfieldMomentInversion \
+    -lquadratureApproximation \
+    -lmomentAdvection \
+    -lPDFTransportModel \
+    -lmixing

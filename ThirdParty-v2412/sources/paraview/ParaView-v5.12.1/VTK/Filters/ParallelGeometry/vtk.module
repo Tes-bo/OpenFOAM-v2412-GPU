@@ -1,0 +1,40 @@
+NAME
+  VTK::FiltersParallelGeometry
+LIBRARY_NAME
+  vtkFiltersParallelGeometry
+KIT
+  VTK::Parallel
+GROUPS
+  MPI
+IMPLEMENTS
+  VTK::FiltersCore
+SPDX_LICENSE_IDENTIFIER
+  BSD-3-Clause
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
+DEPENDS
+  VTK::CommonCore
+  VTK::CommonSystem
+  VTK::CommonExecutionModel
+  VTK::FiltersCore
+  VTK::FiltersGeometry
+  VTK::FiltersParallel
+  VTK::ParallelMPI
+PRIVATE_DEPENDS
+  VTK::CommonDataModel
+  VTK::CommonSystem
+  VTK::FiltersExtraction
+  VTK::FiltersGeneral
+  VTK::IOLegacy
+  VTK::ParallelCore
+TEST_DEPENDS
+  VTK::CommonDataModel
+  VTK::FiltersGeneral
+  VTK::FiltersParallelDIY2
+  VTK::FiltersParallelMPI
+  VTK::IOParallel
+  VTK::IOParallelXML
+  VTK::IOXML
+  VTK::ImagingCore
+  VTK::ParallelMPI
+  VTK::TestingCore

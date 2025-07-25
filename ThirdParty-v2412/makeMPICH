@@ -1,0 +1,219 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2017-2021 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     makeMPICH
+#
+# Description
+#     Build script for mpich [unmaintained]
+#
+# ----------------------------------------------
+# NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
+#------------------------------------------------------------------------------
+# Dynamic library ending (default is .so)
+[ "$(uname -s)" = Darwin ] && EXT_SO=.dylib || EXT_SO=.so
+
+# Short-circuit test for an installation
+if [ "$1" = "-test" ]
+then
+    [ "$#" -eq 2 ] || { echo "${0##*/} -test : needs 1 argument"; exit 1; }
+    dir="${2%/}" # <- *_ARCH_PATH
+
+    package="mpich"
+    libName="libmpi"
+    for lib in \
+        "$dir/lib/$libName.a" \
+        "$dir/lib/$libName$EXT_SO" \
+        "$dir/lib$WM_COMPILER_LIB_ARCH/$libName.a" \
+        "$dir/lib$WM_COMPILER_LIB_ARCH/$libName$EXT_SO" \
+        ;
+    do
+        if [ -r "$lib" ]
+        then
+            echo "Have $package shared library (${dir##*/})"
+            exit 0
+        fi
+    done
+    echo "No $package libraries found: ${dir:-not-specified}"
+    exit 2
+fi
+#------------------------------------------------------------------------------
+if :    # Run from third-party directory
+then
+    cd "${0%/*}" || exit
+    wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
+        echo "Error (${0##*/}) : not located in \$WM_THIRD_PARTY_DIR"
+        echo "    Check your OpenFOAM environment and installation"
+        exit 1
+    }
+fi
+. "${WM_THIRD_PARTY_DIR:?}"/etc/tools/ThirdPartyFunctions
+# Transition
+_foamAddLib()  { true; }
+_foamAddMan()  { true; }
+_foamAddPath() { true; }
+#------------------------------------------------------------------------------
+# Obtain version from OpenFOAM etc/config.sh file:
+WM_MPLIB=MPICH      # Ensure we get the correct MPI
+_foamConfig mpi
+
+PACKAGE="${FOAM_MPI:-system}"
+
+#------------------------------------------------------------------------------
+printVersions() { listPackageVersions mpich; exit 0; }
+printHelp() {
+    cat<<USAGE
+
+Usage: ${0##*/} [OPTION] [mpich-VERSION] [-- configure-options]
+options:
+  -force        Force compilation, even if include/library already exists
+  -gcc          Force use of gcc/g++
+  -list         List available unpacked source versions
+  -help         Display usage help
+
+* build mpich with
+      ${PACKAGE:-[unspecified]}
+
+USAGE
+    showDownloadHint mpich
+    exit 0  # Clean exit
+}
+#------------------------------------------------------------------------------
+exportCompiler          # Compiler info for CMake/configure
+
+unset optForce
+
+# Parse options
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    '') ;;      # Ignore empty
+    --) break;; # Extra configure options (leave on $@ for later detection)
+    -h | -help*) printHelp;;
+    -list)      printVersions;;
+    -gcc)       useGcc  ;;
+    -force)     optForce=true ;;
+
+    mpich/* | sources/mpich* | \
+    mpich*)
+        PACKAGE="${1%%/}"
+        ;;
+
+    *)
+        die "unknown option/argument: '$1'"
+        ;;
+    esac
+    shift
+done
+
+if [ -z "$PACKAGE" ]
+then
+    die "The MPICH package/version not specified"
+elif _foamIsNone "$PACKAGE" || _foamIsSystem "$PACKAGE"
+then
+    echo "Using none/system (skip ThirdParty build of MPICH)"
+    exit 0
+fi
+
+#------------------------------------------------------------------------------
+#
+# Build MPICH
+#   *PACKAGE : name-version of the package
+#   *SOURCE  : location of original sources
+#   *PREFIX  : installation directory
+
+PKG_SOURCE="$(findSourceDir "$PACKAGE")"
+PACKAGE="$(basename "$PACKAGE")"
+PKG_PREFIX="$installBASE/$PACKAGE"
+export GIT_DIR="$PKG_SOURCE/.git"
+
+if [ -z "$optForce" ] \
+&& {
+     [ -r "$PKG_PREFIX/lib/libmpi$EXT_SO" ] \
+  || [ -r "$PKG_PREFIX/lib$WM_COMPILER_LIB_ARCH/libmpi$EXT_SO" ]
+}
+then
+    echo "Already has shared library: $PKG_PREFIX"
+elif [ -z "$optForce" ] \
+&& {
+     [ -r "$PKG_PREFIX/lib/libmpi.a" ] \
+  || [ -r "$PKG_PREFIX/lib$WM_COMPILER_LIB_ARCH/libmpi.a" ]
+}
+then
+    echo "Already has static library: $PKG_PREFIX"
+else
+    echo "Starting build: $WM_MPLIB ($PACKAGE)"
+    echo
+
+    (
+        # Configuration options:
+        unset configOpt
+
+        # Additional configure options
+        if [ "$1" = "--" ]
+        then
+            shift
+            configOpt="$configOpt $@"
+        fi
+
+        # End of configuration options
+        # ----------------------------
+
+        PKG_BUILD="$buildBASE/$PACKAGE"
+
+        cd "$PKG_SOURCE" || exit
+        make distclean 2>/dev/null || true
+
+        rm -rf "$PKG_PREFIX"
+        rm -rf "$PKG_BUILD"
+        mkdir -p "$PKG_BUILD"
+
+        # reproducible build naming
+        local_destdir="$(dirname $PKG_PREFIX)"
+        local_prefix="/$(basename $local_destdir)/$(basename $PKG_PREFIX)"
+        local_destdir="$(dirname $local_destdir)"
+
+        echo
+        echo "configured prefix: $local_prefix"
+        echo "install directory: $local_destdir"
+        echo
+
+        cd "$PKG_BUILD" && set -x && \
+        "$PKG_SOURCE"/configure \
+            --prefix="$local_prefix" \
+            --disable-fortran --disable-g \
+            --enable-shared --disable-static \
+            $configOpt \
+        && set +x \
+        && make -j $WM_NCOMPPROCS \
+        && make install DESTDIR="$local_destdir" \
+        && echo "Built: $PACKAGE"
+    ) || {
+        echo "Error building: $PACKAGE"
+        exit 1
+    }
+
+    # Unneeded generated files
+    for dir in share/doc share/info share/man
+    do
+        if [ -d "$PKG_PREFIX/$dir" ]
+        then
+            echo "Discard $dir files to save space: $PACKAGE"
+            rm -rf "$PKG_PREFIX/$dir"
+        fi
+    done
+    rmdir "$PKG_PREFIX"/share 2>/dev/null || true
+
+fi
+
+#------------------------------------------------------------------------------

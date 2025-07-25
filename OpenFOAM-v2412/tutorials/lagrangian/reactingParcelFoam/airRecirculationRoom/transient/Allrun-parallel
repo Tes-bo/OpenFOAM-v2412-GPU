@@ -1,0 +1,31 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+parent="../steady"
+latestTime=$(foamListTimes -case "$parent" -noZero -latestTime)
+
+if [ -z "$latestTime" ]
+then
+    echo "FatalError: no latestTime found for $PWD/$parent"
+    exit 1
+fi
+
+# Replace mesh unconditionally
+rm -rf constant/polyMesh
+cp -rf "$parent"/constant/polyMesh constant
+
+restore0Dir
+
+# Restart from steady
+cp -f \
+    "$parent/$latestTime"/U \
+    "$parent/$latestTime"/p \
+    0/
+
+runApplication decomposePar
+
+runParallel $(getApplication)
+
+#------------------------------------------------------------------------------

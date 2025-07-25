@@ -1,0 +1,137 @@
+#!/bin/sh
+cd "${0%/*}" || exit    # Run from this directory
+[ -d "$WM_PROJECT_DIR" ] || {
+    echo "Error (${0##*/}) : no \$WM_PROJECT_DIR found"
+    echo "    Check your OpenFOAM environment and installation"
+    echo "    WM_PROJECT_DIR=$WM_PROJECT_DIR"
+    exit 1
+}
+
+usage() {
+    exec 1>&2
+    while [ "$#" -ge 1 ]; do echo "$1"; shift; done
+    cat<<USAGE
+
+usage: ${0##*/} [OPTION] [dir1 .. dirN]
+options:
+  -config name      use alternative doxygen config
+  -dir    name      process given directory name directly
+  -online           use links to the Github repositories instead of the
+                    local source code
+  -help
+
+Run doxygen on OpenFOAM sources, or on specified directories only.
+
+USAGE
+    exit 1
+}
+
+
+# -----------------------------------------------------------------------------
+
+defineURL() {
+    export FOAM_BASE_REPO="https://develop.openfoam.com/Development/openfoam"
+
+    case "$WM_PROJECT_VERSION" in
+    v[1-9][.0-9]*)
+        FOAM_REPO_TAG="$WM_PROJECT-$WM_PROJECT_VERSION"
+        ;;
+    *)
+        FOAM_REPO_TAG="master"
+        ;;
+    esac
+
+    export FOAM_ONLINE_REPO="$FOAM_BASE_REPO/blob/${FOAM_REPO_TAG}"
+}
+
+
+unset configName dirNames
+
+# Parse options
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    -h | -help*)
+        usage
+        ;;
+    -config)
+        configName="$2"
+        [ -f "$configName" ] || {
+            # No such file. Try some common alternatives
+            for ending in $configName ".$configName" "-$configName"
+            do
+                if [ -f "Doxyfile$ending" ]
+                then
+                    configName="Doxyfile$ending"
+                    break
+                fi
+            done
+        }
+        [ -f "$configName" ] || {
+            echo "Could not resolve Doxyfile config: $configName" 1>&2
+            exit 1
+        }
+        shift
+        ;;
+    -dir)
+        shift
+        if [ -d "$1" ]
+        then
+            dirNames="$dirNames $1"
+        else
+            echo "Could not resolve input directory: $1" 1>&2
+            exit 1
+        fi
+        ;;
+    -online)
+        defineURL
+        ;;
+    -*)
+        usage "unknown option: '$1'"
+        ;;
+
+    *)  # dirName
+        if [ -d "$1" ]
+        then
+            dirNames="$dirNames $1"
+        else
+            echo "Could not resolve input directory: $1" 1>&2
+        fi
+        ;;
+    *)
+        usage "unknown option/argument: '$1'"
+        ;;
+    esac
+    shift
+done
+
+
+#------------------------------------------------------------------------------
+
+rm -rf latex man
+
+# Remove html directory in background
+mv html html-stagedRemove$$ 2>/dev/null
+rm -rf html-stagedRemove$$ 2>/dev/null &
+
+# Ensure that created files are readable by everyone
+umask 22
+
+if [ -n "$dirNames" ]
+then
+    (
+        cat ${configName:-Doxyfile}
+        echo "INPUT = $dirNames"
+    ) | doxygen -
+else
+    doxygen $configName
+fi
+
+# Fix permissions (NB: '+X' and not '+x'!)
+chmod -R a+rX html latex man 2>/dev/null
+
+echo
+echo "Done doxygen"
+echo
+
+#------------------------------------------------------------------------------

@@ -1,0 +1,54 @@
+#------------------------------------------------------------------------------
+# Common linker settings
+
+LINK_LIBS   = $(c++DBUG)
+LINKLIBSO   = $(CC) $(c++FLAGS) -shared
+LINKEXE     = $(CC) $(c++FLAGS)
+
+undefine LINKEXE_STUB
+
+#------------------------------------------------------------------------------
+
+# Use gold linker
+ifneq (,$(findstring +gold,$(WM_COMPILE_CONTROL)))
+
+    LINKLIBSO  += -fuse-ld=gold
+    LINKEXE    += -fuse-ld=gold
+    LINKEXE_STUB := true
+
+# Use mold linker
+else ifneq (,$(findstring +mold,$(WM_COMPILE_CONTROL)))
+
+    LINKLIBSO  += -fuse-ld=mold
+    LINKEXE    += -fuse-ld=mold
+    LINKEXE_STUB := true
+
+# Use lld linker
+else ifneq (,$(findstring +lld,$(WM_COMPILE_CONTROL)))
+
+    LINKLIBSO  += -fuse-ld=lld
+    LINKEXE    += -fuse-ld=lld
+    LINKEXE_STUB := true
+
+# Use ld linker - no dummy stub ('+link-ld' not '+ld' to avoid false matches)
+else ifneq (,$(findstring +link-ld,$(WM_COMPILE_CONTROL)))
+
+    LINKLIBSO  += -fuse-ld=ld
+    LINKEXE    += -fuse-ld=ld -Xlinker --add-needed
+
+# Default linker, assume ld - no dummy stub
+else
+
+    LINKEXE    += -Xlinker --add-needed
+
+endif
+
+# ---------------
+# Link dummy stub to resolve libPstream symbols used by libOpenFOAM
+ifneq (,$(LINKEXE_STUB))
+ifneq (,$(findstring -lOpenFOAM,$(PROJECT_LIBS)))
+    LINKEXE += -L$(FOAM_LIBBIN)/dummy -lPstream
+endif
+endif
+
+#------------------------------------------------------------------------------

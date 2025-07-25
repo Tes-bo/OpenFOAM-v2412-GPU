@@ -1,0 +1,25 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+mkdir -p constant
+
+# copy STL files from resources folder
+cp -rf \
+    "$FOAM_TUTORIALS"/resources/geometry/mixerVesselAMI \
+    constant/triSurface
+
+rm -rf 0
+
+runApplication blockMesh
+
+runApplication surfaceFeatureExtract
+
+runApplication snappyHexMesh -overwrite
+
+runApplication createBaffles -overwrite
+
+runApplication mergeOrSplitBaffles -split -overwrite
+
+#------------------------------------------------------------------------------

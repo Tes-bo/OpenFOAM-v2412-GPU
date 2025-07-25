@@ -1,0 +1,18 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/wmake/scripts/AllwmakeParseArguments # (error catching)
+. ${WM_PROJECT_DIR:?}/wmake/scripts/sysFunctions    # General system functions
+
+#------------------------------------------------------------------------------
+
+# Only build when the OpenFOAM libccm adaptor already exists
+if findLibrary "$FOAM_LIBBIN/libccm" > /dev/null
+then
+    echo "==> build optional ccm conversion components"
+    wmake $targetType ccmToFoam
+    wmake $targetType foamToCcm
+else
+    echo "==> skip optional ccm conversion components (no libccm)"
+fi
+
+#------------------------------------------------------------------------------

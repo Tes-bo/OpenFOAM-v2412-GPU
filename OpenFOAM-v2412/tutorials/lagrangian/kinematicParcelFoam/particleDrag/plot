@@ -1,0 +1,33 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+#------------------------------------------------------------------------------
+
+# Require gnuplot
+command -v gnuplot >/dev/null || {
+    echo "FOAM FATAL ERROR: gnuplot not found - skipping graph creation" 1>&2
+    exit 1
+}
+
+#------------------------------------------------------------------------------
+
+gnuplot<<EOF
+
+set terminal pngcairo font "helvetica,20" size 1200, 627
+set output "velocity-all.png"
+set logscale x
+set logscale y
+set xrange [0.1:100]
+set yrange [1:100]
+set format x '10^{%T}'
+set format y '10^{%T}'
+set xlabel "Diameter / [mm]"
+set ylabel "Terminal velocity / [cm/s]"
+set key bottom right
+plot "parcelInBox-pure/D_VS_U.txt" u (\$1*1000):(\$2*100) w lines lw 2 t "Pure", \
+     "parcelInBox-slight/D_VS_U.txt" u (\$1*1000):(\$2*100) w lines lw 2 t "Slight", \
+     "parcelInBox-full/D_VS_U.txt" u (\$1*1000):(\$2*100) w lines lw 2 t "Full", \
+     "reference.dat"  w points ps 1.5 pt 6 lw 2 t "Reference"
+
+EOF
+
+#------------------------------------------------------------------------------

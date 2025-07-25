@@ -1,0 +1,19 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Version:  v2412
+    \\  /    A nd           | Website:  www.openfoam.com
+     \\/     M anipulation  |
+-------------------------------------------------------------------------------
+Description
+    Writes a volScalarField with processor number. Useful for postprocessing.
+
+\*---------------------------------------------------------------------------*/
+
+type            processorField;
+libs            (fieldFunctionObjects);
+
+executeControl  writeTime;
+writeControl    writeTime;
+
+// ************************************************************************* //

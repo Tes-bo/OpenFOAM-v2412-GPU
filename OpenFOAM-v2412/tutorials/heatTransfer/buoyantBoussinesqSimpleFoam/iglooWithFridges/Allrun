@@ -1,0 +1,60 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+# settings
+
+    # flag to enable computations in parallel mode
+    parallel=true
+
+    # flag to set up collated writing and threaded writing (with 1Gb write
+    # buffer)
+    fileHandler="-fileHandler collated -opt-switch maxThreadFileBufferSize=-1E9"
+
+#------------------------------------------------------------------------------
+
+restore0Dir
+
+runApplication blockMesh
+
+mkdir -p constant/triSurface
+
+cp -f \
+    "$FOAM_TUTORIALS"/resources/geometry/fridgeA.eMesh \
+    constant/triSurface
+
+if [ "$parallel" = true ]
+then
+
+    #runApplication decomposePar $fileHandler
+    runParallel -s decompose redistributePar -decompose $fileHandler
+
+    runParallel snappyHexMesh -overwrite $fileHandler
+
+    ## Remove any include files from the field dictionaries
+    (   mkdir -p processors2/0 && \
+        cd 0 && \
+        for f in *; do [ -f "$f" ] && \
+        foamDictionary "$f" > "../processors2/0/$f"; done \
+    )
+
+    runParallel $(getApplication) $fileHandler
+
+    ## Run reconstructParMesh with collated as well since writes
+    ##     constant/polyMesh/cellProcAddressing
+    #runApplication reconstructParMesh -constant $fileHandler
+    #runApplication reconstructPar
+
+    runParallel -s reconstruct redistributePar -reconstruct $fileHandler
+
+else
+
+    runApplication snappyHexMesh -overwrite
+
+    runApplication $(getApplication)
+
+fi
+
+
+#------------------------------------------------------------------------------

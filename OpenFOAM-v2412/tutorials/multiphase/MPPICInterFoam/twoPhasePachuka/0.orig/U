@@ -1,0 +1,133 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volVectorField;
+    object      U;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 1 -1 0 0 0 0];
+
+internalField   uniform (0 0 0);
+
+boundaryField
+{
+    inlet
+    {
+        type    uniformFixedValue;
+        value   $internalField;
+
+        uniformValue
+        {
+            type    coded;
+            name    examplePatchFunction1;
+
+            // Example code to combine/adapt Function1 to PatchFunction1
+
+            // User inputs
+
+            /// verbose true;
+
+            timeFunction
+            {
+                type table;
+
+                values
+                (
+                     (0  0.1)
+                     (1  0.1)
+                     (4  0.3)
+                     (14 0.5)
+                );
+            }
+
+            // ... or a function of time
+            directionFunction (0 0 1);
+
+            // Code implementation.
+            code
+            #{
+                // Persistent (Member) Data
+                static autoPtr<Function1<scalar>> baseVel;
+                static autoPtr<Function1<vector>> baseDir;
+
+                // Base settings
+                const dictionary& dict = this->dictionaryContent::dict();
+
+                const polyPatch& pp = this->patch();
+
+                vector velDir(0, 0, 1);
+
+                if (!baseVel)
+                {
+                    baseVel = Function1<scalar>::New
+                    (
+                        "timeFunction", dict, this->whichDb()
+                    );
+                }
+
+                const bool verbose = dict.getOrDefault<bool>("verbose", false);
+
+                if (!baseDir && dict.found("directionFunction"))
+                {
+                    // ie, NewIfPresent
+                    baseDir = Function1<vector>::New
+                    (
+                        "directionFunction", dict, this->whichDb()
+                    );
+
+                    InfoErr
+                        << "Function1 for direction" << nl;
+                }
+
+                if (baseDir)
+                {
+                    velDir = normalised(baseDir->value(x));
+                }
+
+                if (verbose)
+                {
+                    InfoErr
+                        << "vel: " << baseVel->value(x)
+                        << " dir:" << velDir << nl;
+                }
+
+                return tmp<vectorField>::New
+                (
+                    pp.size(),
+                    baseVel->value(x) * velDir
+                );
+            #};
+        }
+    }
+
+    outlet
+    {
+        type               pressureInletOutletVelocity;
+        value              $internalField;
+        inletValue         $internalField;
+    }
+
+    walls
+    {
+        type               fixedValue;
+        value              uniform (0 0 0);
+    }
+
+    base
+    {
+        type               fixedValue;
+        value              uniform (0 0 0);
+    }
+}
+
+
+// ************************************************************************* //

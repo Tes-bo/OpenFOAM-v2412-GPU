@@ -1,0 +1,6 @@
+#------------------------------------------------------------------------------
+# Use openmpi mpicc to obtain settings - mpicc must be available
+
+include $(GENERAL_RULES)/mpi-mpicc-openmpi
+
+#------------------------------------------------------------------------------

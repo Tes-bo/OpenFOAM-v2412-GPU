@@ -1,0 +1,29 @@
+#!/bin/sh
+cd "${0%/*}" || exit                            # Run from this directory
+targetType=libso
+. "${WM_PROJECT_DIR:?}"/wmake/scripts/AllwmakeParseArguments
+. "${WM_PROJECT_DIR:?}"/wmake/scripts/have_petsc
+
+#------------------------------------------------------------------------------
+
+if have_petsc
+then
+    echo "wmake(petsc) $targetType : $PETSC_ARCH_PATH"
+    wmake $targetType
+
+    /bin/cat<<INFORMATION 1>&2
+==> Before running, verify that PETSc libraries can be found
+For example,
+
+    foamHasLibrary -verbose petscFoam
+
+Define manually, enable in OpenFOAM etc/bashrc, or try the following [POSIX]:
+
+    eval \$(foamEtcFile -sh -config petsc -- -force)
+
+==
+INFORMATION
+
+fi
+
+#------------------------------------------------------------------------------

@@ -1,0 +1,48 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      fvSolution;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+SIMPLE
+{
+    energyCoupling
+    {
+        iterations      10;
+
+        timeStart       10;
+
+        timeEnd         100;
+
+        interval        0;
+
+        // Convergence criteria to stop looping
+        convergence
+        {
+            h           1e-3;
+        }
+
+        // Names of function objects to fire with execute(int) when looping
+        onLoop          ( );
+
+        // Names of function objects to fire with execute(int) when converged
+        onConverged     ( externalCoupled );
+
+        // Names of function objects to fire with execute(int) when loop ends
+        // without convergence
+        onEnd           ( );
+    }
+}
+
+
+// ************************************************************************* //

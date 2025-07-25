@@ -1,0 +1,78 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2012                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      fvSolution;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+solvers
+{
+    T
+    {
+        solver petsc;
+
+        petsc
+        {
+            options
+            {
+                //ksp_view "::ascii_info"; // uncomment to list details of the solve
+                ksp_type  cg;
+                ksp_cg_single_reduction  true;
+                ksp_norm_type none;
+                mat_type aijcusparse; // Using CUSPARSE
+                pc_type gamg; // algebraic multigrid from PETSc
+                pc_gamg_type agg; // smoothed aggregation
+                pc_gamg_agg_nsmooths "1"; // number of prolongator smoothing steps in smoothed aggregation (not smoother iterations)
+                pc_gamg_reuse_interpolation true;
+                pc_gamg_square_graph "10"; //square graph on all levels
+                pc_gamg_threshold "0.0"; // increase to 0.05 if coarse grids get larger
+                pc_gamg_threshold_scale "0.5"; // thresholding on coarse grids
+
+                // smoother
+                mg_levels_ksp_max_it "1"; // number of smoothing steps (use 2 or 4 if problem is hard, i.e stretched grids)
+                mg_levels_ksp_type chebyshev;
+                mg_levels_esteig_ksp_type cg; // spectrum estimation via CG
+                mg_levels_ksp_chebyshev_esteig "0,0.05,0,1.1"; // target upper-part of the spectrum
+                mg_levels_pc_type jacobi;
+
+                // coarse solve
+                mg_coarse_pc_type redundant;
+                mg_coarse_redundant_pc_type lu;
+            }
+
+            caching
+            {
+                matrix
+                {
+                    update always;
+                }
+
+                preconditioner
+                {
+                    update always;
+                }
+            }
+        }
+
+        tolerance       1e-6;
+        relTol          0;
+    }
+}
+
+SIMPLE
+{
+    nNonOrthogonalCorrectors 1;
+}
+
+
+// ************************************************************************* //

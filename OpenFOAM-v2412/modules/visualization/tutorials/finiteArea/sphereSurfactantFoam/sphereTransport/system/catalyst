@@ -1,0 +1,25 @@
+// ParaView Catalyst function object for OpenFOAM (-*- C++ -*-)
+
+catalyst
+{
+    #includeEtc "caseDicts/insitu/catalyst/catalyst.cfg"
+
+    scripts
+    (
+        // "<etc>/caseDicts/insitu/catalyst/writeAll.py"
+        "<case>/showCs.py"
+    );
+
+    inputs
+    {
+        // channel = area
+        area
+        {
+            type    area;
+
+            fields  ( ".*" );
+        }
+    }
+}
+
+// ************************************************************************* //

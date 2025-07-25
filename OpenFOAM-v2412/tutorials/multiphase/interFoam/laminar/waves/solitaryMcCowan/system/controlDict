@@ -1,0 +1,139 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+application     interFoam;
+
+startFrom       latestTime;
+
+startTime       0;
+
+stopAt          endTime;
+
+endTime         7.0;
+
+deltaT          0.1;
+
+writeControl    adjustable;
+
+writeInterval   0.1;
+
+purgeWrite      0;
+
+writeFormat     ascii;
+
+writePrecision  6;
+
+writeCompression off;
+
+timeFormat      general;
+
+timePrecision   6;
+
+runTimeModifiable yes;
+
+adjustTimeStep  on;
+
+maxCo           0.4;
+
+maxAlphaCo      0.4;
+
+maxDeltaT       0.01;
+
+functions
+{
+    line
+    {
+        type            sets;
+        libs            (sampling);
+        enabled         true;
+        writeControl    onEnd;
+
+        interpolationScheme cellPoint;
+        setFormat       raw;
+        fixedLocations  false;
+
+        fields          (alpha.water);
+
+        sets
+        {
+            s1
+            {
+                type            uniform;
+                axis            distance;
+                start           ( 0.865 0.275 0.0 );
+                end             ( 0.865 0.275 0.5 );
+                nPoints         101;
+            }
+
+            s2
+            {
+                type            uniform;
+                axis            distance;
+                start           ( 1.065 0.275 0.0 );
+                end             ( 1.065 0.275 0.5 );
+                nPoints         101;
+            }
+
+            s3
+            {
+                type            uniform;
+                axis            distance;
+                start           ( 4.1 0.275 0.0 );
+                end             ( 4.1 0.275 0.5 );
+                nPoints         101;
+            }
+
+            s4
+            {
+                type            uniform;
+                axis            distance;
+                start           ( 4.645 0.275 0.0 );
+                end             ( 4.645 0.275 0.5 );
+                nPoints         101;
+            }
+
+            s5
+            {
+                type            uniform;
+                axis            distance;
+                start           ( 5.2 0.275 0.0 );
+                end             ( 5.2 0.275 0.5 );
+                nPoints         101;
+            }
+
+            s6
+            {
+                type            uniform;
+                axis            distance;
+                start           ( 5.85 0.275 0.0 );
+                end             ( 5.85 0.275 0.5 );
+                nPoints         101;
+            }
+
+            s7
+            {
+                type            uniform;
+                axis            distance;
+                start           ( 6.15 0.275 0.0 );
+                end             ( 6.15 0.275 0.5 );
+                nPoints         101;
+            }
+        }
+    }
+}
+
+
+// ************************************************************************* //

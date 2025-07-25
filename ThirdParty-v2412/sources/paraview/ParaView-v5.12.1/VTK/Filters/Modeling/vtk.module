@@ -1,0 +1,33 @@
+NAME
+  VTK::FiltersModeling
+LIBRARY_NAME
+  vtkFiltersModeling
+KIT
+  VTK::Filters
+GROUPS
+  StandAlone
+SPDX_LICENSE_IDENTIFIER
+  BSD-3-Clause
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
+DEPENDS
+  VTK::CommonExecutionModel
+  VTK::CommonMisc
+  VTK::FiltersGeneral
+PRIVATE_DEPENDS
+  VTK::CommonCore
+  VTK::CommonDataModel
+  VTK::CommonTransforms
+  VTK::FiltersCore
+  VTK::FiltersSources
+TEST_DEPENDS
+  VTK::CommonColor
+  VTK::CommonSystem
+  VTK::FiltersGeometry
+  VTK::FiltersSources
+  VTK::IOXML
+  VTK::IOLegacy
+  VTK::InteractionStyle
+  VTK::RenderingOpenGL2
+  VTK::RenderingFreeType
+  VTK::TestingRendering

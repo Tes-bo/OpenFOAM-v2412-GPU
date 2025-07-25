@@ -1,0 +1,34 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+# For post-processing
+runApplication -s dryrun PDRsetFields -dry-run
+
+restore0Dir
+
+runApplication PDRblockMesh
+
+runApplication PDRsetFields
+
+# Get location for ignition
+
+echo "Ignition point from constant/combustionProperties > system/ignitionPoint"
+echo "// Ignition point extracted from constant/combustionProperties" >| \
+    constant/ignitionPoint
+
+foamDictionary -entry ignitionSites \
+    constant/combustionProperties | \
+    sed -ne 's/^.*\(location *([^;]*\).*$/\1;/p' >> constant/ignitionPoint
+
+# Use constant/ignitionPoint for topoSet
+runApplication topoSet
+
+runApplication refineHexMesh ignition
+
+runApplication setFields
+
+runApplication $(getApplication)
+
+#------------------------------------------------------------------------------

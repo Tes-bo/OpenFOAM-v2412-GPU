@@ -1,0 +1,155 @@
+#-----------------------------------------------------------------------------
+
+# Require catalyst with working directory support support
+# paraview-5.6 and later
+if (("${ParaView_VERSION}" LESS 5) OR
+   (("${ParaView_VERSION_MAJOR}" EQUAL 5) AND ("${ParaView_VERSION_MINOR}" LESS 6)))
+    message(FATAL_ERROR " ParaView is too old - requires paraview-5.6 or newer")
+endif()
+
+#------------------------------------------------------------------------------
+unset(FOAM_USING_VTK_MPI)
+
+# Modules required by this project
+set(PROJECT_REQUIRED_MODULES
+    ParaView::PythonCatalyst
+    ParaView::RemotingCore
+)
+
+# Catalyst package (ParaView > 5.8)
+if (catalyst_FOUND)
+    set(PROJECT_REQUIRED_MODULES
+        ${PROJECT_REQUIRED_MODULES}
+        catalyst::catalyst
+    )
+endif()
+
+if (${OLDVTK_NO_MODULES})
+  # No modules for older VTK. Reuse for MPI handling
+  unset(PROJECT_REQUIRED_MODULES)
+
+  # MPI handling for older VTK
+  if (PARAVIEW_USE_MPI)
+    set(FOAM_USING_VTK_MPI TRUE)
+    set(PROJECT_REQUIRED_MODULES vtkParallelMPI)
+    include(vtkMPI)
+  endif()
+endif()
+
+if (TARGET VTK::ParallelMPI)
+  set(FOAM_USING_VTK_MPI TRUE)
+endif()
+
+message("Modules: ${PROJECT_REQUIRED_MODULES}")
+
+#-----------------------------------------------------------------------------
+
+# Build directly into library target. FOAM_MPI env for some versioning
+set(FOAM_TARGET_LIBDIR lib)
+
+if (FOAM_USING_VTK_MPI)
+  add_definitions(-DFOAM_USING_VTK_MPI)
+  if (DEFINED ENV{FOAM_MPI})
+    set(FOAM_TARGET_LIBDIR "lib/$ENV{FOAM_MPI}")
+  else()
+  endif()
+  message("Library target = ${FOAM_TARGET_LIBDIR} (building with VTK MPI)")
+else()
+  message(WARNING "==== Recommended to use ParaView Catalyst with MPI ====")
+endif()
+message("...")
+
+#-----------------------------------------------------------------------------
+
+link_directories(
+    ${FOAM_LIBBIN}
+    ${FOAM_LIBBIN}/dummy
+)
+
+include_directories(
+    ${LIB_SRC}/OpenFOAM/include
+    ${LIB_SRC}/OpenFOAM/lnInclude
+    ${LIB_SRC}/OSspecific/${WM_OSTYPE}/lnInclude
+    ${LIB_SRC}/finiteArea/lnInclude
+    ${LIB_SRC}/finiteVolume/lnInclude
+    ${LIB_SRC}/fileFormats/lnInclude
+    ${LIB_SRC}/conversion/lnInclude
+    ${LIB_SRC}/meshTools/lnInclude
+    ${LIB_SRC}/lagrangian/basic/lnInclude
+    ${LIB_SRC}/overset/lnInclude
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_BINARY_DIR}
+)
+
+
+file(GLOB SOURCE_FILES
+    catalystCoprocess.C
+    catalystTools.C
+    catalystInput.C
+    catalystFunctionObject.C
+
+    cloud/catalystCloud.C
+    cloud/foamVtkCloudAdaptor.C
+
+    areaMesh/catalystFaMesh.C
+    areaMesh/foamVtkFaMeshAdaptor.C
+    areaMesh/foamVtkFaMeshAdaptorGeom.C
+    areaMesh/foamVtkFaMeshAdaptorFields.C
+
+    volMesh/catalystFvMesh.C
+    volMesh/foamVtkFvMeshAdaptor.C
+    volMesh/foamVtkFvMeshAdaptorGeom.C
+    volMesh/foamVtkFvMeshAdaptorFields.C
+)
+
+set(OPENFOAM_LIBNAMES
+    OpenFOAM
+    Pstream
+    finiteArea
+    finiteVolume
+    fileFormats
+    meshTools
+    conversion
+    lagrangian
+    overset
+)
+
+add_library(
+    catalystFoam
+    SHARED
+    ${SOURCE_FILES}
+)
+
+set_target_properties(
+    catalystFoam
+    PROPERTIES
+    VERSION ${pv_version}
+    SOVERSION ${pv_api}
+)
+
+# Required VTK modules
+if (NOT ${OLDVTK_NO_MODULES})
+vtk_module_autoinit(
+  TARGETS catalystFoam
+  MODULES
+    ${PROJECT_REQUIRED_MODULES}
+  )
+endif()
+
+# message("PROJECT_REQUIRED_MODULES: ${PROJECT_REQUIRED_MODULES}")
+# message("OPENFOAM_LIBNAMES: ${OPENFOAM_LIBNAMES}")
+# message("VTK_LIBRARIES: ${VTK_LIBRARIES}")
+
+target_link_libraries(
+    catalystFoam
+  INTERFACE
+    VTK::PythonUsed
+  PRIVATE
+    ${PROJECT_REQUIRED_MODULES}
+    ${VTK_LIBRARIES}
+    ${OPENFOAM_LIBNAMES}
+)
+
+install(TARGETS catalystFoam DESTINATION ${FOAM_TARGET_LIBDIR})
+
+#-----------------------------------------------------------------------------

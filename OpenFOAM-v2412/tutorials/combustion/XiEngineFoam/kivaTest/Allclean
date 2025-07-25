@@ -1,0 +1,14 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/CleanFunctions      # Tutorial clean functions
+#------------------------------------------------------------------------------
+
+mv -f ./-180 temp180
+
+cleanCase0
+
+rm -f constant/polyMesh/boundary
+
+mv -f temp180 ./-180
+
+#------------------------------------------------------------------------------

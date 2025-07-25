@@ -1,0 +1,15 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+# Special version of blockMesh for i-j-k meshes
+runApplication PDRblockMesh
+
+restore0Dir
+
+runApplication topoSet
+
+runApplication PDRsetFields
+
+#------------------------------------------------------------------------------

@@ -1,0 +1,13 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+restore0Dir
+touch Test-reconDistFunc.foam
+
+runApplication blockMesh
+runApplication setAlphaField
+runApplication Test-reconstructedDistanceFunction
+
+#------------------------------------------------------------------------------

@@ -1,0 +1,32 @@
+sinclude $(GENERAL_RULES)/module-path-user
+
+/* Failsafe - user location */
+ifeq (,$(strip $(FOAM_MODULE_LIBBIN)))
+    FOAM_MODULE_LIBBIN = $(FOAM_USER_LIBBIN)
+endif
+
+EXE_INC = \
+    ${c++LESSWARN} \
+    -I$(LIB_SRC)/fileFormats/lnInclude \
+    -I$(LIB_SRC)/conversion/lnInclude \
+    -I$(LIB_SRC)/meshTools/lnInclude \
+    -I$(LIB_SRC)/finiteVolume/lnInclude \
+    -I$(LIB_SRC)/finiteArea/lnInclude \
+    -I$(LIB_SRC)/dynamicMesh/lnInclude \
+    -I$(LIB_SRC)/lagrangian/basic/lnInclude \
+    -I$(PARAVIEW_INC_DIR) \
+    -I$(PARAVIEW_INC_DIR)/vtkkwiml \
+    -I../../common \
+    -I../plugin/reader
+
+LIB_LIBS = \
+    -lfileFormats \
+    -lconversion \
+    -lmeshTools \
+    -lfiniteVolume \
+    -lfiniteArea \
+    -ldynamicMesh \
+    -lgenericPatchFields \
+    -llagrangian \
+    -L$(FOAM_MODULE_LIBBIN) -lvtkPVFoamCommon-pv${PARAVIEW_API} \
+    $(GLIBS)

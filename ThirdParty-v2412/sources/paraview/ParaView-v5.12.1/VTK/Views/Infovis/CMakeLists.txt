@@ -1,0 +1,33 @@
+set(classes
+  vtkApplyColors
+  vtkApplyIcons
+  vtkDendrogramItem
+  vtkGraphItem
+  vtkGraphLayoutView
+  vtkHeatmapItem
+  vtkHierarchicalGraphPipeline
+  vtkHierarchicalGraphView
+  vtkIcicleView
+  vtkInteractorStyleAreaSelectHover
+  vtkInteractorStyleTreeMapHover
+  vtkParallelCoordinatesHistogramRepresentation
+  vtkParallelCoordinatesRepresentation
+  vtkParallelCoordinatesView
+  vtkRenderedGraphRepresentation
+  vtkRenderedHierarchyRepresentation
+  vtkRenderedRepresentation
+  vtkRenderedSurfaceRepresentation
+  vtkRenderedTreeAreaRepresentation
+  vtkRenderView
+  vtkSCurveSpline
+  vtkTanglegramItem
+  vtkTreeAreaView
+  vtkTreeHeatmapItem
+  vtkTreeMapView
+  vtkTreeRingView
+  vtkViewUpdater
+  )
+
+vtk_module_add_module(VTK::ViewsInfovis
+  CLASSES ${classes})
+vtk_add_test_mangling(VTK::ViewsInfovis)

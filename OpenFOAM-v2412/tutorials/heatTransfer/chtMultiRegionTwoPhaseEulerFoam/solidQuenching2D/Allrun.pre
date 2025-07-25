@@ -1,0 +1,19 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+runApplication blockMesh
+
+runApplication topoSet
+
+# Restore initial fields
+restore0Dir
+
+runApplication splitMeshRegions -cellZonesOnly -overwrite
+
+runApplication setFields -region water
+
+echo "End"
+
+#------------------------------------------------------------------------------

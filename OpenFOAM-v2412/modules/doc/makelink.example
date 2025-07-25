@@ -1,0 +1,11 @@
+#!/bin/sh
+cd "${0%/*}" || exit
+
+# Manually create doxygen links for module documentation
+
+for dir in cfmesh/meshLibrary
+do
+    [ -d "../$dir" ] && ln -svf "../$dir" "${dir##*/}"
+done
+
+#------------------------------------------------------------------------------

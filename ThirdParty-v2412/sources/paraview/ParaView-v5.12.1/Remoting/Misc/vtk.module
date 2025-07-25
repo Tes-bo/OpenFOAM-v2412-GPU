@@ -1,0 +1,21 @@
+NAME
+  ParaView::RemotingMisc
+LIBRARY_NAME
+  vtkRemotingMisc
+SPDX_LICENSE_IDENTIFIER
+  BSD-3-Clause
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Kitware Inc.
+KIT
+  ParaView::ServerManagerKit
+DEPENDS
+  ParaView::RemotingServerManager
+PRIVATE_DEPENDS
+  ParaView::VTKExtensionsExtraction
+  ParaView::VTKExtensionsMisc
+  ParaView::VTKExtensionsIOGeneral
+  ParaView::RemotingViews
+  VTK::pugixml
+  VTK::TestingRendering
+TEST_LABELS
+  ParaView

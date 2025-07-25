@@ -1,0 +1,131 @@
+#----------------------------------*-sh-*--------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2011-2016 OpenFOAM Foundation
+#     Copyright (C) 2016-2020 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# File
+#     etc/config.sh/aliases
+#     - sourced by OpenFOAM-*/etc/bashrc (or from the user's ~/.bashrc)
+#
+# Description
+#     Aliases for working with OpenFOAM.
+#
+#------------------------------------------------------------------------------
+
+# Change compiled version aliases
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+alias wmSet='. ${WM_PROJECT_DIR:?}/etc/bashrc'
+alias wmInt32='wmSet WM_LABEL_SIZE=32'
+alias wmInt64='wmSet WM_LABEL_SIZE=64'
+alias wmDP='wmSet WM_PRECISION_OPTION=DP'
+alias wmSP='wmSet WM_PRECISION_OPTION=SP'
+alias wmSPDP='wmSet WM_PRECISION_OPTION=SPDP'
+
+# Clear env
+alias wmUnset='. ${WM_PROJECT_DIR:?}/etc/config.sh/unset'
+
+# Change directory aliases
+# ~~~~~~~~~~~~~~~~~~~~~~~~
+alias foam='cd ${WM_PROJECT_DIR:?}'
+
+alias src='cd ${WM_PROJECT_DIR:?}/src'
+alias lib='cd ${FOAM_LIBBIN:?}'
+alias app='cd ${WM_PROJECT_DIR:?}/applications'
+alias sol='cd ${WM_PROJECT_DIR:?}/applications/solvers'
+alias util='cd ${WM_PROJECT_DIR:?}/applications/utilities'
+alias tut='cd ${FOAM_TUTORIALS:-${WM_PROJECT_DIR:?}/tutorials}'
+alias run='cd ${FOAM_RUN:-${WM_PROJECT_USER_DIR:?}/run}'
+
+alias ufoam='cd ${WM_PROJECT_USER_DIR:?}'
+alias uapp='cd ${WM_PROJECT_USER_DIR:?}/applications'
+alias usol='cd ${WM_PROJECT_USER_DIR:?}/applications/solvers'
+alias uutil='cd ${WM_PROJECT_USER_DIR:?}/applications/utilities'
+
+
+# Refresh the environment
+# ~~~~~~~~~~~~~~~~~~~~~~~
+unset -f wmRefresh 2>/dev/null
+wmRefresh()
+{
+    local projectDir="$WM_PROJECT_DIR"
+    local foamSettings="$FOAM_SETTINGS"
+    . "$projectDir/etc/config.sh/unset"  2>/dev/null
+    . "$projectDir/etc/bashrc" "$foamSettings"
+}
+
+
+# Query the current OpenFOAM version
+# or change to another version (if installed in a parallel directory)
+unset -f foamVersion 2>/dev/null
+foamVersion()
+{
+    if [ "$#" -gt 0 ] && [ -d "$WM_PROJECT_DIR" ]
+    then
+        local prefixDir="${WM_PROJECT_DIR%/*}"  # Parent directory
+        local ver="$1"
+        shift
+
+        if [ -f "$prefixDir/OpenFOAM-$ver/etc/bashrc" ]
+        then
+            . "$WM_PROJECT_DIR/etc/config.sh/unset"   2>/dev/null
+            . "$prefixDir/OpenFOAM-$ver/etc/bashrc"
+            echo "Using OpenFOAM-$WM_PROJECT_VERSION" 1>&2
+        else
+            echo "No OpenFOAM-$ver available in $prefixDir" 1>&2
+            echo "Using OpenFOAM-$WM_PROJECT_VERSION" 1>&2
+            return 1
+        fi
+    else
+        # Treat as query. Report current version
+        echo "OpenFOAM-$WM_PROJECT_VERSION" 1>&2
+    fi
+}
+
+
+# Change ParaView version
+# ~~~~~~~~~~~~~~~~~~~~~~~
+# pass in first value directly (eg, 5.4.1) and transform to
+# ParaView_VERSION=...
+# Any additional arguments must be fully specified and start with "ParaView".
+# Eg,
+# ParaView_QT=...
+unset -f foamPV 2>/dev/null
+foamPV()
+{
+    . "$WM_PROJECT_DIR/etc/config.sh/paraview" "${@+ParaView_VERSION=$@}"
+    # If not already reported
+    if [ -z "$FOAM_VERBOSE" ]
+    then
+        echo "paraview=${ParaView_DIR##*/}" 1>&2
+    fi
+}
+
+
+# OpenFOAM working directory with basic env replacements
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~
+unset -f foamPwd 2>/dev/null
+foamPwd()
+{
+    if [ -n "$WM_PROJECT_DIR" ]
+    then
+        echo "$PWD/" | sed \
+        -e "s#^${FOAM_RUN}/#\$FOAM_RUN/#" \
+        -e "s#^${WM_PROJECT_DIR}/#\$WM_PROJECT_DIR/#" \
+        -e "s#^${WM_PROJECT_USER_DIR}/#\$WM_PROJECT_USER_DIR/#" \
+        -e "s#^${HOME}/#~/#" \
+        ;
+    else
+        echo "$PWD/" | sed -e "s#^${HOME}/#~/#";
+    fi
+}
+
+
+#------------------------------------------------------------------------------

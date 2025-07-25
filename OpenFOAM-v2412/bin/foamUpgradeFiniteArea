@@ -1,0 +1,322 @@
+#!/bin/bash
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2023-2024 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     foamUpgradeFiniteArea
+#
+# Description
+#     Relocate finite-area files to new sub-directory locations
+#
+#------------------------------------------------------------------------------
+printHelp() {
+    cat <<USAGE
+
+Usage: ${0##*/} [OPTION]
+options:
+  -case=DIR         Specify starting directory, default is cwd
+  -dry-run | -n     Test without performing actions
+  -verbose | -v     Additional verbosity
+  -force            (currently ignored)
+  -link-back        Link back from new finite-area/ to old locations
+  -no-mesh          Do not move system/faMeshDefinition
+  -git              Use 'git mv' when making changes
+  -help             Print help and exit
+
+Relocate finite-area files to new sub-directory locations
+
+Equivalent options:
+  | -case=DIR  | -case DIR |
+
+USAGE
+   exit 0  # A clean exit
+}
+
+# Report error and exit
+die()
+{
+    exec 1>&2
+    echo
+    echo "Error encountered:"
+    while [ "$#" -ge 1 ]; do echo "    $1"; shift; done
+    echo
+    echo "See '${0##*/} -help' for usage"
+    echo
+    exit 1
+}
+
+#------------------------------------------------------------------------------
+
+# Parse options
+unset caseDir optDryRun optGit optVerbose optLink optMeshDef hadError
+
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    (- | --)
+        shift
+        break   # Stop option parsing
+        ;;
+    (-h | -help*) printHelp ;;
+
+    (-n | -dry-run)  optDryRun="(dry-run) " ;;
+    (-v | -verbose)  optVerbose=true ;;
+    (-f | -force)    echo "Ignored option: ${1%%=*}" 1>&2 ;;
+    (-link-back)     optLink=back ;;
+#    (-link-only)     optLink=forward ;;
+    (-no-mesh)       optMeshDef=false ;;
+    (-git)           optGit=true ;;
+
+    (-case=*)
+        caseDir="${1#*=}"
+        ;;
+    (-case)
+        caseDir="$2"
+        [ "$#" -ge 2 ] || die "'$1' option requires an argument"
+        shift
+        ;;
+
+    (-*) die "unknown option: $1" ;;
+    (*)  die "unknown argument: $1" ;;
+
+    esac
+    shift
+done
+
+if [ -n "$caseDir" ]
+then
+    cd "$caseDir" 2>/dev/null || {
+        echo "${0##*/}: No such directory $caseDir" 1>&2
+        exit 2
+    }
+fi
+
+#------------------------------------------------------------------------------
+
+# Proper umask
+umask 022
+
+# The commands
+copy_cmd="cp -a${optVerbose:+ -v}"
+move_cmd="mv${optVerbose:+ -v}"
+link_cmd="ln -sf${optVerbose:+ -v}"
+mkdir_cmd="mkdir -p"
+
+if [ -n "$optDryRun" ]
+then
+    if [ -n "$optVerbose" ]
+    then
+        copy_cmd="echo cp -a"
+        move_cmd="echo mv"
+        link_cmd="echo ln -sf"
+        mkdir_cmd="echo mkdir -p"
+    else
+        copy_cmd=true
+        move_cmd=true
+        link_cmd=true
+        mkdir_cmd=true
+    fi
+elif [ -n "$optGit" ]
+then
+    move_cmd="git mv"
+    link_cmd="echo no symlink for git:"
+fi
+
+regionDir="finite-area"
+
+#------------------------------------------------------------------------------
+# Various script parts
+#
+# awk : scan file for FoamFile { ... class NAME; }
+
+read -d '' getClass_awk << 'AWK_CONTENT'
+BEGIN { state = 0 }  # 0=begin, 1=header, 2=done
+
+/FoamFile/ { if (!state) { state = 1; next; } exit; }
+
+# FoamFile begin contents
+/\{/ { if (state == 1) state = 2; next; }
+
+# FoamFile end contents
+/\}/ { if (state == 2) exit; next; }
+
+/^[ ]*class[ ]/ {
+    if (state == 2)
+    {
+        sub("^[ ]*class[ ]+", "")
+        sub("[ ;]*$", "")
+        print
+        exit
+    }
+    next
+}
+AWK_CONTENT
+
+
+# Check for FoamFile and return extracted 'class'
+getFoamFile_class()
+{
+    local file="$1"
+    local class
+
+    if grep -q FoamFile "$file" 2>/dev/null
+    then
+        # class="$(foamDictionary -disableFunctionEntries -entry FoamFile/class -value "$file" 2> stderr)"
+        class="$(awk -- "$getClass_awk" "$file")"
+    fi
+    echo "$class"
+}
+
+
+# Check if class corresponds to an finite-area field
+# eg, areaScalarField, ... edgeVectorField
+isAreaFieldClass()
+{
+    case "$1" in
+    (area*Field | edge*Field) return 0 ;;
+    esac
+
+    return 1
+}
+
+
+#------------------------------------------------------------------------------
+
+#Debug# getFoamFile_class "system/faSchemes"
+
+#------------------------------------------------------------------------------
+
+# Link back from the local finite-area/ directory to the current directory
+# variables
+#   - regionDir = "finite-area"
+#
+performLinkBack()
+{
+    local file
+
+    if [ -d "$regionDir" ]
+    then
+        find "$regionDir" -maxdepth 1 -type f 2>/dev/null | while read file
+        do
+            file="${file#*/}"
+
+            if [ -f "$regionDir/$file" ] && [ ! -f "$file" ]
+            then
+                echo "${optDryRun}  ln -s $regionDir/$file $file" 1>&2
+                $link_cmd "$regionDir/$file" "$file"
+            fi
+        done
+    fi
+}
+
+
+# Move from current directory to local finite-area/ directory
+# variables
+#   - regionDir = "finite-area"
+#
+performMove()
+{
+    local file="$1"
+
+    if [ -f "$regionDir/$file" ]
+    then
+        echo "${optDryRun}  already: $regionDir/$file" 1>&2
+    elif [ -f "$file" ]
+    then
+        $mkdir_cmd "$regionDir"
+        echo "${optDryRun}  mv $file -> $regionDir/" 1>&2
+        $move_cmd "$file" "$regionDir/$file"
+    elif [ -n "$file" ]
+    then
+        echo "${optDryRun}  no $file" 1>&2
+    fi
+}
+
+
+#------------------------------------------------------------------------------
+
+# system
+# ----
+if [ -d system ]
+then
+(
+    cd system || exit
+    currDir="system"
+
+    echo "${optDryRun}Examining files in $currDir/" 1>&2
+
+    performMove faSchemes
+    performMove faSolution
+
+    if [ "$optMeshDef" = false ]
+    then
+        echo "${optDryRun}  ignore: faMeshDefinition" 1>&2
+    else
+        performMove faMeshDefinition
+    fi
+
+    if [ -d "$regionDir" ] && [ "$optLink" = back ]
+    then
+        performLinkBack
+    fi
+)
+else
+    echo "${optDryRun}No system/ directory..." 1>&2
+fi
+
+
+#------------------------------------------------------------------------------
+
+# time dirs (initial conditions)
+# ----
+
+for timeDir in 0 0.orig
+do
+    if [ -d "$timeDir" ]
+    then
+    (
+        cd "$timeDir" || exit
+        currDir="$timeDir"
+
+        echo "${optDryRun}Examining $currDir/" 1>&2
+
+        find . -maxdepth 1 -type f | while read file
+        do
+            file="${file#*/}"
+
+            case "$file" in
+            (*.gz)
+                echo "${optDryRun}  ignoring compressed file: $file" 1>&2
+                continue
+                ;;
+            esac
+
+            className="$(getFoamFile_class "$file")"
+
+            if isAreaFieldClass "$className"
+            then
+                performMove "$file"
+            fi
+        done
+
+        if [ -d "$regionDir" ] && [ "$optLink" = back ]
+        then
+            performLinkBack
+        fi
+    )
+    else
+        echo "${optDryRun}No $timeDir/ directory..." 1>&2
+    fi
+done
+
+
+#------------------------------------------------------------------------------

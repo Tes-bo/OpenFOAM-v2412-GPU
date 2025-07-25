@@ -1,0 +1,359 @@
+#!/bin/bash
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2018 OpenFOAM Foundation
+#     Copyright (C) 2019-2021 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     foamGetDict
+#
+# Description
+#     Find an OpenFOAM dictionary file from OpenFOAM/etc/caseDicts/
+#     or {user,site} locations and copy it into the case directory.
+#
+# Environment
+#     FOAM_CONFIG_ETC
+#     WM_PROJECT_DIR
+#     WM_PROJECT_SITE
+#
+#------------------------------------------------------------------------------
+printHelp() {
+    cat<<USAGE
+
+Usage: ${0##*/} [OPTIONS] <file>
+options:
+  -case <dir>       Alternative case directory, default is the cwd
+  -ext  <ext>       File extension
+  -cfg              Same as '-ext cfg' for '.cfg' files
+  -f | -force       Force overwrite of existing files
+  -no-ext           Files without extension
+  -target <dir>     Target directory (default: system, or auto-detected)
+  -with-api=NUM     Alternative api value for searching
+  -help             Display short help and exit
+
+Find an OpenFOAM dictionary file from etc/caseDicts/ or {user,site} locations
+and copy it into the case directory. For example,
+
+    foamGetDict decomposeParDict
+    foamGetDict extrudeMeshDict
+    foamGetDict createPatchDict
+    foamGetDict surfaces
+
+USAGE
+    exit 0  # A clean exit
+}
+
+
+# Report error and exit
+die()
+{
+    exec 1>&2
+    echo
+    echo "Error encountered:"
+    while [ "$#" -ge 1 ]; do echo "    $1"; shift; done
+    echo
+    echo "See '${0##*/} -help' for usage"
+    echo
+    exit 1
+}
+
+
+#-------------------------------------------------------------------------------
+projectDir="$WM_PROJECT_DIR"                        # Project dir
+unset projectApi
+
+#-------------------------------------------------------------------------------
+
+searchExt="<any>"
+unset targetDir optForce
+
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    -h | -help*)
+        printHelp
+        ;;
+    -case)
+        [ "$#" -ge 2 ] || die "'$1' option requires an argument"
+        cd "$2" 2>/dev/null || die "directory does not exist: '$2'"
+        shift
+        ;;
+    -with-api=*)
+        projectApi="${1#*=}"
+        ;;
+    -ext)
+        [ "$#" -ge 2 ] || die "'$1' option requires an argument"
+        searchExt="$2"
+        shift
+        ;;
+    -no-ext)
+        unset searchExt
+        ;;
+    -cfg)
+        searchExt="cfg"
+        ;;
+    -f | -force)
+        optForce=true
+        ;;
+    -target)
+        [ "$#" -ge 2 ] || die "'$1' option requires an argument"
+        targetDir="$2"
+        shift
+        ;;
+    -target=*)
+        targetDir="${1#*=}"
+        ;;
+    --)
+        shift
+        break    # Stop here
+        ;;
+    -*)
+        die "invalid option '$1'"
+        ;;
+    *)
+        break
+        ;;
+    esac
+    shift
+done
+
+[ "$#" -eq 1 ] || die "Incorrect number of arguments"
+
+filePrefix="$1"
+
+# The target (time-dir) directory as one of (. | constant | system | 0)
+if [ -z "$targetDir" ]
+then
+    targetDir="system"
+
+    case "$filePrefix" in
+        All*)
+            targetDir="."
+            ;;
+        *Properties | *Cloud)
+            targetDir="constant"
+            ;;
+        s)
+           targetDir="0"
+           ;;
+    esac
+fi
+
+
+# The places to be searched.
+# Like foamEtcFile, but "etc/caseDicts/" for the projectDir
+
+searchDirs="\
+$("$projectDir"/bin/foamEtcFile -list-test -mode=ug ${projectApi:+-with-api=$projectApi} 2>/dev/null) \
+$("$projectDir"/bin/foamEtcFile -list -mode=o caseDicts 2>/dev/null)";
+
+## echo "Using <$searchDirs>" 1>&2
+
+# ------------------------------------------------------------------------------
+
+# Search directories (searchDirs) for file
+# $1 = file-name
+#
+# Globals: searchDirs
+findFilesInDirs()
+{
+    local fileName="$1"
+    local dir
+
+    for dir in $searchDirs
+    do
+        if [ -d "$dir" ]
+        then
+            find "$dir" -name "$fileName" -type f | sort
+        fi
+    done
+}
+
+
+# Search directories (searchDirs) for file-prefix with extension (searchExt)
+#
+# $1 = file-prefix
+#
+# Globals: searchDirs, searchExt
+findFiles()
+{
+    local prefix="$1"
+
+    if [ -z "$searchExt" ]
+    then
+        # No extension
+        findFilesInDirs "$prefix"
+        if [[ "$prefix" == topoSet* ]]
+        then
+            findFilesInDirs "topoSetSourcesDict"
+        fi
+    elif [ "$searchExt" = "<any>" ]
+    then
+        # No extension or any extension
+        findFilesInDirs "$prefix"
+        findFilesInDirs "${prefix}.*"
+        if [[ "$prefix" == topoSet* ]]
+        then
+            findFilesInDirs "topoSetSourcesDict"
+        fi
+    else
+        # With specific extension
+        findFilesInDirs "${prefix}.$searchExt"
+    fi
+}
+
+
+# Slightly dressed up version of 'cp -v' that does not clobber existing files
+copyFile()
+{
+    local targetFile="$2"
+
+    [ -d "$2" ] && targetFile="$targetFile/${1##*/}"
+
+    echo 1>&2
+    if [ -f "$targetFile" ]
+    then
+        if [ "$optForce" = true ]
+        then
+            echo "Overwrite $1 to $2" 1>&2
+            \cp "$1" "$2"
+        else
+            echo "Skip copy $1 to $2" 1>&2
+        fi
+    else
+        echo "Copying $1 to $2" 1>&2
+        \cp "$1" "$2"
+    fi
+    echo 1>&2
+}
+
+
+# Priority locations for suggestion
+priorityLocations="\
+   caseDicts/postProcessing/ \
+   caseDicts/preProcessing/ \
+   caseDicts/general/ \
+   caseDicts/mesh/ \
+   caseDicts/surface/ \
+   caseDicts/solvers/"
+
+# Create an indexed list of suggestions
+listArgs()
+{
+    local arg loc n suggest
+    local i=0 pri=100
+
+    for arg in $1
+    do
+        i=$((i + 1))
+        echo "${i}) $arg" >&2
+
+        n=0
+        for loc in $priorityLocations
+        do
+            n=$((n + 1))
+            if [ "$n" -lt "$pri" ] && echo "$arg" | grep -q "$loc"
+            then
+                suggest="$i"
+                pri="$n"
+            fi
+        done
+    done
+
+    echo "$suggest"
+}
+
+
+# Select specified file by index from list
+selectFile()
+{
+    local files="$1"
+    local index="$2"
+    echo "$files" | tr -s '\n' ' ' | awk -v n="$index" '{print $n}'
+}
+
+
+# ------------------------------------------------------------------------------
+
+[ -s "system/controlDict" ] || \
+    echo "Warning: no OpenFOAM system/controlDict file" 1>&2
+
+[ -d "$targetDir" ] || \
+    die "target directory does not exist: '$targetDir'"
+
+# Begin search
+filesFound="$(findFiles "$filePrefix")"
+nFilesFound=0
+
+if [ -z "$filesFound" ]
+then
+    message="No file $filePrefix found"
+
+    if [ "$searchExt" = "<any>" ]
+    then
+        message="$message with/without file extensions"
+    elif [ -n "$searchExt" ]
+    then
+        message="$message with file extension '$searchExt'"
+    fi
+
+    die "$message"
+else
+    nFilesFound="$(echo "$filesFound" | xargs -n 1 | wc -l)"
+fi
+
+# Exactly one file found - we are done
+if [ "$nFilesFound" -eq 1 ]
+then
+    copyFile "$filesFound" "$targetDir"
+    exit 0
+fi
+
+# ------------------------------------------------------------------------------
+
+# Multiple files found - offer simple selection
+
+echo "Multiple files with \"$filePrefix\" prefix found:"
+echo
+
+suggest="$(listArgs "$filesFound")"
+
+if echo "$filesFound" | grep -q "annotated/"
+then
+    echo
+    echo "** Note: it may be easier not to use 'annotated/' files"
+fi
+
+echo
+echo "Choose file number [1-$nFilesFound]${suggest:+ (suggest $suggest)} :"
+read -r nFile
+
+# Nothing specified? Use default suggestion
+: "${nFile:=$suggest}"
+
+if [ -z "$nFile" ]
+then
+    echo "Nothing specify - re-run and enter a file number" 1>&2
+    exit 1
+elif [ "$nFile" -lt 1 ] || [ "$nFile" -gt "$nFilesFound" ]
+then
+    echo "\"$nFile\" is not a number between 1 and $nFilesFound" 1>&2
+    exit 1
+fi
+
+# Appears to have been successful. Select the file from the list
+
+file="$(selectFile "$filesFound" "$nFile")"
+
+copyFile "$file" "$targetDir"
+
+
+#------------------------------------------------------------------------------

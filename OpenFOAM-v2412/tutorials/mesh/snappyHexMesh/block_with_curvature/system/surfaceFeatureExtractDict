@@ -1,0 +1,60 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      surfaceFeatureExtractDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+//- temp dictionary with common settings
+_surfaceExtract
+{
+    // Extract raw features (none | extractFromFile | extractFromSurface)
+    extractionMethod    extractFromSurface;
+
+    // Mark edges whose adjacent surface normals are at an angle less
+    // than includedAngle as features
+    // - 0  : selects no edges
+    // - 180: selects all edges
+    includedAngle       120;
+
+    // Output surface curvature
+    curvature true;
+
+    // Do not mark region edges
+    geometricTestOnly   yes;
+
+    // Generate additional intersection features (none | self | region)
+    intersectionMethod  none;
+
+    // Tolerance for surface intersections
+    // tolerance           1e-3;
+
+// Output options:
+
+    // Write features to obj format for postprocessing
+    writeObj            yes;
+
+    // Write closeness/curvature/proximity fields as VTK for postprocessing
+    writeVTK            yes;
+}
+
+
+curvature-box.stl
+{
+    $_surfaceExtract;
+}
+
+
+//- Remove temp from dictionary so it doesn't think it is a surface
+#remove _surfaceExtract
+
+// ************************************************************************* //

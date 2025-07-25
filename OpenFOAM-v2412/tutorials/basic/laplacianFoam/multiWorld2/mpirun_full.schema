@@ -1,0 +1,5 @@
+-np 1 ./run_world.sh top
+-np 1 ./run_world.sh slab1
+-np 1 ./run_world.sh slab2
+-np 1 ./run_world.sh slab3
+-np 1 ./run_world.sh slab4

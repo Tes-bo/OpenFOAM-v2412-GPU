@@ -1,0 +1,26 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+./Allrun.pre
+
+runApplication decomposePar
+
+runParallel $(getApplication)
+
+runApplication reconstructPar
+
+
+if notTest "$@"
+then
+    # postprocessing
+    tail -n +4 postProcessing/probes/0/U  | \
+        tr -s " " | tr -d '(' | cut -d " " -f2-3 > \
+        postProcessing/probes/0/Unp
+
+    ( cd ../../validation/WatersKing && wmake )
+    runApplication WatersKing
+fi
+
+#------------------------------------------------------------------------------

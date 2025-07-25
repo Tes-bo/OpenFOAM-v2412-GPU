@@ -1,0 +1,121 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      dictionary;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// Test expansion with negative signs
+
+value   0.5;
+
+radius  3;
+
+negValue  -$value;
+
+select1 10;
+
+sqrt05  #eval{ sqrt(0.5) };
+
+vector  ( -10 ${{-$sqrt05}} $value );
+
+corner   ( ${{ -$radius*sqrt(0.5) }} 1 0 );
+
+corner2  ${{
+    vector(-${radius}*sqrt(0.5), ${radius}*sqrt(0.5), 2)
+}};
+
+
+// Just a future idea (2021-05-14) - does not yet work!
+#if 0
+corner3 #eval #{
+    variables ( "outer = $radius*sqrt(0.5)" );
+    vector(-outer, outer, 2)
+#};
+#endif
+
+
+// The brace-bracket #eval with multi-lines failed for v2012 and earlier
+
+corner2b  #eval
+{
+    vector(-${radius}*sqrt(0.5), $radius*sqrt(0.5), 2)
+};
+
+corner2c  #eval
+${{
+    vector(-${radius}*sqrt(0.5), $radius*sqrt(0.5), 2)
+}};
+
+
+longSlurp #eval
+{
+    // This is actually a very simple expression
+    1 + 2
+// With a long comment that is stripped out
+// during reading anyhow.
+};
+
+
+longVariable
+${{
+    // This is actually a very simple expression in variable syntax
+    1 + 2
+/*
+// With a long comment that is stripped out
+// during reading anyhow.
+*/
+}};
+
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// Geometric parameters
+rxo 2;
+ryo 3;
+rzo 4;
+
+// Geometric parameters
+outerRadius 1;
+innerRatio  0.75;
+
+geometry
+{
+    sphere
+    {
+        type    sphere;
+        origin  (0 0 0);
+        radius  ($rxo $ryo $rzo);
+    }
+
+    innerSphere
+    {
+        $sphere
+
+        // Different solutions to the same problem
+        radius_v1
+        (
+            ${{ $innerRatio*$rxo }}
+            ${{ $innerRatio*$ryo }}
+            ${{ $innerRatio*$rzo }}
+        );
+
+        radius_v2  #eval{ $innerRatio*vector($rxo, $ryo, $rzo) };
+        radius_v3  ${{ $innerRatio*$[(vector) ../sphere/radius] }};
+
+        // Inplace overwrite the same value
+        radius     ${{ $innerRatio*$[(vector) radius] }};
+    }
+}
+
+
+// ************************************************************************* //

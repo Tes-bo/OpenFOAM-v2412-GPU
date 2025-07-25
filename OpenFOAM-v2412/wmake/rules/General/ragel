@@ -1,0 +1,5 @@
+SUFFIXES += .rl
+
+rltoo = $E $(call QUIET_MESSAGE,ragel,$(<F)) \
+    ragel -G2 -o$(@D)/$(<F).cc $< && \
+    $(WM_SCHEDULER) $(CC) $(c++FLAGS) $(c++LESSWARN) -c $(@D)/$(<F).cc -o $@

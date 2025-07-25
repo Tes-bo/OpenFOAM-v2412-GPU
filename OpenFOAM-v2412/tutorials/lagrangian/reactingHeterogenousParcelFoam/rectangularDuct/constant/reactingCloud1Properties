@@ -1,0 +1,182 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      reactingCloud1Properties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+solution
+{
+    active          yes;
+    coupled         true;
+    transient       yes;
+
+    maxCo           0.3;
+    cellValueSourceCorrection off;
+
+    sourceTerms
+    {
+        resetOnStartup  false;
+        schemes
+        {
+            rho             explicit 1;
+            U               explicit 1;
+            Yi              explicit 1;
+            h               explicit 1;
+            radiation       explicit 1;
+        }
+    }
+
+    interpolationSchemes
+    {
+        rho             cell;
+        U               cellPoint;
+        thermo:mu       cell;
+        T               cell;
+        Cp              cell;
+        kappa           cell;
+        p               cell;
+    }
+
+    integrationSchemes
+    {
+        U               Euler;
+        T               analytical;
+    }
+}
+
+
+constantProperties
+{
+    rho0            5100;//Particle density (overwritten by composition)
+    T0              303; //Initial particle temperature
+    Cp0             850; //Initial particle Cp (overwritten by composition)
+
+    hRetentionCoeff 0;
+    volumeUpdateMethod  constantVolume;
+}
+
+
+subModels
+{
+    particleForces
+    {}
+
+    injectionModels
+    {
+        // Mass flow rate : massTotal/duration
+        // Volume flow rate : Mass flow rate/particleRho
+        // parcelsPerSecond : Volume flow rate/particleVol
+        model1
+        {
+            type            patchInjection;
+            patch           inlet;
+            parcelBasisType mass;
+            U0              (0.1 0 0);
+            massTotal        30;
+            parcelsPerSecond 8442;
+            SOI              0;
+            duration         1;
+            flowRateProfile  constant 1;
+
+            // As we want 1 particle per parcel, this avoid
+            // accumulated vol if nParticles is below 1
+            minParticlesPerParcel   0.7;
+
+            sizeDistribution
+            {
+                type        fixedValue;
+                fixedValueDistribution
+                {
+                    value       0.011;
+                }
+            }
+        }
+    }
+
+    dispersionModel gradientDispersionRAS;
+
+    patchInteractionModel standardWallInteraction;
+
+    heatTransferModel RanzMarshall;
+
+    compositionModel singleMixtureFraction;
+
+    phaseChangeModel none;
+
+    stochasticCollisionModel none;
+
+    surfaceFilmModel none;
+
+    radiation       off;
+
+    standardWallInteractionCoeffs
+    {
+        type            rebound;
+    }
+
+    RanzMarshallCoeffs
+    {
+        BirdCorrection  off;
+    }
+
+    heterogeneousReactingModel  MUCSheterogeneousRate;
+
+    MUCSheterogeneousRateCoeffs
+    {
+        D12         2.724e-4; //m2/s
+        epsilon     0.41;
+        gamma       3.07;
+        sigma       1;
+        E           1;
+        A           3.14e4;   // m/s
+        Aeff        0.7;
+        Ea          1.651e5;  // J/kmol
+        O2          O2;
+
+        // nuFuel*Fe3O4 + nuOx*O2 => nuProd*Fe2O3
+        nuFuel      2.0;
+        nuProd      3.0;
+        nuOx        0.5;
+        fuel        Fe3O4;
+        product     Fe2O3;
+    }
+
+    singleMixtureFractionCoeffs
+    {
+        phases
+        (
+            gas
+            {
+            }
+            liquid
+            {
+            }
+            solid
+            {
+                Fe3O4 1;
+                Fe2O3 0;
+            }
+        );
+        YGasTot0        0;
+        YLiquidTot0     0;
+        YSolidTot0      1;
+    }
+}
+
+
+cloudFunctions
+{
+}
+
+
+// ************************************************************************* //

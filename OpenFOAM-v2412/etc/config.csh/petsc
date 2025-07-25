@@ -1,0 +1,46 @@
+#----------------------------------*-sh-*--------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2018-2024 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# File
+#     etc/config.csh/petsc
+#     [optional/experimental: not sourced by OpenFOAM-*/etc/cshrc]
+#
+# Description
+#     Setup for PETSC include/libraries (usually ThirdParty installation).
+#
+#     To disable its use:               petsc_version=petsc-none
+#     For system-wide installations:    petsc_version=petsc-system
+#
+#     For central installations not located under ThirdParty:
+#       1. use petsc-system
+#       2. and provide full path for PETSC_ARCH_PATH
+#
+# Note
+#     Changes made here MUST be made in the equivalent config.sh version too,
+#     since that is the one used in the build process.
+#------------------------------------------------------------------------------
+# USER EDITABLE PART: Changes made here may be lost with the next upgrade
+
+set petsc_version=petsc-3.21.2
+setenv PETSC_ARCH_PATH "$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER$WM_PRECISION_OPTION$WM_LABEL_OPTION/$petsc_version"
+
+# END OF (NORMAL) USER EDITABLE PART
+#------------------------------------------------------------------------------
+if ($?FOAM_VERBOSE && $?prompt) then
+    echo "Using petsc ($petsc_version)  ->  $PETSC_ARCH_PATH"
+endif
+
+_foamAddLibAuto $PETSC_ARCH_PATH
+
+unset petsc_version
+
+#------------------------------------------------------------------------------

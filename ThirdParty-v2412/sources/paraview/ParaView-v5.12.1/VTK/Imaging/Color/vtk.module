@@ -1,0 +1,24 @@
+NAME
+  VTK::ImagingColor
+LIBRARY_NAME
+  vtkImagingColor
+KIT
+  VTK::Imaging
+GROUPS
+  Imaging
+  StandAlone
+SPDX_LICENSE_IDENTIFIER
+  BSD-3-Clause
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
+DEPENDS
+  VTK::CommonExecutionModel
+  VTK::ImagingCore
+PRIVATE_DEPENDS
+  VTK::CommonCore
+  VTK::CommonDataModel
+  VTK::CommonSystem
+TEST_DEPENDS
+  VTK::IOImage
+  VTK::ImagingCore
+  VTK::TestingCore

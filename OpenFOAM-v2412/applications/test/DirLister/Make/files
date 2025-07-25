@@ -1,0 +1,4 @@
+Test-DirLister.cxx
+DirLister.cxx
+
+EXE = $(FOAM_USER_APPBIN)/Test-DirLister

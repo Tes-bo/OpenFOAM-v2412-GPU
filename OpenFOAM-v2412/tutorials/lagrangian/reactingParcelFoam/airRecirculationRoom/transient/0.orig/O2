@@ -1,0 +1,104 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    object      O2;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 0 0 0 0 0 0];
+
+internalField   uniform 0.21;
+
+boundaryField
+{
+    "(roof|floor|sideWall|humanBody)"
+    {
+        type            zeroGradient;
+    }
+
+    "(inlet|mouth)"
+    {
+        type            fixedValue;
+        value           $internalField;
+    }
+
+    mouth
+    {
+        type            fixedValue;
+        value           $internalField;
+    }
+
+    outlet
+    {
+        type            zeroGradient;
+    }
+
+    "(intake1|intake2|intake3|intake4)"
+    {
+        type            zeroGradient;
+    }
+
+    exhaust_maxX
+    {
+        type            outletMappedUniformInlet;
+        outlets
+        {
+            intake3
+            {
+                fraction    0.95;
+            }
+        }
+        value           $internalField;
+    }
+
+    exhaust_minX
+    {
+        type            outletMappedUniformInlet;
+        outlets
+        {
+            intake1
+            {
+                fraction    0.95;
+            }
+        }
+        value           $internalField;
+    }
+
+    exhaust_maxY
+    {
+        type            outletMappedUniformInlet;
+        outlets
+        {
+            intake4
+            {
+                fraction    0.95;
+            }
+        }
+        value           $internalField;
+    }
+
+    exhaust_minY
+    {
+        type            outletMappedUniformInlet;
+        outlets
+        {
+            intake2
+            {
+                fraction    0.95;
+            }
+        }
+        value           $internalField;
+    }
+}
+
+
+// ************************************************************************* //

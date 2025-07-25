@@ -1,0 +1,4 @@
+/* Install into FOAM_APPBIN to support 'fake' builds (to test packaging) */
+Test-dummyLib.cpp
+
+EXE = $(FOAM_APPBIN)/Test-dummyLib

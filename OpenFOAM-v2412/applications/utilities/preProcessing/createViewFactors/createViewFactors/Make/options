@@ -1,0 +1,10 @@
+EXE_INC = \
+    -I../viewFactorModels/lnInclude \
+    -I$(LIB_SRC)/finiteVolume/lnInclude
+
+EXE_LIBS = \
+    -lfileFormats \
+    -lsurfMesh \
+    -lmeshTools \
+    -lfiniteVolume \
+    -lviewFactorModels

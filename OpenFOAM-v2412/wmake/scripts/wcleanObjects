@@ -1,0 +1,174 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2017-2020 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     wmake/scripts/wcleanObjects
+#     Backend for "wclean -build", "wclean -platform"
+#
+# Usage
+#     wclean-build <option | platform> [.. <option | platform>]
+#
+# Description
+#     Deletes the specified 'build/' object files directories from the
+#     project top-level 'build/' directory $WM_PROJECT_DIR.
+#
+#     special platforms
+#     - 'all' removes all platforms.
+#     - 'compiler' corresponds to $WM_ARCH$WM_COMPILER.
+#     - 'current' corresponds to $WM_OPTIONS.
+#
+#     You must be in the project or the third-party top-level directory
+#     to run this script.
+#
+#     When called as wcleanPlatform, the target directory changes to
+#     'platforms/ and the 'all' target also cleans up lnInclude dirs and
+#     tutorials
+#
+#------------------------------------------------------------------------------
+targetDir=build   # Safe default - override based on script name
+
+case "${0##*/}" in
+(*[Pp]latform*)
+    targetDir=platforms
+    ;;
+esac
+
+usage() {
+    local extraText
+    if [ "$targetDir" = platforms ]
+    then
+        extraText=", lnInclude and clean tutorials"
+    fi
+
+    exec 1>&2
+    while [ "$#" -ge 1 ]; do echo "$1"; shift; done
+    cat<<USAGE
+
+Usage: ${0##*/} <option | platform> [.. <option | platform>]
+
+options:
+  -a | -all             Same as 'all'
+  -curr | -current      Use \$WM_OPTIONS ($WM_OPTIONS)
+  -comp | -compiler     Use \$WM_ARCH\$WM_COMPILER*  ($WM_ARCH$WM_COMPILER)
+  -compiler=NAME        Use \$WM_ARCH<NAME>*  ($WM_ARCH<NAME>*)
+  -help                 Print the usage
+
+Deletes specified $targetDir object file directories from project top-level:
+Project:   $WM_PROJECT_DIR
+Directory: $targetDir/
+
+special platforms:
+  all           Remove all platforms$extraText
+  compiler      $WM_ARCH$WM_COMPILER  (ie, \$WM_ARCH\$WM_COMPILER)
+  current       $WM_OPTIONS  (ie, \$WM_OPTIONS)
+
+You must be in the project or the third-party top-level directory
+to run this script.
+
+USAGE
+    exit 1
+}
+
+# Find -help anywhere
+for i
+do
+    case "$i" in (-h | -help*) usage ;; esac
+done
+
+#------------------------------------------------------------------------------
+# Run from OPENFOAM or THIRDPARTY top-level directory only
+wmake -check-dir -quiet "$WM_PROJECT_DIR"     2>/dev/null || \
+wmake -check-dir -quiet "$WM_THIRD_PARTY_DIR" 2>/dev/null || \
+{
+    cat<<ERROR
+${0##*/}: Error incorrect top-level directory
+
+  Not in Project:     $WM_PROJECT_DIR
+  Nor in ThirdParty:  $WM_THIRD_PARTY_DIR
+
+ERROR
+    exit 1
+}
+
+if [ "$#" -eq 0 ]
+then
+    usage "No platform specified to clean from $targetDir"
+else
+    echo "$# platform(s) to clean from $targetDir"
+    echo
+fi
+
+
+for name
+do
+    unset compiler
+
+    case "$name" in
+    -a | -all | all)
+        echo "all $targetDir/ ..."
+        rm -rf $targetDir
+        if [ "$targetDir" = platforms ]
+        then
+            wcleanLnIncludeAll .
+            [ -x tutorials/Allclean ] && tutorials/Allclean
+        fi
+        echo
+        break # Removed everything - can stop now
+        ;;
+    -curr | -current | current)
+        name="$WM_OPTIONS"
+        ;;
+    -comp | -compiler | compiler)
+        compiler="$WM_COMPILER"
+        unset name
+        ;;
+    -compiler=*)
+        compiler="${name#*=}"
+        unset name
+        ;;
+    esac
+
+    if [ -n "$compiler" ]
+    then
+        name="$WM_ARCH$compiler"
+
+        dirs=$(find $targetDir -maxdepth 1 -name "${name}*")
+        if [ -n "$dirs" ]
+        then
+            for name in $dirs
+            do
+                echo "    '$name'"
+                rm -rf "$name"
+            done
+            echo
+        else
+            echo "    '$name' - not built or already cleaned"
+            echo
+        fi
+    elif [ -n "$name" ]
+    then
+        if [ -d "$targetDir/$name" ]
+        then
+            echo "    '$name'"
+            rm -rf "$targetDir/$name"*
+            echo
+        else
+            echo "    '$name' - not built or already cleaned"
+            echo
+        fi
+    fi
+done
+
+exit 0 # clean exit
+
+#------------------------------------------------------------------------------

@@ -1,0 +1,73 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    object      T;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 0 0 1 0 0 0];
+
+internalField   uniform 300;
+
+boundaryField
+{
+    inlet
+    {
+        type            fixedValue;
+        value           $internalField;
+    }
+
+    outlet
+    {
+        type            inletOutlet;
+        inletValue      $internalField;
+    }
+
+    "(?i).*walls"
+    {
+        type            fixedValue;
+        value           uniform 350;
+
+        // For general testing purposes:
+        type            uniformFixedValue;
+
+        uniformValue
+        {
+            type        expression;
+
+            functions<scalar>
+            {
+                trigger
+                {
+                    type     functionObjectTrigger;
+                    triggers (2 4);
+                    defaultValue true;
+                }
+            }
+
+            variables
+            (
+                "Tcrit = 500"
+                "par1 = mag(internalField(U))/snGrad(T)"
+            );
+
+            expression
+            #{
+                Tcrit
+              + par1*internalField(T) * max((Tcrit-T)/(Tcrit)*deltaT()/time(),0)
+            #};
+        }
+    }
+}
+
+
+// ************************************************************************* //

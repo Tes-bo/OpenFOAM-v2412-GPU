@@ -1,0 +1,23 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+cp -rf \
+    "$FOAM_TUTORIALS"/resources/geometry/SnakeRiverCanyon \
+    constant/triSurface
+
+restore0Dir
+
+runApplication blockMesh
+
+runApplication decomposePar
+
+runParallel $(getApplication)
+
+runParallel redistributePar -reconstruct
+
+# test `directionalMeshWave`
+runApplication checkMesh -writeAllFields -latestTime
+
+#------------------------------------------------------------------------------

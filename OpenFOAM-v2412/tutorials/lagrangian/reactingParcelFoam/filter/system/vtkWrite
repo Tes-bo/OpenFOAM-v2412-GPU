@@ -1,0 +1,35 @@
+// -*- C++ -*-
+// Minimal example of using the vtkWrite function object.
+vtkWrite
+{
+    type    vtkWrite;
+    libs    (utilityFunctionObjects);
+    log     true;
+
+    // Nothing happens before this anyhow
+    timeStart 0.4;
+    writeControl    writeTime;
+
+    boundary    false;
+
+    interpolate true;
+
+    fields  (U);
+    // format  ascii;
+
+    // Region of interest
+    selection
+    {
+        inletRegion
+        {
+            action  use;
+            source  zone;
+            zones   (leftFluid);
+        }
+    }
+
+    // Write cell ids as field - Default=true
+    writeIds    false;
+}
+
+// ************************************************************************* //

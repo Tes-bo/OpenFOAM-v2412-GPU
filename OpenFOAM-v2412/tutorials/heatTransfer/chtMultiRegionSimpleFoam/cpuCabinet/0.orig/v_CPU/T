@@ -1,0 +1,69 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    object      T;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 0 0 1 0 0 0];
+
+internalField   uniform 300;
+
+boundaryField
+{
+     #includeEtc "caseDicts/setConstraintTypes"
+    PROCESSOR
+    {
+        type            externalWallHeatFluxTemperature;
+        kappaMethod     solidThermo;
+        mode            flux;
+        Ta              $internalField;
+        q               uniform 0;
+        value           $internalField;
+        kappaName       none;
+    }
+
+    v_CPU_to_domain0
+    {
+        type            compressible::turbulentTemperatureRadCoupledMixed;
+        qrNbr           none;
+        qr              none;
+        Tnbr            T;
+        kappaMethod     solidThermo;
+        useImplicit     true;
+        value           $internalField;
+    }
+
+    CABINET
+    {
+        type            externalWallHeatFluxTemperature;
+        kappaMethod     solidThermo;
+        mode            flux;
+        Ta              $internalField;
+        q               uniform 0;
+        value           $internalField;
+        kappaName       none;
+    }
+
+    v_CPU_to_v_fins
+    {
+        type            compressible::turbulentTemperatureRadCoupledMixed;
+        qrNbr           none;
+        qr              none;
+        Tnbr            T;
+        kappaMethod     solidThermo;
+        useImplicit     true;
+        value           $internalField;
+    }
+}
+
+// ************************************************************************* //

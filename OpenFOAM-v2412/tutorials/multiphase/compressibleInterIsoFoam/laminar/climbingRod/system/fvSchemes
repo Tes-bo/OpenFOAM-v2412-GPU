@@ -1,0 +1,66 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      fvSchemes;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+ddtSchemes
+{
+    default         Euler;
+}
+
+gradSchemes
+{
+    default         Gauss linear;
+}
+
+divSchemes
+{
+    div(rhoPhi,U)   Gauss linearUpwindV grad(U);
+    div(rhoPhi,T)   Gauss linearUpwind grad(T);
+    div(phi,thermo:rho.liquid) Gauss linear;
+    div(phi,thermo:rho.air) Gauss linear;
+
+    div(phi,alpha)  Gauss vanLeer;
+    div(phirb,alpha) Gauss linear;
+
+    div(phi,p)      Gauss upwind;
+    div(rhoPhi,K)   Gauss upwind;
+
+    div(alphaRhoPhi.liquid,sigma.liquid) Gauss upwind;
+
+    div(((alpha.liquid*thermo:rho.liquid)*sigma.liquid))   Gauss linear;
+    div((((alpha.liquid*thermo:rho.liquid)*nuM)*grad(U)))   Gauss linear;
+    div((((alpha.liquid*thermo:rho.liquid)*(thermo:mu.liquid|thermo:rho.liquid))*dev2(T(grad(U))))) Gauss linear;
+
+    div((((alpha.air*thermo:rho.air)*nuEff.air)*dev2(T(grad(U))))) Gauss linear;
+    div((((alpha.liquid*thermo:rho.liquid)*nuEff.liquid)*dev2(T(grad(U))))) Gauss linear;
+}
+
+laplacianSchemes
+{
+    default         Gauss linear corrected;
+}
+
+interpolationSchemes
+{
+    default         linear;
+}
+
+snGradSchemes
+{
+    default         corrected;
+}
+
+
+// ************************************************************************* //

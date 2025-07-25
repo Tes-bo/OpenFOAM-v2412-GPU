@@ -1,0 +1,358 @@
+#!/bin/bash
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#-------------------------------------------------------------------------------
+#   Copyright (C) 2019-2021 OpenCFD Ltd.
+#-------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     wrap-bison
+#
+# Usage
+#     wrap-bison -output=*.cc [bison options/args]
+#
+# Description
+#     A wrapper to handle renaming/relocation of bison-generated files.
+#
+#     When bison is used, it generates several output files.
+#     The names of the regular output files may not match our expectations.
+#     The skeleton files are always named the same, which can cause
+#     file-name collisions in some cases.
+#
+#     Input:
+#       - myFile.yy
+#
+#     Output: <myFile.yy>
+#       - myFile.tab.hh
+#       - myFile.tab.cc
+#       - location.hh
+#       - position.hh
+#       - stack.hh
+#
+#     Approach
+#       - call bison from within a local Make/some-name/ directory.
+#       - use sed to modify the #include contents and rename files.
+#         From location.hh -> myFile.location.hh
+#       - place generated *.hh files directly into lnInclude/
+#       - place generated *.cc file into the build/ directory
+#
+#     When called with m4 wrapping, it sets the m4 -I include to have
+#     the following:
+#     - the directory of the parser.
+#     - include/ in the top-level source tree of the current target
+#       (eg, src/finiteVolume/include/ when compiling libfiniteVolume)
+#     - include/ from OpenFOAM
+#
+# Note
+#     General idea lifted from swak
+#------------------------------------------------------------------------------
+printHelp() {
+    cat<<USAGE
+
+Usage: ${0##*/} [options] [bison args/options]
+
+options:
+  -dry-run          Process m4 only (output on stdout)
+  -grammar          Output grammar tables (ignored)
+  -no-tmp           Do not retain temporary m4 processed files
+  -output=NAME      Request renaming actions
+  -h, -help         Print the usage
+
+A bison wrapper with renaming of skeleton files
+
+USAGE
+    exit 0  # A clean exit
+}
+
+# File extensions used (may need adjustment)
+extCode="cc"
+extHead="hh"
+
+#------------------------------------------------------------------------------
+# Parse arguments and options
+#------------------------------------------------------------------------------
+
+# wrap-bison -output=...
+unset outputFile optDryRun optGrammar optRemoveTmp m4Flags
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    (-h | -help*) usage ;;
+
+    (-dry-run)      optDryRun=true ;;
+    (-gram*)        optGrammar=true ;;  # currently ignored
+    (-no-tmp)       optRemoveTmp=true ;;
+    (-output=*)     outputFile="${1#*=}" ;;
+
+    (*) break ;;
+    esac
+    shift
+done
+
+#------------------------------------------------------------------------------
+# Additional m4Flags (for includes etc)
+#
+# $1 : path-qualified name of the parser
+#
+# Set includes accordingly to
+# - the directory containing the parser
+# - include/ in the top-level source tree of the current target
+# - include/ from OpenFOAM
+
+defineM4Flags()
+{
+    # Always include the directory containing the parser file
+    m4Flags="$m4Flags${m4Flags:+ }-I$(dirname ${1:-.})"
+
+    local proj="$WM_PROJECT_DIR/src/${WM_PROJECT:-OpenFOAM}"
+    local curr="$PWD"
+
+    # Called from the Makefile (PWD contains the parser source)
+    # or from elsewhere (eg, createCode)?
+    if [ ! -f "$curr/Make/options" ]
+    then
+        # No Make/options (eg createCode) - discover with "wmake -pwd"
+        curr="$(wmake -pwd 2>/dev/null)"
+    fi
+
+    # Avoid examining twice
+    [ "$curr" != "$proj" ] || unset curr
+
+    if [ -n "$curr" ] && [ -d "$curr/include" ]
+    then
+        m4Flags="$m4Flags -I$curr/include"
+    fi
+
+    if [ -n "$proj" ] && [ -d "$proj/include" ]
+    then
+        m4Flags="$m4Flags -I$proj/include"
+    fi
+}
+
+
+#------------------------------------------------------------------------------
+# Get some information based on the bison options
+# The last argument is the input file
+
+unset parser
+findBisonOptions()
+{
+    parser="${@: -1}"
+}
+
+findBisonOptions "$@"
+
+unset parserFlags extParser usingM4
+
+# Detect m4 use (defines parser macro too) and get extension without m4
+case "$parser" in
+(*.*m4)
+    usingM4=true
+    parserFlags="-Dm4"
+    defineM4Flags "$parser"
+
+    extParser=".${parser##*.}"      # The extension (with dot)
+    extParser="${extParser%m4}"     # Without trailing m4
+    extParser="${extParser/%[-_]/}" # Without - or _ separators
+    ;;
+esac
+
+# No rename action requested? Just execute bison directly.
+if [ -z "$outputFile" ] && [ "$usingM4" != true ]
+then
+    bison $*
+    exit $?
+fi
+
+
+exitCode=0  # No failures
+
+
+#------------------------------------------------------------------------------
+# Dry-run
+
+if [ "$optDryRun" = true ]
+then
+    if [ "$usingM4" = true ]
+    then
+        echo "m4 flags: $m4Flags" 1>&2
+        m4 $m4Flags "$parser"; exitCode=$?
+    else
+        echo "Nothing to do - not using m4" 2>/dev/null
+    fi
+    [ "$exitCode" -eq 0 ] || echo "m4 failed" 2>/dev/null
+    exit "$exitCode"  # Done
+fi
+
+
+#------------------------------------------------------------------------------
+
+# Called from the Makefile (PWD contains the parser source)
+# or from elsewhere (eg, createCode)?
+curr="$PWD"
+if [ ! -f "$curr/Make/options" ]
+then
+    # No Make/options (eg createCode) - discover with "wmake -pwd"
+    curr="$(wmake -pwd 2>/dev/null)"
+fi
+
+# Will most likely need a lnInclude/ directory
+[ -d "$curr/lnInclude" ] || mkdir "$curr/lnInclude" 2>/dev/null || {
+    echo "Cannot continue without an lnInclude directory" 1>&2
+    (cd "$curr" && pwd -L)
+    exit 1
+}
+
+# Get a baseName (stem) for the output
+baseName="${parser##*/}"
+baseName="${baseName%.*}"
+
+# Fallback for output
+if [ -z "$outputFile" ]
+then
+    outputFile="$(dirname ${parser})/${baseName}.$extCode"
+fi
+
+outputDir="$(dirname $outputFile)"
+
+#------------------------------------------------------------------------------
+
+# Renaming, filter code
+
+# Check for/remove .tab. tag?
+unset untabFilter
+
+# withTab=$/include *"stack/s/"/"'"${baseName}."'/;' \
+
+hasTab="${outputFile##*/}"
+hasTab="${hasTab%.*}"
+
+if [ "$hasTab" = "${hasTab%.tab}" ]
+then
+    untabFilter='/^#.*".*\.tab\./s/\.tab\././'
+fi
+
+# Filter include names to generate new files
+# "$1" = input
+# "$2" = output
+filterRename()
+{
+    if [ -f "$1" ] && [ -n "$2" ]
+    then
+        sed \
+            -e '/include *"location/s/"/"'"${baseName}."'/;' \
+            -e '/include *"position/s/"/"'"${baseName}."'/;' \
+            -e '/include *"stack/s/"/"'"${baseName}."'/;' \
+            -e "$untabFilter;" \
+            "$1" >| "$2"
+    fi
+}
+
+
+#------------------------------------------------------------------------------
+
+# This gets slightly complicated with temporary files/dirs.
+#
+# - a tmp FILE for the m4-filtered parser (optional).
+# - a tmp DIR for storing the bison generated files so that we can
+#   properly edit and rename them.
+
+unset tmpFile tmpDir parserInput
+
+if [ "$usingM4" = true ]
+then
+    # Drop last argument (the parser input file)
+    set -- "${@:1:${#}-1}"
+
+    # Filter via m4
+
+    # The outputDir is always defined. Make absolute
+    tmpFile="$(cd ${outputDir:?} && pwd -L)/${parser##*/}"
+    tmpFile="${tmpFile%.*}$extParser"   # Eg, from .lyy-m4 -> .lyy
+
+    # We may want this:
+    # trap 'rm -f $tmpFile 2>/dev/null; exit $exitCode' EXIT TERM INT
+
+    if m4 $m4Flags "$parser" > "$tmpFile" && [ -f "$tmpFile" ]
+    then
+        parserInput="$tmpFile"
+        exitCode=0
+    else
+        echo "m4 stage failed on $parser" 2>/dev/null
+        rm -f "$tmpFile" 2>/dev/null
+        exit 1
+    fi
+
+else
+    # No special (m4) handling
+
+    # Make parser input name absolute
+    parserInput="$(cd $(dirname $parser) && pwd -L)/${parser##*/}"
+
+fi
+
+#------------
+# Execute bison in a temporary directory to keeps all files together
+cwd="$(pwd -L)"
+tmpDir="Make/wrap-bison-$baseName"
+rm -rf "$tmpDir" 2>/dev/null
+mkdir "$tmpDir" 2>/dev/null
+
+# We may want this:
+# trap 'cd $cwd; rm -f $tmpDir 2>/dev/null; exit $exitCode' EXIT TERM INT
+
+cd "$tmpDir" || exit
+
+# Execute bison
+bison "$@" "$parserInput"
+exitCode=$?
+
+cd "../.." || exit
+
+if [ "$exitCode" -ne 0 ]
+then
+    rm -rf "$tmpDir" 2>/dev/null
+    exit "$exitCode"   # Exit with bison return code
+fi
+
+#------------
+
+# Boilerplate -> lnInclude/ directory with new name
+for file in position location stack
+do
+    filterRename \
+        "${tmpDir}/${file}.$extHead" \
+        "lnInclude/${baseName}.${file}.$extHead"
+done
+
+# Header -> lnInclude/ directory, possibly with .tab.hh to .hh
+filterRename \
+    "${tmpDir}/${baseName}.tab.$extHead" \
+    "lnInclude/${baseName}${untab:-.tab}.$extHead"
+
+# Code -> build directory, possibly with .tab.hh to .hh
+filterRename \
+    "${tmpDir}/${baseName}.tab.$extCode" \
+    "${outputFile}"
+
+
+if [ -n "$tmpFile" ]
+then
+    if [ -n "$optRemoveTmp" ]
+    then
+        rm -f "$tmpFile" 2>/dev/null
+    else
+        echo "Retaining intermediate: $tmpFile" 2>/dev/null
+    fi
+fi
+
+rm -rf "$tmpDir" 2>/dev/null
+exit "$exitCode"   # Exit with bison return code
+
+#------------------------------------------------------------------------------

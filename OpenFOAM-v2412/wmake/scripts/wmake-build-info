@@ -1,0 +1,637 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2018-2022 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     wmake/scripts/wmake-build-info
+#     Backend for "wmake -build-info"
+#
+# Description
+#     Print the api/version and other build information for the project.
+#
+# Environment
+#     - WM_PROJECT_DIR
+#     - WM_PROJECT_VERSION
+#     - WM_DIR              (unset defaults to WM_PROJECT_DIR/wmake)
+#
+# Files
+#     - META-INFO/{api-info,build-info}
+#     - wmake/rules/General/general
+#     - debian : implicitly disables git queries
+#
+# Note
+#     There is a corner case when obtaining build information from git.
+#     It is possible that OpenFOAM has been imported into a debian form,
+#     in which case the '.git/' directory is most from debian and cannot
+#     be used to obtain an OpenFOAM sha1 value.
+#
+#     Ad hoc logic (slightly messy):
+#     1) Have an 'openfoam.debian/' directory.
+#        Assume that debian control has been added to OpenFOAM.
+#        Can use git to obtain build information.
+#     2) Have a 'debian/' directory only.
+#        Assume OpenFOAM has been added into a debian project.
+#        Treat as '-no-git', which which has no effect
+#        when building from pristine sources.
+#
+# SeeAlso
+#     META-INFO/README.md for other routines that also use META-INFO.
+#
+#------------------------------------------------------------------------------
+# Locations
+rulesFile="${WM_DIR:-$WM_PROJECT_DIR/wmake}/rules/General/general"
+META_INFO="$WM_PROJECT_DIR/META-INFO"
+FOAM_GIT_DIR="$WM_PROJECT_DIR/.git"
+
+printHelp() {
+    cat<<USAGE
+
+Usage: ${0##*/} [OPTION]
+       ${0##*/} [-update] -filter FILE
+options:
+  -cmp, -check  Compare make and meta information (exit 0 for no changes)
+  -diff         Display differences between make and meta information
+                (exit code 0 for no changes)
+  -dry-run      In combination with -update
+  -filter FILE  Filter @API@, @BUILD@ tags in file with make information
+  -no-git       Disable use of git for obtaining information
+  -remove       Remove meta-info build information and exit
+  -update       Update meta-info from make information
+  -query        Report make-info and meta-info
+  -query-make   Report make-info values (api, branch, build)
+  -query-meta   Report meta-info values (api, branch, build)
+  -show-api     Print api value from wmake/rules, or meta-info and exit
+  -show-patch   Print patch value from meta-info and exit
+  -help         Print the usage
+
+Query/manage status of {api,branch,build} information.
+Default without any arguments is the same as '-query-make'.
+
+USAGE
+    exit 1
+}
+
+# Report error and exit
+die()
+{
+    exec 1>&2
+    echo
+    echo "Error encountered:"
+    while [ "$#" -ge 1 ]; do echo "    $1"; shift; done
+    echo
+    echo "See '${0##*/} -help' for usage"
+    echo
+    exit 1
+}
+
+#------------------------------------------------------------------------------
+# Parse arguments and options
+#------------------------------------------------------------------------------
+unset optCheck optDryRun optUpdate optQuery optFilter
+
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    ('') ;;
+    (- | --) shift; break ;;  # Stop option parsing
+
+    -h | -help*)
+        printHelp
+        ;;
+    -cmp | -check)
+        optCheck=true
+        ;;
+    -diff)
+        optCheck=verbose
+        ;;
+    -dry-run)
+        optDryRun=true
+        ;;
+    -remove)
+        optUpdate=remove
+        break # Stop now
+        ;;
+    -update)
+        optUpdate=true
+        ;;
+    -query)
+        optQuery="make:meta"
+        ;;
+    -query-make | -query-meta)
+        optQuery="$optQuery:${1##*-}"
+        ;;
+    -show-api)
+        optQuery="api"
+        ;;
+    -show-patch)
+        optQuery="patch"
+        ;;
+    -filter)
+        optFilter=true
+        shift # Stop here, a file name follows
+        break
+        ;;
+    -no-git)
+        unset FOAM_GIT_DIR
+        ;;
+    *)
+        die "Unknown option/argument: '$1'"
+        ;;
+    esac
+    shift
+done
+
+# Check environment variables
+[ -d "$WM_PROJECT_DIR" ] || \
+    die "Bad or unset environment variable: \$WM_PROJECT_DIR"
+
+[ -d "$META_INFO" ] || \
+    die "No ${META_INFO##*/}/ directory for project"
+
+# Debian handling (see notes above)
+# - disable git queries if debian project and not internal "debianization"
+if [ -d "$WM_PROJECT_DIR/debian" ] \
+&& [ ! -e "$WM_PROJECT_DIR/openfoam.debian" ]
+then
+    unset FOAM_GIT_DIR
+fi
+
+#------------------------------------------------------------------------------
+
+if [ "$optUpdate" = remove ]
+then
+
+    if [ -f "$META_INFO/build-info" ]
+    then
+        echo "Removing project ${META_INFO##*/}/build-info" 1>&2
+        rm -f "$META_INFO/build-info"
+    else
+        echo "Already removed project ${META_INFO##*/}/build-info" 1>&2
+    fi
+    exit 0
+
+elif [ "$optFilter" = true ]
+then
+
+    [ -f "$1" ] || {
+        echo "Error in ${0##*/}: file not found '$1'" 1>&2
+        exit 2
+    }
+
+    # Disable other methods that generate output to stdout
+    unset optCheck optQuery
+
+else
+
+    [ "$#" -eq 0 ] || die "Unexpected option/arguments $*"
+
+    # Nothing specified? Default to -query-make
+    if [ -z "$optCheck$optUpdate$optQuery" ]
+    then
+        optQuery="make"
+    fi
+
+fi
+
+
+#------------------------------------------------------------------------------
+
+# Variables - for portability, avoiding bash associative arrays
+unset make_info meta_info
+
+
+# Populate make_* variables
+#
+#  - api    : from rules/General/general
+#  - patch  : cached value from previous make
+#  - branch : from git
+#  - build  : from git
+#
+# Failure modes:
+# - No api information (can't find file etc).
+#   -> FATAL: should never happen.
+#
+# - No git installed or no git repo
+#   -> branch and build are populated as empty strings
+#
+# - Working on detached head.
+#   -> branch has value "HEAD" instead of something more readable.
+getMakeInfo()
+{
+    if [ -n "$make_info" ]
+    then
+        ##echo "use cached value for make info" 1>&2
+        return 0
+    fi
+    ##echo "get make info" 1>&2
+
+    local api patch build branch
+    unset make_api make_patch make_branch make_build
+
+    # (api) from WM_DIR/rules/General/general
+    # - extract WM_VERSION = OPENFOAM=<digits>
+
+    api="$(sed -ne 's@^ *WM_VERSION *= *OPENFOAM=\([0-9][0-9]*\).*@\1@p' "$rulesFile" 2>/dev/null)"
+
+    if [ -d "$META_INFO" ]
+    then
+        # (patch) from build-info - not from api-info
+        patch="$(sed -ne 's@^patch *= *\([0-9][0-9]*\).*@\1@p' "$META_INFO/build-info" 2>/dev/null)"
+    fi
+
+    # Build info from git. Use short date format (YYYY-MM-DD) and sed instead
+    # of the newer --date='format:%y%m%d'
+    if [ -d "$FOAM_GIT_DIR" ]
+    then
+        build="$(git --git-dir="$FOAM_GIT_DIR" log -1 --date=short --format='%h=%ad' 2>/dev/null|sed 's/-//g;s/=/-/')"
+
+        # Branch info from git
+        if [ -n "$build" ]
+        then
+            branch="$(git --git-dir="$FOAM_GIT_DIR" rev-parse --abbrev-ref HEAD 2>/dev/null)"
+        fi
+    fi
+
+    make_api="$api"
+    make_patch="${patch:-0}"  # Default is 0 (unpatched)
+    make_branch="$branch"
+    make_build="$build"
+    make_info=true
+}
+
+
+# Populate meta_* variables
+#
+#  - api    : from META-INFO/api-info
+#  - patch  : from META-INFO/api-info
+#  - branch : from META-INFO/build-info
+#  - build  : from META-INFO/build-info
+#
+# Failure modes:
+# - Directory, file or entry not found.
+#   -> corresponding entries are empty strings
+getMetaInfo()
+{
+    if [ -n "$meta_info" ]
+    then
+        ##echo "use cached value for meta info" 1>&2
+        return 0
+    fi
+    ##echo "get meta info" 1>&2
+
+    local api patch build branch
+    unset meta_api meta_patch meta_branch meta_build
+
+    if [ -d "$META_INFO" ]
+    then
+        # (api, patch) from api-info
+        # (branch, build) from build-info
+
+        api="$(sed -ne 's@^api *= *\([0-9][0-9]*\).*@\1@p' "$META_INFO/api-info" 2>/dev/null)"
+        patch="$(sed -ne 's@^patch *= *\([0-9][0-9]*\).*@\1@p' "$META_INFO/api-info" 2>/dev/null)"
+        branch="$(sed -ne 's@^branch *= *\([^ ]*\).*@\1@p' "$META_INFO/build-info" 2>/dev/null)"
+        build="$(sed -ne 's@^build *= *\([^ ]*\).*@\1@p' "$META_INFO/build-info" 2>/dev/null)"
+    fi
+
+    meta_api="$api"
+    meta_patch="${patch:-0}"  # Default is 0 (unpatched)
+    meta_branch="$branch"
+    meta_build="$build"
+    meta_info=true
+}
+
+
+# Get api from rules/General/general
+#
+# Failure modes:
+# - No api information (can't find file etc).
+#   -> Fatal for building, but could be OK for a stripped down version
+#
+# Fallback. Get from api-info
+getApi()
+{
+    getMakeInfo
+
+    # Local copy
+    local api="${make_api}"
+
+    if [ -z "$api" ]
+    then
+        getMetaInfo
+        api="${meta_api}"
+    fi
+
+    if [ -n "$api" ]
+    then
+        echo "$api"
+    else
+        return 1
+    fi
+}
+
+
+# Get patch from meta-info / api-info
+#
+# Failure modes:
+# - No patch information (can't find file etc).
+getPatchLevel()
+{
+    getMetaInfo
+
+    # Local copy
+    local patch="${meta_patch}"
+
+    if [ -n "$patch" ]
+    then
+        echo "$patch"
+    else
+        return 1
+    fi
+}
+
+
+#
+# Report make info
+#
+reportMakeInfo()
+{
+    getMakeInfo
+    getMetaInfo
+
+    echo "make"
+    echo "    api = ${make_api}"
+    echo "    patch = ${meta_patch:-0}"  # <- From meta-info only
+    echo "    branch = ${make_branch}"
+    echo "    build = ${make_build}"
+}
+
+
+#
+# Report meta info
+#
+reportMetaInfo()
+{
+    getMetaInfo
+
+    echo "meta"
+    echo "    api = ${meta_api}"
+    echo "    patch = ${meta_patch:-0}"  # <- From meta-info only
+    echo "    branch = ${meta_branch}"
+    echo "    build = ${meta_build}"
+}
+
+
+# Report diff between make and meta info (single key).
+# Set diff_header prior to the first call.
+# $1 == key
+# $2 == make value
+# $3 == meta value
+unset diff_header
+_reportDiff()
+{
+    if [ -n "$diff_header" ]
+    then
+        echo "$diff_header"
+        unset diff_header
+    fi
+    echo "$1:"
+    echo "    make $2"
+    echo "    meta $3"
+}
+
+
+# Test make vs meta info.
+# Return 0 for no differences, 1 otherwise
+# $1 == verbose, print as diff. Silent otherwise
+checkDiff()
+{
+    local diff verbose
+
+    if [ "$1" = "verbose" ]
+    then
+        diff_header="Differences"
+        verbose=true
+    fi
+
+    getMakeInfo
+    getMetaInfo
+
+    # api
+    if [ "${make_api}" != "${meta_api}" ]
+    then
+        diff=true
+
+        if [ -n "$verbose" ]
+        then
+            _reportDiff "api" "${make_api}" "${meta_api}"
+        fi
+    fi
+
+    # patch
+    if [ "${make_patch}" != "${meta_patch}" ]
+    then
+        diff=true
+
+        if [ -n "$verbose" ]
+        then
+            _reportDiff "patch" "${make_patch}" "${meta_patch}"
+        fi
+    fi
+
+    # branch - only test when make info is non-empty
+    if [ -n "${make_branch}" ] && [ "${make_branch}" != "${meta_branch}" ]
+    then
+        diff=true
+
+        if [ -n "$verbose" ]
+        then
+            _reportDiff "branch" "${make_branch}" "${meta_branch}"
+        fi
+    fi
+
+    # build - only test when make info is non-empty
+    if [ -n "${make_build}" ] && [ "${make_build}" != "${meta_build}" ]
+    then
+        diff=true
+
+        if [ -n "$verbose" ]
+        then
+            _reportDiff "build" "${make_build}" "${meta_build}"
+        fi
+    fi
+
+    # No diffs, but never permit entirely empty values for build.
+    test -z "$diff" || test -z "${make_build}${meta_build}"
+}
+
+
+#
+# Update meta info (on disk) based on the make info
+#
+performUpdate()
+{
+    getMakeInfo
+    getMetaInfo
+
+    # Local copies of the make info
+    local api="${make_api}"
+    local branch="${make_branch}"
+    local build="${make_build}"
+    local patch="${make_patch}"
+
+    # If any of the make-info are empty (bad),
+    # use the meta-info to avoid spurious changes
+    [ -n "$api" ] || api="${meta_api}"
+    [ -n "$branch" ] || branch="${meta_branch}"
+    [ -n "$build" ] || build="${meta_build}"
+
+    # Fallback to WM_PROJECT_VERSION alone
+    [ -n "$build" ] || build="${WM_PROJECT_VERSION:-unknown}"
+
+    local outputFile
+
+    # build-info
+    outputFile="$META_INFO/build-info"
+    if [ "$branch" != "${meta_branch}" ] || \
+       [ "$build" != "${meta_build}" ] || \
+       [ "$patch" != "${meta_patch}" ]
+    then
+        patch="${meta_patch:-0}"        # <- From meta-info only
+
+        if [ -n "$optDryRun" ]
+        then
+            echo "dry-run (update) ${outputFile##*/} branch=${branch}" 1>&2
+            echo "dry-run (update) ${outputFile##*/} build=${build}" 1>&2
+            echo "dry-run (update) ${outputFile##*/} patch=${patch}" 1>&2
+        else
+            echo "branch=${branch}" >| "$outputFile"
+            echo "build=${build}"   >> "$outputFile"
+            echo "patch=${patch}"   >> "$outputFile"
+        fi
+    fi
+
+
+    # api-info
+    outputFile="$META_INFO/api-info"
+    if [ "$api" != "${meta_api}" ]
+    then
+        patch="${meta_patch:-0}"        # <- From meta-info only
+
+        if [ -n "$optDryRun" ]
+        then
+            echo "dry-run (update) ${outputFile##*/} api=${api}" 1>&2
+            echo "dry-run (update) ${outputFile##*/} patch=${patch}" 1>&2
+        else
+            echo "api=${api}"     >| "$outputFile"
+            echo "patch=${patch}" >> "$outputFile"
+        fi
+    fi
+
+    return 0
+}
+
+
+#
+# Update meta info (on disk) based on the make info
+#
+performFiltering()
+{
+    local input="$1"
+
+    [ -f "$input" ] || {
+        echo "Error in ${0##*/}: file not found '$1'" 1>&2
+        exit 2
+    }
+
+    getMakeInfo
+    getMetaInfo
+
+    # Local copies of the make info
+    local api="${make_api}"
+    local branch="${make_branch}"
+    local build="${make_build}"
+    local patch="${meta_patch:-0}"  # <- From meta-info only
+
+
+    # If any of the make-info are empty (bad),
+    # conjure up something from the meta-info
+
+    # api is not normally needed (available directly from -Ddefine)
+    # but we may wish to filter other types of files
+
+    if [ -z "$api" ]
+    then
+        api="${meta_api}"
+        api="${api:-0}"  # integer value
+    fi
+
+    # branch/build could be missing for non-git
+    if [ -z "$branch" ]
+    then
+        branch="${meta_branch}"
+        branch="${branch:-unknown}"
+    fi
+
+    if [ -z "$build" ]
+    then
+        build="${meta_build}"
+        # Fallback to WM_PROJECT_VERSION
+        build="${build:-${WM_PROJECT_VERSION:-unknown}}"
+    fi
+
+    sed \
+        -e 's!@API@!'"${api}"'!g' \
+        -e 's!@PATCH@!'"${patch:-0}"'!g' \
+        -e 's!@BRANCH@!'"${branch}"'!g' \
+        -e 's!@BUILD@!'"${build}"'!g' \
+        -e 's!@VERSION@!'"${WM_PROJECT_VERSION}"'!g' \
+        "$input"
+
+    return 0
+}
+
+
+#------------------------------------------------------------------------------
+
+# Dispatch
+
+if [ -n "$optCheck" ]
+then
+    checkDiff $optCheck
+    exit $?
+elif [ "$optQuery" = api ]
+then
+    # Show API and exit
+    getApi
+    exit $?
+elif [ "$optQuery" = patch ]
+then
+    # Show patch level and exit
+    getPatchLevel
+    exit $?
+else
+    # Other queries
+    case "$optQuery" in (*make*) reportMakeInfo ;; esac
+    case "$optQuery" in (*meta*) reportMetaInfo ;; esac
+fi
+
+[ -n "$optUpdate" ] && performUpdate
+
+if [ -n "$optFilter" ]
+then
+    # Perform filter on file
+    performFiltering "$1"
+fi
+
+exit 0  # clean exit
+
+#------------------------------------------------------------------------------

@@ -1,0 +1,31 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+topOEndTime=$(foamDictionary ../system/controlDict -entry 'endTime' -value)
+fileName=topOIsoSurface$topOEndTime
+
+# A bit ugly but expanding a stored variable of the form "(a b c)" seems tricky
+locationInMesh="\(0.058 0.15 0.094\)"
+sed -i "s|myLocationInMesh|$locationInMesh|g" system/snappyHexMeshDict
+sed -i "s|stlName|$fileName|g" system/snappyHexMeshDict
+sed -i "s|stlName|$fileName|g" system/surfaceFeatureExtractDict
+
+mkdir -p constant/triSurface
+cp ../optimisation/topOIsoSurfaces/$fileName.stl constant/triSurface/.
+
+runApplication blockMesh 
+
+runApplication surfaceFeatureExtract 
+
+runApplication decomposePar 
+
+runParallel snappyHexMesh -overwrite
+
+restore0Dir -processor
+
+runParallel $(getApplication)
+
+
+#------------------------------------------------------------------------------

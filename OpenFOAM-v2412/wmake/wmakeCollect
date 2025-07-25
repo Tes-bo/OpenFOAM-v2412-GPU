@@ -1,0 +1,155 @@
+#!/bin/bash
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#-------------------------------------------------------------------------------
+#     Copyright (C) 2016 OpenFOAM Foundation
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     wmakeCollect
+#
+# Usage
+#     wmakeCollect [OPTION] <command>
+#
+# Description
+#     wmake scheduler for efficient parallel compilations.
+#
+#-------------------------------------------------------------------------------
+Script=${0##*/}
+
+usage() {
+    exec 1>&2
+    while [ "$#" -ge 1 ]; do echo "$1"; shift; done
+    cat<<USAGE
+
+Usage: $Script [OPTION] <command>
+
+options:
+  -clean        Cleanup before compilation (removes old makefiles)
+  -kill         Cleanup after termination (removes makefiles)
+  -h | -help    Print the usage
+
+A collecting scheduler for fast parallel compilation of large numbers of
+object files.
+
+When called with a compilation command it is written into a file in the
+directory \$WM_COLLECT_DIR.
+
+When called without a command the files in the \$WM_COLLECT_DIR directory are
+combined into a single Makefile which is passed to make to compile all of the
+object files efficiently in parallel.
+
+Typical usage for compiling OpenFOAM:
+
+  - Ensure all lnInclude directories are up-to-date:
+    wmakeLnIncludeAll
+
+  - Compile all with this scheduler:
+    wmake -queue
+
+USAGE
+    exit 1
+}
+
+# Set true to clean-up file if interrupted
+unset cleanup
+
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    ('') ;;
+    (- | --) shift; break ;;  # Stop option parsing
+
+    -h | -help*)
+        usage
+        ;;
+    -clean | -kill)
+        cleanup=true
+        ;;
+    -*)
+        usage "unknown option: '$*'"
+        ;;
+    *)
+        break
+        ;;
+    esac
+    shift
+done
+
+
+if [ -z "$WM_COLLECT_DIR" ]
+then
+    echo "$Script error: WM_COLLECT_DIR not set" 1>&2
+    exit 1
+fi
+
+
+if [ -n "$WM_QUIET" ]
+then
+    E="@"
+fi
+
+
+# Collected makefile for this build
+makefile="$WM_COLLECT_DIR.Makefile"
+
+
+# Clean-up files and exit
+if [ "$cleanup" = true ]
+then
+    rm -rf "$WM_COLLECT_DIR"
+    rm -f "$makefile"
+    exit 0
+fi
+
+
+if [ "$#" -gt 0 ]
+then
+    # Make sure directories exist
+    mkdir -p "$WM_COLLECT_DIR"
+
+    # The current source file
+    sourceFile="${@: -3:1}"
+
+    # The current target
+    objectFile="${@: -1:1}"
+
+    # Create a unique name for the makefile from the object path
+    file="$(mktemp $WM_COLLECT_DIR/XXXXXX)"
+
+    # Add the current target to the list of objects
+    echo "OBJECTS += $objectFile" >> $file
+
+    # Add the build rule for the current target
+    echo "$objectFile: $makefile" >> $file
+    [ -z "$E" ] ||
+        echo -e "\t@echo \"    compiling: ${sourceFile##*/}\"" >> $file
+    echo -e "\t$E cd $PWD && \\" >> $file
+    echo -e "\t${@:1:($#-1)} $objectFile" >> $file
+    echo >> $file
+elif [ -d "$WM_COLLECT_DIR" ]
+then
+    # Collect all the makefiles into a single makefiles for this build
+    (cd $WM_COLLECT_DIR && ls -1rt | xargs cat > $makefile)
+
+    # Add a build rule for all of the targets
+    echo 'all: $(OBJECTS)' >> $makefile
+
+    # Clear out all of the target makefiles
+    rm -rf "$WM_COLLECT_DIR"
+
+    # Run make on the collected makefile
+    make -j $WM_NCOMPPROCS -f $makefile all
+
+    rm -f "$makefile"
+fi
+
+exit 0 # clean exit
+
+#------------------------------------------------------------------------------

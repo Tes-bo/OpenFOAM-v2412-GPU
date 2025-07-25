@@ -1,0 +1,148 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2011-2016 OpenFOAM Foundation
+#     Copyright (C) 2016-2023 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     ThirdParty Allwmake
+#
+# Description
+#     Build script for ThirdParty applications/libraries
+#
+# ----------------------------------------------
+# NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
+#------------------------------------------------------------------------------
+# Run from third-party directory only
+cd "${0%/*}" || exit
+wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
+    echo "Error (${0##*/}) : not located in \$WM_THIRD_PARTY_DIR"
+    echo "    Check your OpenFOAM environment and installation"
+    exit 1
+}
+. "${WM_THIRD_PARTY_DIR:?}"/etc/tools/ThirdPartyFunctions
+#------------------------------------------------------------------------------
+exportCompiler true     # Compiler info + flags for CMake/configure
+exportLinker            # Linker flags for CMake/configure
+useGccFlag $@           # Scan arguments for a '-gcc' option
+
+#------------------------------------------------------------------------------
+
+echo
+echo ========================================
+echo Start ThirdParty Allwmake
+echo ========================================
+echo "using:  $CC $CFLAGS"
+echo "using:  $CXX $CXXFLAGS"
+echo
+echo ========================================
+echo Build MPI libraries if required
+echo "    $MPI_ARCH_PATH"
+case "$WM_MPLIB" in
+(OPENMPI | MPICH)
+    if ! ./make"$WM_MPLIB" -test "$MPI_ARCH_PATH"
+    then
+        ./make"$WM_MPLIB"
+    fi
+    ;;
+esac
+
+
+#------------------------------------------------------------------------------
+
+# Treat as optional, but really isn't if anyone wants parallel calculations
+./makeSCOTCH || warnBuildIssues SCOTCH
+
+#------------------------------------------------------------------------------
+echo
+echo ========================================
+# Get KAHIP_ARCH_PATH
+if settings=$($WM_PROJECT_DIR/bin/foamEtcFile config.sh/kahip)
+then
+    . $settings
+fi
+if [ -n "$KAHIP_ARCH_PATH" ]
+then
+    echo KAHIP decomposition
+    ./makeKAHIP -test "$KAHIP_ARCH_PATH" || \
+    ./makeKAHIP || warnBuildIssues KAHIP
+else
+    warnNotFound KAHIP   # is optional
+fi
+
+#------------------------------------------------------------------------------
+echo
+echo ========================================
+# Get METIS_ARCH_PATH
+if settings=$($WM_PROJECT_DIR/bin/foamEtcFile config.sh/metis)
+then
+    . $settings
+fi
+if [ -n "$METIS_ARCH_PATH" ]
+then
+    echo METIS decomposition
+    ./makeMETIS -test "$METIS_ARCH_PATH" || \
+    ./makeMETIS || warnBuildIssues METIS
+else
+    warnNotFound METIS   # is optional
+fi
+
+#------------------------------------------------------------------------------
+echo
+echo ========================================
+if [ -n "$CGAL_ARCH_PATH" ]
+then
+    echo "cgal/boost"
+    ./makeCGAL -test "$CGAL_ARCH_PATH" "$BOOST_ARCH_PATH" || \
+    ./makeCGAL || warnBuildIssues CGAL
+else
+    warnNotFound CGAL   # is optional
+fi
+
+#------------------------------------------------------------------------------
+echo
+echo ========================================
+if [ -n "$FFTW_ARCH_PATH" ]
+then
+    echo FFTW
+    ./makeFFTW -test "$FFTW_ARCH_PATH" || \
+    ./makeFFTW || warnBuildIssues FFTW
+else
+    warnNotFound FFTW   # is optional
+fi
+
+#------------------------------------------------------------------------------
+echo
+echo ========================================
+# Get ADIOS2_ARCH_PATH
+if settings=$($WM_PROJECT_DIR/bin/foamEtcFile config.sh/adios2)
+then
+    . $settings
+fi
+if [ -n "$ADIOS2_ARCH_PATH" ]
+then
+    echo ADIOS2
+    ./makeAdios2 -test "$ADIOS2_ARCH_PATH" || \
+    ./makeAdios2 || warnBuildIssues ADIOS2
+else
+    warnNotFound ADIOS2   # is optional
+fi
+
+
+#------------------------------------------------------------------------------
+
+echo
+echo ========================================
+echo Done ThirdParty Allwmake
+echo ========================================
+echo
+
+#------------------------------------------------------------------------------

@@ -1,0 +1,154 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      obstaclesDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+_11z
+{
+    groupId 11;
+
+    enabled true;
+
+    // Dimensions
+    zpipe   { direction z; length 2.132; diameter 0.082; }
+
+    locations
+    (
+        (0 0.13325 0)
+        (0 0.39975 0)
+        (0 0.66625 0)
+        (0 0.93275 0)
+        (0 1.19925 0)
+        (0 1.46575 0)
+        (0 1.73225 0)
+        (0 1.99875 0)
+        (0 2.26525 0)
+        (0 2.53175 0)
+        (0 2.79825 0)
+        (0 3.06475 0)
+        (0 3.33125 0)
+        (0 3.59775 0)
+        (0 3.86425 0)
+        (0 4.13075 0)
+    );
+
+    // z-direction
+    obstacles
+    (
+        cyl { point (0.13325 0 0); $zpipe; }
+        cyl { point (0.39975 0 0); $zpipe; }
+        cyl { point (0.66625 0 0); $zpipe; }
+        cyl { point (0.93275 0 0); $zpipe; }
+        cyl { point (1.19925 0 0); $zpipe; }
+        cyl { point (1.46575 0 0); $zpipe; }
+        cyl { point (1.73225 0 0); $zpipe; }
+        cyl { point (1.99875 0 0); $zpipe; }
+        cyl { point (2.26525 0 0); $zpipe; }
+        cyl { point (2.53175 0 0); $zpipe; }
+        cyl { point (2.79825 0 0); $zpipe; }
+        cyl { point (3.06475 0 0); $zpipe; }
+        cyl { point (3.33125 0 0); $zpipe; }
+        cyl { point (3.59775 0 0); $zpipe; }
+        cyl { point (3.86425 0 0); $zpipe; }
+        cyl { point (4.13075 0 0); $zpipe; }
+    );
+}
+
+
+_11y
+{
+    groupId 11;
+    enabled true;
+
+    // Dimensions
+    ypipe   { direction y; length 4.26;  diameter 0.082; }
+
+    locations
+    (
+        (0.13325 0 0)
+        (0.39975 0 0)
+        (0.66625 0 0)
+        (0.93275 0 0)
+        (1.19925 0 0)
+        (1.46575 0 0)
+        (1.73225 0 0)
+        (1.99875 0 0)
+        (2.26525 0 0)
+        (2.53175 0 0)
+        (2.79825 0 0)
+        (3.06475 0 0)
+        (3.33125 0 0)
+        (3.59775 0 0)
+        (3.86425 0 0)
+        (4.13075 0 0)
+    );
+
+    // y-direction
+    obstacles
+    (
+        cyl { point (0 0 0.13325); $ypipe; }
+        cyl { point (0 0 0.39975); $ypipe; }
+        cyl { point (0 0 0.66625); $ypipe; }
+        cyl { point (0 0 0.93275); $ypipe; }
+        cyl { point (0 0 1.19925); $ypipe; }
+        cyl { point (0 0 1.46575); $ypipe; }
+        cyl { point (0 0 1.73225); $ypipe; }
+        cyl { point (0 0 1.99875); $ypipe; }
+    );
+}
+
+_11x
+{
+    groupId 11;
+    enabled true;
+
+    // Dimensions
+    xpipe   { direction x; length 4.26; diameter 0.082; }
+
+    locations
+    (
+        (0 0.13325 0)
+        (0 0.39975 0)
+        (0 0.66625 0)
+        (0 0.93275 0)
+        (0 1.19925 0)
+        (0 1.46575 0)
+        (0 1.73225 0)
+        (0 1.99875 0)
+        (0 2.26525 0)
+        (0 2.53175 0)
+        (0 2.79825 0)
+        (0 3.06475 0)
+        (0 3.33125 0)
+        (0 3.59775 0)
+        (0 3.86425 0)
+        (0 4.13075 0)
+    );
+
+    // x-direction
+    obstacles
+    (
+        cyl { point (0 0 0.13325); $xpipe; }
+        cyl { point (0 0 0.39975); $xpipe; }
+        cyl { point (0 0 0.66625); $xpipe; }
+        cyl { point (0 0 0.93275); $xpipe; }
+        cyl { point (0 0 1.19925); $xpipe; }
+        cyl { point (0 0 1.46575); $xpipe; }
+        cyl { point (0 0 1.73225); $xpipe; }
+        cyl { point (0 0 1.99875); $xpipe; }
+    );
+}
+
+
+// ************************************************************************* //

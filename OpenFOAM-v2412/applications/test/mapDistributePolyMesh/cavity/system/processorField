@@ -1,0 +1,59 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      postProcessingDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+functions
+{
+    processorField
+    {
+        type            processorField;
+        libs            (fieldFunctionObjects);
+
+        enabled         true;
+
+        writeControl    writeTime;
+    }
+    cellID
+    {
+        type coded;
+        libs (utilityFunctionObjects);
+
+        name cellID;
+
+        codeExecute
+        #{
+            volScalarField cellID
+            (
+                IOobject
+                (
+                    "cellID",
+                    mesh().time().timeName(),
+                    mesh(),
+                    IOobject::NO_READ
+                ),
+                mesh(),
+                dimensionedScalar(dimless, Zero)
+            );
+            forAll(cellID, celli)
+            {
+                cellID[celli] = celli;
+            }
+            cellID.correctBoundaryConditions();
+            cellID.write();
+        #};
+    }
+}
+
+// ************************************************************************* //

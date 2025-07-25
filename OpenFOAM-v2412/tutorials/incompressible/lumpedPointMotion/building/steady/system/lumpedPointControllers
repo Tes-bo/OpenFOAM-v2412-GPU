@@ -1,0 +1,44 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    note        "locations and connectivity";
+    object      dictionary;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+//- Locations of the lumped points
+points
+(
+    (0  0  0.00)
+    (0  0  0.05)
+    (0  0  0.10)
+    (0  0  0.15)
+    (0  0  0.20)
+    (0  0  0.25)
+    (0  0  0.30)
+    (0  0  0.35)
+    (0  0  0.40)
+    (0  0  0.45)
+    (0  0  0.50)
+);
+
+//- Connectivity for motion controllers
+controllers
+{
+    vertical
+    {
+        pointLabels (0 1 2 3 4 5 6 7 8 9 10);
+    }
+}
+
+
+// ************************************************************************* //

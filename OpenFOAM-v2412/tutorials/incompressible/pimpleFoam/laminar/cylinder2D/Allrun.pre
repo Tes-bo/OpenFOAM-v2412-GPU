@@ -1,0 +1,20 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+runApplication -s coarseMesh blockMesh -dict system/blockMeshDict.coarse
+
+runApplication snappyHexMesh -overwrite
+
+mkdir -p constant/coarseMesh
+
+mv -f constant/polyMesh constant/coarseMesh
+
+runApplication -s main blockMesh -dict system/blockMeshDict.main
+
+runApplication mirrorMesh -overwrite
+
+restore0Dir
+
+#------------------------------------------------------------------------------

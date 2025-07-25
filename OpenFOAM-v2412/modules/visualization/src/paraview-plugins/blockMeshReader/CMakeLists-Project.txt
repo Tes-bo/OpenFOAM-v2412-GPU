@@ -1,0 +1,47 @@
+#-----------------------------------------------------------------------------
+# An OpenFOAM reader plugin ("paraFoam") for ParaView GUI (5.7+)
+
+cmake_minimum_required(VERSION 3.8)
+find_package(ParaView REQUIRED)
+
+# Currently use a hack to stage the installation (2020-04-29)
+if (STAGED_INSTALL_PREFIX)
+    set(CMAKE_INSTALL_PREFIX "${STAGED_INSTALL_PREFIX}")
+    message("Staged prefix = ${CMAKE_INSTALL_PREFIX}")
+endif()
+
+#-----------------------------------------------------------------------------
+# Do not use CMAKE_INSTALL_LIBDIR here
+# OpenFOAM uses lib (not lib64, or lib/multi-arch)
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/bin")
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/lib")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/lib")
+#----
+
+paraview_plugin_scan(
+  PLUGIN_FILES      "${CMAKE_CURRENT_SOURCE_DIR}/plugin/paraview.plugin"
+  PROVIDES_PLUGINS  plugins
+  ENABLE_BY_DEFAULT ON
+  REQUIRES_MODULES  required_modules
+)
+
+foreach(module IN LISTS required_modules)
+  if(NOT TARGET "${module}")
+    message("Missing required module: ${module}")
+    return()
+  endif()
+endforeach()
+
+# Install under <platform>/<arch>/lib, not lib64
+# Don't want static libraries, include files...
+paraview_plugin_build(
+  PLUGINS   ${plugins}
+  AUTOLOAD  ${plugins}
+)
+
+## RUNTIME_DESTINATION "${CMAKE_INSTALL_BINDIR}"
+## LIBRARY_DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+## LIBRARY_SUBDIRECTORY "${PARAVIEW_PLUGIN_SUBDIR}"
+
+#-----------------------------------------------------------------------------

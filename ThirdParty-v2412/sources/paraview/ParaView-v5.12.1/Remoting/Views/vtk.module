@@ -1,0 +1,78 @@
+NAME
+  ParaView::RemotingViews
+LIBRARY_NAME
+  vtkRemotingViews
+SPDX_LICENSE_IDENTIFIER
+  LicenseRef-BSD-3-Clause-Sandia-USGov
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Kitware Inc.
+SPDX_CUSTOM_LICENSE_FILE
+  LICENSE
+SPDX_CUSTOM_LICENSE_NAME
+  BSD-3-Clause-Sandia-USGov
+LICENSE_FILES
+  LICENSE
+GROUPS
+  PARAVIEW_CORE
+CONDITION
+  PARAVIEW_ENABLE_RENDERING
+KIT
+  ParaView::ServerManagerKit
+IMPLEMENTS
+  ParaView::RemotingServerManager
+IMPLEMENTABLE
+DEPENDS
+  ParaView::RemotingServerManager
+  ParaView::Versioning
+  VTK::ChartsCore
+  VTK::CommonExecutionModel
+  VTK::RenderingAnnotation
+  VTK::RenderingContext2D
+  VTK::RenderingCore
+  VTK::RenderingCellGrid
+  VTK::RenderingParallel
+  VTK::ViewsContext2D
+  VTK::ViewsCore
+PRIVATE_DEPENDS
+  ParaView::RemotingCore
+  ParaView::VTKExtensionsExtraction
+  ParaView::VTKExtensionsFiltersRendering
+  ParaView::VTKExtensionsInteractionStyle
+  ParaView::VTKExtensionsMisc
+  VTK::CommonColor
+  VTK::CommonSystem
+  VTK::DomainsChemistryOpenGL2
+  VTK::FiltersCellGrid
+  VTK::FiltersModeling
+  VTK::FiltersParallel
+  VTK::FiltersParallelDIY2
+  VTK::InteractionStyle
+  VTK::IOImage
+  VTK::IOLegacy
+  VTK::jsoncpp
+  VTK::ParallelCore
+  VTK::RenderingContextOpenGL2
+  VTK::RenderingLICOpenGL2
+  VTK::RenderingLabel
+  VTK::RenderingOpenGL2
+  VTK::RenderingVolumeAMR
+  VTK::opengl
+  VTK::zlib
+OPTIONAL_DEPENDS
+  ParaView::icet
+  ParaView::nvpipe
+  VTK::AcceleratorsVTKmFilters
+  VTK::FiltersOpenTURNS
+  VTK::ParallelMPI
+  VTK::RenderingRayTracing
+  VTK::vtkm
+TEST_DEPENDS
+  ParaView::RemotingApplication
+  VTK::glew
+  VTK::opengl
+  VTK::TestingCore
+TEST_OPTIONAL_DEPENDS
+  VTK::ParallelMPI
+  VTK::Python
+TEST_LABELS
+  ParaView

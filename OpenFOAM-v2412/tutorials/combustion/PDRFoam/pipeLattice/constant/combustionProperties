@@ -1,0 +1,43 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      combustionProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+laminarFlameSpeedCorrelation    SCOPE;
+
+fuel        Methane;
+
+fuelFile    "fuels/methane";
+
+ignite      yes;
+
+ignitionSites
+(
+{
+    location    (2.129836154 2.129836154 0.1773225);
+    diameter    0.0525394295667244;
+    start       2E-05;
+    duration    0.5;
+    strength    10.0;
+}
+);
+
+ignitionSphereFraction  1.0;
+
+ignitionThickness       0.05;
+
+ignitionCircleFraction  0.5;
+
+
+// ************************************************************************* //

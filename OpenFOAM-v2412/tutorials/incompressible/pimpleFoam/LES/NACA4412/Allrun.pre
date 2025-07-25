@@ -1,0 +1,40 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+# SA-DDES, std. shielding
+#LESModel="SpalartAllmarasDDES"
+#LESDelta="maxDeltaxyz"
+#LESCoeffs=""
+
+# SA-sigma-DDES, std. shielding
+#LESModel="SpalartAllmarasDDES"
+#LESDelta="DeltaOmegaTilde"
+#LESCoeffs="useSigma true;"
+
+# SA-DDES, ZDES mode 2 shielding
+LESModel="SpalartAllmarasDDES"
+LESDelta="maxDeltaxyz"
+LESCoeffs="shielding ZDES2020;"
+
+# SA-sigma-DDES, ZDES mode 2 shielding
+#LESModel="SpalartAllmarasDDES"
+#LESDelta="DeltaOmegaTilde"
+#LESCoeffs="useSigma true; shielding ZDES2020;"
+
+
+sed -e "s|LES_MODEL|$LESModel|g" -e "s|LES_DELTA|$LESDelta|g" \
+    -e "s|LES_COEFFS|$LESCoeffs|g" \
+    constant/turbulenceProperties.template \
+  > constant/turbulenceProperties
+
+restore0Dir
+
+touch case.foam
+
+runApplication blockMesh
+
+runApplication applyBoundaryLayer -ybl 0.02
+
+#------------------------------------------------------------------------------

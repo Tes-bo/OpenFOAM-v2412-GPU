@@ -1,0 +1,98 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "templates";
+    object      wallOptions;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+wallFunction
+{
+    highReynolds
+    {
+        nut
+        {
+            type        nutkWallFunction;
+            value       ${:VALUE.nut};
+        }
+        k
+        {
+            type        kqRWallFunction;
+            value       ${:VALUE.k};
+        }
+        epsilon
+        {
+            type        epsilonWallFunction;
+            value       ${:VALUE.epsilon};
+        }
+        omega
+        {
+            type        omegaWallFunction;
+            value       ${:VALUE.omega};
+        }
+    }
+    lowReynolds
+    {
+        nut
+        {
+            type        fixedValue;
+            value       uniform 0;
+        }
+        k
+        {
+            type        fixedValue;
+            value       uniform 0;
+        }
+        epsilon
+        {
+            type        fixedValue;
+            value       uniform 1e-8;
+        }
+        omega
+        {
+            type        fixedValue;
+            value       uniform 1e-8;
+        }
+    }
+}
+
+
+motion
+{
+    stationary
+    {
+        U
+        {
+            type        fixedValue;
+            value       uniform (0 0 0);
+        }
+    }
+    moving
+    {
+        U
+        {
+            type        fixedValue;
+            value       ${:VALUE.U};
+        }
+    }
+    movingMesh
+    {
+        U
+        {
+            type        movingWallVelocity;
+            value       ${:VALUE.U};
+        }
+    }
+}
+
+
+// ************************************************************************* //

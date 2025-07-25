@@ -1,0 +1,37 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#-------------------------------------------------------------------------------
+#     Copyright (C) 2020-2023 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     help-filter
+#
+# Description
+#     Feed with output from -help-full.
+#
+#     For example,
+#         blockMesh -help-full | ./help-filter
+#
+#------------------------------------------------------------------------------
+
+sed -ne '1,/^[Oo]ptions:/d' \
+    -e '/^ \{8\}/d;' \
+    -e 's/^ *//; /^$/d; /^[^-]/d; /^--/d;' \
+    -e '/^-doc-source/d; /^-help-man/d;' \
+    -e '/^-hostRoots /d; /^-roots /d;' \
+    -e '/^-lib /d; /^-no-libs /d;' \
+    -e '/^-[a-z]*-switch /d;' \
+    -e 'y/,/ /; s/=.*$/=/;' \
+    -e '/^-[^ ]* </{ s/^\(-[^ ]* <\).*$/\1/; p; d }' \
+    -e 's/^\(-[^ ]*\).*$/\1/; p; /^-help-full/q;' \
+-
+
+#------------------------------------------------------------------------------

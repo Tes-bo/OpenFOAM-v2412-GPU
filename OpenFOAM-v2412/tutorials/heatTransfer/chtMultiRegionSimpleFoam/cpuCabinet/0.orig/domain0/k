@@ -1,0 +1,87 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    object      k;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 2 -2 0 0 0 0];
+
+internalField   uniform 0.5;
+
+boundaryField
+{
+     #includeEtc "caseDicts/setConstraintTypes"
+    FAN_SHROUD
+    {
+        type            kqRWallFunction;
+        value           $internalField;
+    }
+
+    CABINET
+    {
+        type            kqRWallFunction;
+        value           $internalField;
+    }
+
+    FINS
+    {
+        type            kqRWallFunction;
+        value           $internalField;
+    }
+
+    PROCESSOR
+    {
+        type            kqRWallFunction;
+        value           $internalField;
+    }
+
+    FAN
+    {
+        type            kqRWallFunction;
+        value           $internalField;
+    }
+
+    MRF_region
+    {
+        type            kqRWallFunction;
+        value           $internalField;
+    }
+
+    OUTLET_01
+    {
+        type            inletOutlet;
+        inletValue      uniform 0.00375;
+        value           uniform 0.00375;
+    }
+
+    OUTLET_02
+    {
+        type            inletOutlet;
+        inletValue      uniform 0.00375;
+        value           uniform 0.00375;
+    }
+
+    domain0_to_v_CPU
+    {
+        type            kqRWallFunction;
+        value           $internalField;
+    }
+
+    domain0_to_v_fins
+    {
+        type            kqRWallFunction;
+        value           $internalField;
+    }
+}
+
+// ************************************************************************* //

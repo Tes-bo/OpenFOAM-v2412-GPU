@@ -1,0 +1,3 @@
+polydisperseBubbleFoam.C
+
+EXE = $(FOAM_MODULE_APPBIN)/polydisperseBubbleFoam

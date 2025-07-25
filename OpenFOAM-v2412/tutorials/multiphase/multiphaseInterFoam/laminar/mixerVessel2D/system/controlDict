@@ -1,0 +1,112 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+application     multiphaseInterFoam;
+
+startFrom       startTime;
+
+startTime       0;
+
+stopAt          endTime;
+
+endTime         4;
+
+deltaT          1e-3;
+
+writeControl    adjustable;
+
+writeInterval   0.125;
+
+purgeWrite      0;
+
+writeFormat     ascii;
+
+writePrecision  6;
+
+writeCompression off;
+
+timeFormat      general;
+
+timePrecision   6;
+
+runTimeModifiable yes;
+
+adjustTimeStep  yes;
+
+maxCo           0.5;
+
+maxAlphaCo      0.5;
+
+maxDeltaT       1;
+
+functions
+{
+    sTransport
+    {
+        type            energyTransport;
+        libs            (solverFunctionObjects);
+        enabled         true;
+        writeControl    writeTime;
+        writeInterval   1;
+        write           true;
+
+        field           T;
+        rho             rho;
+        phi             rhoPhi;
+
+        phaseThermos
+        {
+            alpha.air
+            {
+                Cp          1e3;
+                kappa       0.0243;
+            }
+            alpha.mercury
+            {
+                Cp          140;
+                kappa       8.2;
+            }
+            alpha.oil
+            {
+                Cp          2e3;
+                kappa       0.2;
+            }
+            alpha.water
+            {
+                Cp          4e3;
+                kappa       0.6;
+            }
+        }
+
+        fvOptions
+        {
+            viscousDissipation
+            {
+                type            viscousDissipation;
+                enabled         true;
+
+                viscousDissipationCoeffs
+                {
+                    fields      (T);
+                    rho         rho;
+                }
+            }
+        }
+    }
+}
+
+
+// ************************************************************************* //

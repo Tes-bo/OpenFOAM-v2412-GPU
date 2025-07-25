@@ -1,0 +1,32 @@
+// -*- C++ -*-
+
+type                sets;
+libs                (sampling);
+interpolationScheme cellPoint;
+setFormat           raw;
+
+writeControl        writeTime;
+
+fields
+(
+    T
+    p_rgh
+    k
+    ObukhovLength
+    Ustar
+);
+
+sets
+{
+    lineZ1
+    {
+        type        midPoint;
+        axis        z;
+        start       (0 0 0);
+        end         (0 0 6001);
+        nPoints     200;
+    }
+}
+
+
+// *********************************************************************** //

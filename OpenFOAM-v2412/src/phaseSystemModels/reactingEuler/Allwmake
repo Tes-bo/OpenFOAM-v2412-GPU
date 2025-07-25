@@ -1,0 +1,15 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/wmake/scripts/AllwmakeParseArguments
+#------------------------------------------------------------------------------
+
+# echo "making ${PWD##*/}"
+
+wmake $targetType saturationModels
+
+wmake $targetType multiphaseSystem
+
+wmake $targetType twoPhaseSystem
+wmake $targetType twoPhaseCompressibleTurbulenceModels
+
+#------------------------------------------------------------------------------

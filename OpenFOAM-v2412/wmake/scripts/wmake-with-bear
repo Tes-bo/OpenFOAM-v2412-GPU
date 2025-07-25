@@ -1,0 +1,158 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#-------------------------------------------------------------------------------
+#     Copyright (C) 2020-2022 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     wmake/scripts/wmake-with-bear
+#     Backend for "wmake -with-bear"
+#
+# Usage
+#     wmake-with-bear [wmake options and args]
+#
+# Description
+#     Call wmake via 'bear' to create json output.
+#
+# Environment
+#     WM_PROJECT_DIR, WM_PROJECT_USER_DIR, WM_OPTIONS
+#
+#-------------------------------------------------------------------------------
+cacheDirName="build/$WM_OPTIONS"
+
+printHelp() {
+    cat<<USAGE
+
+Usage: ${0##*/} [wmake options and args]
+
+options:
+  -bear-output-dir=DIR  Specify output directory
+  -version              Print bear version
+  -h | -help            Display short help and exit
+
+Call wmake via 'bear' to create json output.
+Output: ${outputDir:-"${WM_PROJECT_DIR:-<project>}/$cacheDirName"}
+
+USAGE
+    exit 0  # A clean exit
+}
+
+
+#------------------------------------------------------------------------------
+
+unset optVersion outputDir
+
+# Parse options
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    ('') ;;
+    (- | --) shift; break ;;  # Stop option parsing
+
+    -h | -help*)
+       printHelp
+       ;;
+
+    -version)
+        optVersion=true
+        break
+        ;;
+
+    -bear-output-dir=*)
+        outputDir="${1#*=}"
+        ;;
+    *)
+        break
+        ;;
+    esac
+    shift
+done
+
+#------------------------------------------------------------------------------
+
+# Detect version. Seems to be stderr for some versions!?
+if version="$(bear --version 2>&1)"
+then
+    version="$(echo "$version" | sed -ne '1s/^[^0-9]*\([1-9]\)/\1/p;')"
+else
+    unset version
+fi
+
+if [ "$optVersion" = true ]
+then
+    echo "bear=$(command -v bear)"
+    echo "version=${version:-missing}"
+    exit 0
+fi
+
+# Not found? Can stop immediately
+if [ -z "$version" ]
+then
+    echo "Warning: bear not found" 1>&2
+    echo "Stopping" 1>&2
+    exit 2
+fi
+
+
+unset outputFile
+setOutput()
+{
+    if [ -z "$outputDir" ]
+    then
+        prefixDir="$WM_PROJECT_DIR"
+        if ! [ -w "$prefixDir" ]
+        then
+            echo "Non-writable directory: $prefixDir" 1>&2
+            echo "Try with user location" 1>&2
+            prefixDir="$WM_PROJECT_USER_DIR"
+
+            if ! [ -w "$prefixDir" ]
+            then
+                echo "Non-writable directory: $prefixDir" 1>&2
+                echo "Using home directory" 1>&2
+                prefixDir="$HOME"
+            fi
+        fi
+        outputDir="$prefixDir/$cacheDirName"
+    fi
+
+    mkdir -p "$outputDir"
+    outputFile="$outputDir/compile_commands.json"
+    echo "Output = $outputFile" 1>&2
+}
+
+
+case "$version" in
+(2.*)
+    # Version 2
+    echo "Use bear $version" 1>&2
+    setOutput
+    exec bear --append -o "$outputFile" wmake "$@"
+    ;;
+
+([3-9].* | [1-9][0-9].*)
+    # Version 3 or newer
+    echo "Use bear $version" 1>&2
+    setOutput
+    exec bear --append --output "$outputFile" -- wmake "$@"
+    ;;
+
+(*)
+    # Unknown version or some other error
+    echo "Warning: bear $version" 1>&2
+    echo "Stopping" 1>&2
+    exit 1
+    ;;
+esac
+
+# Should never reach here
+exit $?
+
+#------------------------------------------------------------------------------

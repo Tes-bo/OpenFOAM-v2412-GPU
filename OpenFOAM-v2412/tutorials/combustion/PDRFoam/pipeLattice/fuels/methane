@@ -1,0 +1,150 @@
+// -*- C++ -*-
+
+name    methane;
+
+SCOPECoeffs
+{
+    lowerFlammabilityLimit  0.502449441017432;
+    upperFlammabilityLimit  1.68468341988198;
+
+    lowerSuPolynomial
+    {
+        lowerLimit      0.545;
+        upperLimit      1.16;
+        coefficients
+        (
+            0.35
+            0.907851467
+            -6.629714256
+            -8.646022633
+            16.38787781
+            37.29584992
+            0.0
+        );
+    }
+
+    upperSuPolynomial
+    {
+        lowerLimit      1.1;
+        upperLimit      1.6;
+        coefficients
+        (
+            0.057804451
+            80.27932789
+            -411.9361947
+            642.8456718
+            -168.8792404
+            -221.4502558
+            0.0
+        );
+    }
+
+    lowerMaPolynomial
+    {
+        lowerLimit      0.5;
+        upperLimit      1.0581;
+        coefficients
+        (
+            3.73
+            1.6
+            4.0
+            1.0
+            -12.0
+            -11.0
+            0.0
+        );
+    }
+
+    upperMaPolynomial
+    {
+        lowerLimit      1.0579;
+        upperLimit      2.684;
+        coefficients
+        (
+            4.13
+            0.0
+            0.0
+            0.0
+            0.0
+            0.0
+            0.0
+        );
+    }
+
+    Texp    2.0;
+    pexp    -0.5;
+    CIn     10.2;
+}
+
+
+thermophysicalProperties
+{
+    stoichiometricAirFuelMassRatio  17.1667;
+
+    fuel
+    {
+        specie
+        {
+            nMoles          1;
+            molWeight       16.043;
+        }
+
+        thermodynamics
+        {
+            Tlow            20;
+            Thigh           5000;
+            Tcommon         1000;
+            highCpCoeffs    (1.68348e+000 1.02372e-002 -3.87513e-006 6.78559e-010 -4.50342e-014 -10080.799805 9.623400);
+            lowCpCoeffs     (7.78741e-001 1.74767e-002 -2.78341e-005 3.04971e-008 -1.22393e-011 -9825.230469 13.722200);
+        }
+        transport
+        {
+            As              1.67212e-06;
+            Ts              170.672;
+        }
+    }
+
+    oxidant
+    {
+        specie
+        {
+            nMoles          1;
+            molWeight       28.8504;
+        }
+        thermodynamics
+        {
+            Tlow            20;
+            Thigh           5000;
+            Tcommon         1000;
+            highCpCoeffs    (3.08854e+000 1.30434e-003 -4.75532e-007 8.34944e-011 -5.57380e-015 -988.135710 5.394344);
+            lowCpCoeffs     (3.28067e+000 1.34928e-003 -3.25182e-006 4.73272e-009 -2.11558e-012 -1017.613519 4.388088);
+        }
+        transport
+        {
+            As              1.67212e-06;
+            Ts              170.672;
+        }
+    }
+
+    burntProducts
+    {
+        specie
+        {
+            nMoles         1;
+            molWeight      27.633;
+        }
+        thermodynamics
+        {
+            Tlow           20;
+            Thigh          5000;
+            Tcommon        1000;
+            highCpCoeffs   ( 3.02337e+000 1.94303e-003 -6.93814e-007 1.17760e-010 -7.62884e-015 -10994.911525 5.489135);
+            lowCpCoeffs    ( 3.21823e+000 2.61002e-003 -5.03021e-006 6.01014e-009 -2.42546e-012 -11067.319096 4.284645);
+        }
+        transport
+        {
+            As             1.67212e-06;
+            Ts             170.672;
+        }
+    }
+}

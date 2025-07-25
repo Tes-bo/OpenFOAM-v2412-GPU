@@ -1,0 +1,48 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+# Alternative decomposeParDict name:
+decompDict="-decomposeParDict system/decomposeParDict.20"
+## Standard decomposeParDict name:
+# unset decompDict
+
+# copy initial control points from backup
+cp -rf constant/controlPoints.org constant/controlPoints
+
+# copy motorbike surface from resources directory
+cp -f "$FOAM_TUTORIALS"/resources/geometry/motorBike.obj.gz constant/triSurface/
+runApplication surfaceFeatureExtract
+
+runApplication blockMesh
+
+runApplication $decompDict decomposePar
+
+# Using distributedTriSurfaceMesh?
+if foamDictionary -entry geometry -value system/snappyHexMeshDict | \
+   grep -q distributedTriSurfaceMesh
+then
+    echo "surfaceRedistributePar does not need to be run anymore"
+    echo " - distributedTriSurfaceMesh will do on-the-fly redistribution"
+fi
+
+runParallel $decompDict snappyHexMesh -overwrite
+
+#- For non-parallel running: - set the initial fields
+# restore0Dir
+
+#- For parallel running: set the initial fields
+restore0Dir -processor
+
+runParallel $decompDict patchSummary
+runParallel $decompDict potentialFoam
+runParallel $decompDict checkMesh -writeFields '(nonOrthoAngle)' -constant
+
+runParallel $decompDict $(getApplication)
+runParallel $decompDict cumulativeDisplacement
+
+runApplication reconstructParMesh -constant
+runApplication reconstructPar -latestTime
+
+#------------------------------------------------------------------------------

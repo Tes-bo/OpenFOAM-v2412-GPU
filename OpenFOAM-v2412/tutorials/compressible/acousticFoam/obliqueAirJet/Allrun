@@ -1,0 +1,12 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+#------------------------------------------------------------------------------
+
+# Run a precursor init case
+(cd main && ./Allrun.pre)
+(cd precursor && ./Allrun-parallel)
+
+# Run the main case
+(cd main && ./Allrun-parallel)
+
+# -----------------------------------------------------------------------------

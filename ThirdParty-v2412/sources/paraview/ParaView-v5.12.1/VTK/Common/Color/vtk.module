@@ -1,0 +1,22 @@
+NAME
+  VTK::CommonColor
+LIBRARY_NAME
+  vtkCommonColor
+DESCRIPTION
+  Color palette and named color support classes
+KIT
+  VTK::Common
+SPDX_LICENSE_IDENTIFIER
+  BSD-3-Clause
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
+DEPENDS
+  VTK::CommonCore
+  VTK::CommonDataModel
+TEST_DEPENDS
+  VTK::CommonExecutionModel
+  VTK::IOImage
+  VTK::InteractionStyle
+  VTK::RenderingOpenGL2
+  VTK::TestingCore
+  VTK::TestingRendering

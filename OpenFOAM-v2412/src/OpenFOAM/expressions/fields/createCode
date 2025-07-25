@@ -1,0 +1,14 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+#------------------------------------------------------------------------------
+# Manually create ragel scanner and lemon parser header
+
+prefix=fieldExpr
+
+"${WM_PROJECT_DIR:?}/wmake/scripts/makeParser" \
+    -prefix="$prefix" \
+    -scanner=Scanner.rl \
+    -parser=LemonParser.lyy-m4 \
+    "$@"
+
+#------------------------------------------------------------------------------

@@ -1,0 +1,33 @@
+#----------------------------------*-sh-*--------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2016 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# File
+#     etc/config.sh/ccmio
+#     - sourced during wmake process only.
+#
+# Description
+#     Setup for LIBCCMIO include/libraries.
+#
+#     Static libraries (recommended) are found under CCMIO_ARCH_PATH/lib.
+#     Dynamic libraries are found under FOAM_EXT_LIBBIN path.
+#
+# Note
+#     No csh version. This file is only used by wmake.
+#
+#------------------------------------------------------------------------------
+# USER EDITABLE PART: Changes made here may be lost with the next upgrade
+
+ccmio_version=libccmio-2.6.1
+export CCMIO_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$ccmio_version
+
+# END OF (NORMAL) USER EDITABLE PART
+#------------------------------------------------------------------------------

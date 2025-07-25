@@ -1,0 +1,35 @@
+vtk_add_test_python(
+  NO_DATA NO_VALID NO_OUTPUT
+  PythonSmoke.py
+  TestArrays.py
+  TestArrayArguments.py
+  TestBuffer.py
+  TestDefaultArgs.py
+  TestEmptyInput.py
+  TestEnums.py
+  TestExecuteMethodFinalizeCrash.py
+  TestExpects.py
+  TestFilePath.py
+  TestGhost.py
+  TestIterateCollection.py
+  TestObjectName.py
+  TestPassByReference.py
+  TestNumpySupport.py
+  TestNumpyInterface.py
+  TestNumpyWeakReference.py
+  TestOperators.py
+  TestOverloads.py
+  TestPointers.py
+  TestSetGet.py
+  TestSingleton.py
+  TestSOADataArrays.py
+  TestStrings.py
+  TestSubClass.py
+  TestSwigPointer.py
+  TestTerminationCrash.py
+  TestVariant.py
+  TestVersion.py
+  TestWeakref.py
+  TestCommand.py
+  TestInvokeEvent.py
+  )

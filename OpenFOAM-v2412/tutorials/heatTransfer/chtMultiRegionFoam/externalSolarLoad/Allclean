@@ -1,0 +1,21 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/CleanFunctions      # Tutorial clean functions
+#------------------------------------------------------------------------------
+
+cleanCase0
+rm -f allVisibleFaces.obj
+
+rm -rf constant/cellToRegion
+rm -rf constant/*/polyMesh  # region meshes
+
+rm -f constant/air/F
+rm -f constant/air/constructMap*
+rm -f constant/air/finalAgglom
+rm -f constant/air/globalFaceFaces
+rm -f constant/air/mapDist
+rm -f constant/air/visibleFaceFaces
+
+rm -rf constant/triSurface
+
+#------------------------------------------------------------------------------

@@ -1,0 +1,68 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    object      electricPotential:V;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [1 2 -3 0 0 -1 0];
+
+internalField   uniform 0;
+
+boundaryField
+{
+    metalSheet
+    {
+        // Mandatory entries
+        type                    electrostaticDeposition;
+        h                       uniform 0;
+        CoulombicEfficiency     uniform 2.14e-08;
+        resistivity             uniform 3.00e+06;
+
+        // Conditional mandatory entries
+        phases
+        {
+            alpha.air
+            {
+                sigma           1e-10;
+            }
+            alpha.water
+            {
+                sigma           0.14;
+            }
+        }
+
+        // Optional entries
+        jMin                    0;
+        qMin                    0;
+        Rbody                   0.1;
+        Vi                      0;
+        qCumulative             uniform 0;
+
+        // Inherited entries
+        value                   uniform 0;
+    }
+
+    "side-05"
+    {
+        type            fixedValue;
+        value           uniform 100;
+    }
+
+    "(side-01|side-02|side-03|side-04|side-06)"
+    {
+        type            zeroGradient;
+    }
+}
+
+
+// ************************************************************************* //

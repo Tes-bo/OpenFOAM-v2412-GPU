@@ -1,0 +1,51 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      PDRsetFieldsDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// Data dictionary for PDRsetFields
+
+// Replace by the relevant names
+
+obsFileDir      "<case>/geometry";
+
+obsFileNames    (obstaclesDict);
+
+
+// ------------------
+// PDRfitMesh
+// ------------------
+
+// Some parameters for PDRfitMesh are read from this file,
+// including the following
+
+// Mandatory (here or in PDRfitMeshDict)
+cellWidth       0.22;
+
+// Optional
+cellWidthFactor 1.0;
+
+
+// ------------------
+// Advanced
+// ------------------
+
+// Change some predefined patch names
+patchNames
+{
+    ground      ground;
+    outer       outer;
+}
+
+
+// ************************************************************************* //

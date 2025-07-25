@@ -1,0 +1,15 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+(cd eulerianInjection && ./Allrun $*)
+
+if notTest "$@"
+then
+    # Note: particle data only available if running complete case
+    (cd lagrangianParticleInjection && ./Allrun $*)
+    (cd lagrangianDistributionInjection && ./Allrun $*)
+fi
+
+#------------------------------------------------------------------------------

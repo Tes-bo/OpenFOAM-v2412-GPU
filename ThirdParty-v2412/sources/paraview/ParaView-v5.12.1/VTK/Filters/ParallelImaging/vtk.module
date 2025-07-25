@@ -1,0 +1,32 @@
+NAME
+  VTK::FiltersParallelImaging
+LIBRARY_NAME
+  vtkFiltersParallelImaging
+KIT
+  VTK::Parallel
+GROUPS
+  StandAlone
+SPDX_LICENSE_IDENTIFIER
+  LicenseRef-BSD-3-Clause-Sandia-USGov
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
+  Copyright Sandia Corporation
+SPDX_CUSTOM_LICENSE_FILE
+  LICENSE
+SPDX_CUSTOM_LICENSE_NAME
+  BSD-3-Clause-Sandia-USGov
+LICENSE_FILES
+  LICENSE
+DEPENDS
+  VTK::CommonExecutionModel
+  VTK::FiltersImaging
+  VTK::FiltersParallel
+  VTK::ImagingCore
+PRIVATE_DEPENDS
+  VTK::CommonCore
+  VTK::CommonDataModel
+  VTK::CommonSystem
+  VTK::FiltersExtraction
+  VTK::FiltersStatistics
+  VTK::ImagingGeneral
+  VTK::ParallelCore

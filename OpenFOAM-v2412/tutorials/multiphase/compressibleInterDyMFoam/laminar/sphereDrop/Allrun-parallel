@@ -1,0 +1,33 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+runApplication blockMesh
+runApplication topoSet
+
+# remove empty patches
+runApplication createPatch -overwrite
+
+# split mesh into 2 regions at the AMI coupled patch
+runApplication mergeOrSplitBaffles -overwrite
+
+restore0Dir
+
+runApplication setFields
+
+runApplication decomposePar
+
+echo "Symlink include/meshModifiers"
+find -maxdepth 1 -name "processor*" -type d | while read procDir
+do
+    (cd $procDir/constant/polyMesh && ln -sf ../../../include/meshModifiers .)
+done
+
+runParallel $(getApplication)
+
+runApplication reconstructParMesh
+
+runApplication reconstructPar
+
+#------------------------------------------------------------------------------

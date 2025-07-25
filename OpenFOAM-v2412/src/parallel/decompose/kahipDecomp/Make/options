@@ -1,0 +1,12 @@
+EXE_INC = \
+    -I$(KAHIP_INC_DIR) \
+    -I$(LIB_SRC)/parallel/decompose/decompositionMethods/lnInclude
+
+/*
+ * KaHIP is usually compiled with openmp, but may be missing the
+ * openmp link dependency.
+ */
+LIB_LIBS = \
+    -L$(FOAM_LIBBIN) -ldecompositionMethods \
+    -L$(KAHIP_LIB_DIR) $(LINK_OPENMP) \
+    -lkahip$(KAHIP_LIBNAME_SUFFIX)

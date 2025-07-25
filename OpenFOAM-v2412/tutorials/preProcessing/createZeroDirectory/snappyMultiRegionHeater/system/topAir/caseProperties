@@ -1,0 +1,92 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      caseProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+initialConditions
+{
+    alphat  uniform 0;
+    U       uniform (0.1 0 0);
+    p       uniform 100000;
+    p_rgh   uniform 100000;
+    T       uniform 300;
+}
+
+
+boundaryConditions
+{
+    inlet
+    {
+        category    inlet;
+        type        subSonic;
+        patches     (minX);
+        options
+        {
+            flowSpecification fixedVelocity;
+        }
+        values
+        {
+            $/initialConditions;
+        }
+    }
+    outlet
+    {
+        category    outlet;
+        type        subSonic;
+        patches     (maxX);
+        options
+        {
+            returnFlow  wall;
+        }
+        values
+        {
+            $/initialConditions;
+        }
+    }
+    thermalWalls
+    {
+        category    wall;
+        type        noSlip;
+        patches     (maxY minZ maxZ);
+        options
+        {
+            wallFunction highReynolds;
+            motion      stationary;
+            heatTransfer adiabatic;
+        }
+        values
+        {
+            $/initialConditions;
+        }
+    }
+    thermalCoupledWalls
+    {
+        category    wall;
+        type        noSlip;
+        patches     (".*_to_.*");
+        options
+        {
+            wallFunction highReynolds;
+            motion      stationary;
+            heatTransfer thermalCoupled;
+        }
+        values
+        {
+            $/initialConditions;
+        }
+    }
+}
+
+
+// ************************************************************************* //

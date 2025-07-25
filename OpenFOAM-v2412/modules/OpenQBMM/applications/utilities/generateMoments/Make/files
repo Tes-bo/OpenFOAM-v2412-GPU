@@ -1,0 +1,3 @@
+generateMoments.C
+
+EXE = $(FOAM_MODULE_APPBIN)/generateMoments

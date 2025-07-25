@@ -1,0 +1,4 @@
+/* Install into central FOAM_LIBBIN for 'fake' builds (test packaging) */
+dummyLib.cpp
+
+LIB = $(FOAM_LIBBIN)/libTestDummy-OpenFOAM

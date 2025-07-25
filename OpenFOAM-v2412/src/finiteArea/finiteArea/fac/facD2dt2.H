@@ -1,0 +1,99 @@
+/*---------------------------------------------------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     |
+    \\  /    A nd           | www.openfoam.com
+     \\/     M anipulation  |
+-------------------------------------------------------------------------------
+    Copyright (C) 2017 Volkswagen AG
+-------------------------------------------------------------------------------
+License
+    This file is part of OpenFOAM.
+
+    OpenFOAM is free software: you can redistribute it and/or modify it
+    under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+    FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+    for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
+
+Namespace
+    fac
+
+Description
+    Calculate the second temporal derivative.
+
+SourceFiles
+    facD2dt2.C
+
+\*---------------------------------------------------------------------------*/
+
+
+#ifndef facD2dt2_H
+#define facD2dt2_H
+
+#include "areaFieldsFwd.H"
+#include "edgeFieldsFwd.H"
+#include "dimensionedTypes.H"
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+namespace Foam
+{
+
+/*---------------------------------------------------------------------------*\
+                      Namespace fac functions Declaration
+\*---------------------------------------------------------------------------*/
+
+namespace fac
+{
+    template<class Type>
+    tmp<GeometricField<Type, faPatchField, areaMesh>> d2dt2
+    (
+        const dimensioned<Type>,
+        const faMesh&
+    );
+
+    template<class Type>
+    tmp<GeometricField<Type, faPatchField, areaMesh>> d2dt2
+    (
+        const GeometricField<Type, faPatchField, areaMesh>&
+    );
+
+    template<class Type>
+    tmp<GeometricField<Type, faPatchField, areaMesh>> d2dt2
+    (
+        const dimensionedScalar&,
+        const GeometricField<Type, faPatchField, areaMesh>&
+    );
+
+    template<class Type>
+    tmp<GeometricField<Type, faPatchField, areaMesh>> d2dt2
+    (
+        const areaScalarField&,
+        const GeometricField<Type, faPatchField, areaMesh>&
+    );
+}
+
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+} // End namespace Foam
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#ifdef NoRepository
+#   include "facD2dt2.C"
+#endif
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#endif
+
+// ************************************************************************* //

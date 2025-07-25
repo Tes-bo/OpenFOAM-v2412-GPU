@@ -1,0 +1,46 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+momentum1
+{
+    // Mandatory entries
+    type            momentum;
+    libs            (fieldFunctionObjects);
+
+    // Optional entries
+    regionType      all;
+    writeMomentum   yes;
+    writePosition   yes;
+    writeVelocity   yes;
+    p               p;
+    U               U;
+    rho             rho;
+    rhoRef          1.0;
+    cylindrical     false;
+
+    // Optional (inherited) entries
+    writePrecision  10;
+    writeToFile     true;
+    useUserTime     true;
+
+    region          region0;
+    enabled         true;
+    log             true;
+    timeStart       0;
+    timeEnd         1000;
+
+    executeControl  timeStep;
+    executeInterval 1;
+    writeControl    writeTime;
+    writeInterval   -1;
+
+    useNamePrefix   true;
+}
+
+
+// ************************************************************************* //

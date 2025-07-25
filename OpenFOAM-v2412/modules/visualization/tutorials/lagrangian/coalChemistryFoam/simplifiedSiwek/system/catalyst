@@ -1,0 +1,63 @@
+// ParaView Catalyst function object for OpenFOAM (-*- C++ -*-)
+
+catalyst
+{
+    #includeEtc "caseDicts/insitu/catalyst/catalyst.cfg"
+
+    scripts
+    (
+        "<etc>/caseDicts/insitu/catalyst/writeAll.py"
+    );
+
+    inputs
+    {
+        // channel = region
+        region
+        {
+            type        default;
+
+            internal    false;   // boundary only
+
+            // Selected fields (words or regex)
+            fields  ( T );
+        }
+
+        // channel = coalCloud
+        coalCloud
+        {
+            type    cloud;
+
+            cloud   coalCloud1;
+
+            // Selected fields (words or regex)
+            fields  ( T U );
+        }
+
+        // channel = limestoneCloud
+        limestoneCloud
+        {
+            type    cloud;
+
+            cloud   limestoneCloud1;
+
+            // Selected fields (words or regex)
+            fields  ( T U );
+        }
+
+        /*
+        // channel = allClouds
+        allClouds
+        {
+            type    cloud;
+
+            // Selected clouds (words or regex)
+            clouds  ( coalCloud1 limestoneCloud1 );
+
+            // Selected fields (words or regex)
+            fields  ( T U p rho "Y.*" );
+        }
+        */
+    }
+}
+
+// ************************************************************************* //

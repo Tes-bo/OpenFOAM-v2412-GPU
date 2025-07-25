@@ -1,0 +1,92 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+DebugSwitches
+{
+    compressible::turbulentTemperatureRadCoupledMixed   1;
+}
+
+application     solidFoam;
+
+startFrom       startTime;
+
+startTime       0;
+
+stopAt          endTime;
+
+endTime         10; //500;
+
+deltaT          1;
+
+//writeControl    adjustable;
+//writeInterval   0.1;
+writeControl    timeStep;
+writeInterval   1;
+
+purgeWrite      0;
+
+writeFormat     ascii;
+
+writePrecision  8;
+
+writeCompression off;
+
+timeFormat      general;
+
+timePrecision   6;
+
+runTimeModifiable yes;
+
+//maxCo           0.6;
+
+// Maximum diffusion number
+//maxDi           10.0;
+
+//adjustTimeStep  yes;
+
+functions
+{
+    rhoCpT
+    {
+        // Mandatory entries
+        type            exprField;
+        libs            (fieldFunctionObjects);
+
+        field           rhoCpT;
+
+        executeControl  timeStep;
+        //writeControl    none;
+
+        // Use expression to define internal energy
+        //expression      "rho*Cp*T";
+        expression      "8000*450*T";
+        dimensions      [ J ];
+    }
+    vol_rhoCpT
+    {
+        // Mandatory entries (unmodifiable)
+        type            volFieldValue;
+        libs            (fieldFunctionObjects);
+
+        fields          (rhoCpT);
+        operation       volIntegrate;
+        regionType      all;
+        writeFields     false;
+    }
+}
+
+// ************************************************************************* //

@@ -1,0 +1,20 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+cp -rf \
+    "$FOAM_TUTORIALS"/resources/geometry/injectorPipe \
+    constant/triSurface
+
+runApplication surfaceFeatureExtract
+
+runApplication blockMesh
+
+runApplication decomposePar
+
+runParallel snappyHexMesh -overwrite
+
+rm -rf 0
+
+#------------------------------------------------------------------------------

@@ -1,0 +1,34 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+# create the underlying block mesh
+runApplication blockMesh
+
+# create the set for the obstacles
+runApplication topoSet
+
+# mesh processing to generate the inlet duct
+runApplication subsetMesh c0 -patch walls -overwrite
+
+# split into the cabin, ice and exterior regions
+runApplication splitMeshRegions -cellZones -overwrite
+
+# create register face and cell zones
+rm -f log.topoSet.register
+runApplication -o -s register \
+    topoSet -region cabin -dict system/topoSetDictRegister
+
+# set the initial fields
+restore0Dir
+
+# Decompose
+runApplication decomposePar -allRegions -constant
+
+runParallel $(getApplication)
+
+# Reconstruct
+runApplication reconstructPar -allRegions
+
+#------------------------------------------------------------------------------

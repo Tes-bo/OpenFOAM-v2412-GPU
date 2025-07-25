@@ -1,0 +1,10 @@
+species
+(
+    CO2
+    N2
+    O2
+    H2O
+);
+
+reactions
+{}

@@ -1,0 +1,27 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Version:  v2412
+    \\  /    A nd           | Website:  www.openfoam.com
+     \\/     M anipulation  |
+-------------------------------------------------------------------------------
+Description
+    Solves a transport equation for a scalar field.
+
+    The name of the scalar field is specified in this file.
+    A sample scalar field file, that must be initialised for the case,
+    typically in the 0 directory,
+    is available in tetc/caseDicts/solvers/scalarTransport
+
+\*---------------------------------------------------------------------------*/
+
+type            scalarTransport;
+libs            ("libsolverFunctionObjects.so");
+
+writeControl    writeTime;
+
+field           s;
+schemesField    s;
+D               1e-09;
+
+// ************************************************************************* //

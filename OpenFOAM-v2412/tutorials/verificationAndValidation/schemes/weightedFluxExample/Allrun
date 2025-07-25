@@ -1,0 +1,43 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+restore0Dir
+
+cp -f system/controlDict.template system/controlDict
+cp -f system/fvSchemes.template system/fvSchemes
+
+runApplication blockMesh
+
+runApplication setFields
+
+# ----
+echo "Run base-line (1)"
+foamDictionary -entry endTime -set 1 system/controlDict >/dev/null
+sed -i '/^ *laplacian/s/Gauss.*;/Gauss linear corrected;/' system/fvSchemes
+
+runApplication -s 1 $(getApplication)
+
+# ----
+echo "Run harmonic corrected (2)"
+
+foamDictionary -entry endTime -set 2 system/controlDict >/dev/null
+sed -i '/^ *laplacian/s/Gauss.*;/Gauss harmonic corrected;/' system/fvSchemes
+
+runApplication -s 2 $(getApplication)
+
+# ----
+echo "Run weightedFlux (3)"
+foamDictionary -entry endTime -set 3 system/controlDict >/dev/null
+sed -i '/^ *grad/s/Gauss.*;/Gauss weightedFlux DT;/' system/fvSchemes
+
+runApplication -s 3 $(getApplication)
+
+# ----
+
+runApplication -s singleGraph  postProcess -func singleGraph
+
+./plot $@
+
+#------------------------------------------------------------------------------

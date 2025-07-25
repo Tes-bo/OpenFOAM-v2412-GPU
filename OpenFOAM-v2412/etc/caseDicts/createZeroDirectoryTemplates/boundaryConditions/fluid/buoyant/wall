@@ -1,0 +1,54 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "templates";
+    object      wall;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+noSlip
+{
+    p
+    {
+        type        calculated;
+        value       ${:VALUE.p};
+    }
+    p_rgh
+    {
+        type        fixedFluxPressure;
+        value       ${:VALUE.p_rgh};
+    }
+    OPTIONS         (wallFunction motion heatTransfer);
+}
+
+
+slip
+{
+    p
+    {
+        type        calculated;
+        value       ${:VALUE.p};
+    }
+    p_rgh
+    {
+        type        fixedFluxPressure;
+        value       ${:VALUE.p_rgh};
+    }
+    alphat
+    {
+        type        zeroGradient;
+    }
+    OPTIONS         (heatTransfer);
+}
+
+
+// ************************************************************************* //

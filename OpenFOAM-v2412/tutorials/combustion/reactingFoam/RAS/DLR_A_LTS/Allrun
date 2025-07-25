@@ -1,0 +1,22 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+restore0Dir
+
+runApplication chemkinToFoam \
+               chemkin/grimech30.dat chemkin/thermo30.dat chemkin/transportProperties \
+               constant/reactionsGRI constant/thermo.compressibleGasGRI
+
+runApplication blockMesh
+
+runApplication setFields
+
+runApplication decomposePar -force
+
+runParallel $(getApplication)
+
+runApplication reconstructPar
+
+#------------------------------------------------------------------------------

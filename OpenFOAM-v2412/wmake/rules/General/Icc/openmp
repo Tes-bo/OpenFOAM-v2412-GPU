@@ -1,0 +1,6 @@
+# Flags for compiling/linking openmp
+
+COMP_OPENMP = -qopenmp
+LINK_OPENMP = -qopenmp
+
+# -----------------------------------------------------------------------------

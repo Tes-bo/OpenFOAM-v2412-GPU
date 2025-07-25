@@ -1,0 +1,9 @@
+CPP        = cpp -traditional-cpp $(GFLAGS)
+
+include $(GENERAL_RULES)/standard
+include $(GENERAL_RULES)/no-openmp
+
+include $(DEFAULT_RULES)/c
+include $(DEFAULT_RULES)/c++
+
+# -----------------------------------------------------------------------------

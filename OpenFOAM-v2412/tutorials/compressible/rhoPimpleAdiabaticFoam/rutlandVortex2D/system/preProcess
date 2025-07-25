@@ -1,0 +1,81 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    system;
+    object      preProcess;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+functions
+{
+    createVortex
+    {
+        name    createVortices;
+        type    coded;
+        libs    (utilityFunctionObjects);
+        enabled yes;
+
+        codeWrite
+        #{
+            const scalar D = 0.57;
+            const scalar UInf = 50;
+            const scalar pInf = 101325;
+            const scalar TInf = 224;
+            const scalar gamma = 1.4;
+            const scalar A = -0.3*D*UInf;
+            const dimensionedScalar rhoRef("rhoRef", dimDensity, 1);
+            const auto& rho = mesh().lookupObject<volScalarField>("rho");
+
+            const vectorField& C = mesh().C();
+            const scalarField x(C.component(0));
+            const scalarField y(C.component(1));
+            const scalar r2 = sqr(0.5*D/(Foam::sqrt(Foam::log(10.0))));
+            const scalarField Psi(A*exp(-0.5/r2*(sqr(x) + sqr(y))));
+
+            auto* Uptr = mesh().getObjectPtr<volVectorField>("U");
+            auto* pPtr = mesh().getObjectPtr<volScalarField>("p");
+            auto* TPtr = mesh().getObjectPtr<volScalarField>("T");
+
+            if (Uptr && pPtr && TPtr)
+            {
+                auto& U = *Uptr;
+                auto& p = *pPtr;
+                auto& T = *TPtr;
+
+                vectorField& Uc = U.primitiveFieldRef();
+                Uc.replace(0, UInf - rhoRef/rho()*Psi/r2*y);
+                Uc.replace(1, rhoRef/rho()*Psi/r2*x);
+                U.correctBoundaryConditions();
+                U.write();
+
+                scalarField& pc = p.primitiveFieldRef();
+                pc = pInf - 0.5*sqr(rhoRef)/rho()*sqr(Psi)/r2;
+                p.correctBoundaryConditions();
+                p.write();
+
+                scalarField& Tc = T.primitiveFieldRef();
+                Tc = pow(pc/pInf, (gamma - 1)/gamma)*TInf;
+                T.correctBoundaryConditions();
+                T.write();
+            }
+            else
+            {
+                FatalErrorInFunction
+                    << "Unable to find pressure, velocity and temperature"
+                    << " fields" << exit(FatalError);
+            }
+        #};
+    }
+}
+
+
+// ************************************************************************* //

@@ -1,0 +1,99 @@
+// -*- C++ -*-
+
+// The locations of the sample profiles correspond to:
+// Hargreaves-Wright (2007), Fig.6
+// DOI:10.1016/j.jweia.2006.08.002
+
+_sampler
+{
+    type                    sets;
+    libs                    (sampling);
+    setFormat               raw;
+    interpolationScheme     cell;
+    writeControl            onEnd;
+    enabled                 false;
+
+    sets
+    {
+        x_0mPatch    // inlet patch face centres
+        {
+            type        face;
+            axis        z;
+            start       (0 50 0);
+            end         (0 50 500);
+        }
+        x_0mCell    // inlet-first cell centres
+        {
+            type        midPoint;
+            axis        z;
+            start       (5.0 50 0);
+            end         (5.0 50 500);
+        }
+        x_2500m
+        {
+            type        face;
+            axis        z;
+            start       (2500 50 0);
+            end         (2500 50 500);
+        }
+        x_4000m
+        {
+            type        face;
+            axis        z;
+            start       (4000 50 0);
+            end         (4000 50 500);
+        }
+        x_5000mCell    // outlet patch face centres
+        {
+            type        face;
+            axis        z;
+            start       (4995 50 0);
+            end         (4995 50 500);
+        }
+        x_5000mPatch    // outlet-first cell centres
+        {
+            type        face;
+            axis        z;
+            start       (5000 50 0);
+            end         (5000 50 500);
+        }
+    }
+}
+
+samples_u
+{
+    ${_sampler}
+    fields                  (U);
+    enabled                 true;
+}
+
+samples_k
+{
+    ${_sampler}
+    fields                  (k);
+    enabled                 true;
+}
+
+samples_epsilon
+{
+    ${_sampler}
+    fields                  (epsilon);
+    enabled                 true;
+}
+
+samples_omega
+{
+    ${_sampler}
+    fields                  (omega);
+    enabled                 true;
+}
+
+samples_nut
+{
+    ${_sampler}
+    fields                  (nut);
+    enabled                 true;
+}
+
+
+// *********************************************************************** //

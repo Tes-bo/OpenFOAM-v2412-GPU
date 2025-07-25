@@ -1,0 +1,13 @@
+#!/bin/sh
+cd "${0%/*}" || exit    # Run from this directory
+#------------------------------------------------------------------------------
+
+# echo "cleaning ${PWD##*/}"
+wclean libso saturationModels
+
+wclean libso multiphaseSystem
+
+wclean libso twoPhaseSystem
+wclean libso twoPhaseCompressibleTurbulenceModels
+
+#------------------------------------------------------------------------------

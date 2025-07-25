@@ -1,0 +1,36 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+# Do pitzDaily
+( cd pitzDaily && foamRunTutorials )
+
+if true  ## if notTest "$@"
+then
+    # Clone case for additional tests
+    cloneCase pitzDaily pitzDaily-stepFunction
+
+    # Modify and execute
+    (
+        cd pitzDaily-stepFunction || exit
+
+        # Run a bit longer
+        foamDictionary system/controlDict -entry endTime -set 0.2
+
+        # Use table input to start scalar at 0.1s
+        ##runApplication changeDictionary -time 0
+        foamDictionary 0/T \
+            -entry boundaryField/inlet/uniformValue/type \
+            -set table
+
+        # Use 'none' for matrix norm
+        foamDictionary system/fvSolution \
+            -entry solvers/T/norm \
+            -set none
+
+        foamRunTutorials
+    )
+fi
+
+#------------------------------------------------------------------------------

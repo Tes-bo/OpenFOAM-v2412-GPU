@@ -1,0 +1,155 @@
+#
+# Patch for building older gcc versions with gcc-7
+#
+--- gcc-4.8.5/gcc/cp/cfns.gperf.orig	2013-01-10 21:38:27.000000000 +0100
++++ gcc-4.8.5/gcc/cp/cfns.gperf	2016-02-25 16:36:41.000000000 +0100
+@@ -1,5 +1,7 @@
++%language=C++
++%define class-name libc_name
+ %{
+-/* Copyright (C) 2000-2013 Free Software Foundation, Inc.
++/* Copyright (C) 2000-2014 Free Software Foundation, Inc.
+ 
+ This file is part of GCC.
+ 
+@@ -16,14 +18,6 @@
+ You should have received a copy of the GNU General Public License
+ along with GCC; see the file COPYING3.  If not see
+ <http://www.gnu.org/licenses/>.  */
+-#ifdef __GNUC__
+-__inline
+-#endif
+-static unsigned int hash (const char *, unsigned int);
+-#ifdef __GNUC__
+-__inline
+-#endif
+-const char * libc_name_p (const char *, unsigned int);
+ %}
+ %%
+ # The standard C library functions, for feeding to gperf; the result is used
+--- gcc-4.8.5/gcc/cp/cfns.h.orig	2013-01-10 21:38:27.000000000 +0100
++++ gcc-4.8.5/gcc/cp/cfns.h	2016-02-25 16:36:41.000000000 +0100
+@@ -1,5 +1,5 @@
+-/* ANSI-C code produced by gperf version 3.0.3 */
+-/* Command-line: gperf -o -C -E -k '1-6,$' -j1 -D -N libc_name_p -L ANSI-C cfns.gperf  */
++/* C++ code produced by gperf version 3.0.4 */
++/* Command-line: gperf -o -C -E -k '1-6,$' -j1 -D -N libc_name_p -L C++ --output-file cfns.h cfns.gperf  */
+ 
+ #if !((' ' == 32) && ('!' == 33) && ('"' == 34) && ('#' == 35) \
+       && ('%' == 37) && ('&' == 38) && ('\'' == 39) && ('(' == 40) \
+@@ -28,9 +28,9 @@
+ #error "gperf generated tables don't work with this execution character set. Please report a bug to <bug-gnu-gperf@gnu.org>."
+ #endif
+ 
+-#line 1 "cfns.gperf"
++#line 3 "cfns.gperf"
+ 
+-/* Copyright (C) 2000-2013 Free Software Foundation, Inc.
++/* Copyright (C) 2000-2014 Free Software Foundation, Inc.
+ 
+ This file is part of GCC.
+ 
+@@ -47,25 +47,18 @@
+ You should have received a copy of the GNU General Public License
+ along with GCC; see the file COPYING3.  If not see
+ <http://www.gnu.org/licenses/>.  */
+-#ifdef __GNUC__
+-__inline
+-#endif
+-static unsigned int hash (const char *, unsigned int);
+-#ifdef __GNUC__
+-__inline
+-#endif
+-const char * libc_name_p (const char *, unsigned int);
+ /* maximum key range = 391, duplicates = 0 */
+ 
+-#ifdef __GNUC__
+-__inline
+-#else
+-#ifdef __cplusplus
+-inline
+-#endif
+-#endif
+-static unsigned int
+-hash (register const char *str, register unsigned int len)
++class libc_name
++{
++private:
++  static inline unsigned int hash (const char *str, unsigned int len);
++public:
++  static const char *libc_name_p (const char *str, unsigned int len);
++};
++
++inline unsigned int
++libc_name::hash (register const char *str, register unsigned int len)
+ {
+   static const unsigned short asso_values[] =
+     {
+@@ -122,14 +115,8 @@
+   return hval + asso_values[(unsigned char)str[len - 1]];
+ }
+ 
+-#ifdef __GNUC__
+-__inline
+-#ifdef __GNUC_STDC_INLINE__
+-__attribute__ ((__gnu_inline__))
+-#endif
+-#endif
+ const char *
+-libc_name_p (register const char *str, register unsigned int len)
++libc_name::libc_name_p (register const char *str, register unsigned int len)
+ {
+   enum
+     {
+--- gcc-4.8.5/gcc/cp/except.c.orig	2013-10-25 15:49:48.000000000 +0200
++++ gcc-4.8.5/gcc/cp/except.c	2018-07-27 13:11:11.825369497 +0200
+@@ -1025,7 +1025,7 @@
+      unless the system headers are playing rename tricks, and if
+      they are, we don't want to be confused by them.  */
+   id = DECL_NAME (fn);
+-  return !!libc_name_p (IDENTIFIER_POINTER (id), IDENTIFIER_LENGTH (id));
++  return !!libc_name::libc_name_p (IDENTIFIER_POINTER (id), IDENTIFIER_LENGTH (id));
+ }
+ 
+ /* Returns nonzero if an exception of type FROM will be caught by a
+--- gcc-4.8.5/libgcc/config/i386/linux-unwind.h.orig	2013-02-04 20:06:20.000000000 +0100
++++ gcc-4.8.5/libgcc/config/i386/linux-unwind.h	2018-07-27 12:51:18.305390871 +0200
+@@ -58,7 +58,7 @@
+   if (*(unsigned char *)(pc+0) == 0x48
+       && *(unsigned long long *)(pc+1) == RT_SIGRETURN_SYSCALL)
+     {
+-      struct ucontext *uc_ = context->cfa;
++      ucontext_t *uc_ = context->cfa;
+       /* The void * cast is necessary to avoid an aliasing warning.
+          The aliasing warning is correct, but should not be a problem
+          because it does not alias anything.  */
+@@ -138,7 +138,7 @@
+ 	siginfo_t *pinfo;
+ 	void *puc;
+ 	siginfo_t info;
+-	struct ucontext uc;
++	ucontext_t uc;
+       } *rt_ = context->cfa;
+       /* The void * cast is necessary to avoid an aliasing warning.
+          The aliasing warning is correct, but should not be a problem
+--- gcc-4.8.5/libsanitizer/asan/asan_linux.cc.orig	2013-01-23 12:41:33.000000000 +0100
++++ gcc-4.8.5/libsanitizer/asan/asan_linux.cc	2018-07-27 12:51:45.641390381 +0200
+@@ -25,6 +25,7 @@
+ #include <sys/types.h>
+ #include <fcntl.h>
+ #include <pthread.h>
++#include <signal.h>
+ #include <stdio.h>
+ #include <unistd.h>
+ #include <unwind.h>
+--- gcc-4.8.5/libsanitizer/tsan/tsan_platform_linux.cc.orig	2013-02-21 11:57:10.000000000 +0100
++++ gcc-4.8.5/libsanitizer/tsan/tsan_platform_linux.cc	2018-07-27 13:17:32.417362682 +0200
+@@ -292,7 +292,7 @@
+ #ifndef TSAN_GO
+ int ExtractResolvFDs(void *state, int *fds, int nfd) {
+   int cnt = 0;
+-  __res_state *statp = (__res_state*)state;
++  struct __res_state *statp = (struct __res_state*)state;
+   for (int i = 0; i < MAXNS && cnt < nfd; i++) {
+     if (statp->_u._ext.nsaddrs[i] && statp->_u._ext.nssocks[i] != -1)
+       fds[cnt++] = statp->_u._ext.nssocks[i];

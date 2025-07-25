@@ -1,0 +1,39 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+comfort
+{
+    // Mandatory entries
+    type            comfort;
+    libs            (fieldFunctionObjects);
+
+    // Optional entries
+    clothing        0.5;
+    metabolicRate   1.2;
+    extWork         0.0;
+    // Trad            0.0;
+    relHumidity     60.0;
+    pSat            0.0;
+    tolerance       1e-4;
+    maxClothIter    100;
+    meanVelocity    false;
+
+    // Inherited entries
+    region          region0;
+    enabled         true;
+    log             true;
+    timeStart       0;
+    timeEnd         10000;
+    executeControl  writeTime;
+    executeInterval -1;
+    writeControl    writeTime;
+    writeInterval   -1;
+}
+
+
+// ************************************************************************* //

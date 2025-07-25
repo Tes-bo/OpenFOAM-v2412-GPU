@@ -1,0 +1,50 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+surfaces
+{
+    type            surfaces;
+    libs            (sampling);
+    writeControl    writeTime;
+
+    surfaceFormat   vtk;
+    fields          (p U Q);
+
+    // interpolationScheme cellPoint;  //<- default
+
+    surfaces
+    {
+        zNormal
+        {
+            type        cuttingPlane;
+            point       (0 0 0);
+            normal      (0 0 1);
+            interpolate true;
+        }
+
+        isoQ
+        {
+            type            isoSurface;
+            isoField        Q;
+            isoValue        1000;
+            interpolate     true;
+        }
+
+        propeller
+        {
+            type            patch;
+            patches         ("propeller.*");
+            interpolate     true;
+            invariant       true;  // Unaffected by mesh motion
+            surfaceFormat   ensight;
+        }
+    }
+}
+
+
+// ************************************************************************* //

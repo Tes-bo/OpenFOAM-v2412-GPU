@@ -1,0 +1,21 @@
+# ----------------------------------------------------------------------------
+# Set defaults for FOAM_MODULE_APPBIN, FOAM_MODULE_LIBBIN
+# based on group locations
+#
+# FOAM_MODULE_APPBIN ?= FOAM_SITE_APPBIN
+# FOAM_MODULE_LIBBIN ?= FOAM_SITE_LIBBIN
+#
+# See: GENERAL_RULES/module-path-prefix
+# ----------------------------------------------------------------------------
+
+include $(GENERAL_RULES)/module-path-prefix
+
+ifeq (,$(strip $(FOAM_MODULE_APPBIN)))
+    FOAM_MODULE_APPBIN = $(FOAM_SITE_APPBIN)
+endif
+
+ifeq (,$(strip $(FOAM_MODULE_LIBBIN)))
+    FOAM_MODULE_LIBBIN = $(FOAM_SITE_LIBBIN)
+endif
+
+# ---------------------------------------------------------------------------

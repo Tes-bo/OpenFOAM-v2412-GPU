@@ -1,0 +1,24 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+runApplication blockMesh
+
+# Restore initial fields
+restore0Dir
+
+# Controls
+unset coupling testCreate
+isTrue -dict controls -entry coupling && coupling=true
+isTrue -dict controls -entry testCreate && testCreate=true
+
+if [ "$coupling" = true ]
+then
+    runApplication changeDictionary
+
+    # Create coupling geometry
+    runApplication createExternalCoupledPatchGeometry coupleGroup
+fi
+
+#------------------------------------------------------------------------------

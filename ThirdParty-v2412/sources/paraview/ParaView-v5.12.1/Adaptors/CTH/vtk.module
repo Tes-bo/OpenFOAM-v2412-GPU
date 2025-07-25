@@ -1,0 +1,20 @@
+NAME
+  ParaView::AdaptorsCTH
+LIBRARY_NAME
+  vtkPVAdaptorsCTH
+SPDX_LICENSE_IDENTIFIER
+  BSD-3-Clause
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Kitware Inc.
+GROUPS
+  PARAVIEW_CANONICAL
+CONDITION
+  PARAVIEW_USE_MPI AND PARAVIEW_USE_PYTHON
+DEPENDS
+  ParaView::Catalyst
+  ParaView::PythonCatalyst
+  VTK::CommonCore
+  VTK::CommonDataModel
+  VTK::CommonExecutionModel
+  VTK::ParallelMPI
+EXCLUDE_WRAP

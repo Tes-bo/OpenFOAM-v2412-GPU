@@ -1,0 +1,78 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+histogram1
+{
+    // Mandatory entries
+    type            histogram;
+    libs            (fieldFunctionObjects);
+    field           p;
+    model           equalBinWidth;
+
+    // Conditional entries
+    nBins           100;
+    max             10;
+    min            -10;
+
+    // Inherited entries
+    writePrecision   6;
+    writeToFile      true;
+    useUserTime      true;
+
+    region          region0;
+    enabled         true;
+    log             true;
+    timeStart       0;
+    timeEnd         1000;
+    executeControl  timeStep;
+    executeInterval 1;
+    writeControl    writeTime;
+    writeInterval   -1;
+}
+
+
+histogram2
+{
+    // Mandatory entries
+    type            histogram;
+    libs            (fieldFunctionObjects);
+    field           p;
+    model           unequalBinWidth;
+
+    // Conditional entries
+    ranges
+    (
+        // min  max
+        (-10    -9)    // bin-0
+        (-9     -8)    // bin-1
+        (-8     -7)
+        (-7     -6)
+        (-6     -2)
+        (-2      0)
+        (0       5)
+        (5       10)
+    );
+
+    // Inherited entries
+    writePrecision   6;
+    writeToFile      true;
+    useUserTime      true;
+
+    region          region0;
+    enabled         true;
+    log             true;
+    timeStart       0;
+    timeEnd         1000;
+    executeControl  timeStep;
+    executeInterval 1;
+    writeControl    writeTime;
+    writeInterval   -1;
+}
+
+
+// ************************************************************************* //

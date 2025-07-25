@@ -1,0 +1,61 @@
+#----------------------------------*-sh-*--------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2024 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# File
+#     etc/config.sh/hdf5
+#     [optional/experimental: not sourced by OpenFOAM-*/etc/bashrc]
+#
+# Description
+#     Setup for HDF5 include/libraries (usually ThirdParty installation).
+#
+#     To disable its use:               hdf5_version=hdf5-none
+#     For system-wide installations:    hdf5_version=hdf5-system
+#
+#     For central installations not located under ThirdParty:
+#       1. use hdf5-system
+#       2. and provide full path for HDF5_ARCH_PATH
+#
+#------------------------------------------------------------------------------
+# USER EDITABLE PART: Changes made here may be lost with the next upgrade
+
+hdf5_version=hdf5-1.14.4.3
+export HDF5_ARCH_PATH="$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$hdf5_version"
+
+# END OF (NORMAL) USER EDITABLE PART
+#------------------------------------------------------------------------------
+if [ -n "$FOAM_VERBOSE" ] && [ -n "$PS1" ]
+then
+    echo "Using hdf5 ($hdf5_version)  ->  $HDF5_ARCH_PATH" 1>&2
+fi
+
+if command -v _foamAddLibAuto >/dev/null
+then
+    # Normal sourcing (not makeHDF5)
+
+    _foamAddLibAuto $HDF5_ARCH_PATH
+
+    unset hdf5_version
+
+elif [ "$1" = "-force" ]
+then
+    # Forced command-line sourcing
+
+    if output="$($WM_PROJECT_DIR/bin/tools/lib-dir -sh $HDF5_ARCH_PATH 2>/dev/null)"
+    then
+        eval "$output"
+    fi
+
+    unset hdf5_version output
+fi
+
+
+#------------------------------------------------------------------------------

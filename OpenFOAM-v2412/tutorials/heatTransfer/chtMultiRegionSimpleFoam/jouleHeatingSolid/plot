@@ -1,0 +1,99 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2017-2021 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     plot
+#
+# Description
+#     Creates .png graph of OpenFOAM results vs analytical solution for the
+#     Joule heating case
+#
+#------------------------------------------------------------------------------
+cd "${0%/*}" || exit                                # Run from this directory
+#------------------------------------------------------------------------------
+
+# settings
+
+    # stop on first error
+    set -e
+
+
+#------------------------------------------------------------------------------
+
+plot_x_vs_T()
+{
+    sampleFile="$1"
+    image="x_vs_T.png"
+
+    gnuplot<<EOF
+    set terminal pngcairo font "helvetica,20" size 1000, 1000
+    set grid
+    set key left top
+    set xlabel "Length, x / [m]"
+    set ylabel "Temperature / [K]"
+    set output "$image"
+
+    # Benchmark - Analytical
+        rho = 7.837e-6
+        sigma = 1/rho
+        kappa = 200
+        L = 2.5
+        D = 0.1
+        H = 0.1
+        vol = 2.0*L*D*H
+        V = 1.5
+        R = rho*2*L/(D*H)
+        I = V/R
+        P = I*V
+        Q = P/vol
+        Ts = 500
+        T(x) = Q*L*L/(2*kappa)*(1-(x/L)*(x/L)) + Ts
+
+    # OpenFOAM
+        samples="$sampleFile"
+
+    plot \
+        samples u 1:2 t "OpenFOAM" w l, \
+        T(x) t "Analytical" w linespoints lt 0 pt 6 pi 15
+EOF
+}
+
+
+#------------------------------------------------------------------------------
+
+# Requires "gnuplot"
+command -v gnuplot >/dev/null || {
+    echo "FOAM FATAL ERROR: gnuplot not found - skipping graph creation" 1>&2
+    exit 1
+}
+
+OFDATA='postProcessing/sample1/solid/20000/centreLine_T_jouleHeatingSource:V_jouleHeatingSource:sigma.xy'
+
+[ -f "$OFDATA" ] || {
+    echo "FOAM FATAL ERROR: OpenFOAM results not available in $OFDATA" 1>&2
+    exit 1
+}
+
+
+#------------------------------------------------------------------------------
+
+echo ""
+echo "# Plot:"
+echo ""
+
+plot_x_vs_T "$OFDATA"
+
+echo "End"
+
+
+#------------------------------------------------------------------------------

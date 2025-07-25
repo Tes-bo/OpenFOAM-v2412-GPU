@@ -1,0 +1,21 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+restore0Dir
+
+runApplication blockMesh
+
+for i in 1 2
+do
+    runApplication -s $i \
+        topoSet -dict system/topoSetDict.${i}
+
+    runApplication -s $i \
+        refineMesh -dict system/refineMeshDict -overwrite
+done
+
+runApplication $(getApplication)
+
+#------------------------------------------------------------------------------

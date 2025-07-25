@@ -1,0 +1,38 @@
+#------------------------------------------------------------------------------
+# Nvidia compiler
+#------------------------------------------------------------------------------
+SUFFIXES   += .C .cc .cpp .cxx
+
+CC         := nvc++$(COMPILER_VERSION) -std=c++17
+
+c++ARCH    :=
+c++DBUG    :=
+c++OPT     := -O2
+ptFLAGS    := -DNoRepository
+
+c++WARN     = \
+    -Wall -Wextra \
+    --diag_suppress=111,128,177,185,612,998,1098 \
+    --display_error_number
+
+# Less restrictive warnings (eg, for flex++, CGAL, etc.)
+c++LESSWARN =
+
+# Tuning
+sinclude $(GENERAL_RULES)/common/c++$(WM_COMPILE_OPTION)
+
+#------------------------------------------------------------------------------
+# Warnings
+# --------
+# Run with --display_error_number to get numbers
+# and --diag_suppress=XXX to suppress
+#
+#111-D: statement is unreachable
+#128-D: loop is not reachable
+#177-D: function was declared but never referenced
+#185-D: dynamic initialization in unreachable code
+#612-D: overloaded virtual function ... is only partially overridden
+#998-D: function XX is hidden by YY -- virtual function override intended?
+#1098-D: unknown attribute "fallthrough"
+#
+#------------------------------------------------------------------------------

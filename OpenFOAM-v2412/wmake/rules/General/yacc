@@ -1,0 +1,13 @@
+SUFFIXES += .y .Y
+
+ytoo = $E $(call QUIET_MESSAGE,yacc,$(<F)) \
+    yacc -v -d $< && \
+    mv y.tab.c $(@D)/$(<F).c && \
+    mv y.tab.h $(@D)/parser.h && \
+    $(WM_SCHEDULER) $(CC) $(c++FLAGS) -c $(@D)/$(<F).c -o $@
+
+Ytoo = $E $(call QUIET_MESSAGE,yacc,$(<F)) \
+    yacc -v -d $< && \
+    mv y.tab.c $(@D)/$(<F).C && \
+    mv y.tab.h $(@D)/parser.H && \
+    $(WM_SCHEDULER) $(CC) $(c++FLAGS) -c $(@D)/$(<F).C -o $@

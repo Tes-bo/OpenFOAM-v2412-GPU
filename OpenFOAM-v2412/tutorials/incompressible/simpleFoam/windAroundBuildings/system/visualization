@@ -1,0 +1,24 @@
+// -*- C++ -*-
+
+// Demonstrate runTimePostProcessing
+
+// Timing
+_visualization
+{
+    writeControl    writeTime;
+
+    // enabled         true;
+
+    // Debug: writeControl    timeStep;
+    // Debug: writeInterval   10;
+}
+
+
+#include "streamLines"
+#include "sampling"
+#include "runTimePostProcessing"
+
+#remove _visualization
+
+
+// ************************************************************************* //

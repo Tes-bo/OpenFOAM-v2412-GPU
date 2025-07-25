@@ -1,0 +1,16 @@
+SUFFIXES += .ly .lyy .lyy-m4
+
+lytoo = $E $(call QUIET_MESSAGE,lemon,$(<F)) \
+    $(WM_SCRIPTS)/wrap-lemon -d$(@D) $< && \
+    $(WM_SCHEDULER) $(cc) $(cFLAGS) -c $(@D)/$(*F).c -o $@
+
+lyytoo = $E $(call QUIET_MESSAGE,lemon,$(<F)) \
+    $(WM_SCRIPTS)/wrap-lemon -d$(@D) -ecc $< && \
+    $(WM_SCHEDULER) $(CC) $(c++FLAGS) -c $(@D)/$(*F).cc -o $@
+
+# Retains intermediate m4-filtered files (-no-tmp to suppress)
+lyy-m4too = $E $(call QUIET_MESSAGE,lemon-m4,$(<F)) \
+    $(WM_SCRIPTS)/wrap-lemon -d$(@D) -ecc $< && \
+    $(WM_SCHEDULER) $(CC) $(c++FLAGS) -c $(@D)/$(*F).cc -o $@
+
+#------------------------------------------------------------------------------

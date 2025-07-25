@@ -1,0 +1,10 @@
+astroid<3 # See https://github.com/sphinx-extensions2/sphinx-autodoc2/issues/31
+furo
+myst-parser[linkify]
+sphinx
+sphinx-autodoc2
+sphinx-copybutton
+sphinx-design
+sphinxcontrib-moderncmakedomain
+pygments
+pyparsing

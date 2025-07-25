@@ -1,0 +1,112 @@
+#!/bin/bash
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2019-2020 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     foamExec <application> ...
+#
+# Description
+#     Runs an application (with arguments) after first sourcing the OpenFOAM
+#     etc/bashrc file from the project directory
+#
+#     Can useful for parallel runs. For example,
+#
+#     mpirun -n <nProcs> \
+#         projectDir/bin/tools/foamExec <simpleFoam> ... -parallel
+#
+# Note
+#     This script normally exists in the project 'bin/tools' directory.
+#     Do not copy/move/link to other locations unless you also edit it!
+#
+#------------------------------------------------------------------------------
+toolsDir="${0%/*}"                                  # The bin/tools dir
+projectDir="${toolsDir%/bin/tools}"                 # Project dir
+
+printHelp() {
+    cat<<USAGE
+
+Usage: ${0##*/} [OPTION] <application> ...
+
+options:
+  -help             Print the usage
+
+Run an application (with arguments) after first sourcing
+the OpenFOAM etc/bashrc file from the project directory:
+($projectDir)
+
+USAGE
+    exit 0 # A clean exit
+}
+
+# Report error and exit
+die()
+{
+    exec 1>&2
+    echo
+    echo "Error encountered:"
+    while [ "$#" -ge 1 ]; do echo "    $1"; shift; done
+    echo
+    echo "See '$0 -help' for usage"
+    echo
+    exit 1
+}
+
+#-------------------------------------------------------------------------------
+
+# Parse options
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    -h | -help*)
+        printHelp
+        ;;
+    --)
+        shift
+        break
+        ;;
+    -*)
+        die "unknown option: '$1'"
+        ;;
+    *)
+        break
+        ;;
+    esac
+    shift
+done
+
+#-------------------------------------------------------------------------------
+
+[ "$#" -ge 1 ] || die "No application specified"
+
+[ -d "$projectDir" ] || {
+    echo "Error: no project dir: $projectDir" 1>&2
+    exit 2
+}
+
+[ -f "$projectDir/etc/bashrc" ] || {
+    echo "Error: file not found: $projectDir/etc/bashrc" 1>&2
+    exit 2
+}
+
+
+# Source bashrc within a function to preserve command-line arguments
+# - this will not have aliases, but working non-interactively anyhow
+sourceBashrc()
+{
+    . "$projectDir/etc/bashrc" $FOAM_SETTINGS
+}
+
+
+sourceBashrc
+exec "$@"
+
+#------------------------------------------------------------------------------

@@ -1,0 +1,29 @@
+#-----------------------------------------------------------------------------
+# Standard definitions when using OpenFOAM
+
+if (NOT EXISTS "$ENV{WM_PROJECT_DIR}")
+    message(FATAL_ERROR "WM_PROJECT_DIR not set - no OpenFOAM??")
+endif()
+
+# WM_OSTYPE env variable is optional (only POSIX anyhow)
+if (EXISTS "$ENV{WM_OSTYPE}")
+    set(WM_OSTYPE "$ENV{WM_OSTYPE}")
+else()
+    set(WM_OSTYPE "POSIX")
+endif()
+
+# Project libraries, as per wmake internals
+set(FOAM_LIBBIN "$ENV{FOAM_LIBBIN}")
+
+# Convenience name, as per wmake internals
+set(LIB_SRC "$ENV{WM_PROJECT_DIR}/src")
+
+# Needed for internal label-size, scalar-size, templates
+add_definitions(
+    -DWM_$ENV{WM_PRECISION_OPTION}
+    -DWM_LABEL_SIZE=$ENV{WM_LABEL_SIZE}
+    -DNoRepository
+    -std=c++14
+)
+
+#-----------------------------------------------------------------------------

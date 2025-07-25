@@ -1,0 +1,39 @@
+#----------------------------------*-sh-*--------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2011-2016 OpenFOAM Foundation
+#     Copyright (C) 2017-2020 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# File
+#     config.csh/example/prefs.compiler
+#
+# Description
+#     Example of tuning compiler settings with a hook (POSIX shell).
+#
+#     Copy to etc/config.sh (or ~/.OpenFOAM/config.sh) and it will be
+#     sourced by OpenFOAM-*/etc/config.sh/compiler
+#
+# Note
+#     The preferred mechanism is often a "compiler-$WM_COMPILER" file
+#     in one of the etc/ directories.
+#
+#------------------------------------------------------------------------------
+
+# Modify/override compiler settings
+switch ("$WM_COMPILER")
+case Gcc70*:
+    set gcc_version=gcc-7.0.0
+    set gmp_version=gmp-6.1.2
+    set mpfr_version=mpfr-3.1.5
+    set mpc_version=mpc-1.0.3
+    breaksw
+endsw
+
+#------------------------------------------------------------------------------

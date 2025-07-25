@@ -1,0 +1,6 @@
+# Empty flags for not compiling/linking OPENMP
+
+COMP_OPENMP =
+LINK_OPENMP =
+
+#------------------------------------------------------------------------------

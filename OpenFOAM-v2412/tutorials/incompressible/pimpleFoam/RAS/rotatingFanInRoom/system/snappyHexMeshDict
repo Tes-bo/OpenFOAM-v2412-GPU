@@ -1,0 +1,139 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      snappyHexMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+castellatedMesh true;
+snap            true;
+addLayers       false;
+
+geometry
+{
+    AMI.stl{ type triSurfaceMesh; name AMI;}
+    door.stl{ type triSurfaceMesh; name door;}
+    fan.stl{ type triSurfaceMesh; name fan;}
+    outlet.stl{ type triSurfaceMesh; name outlet;}
+    room.stl{ type triSurfaceMesh; name room;}
+    desk.stl{ type triSurfaceMesh; name desk;}
+}
+
+castellatedMeshControls
+{
+    maxLocalCells 100000;
+    maxGlobalCells 8000000;
+    minRefinementCells 0;
+    maxLoadUnbalance 0.10;
+    nCellsBetweenLevels 2;
+
+    features
+    (
+        { file "AMI.eMesh"; level 2;} // Note: better: level 3
+        { file "fan.eMesh"; level 2;} // Note: better: level 3
+        { file "door.eMesh"; level 0;}
+        { file "outlet.eMesh"; level 0;}
+        { file "room.eMesh"; level 0;}
+        { file "desk.eMesh"; level 1;}
+    );
+
+    refinementSurfaces
+    {
+        AMI
+        {
+            level (2 2); // Note: better: levels 3 3
+            faceType boundary;
+            cellZone rotatingZone;
+            faceZone rotatingZone;
+            cellZoneInside inside;
+        }
+        fan{ level (2 2);} // Note: better: levels 3 3
+        door{ level (0 0);}
+        outlet{ level (0 0);}
+        room{ level (0 0);}
+        desk{ level (1 1);}
+    }
+
+    resolveFeatureAngle 30;
+
+    refinementRegions
+    {
+        // Note: for better mesh quality utilize this refinement region
+        // AMI{ mode inside; levels ((1E15 3));}
+    }
+
+    locationInMesh (0.1001 0.001 0.0101);
+    allowFreeStandingZoneFaces false;
+}
+
+snapControls
+{
+    nSmoothPatch 3;
+    tolerance 4.0;
+    nSolveIter 300;
+    nRelaxIter 5;
+    nFeatureSnapIter 10;
+    implicitFeatureSnap true;
+    explicitFeatureSnap false;
+    multiRegionFeatureSnap true;
+}
+
+addLayersControls
+{
+    relativeSizes true;
+
+    layers
+    {
+    }
+
+    expansionRatio 1.0;
+    finalLayerThickness 0.3;
+    minThickness 0.1;
+    nGrow 0;
+    featureAngle 30;
+    nRelaxIter 3;
+    nSmoothSurfaceNormals 1;
+    nSmoothNormals 3;
+    nSmoothThickness 10;
+    maxFaceThicknessRatio 0.5;
+    maxThicknessToMedialRatio 0.3;
+    minMedialAxisAngle 90;
+    nBufferCellsNoExtrude 0;
+    nLayerIter 50;
+}
+
+meshQualityControls
+{
+    maxNonOrtho 65;
+    maxBoundarySkewness 20;
+    maxInternalSkewness 4;
+    maxConcave 80;
+    minVol 1e-13;
+    minTetQuality -1;
+    minArea -1;
+    minTwist 0.01;
+    minDeterminant 0.001;
+    minFaceWeight 0.05;
+    minVolRatio 0.01;
+    minTriangleTwist -1;
+    nSmoothScale 4;
+    errorReduction 0.75;
+    relaxed
+    {
+        maxNonOrtho 75;
+    }
+}
+
+mergeTolerance 1e-6;
+
+
+// ************************************************************************* //

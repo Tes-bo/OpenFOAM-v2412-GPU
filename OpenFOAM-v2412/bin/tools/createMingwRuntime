@@ -1,0 +1,478 @@
+#!/bin/bash
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2020-2021 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     createMingwRuntime
+#
+# Description
+#     Script to copy/create mingw run-time installation from the Linux
+#     cross-compilation. Packs everything into a tar or a zip file.
+#
+#     To accommodate Windows, all .dll files are also placed in the
+#     platforms bin/ directory where they are easily found via the PATH.
+#
+#     Futhermore, ThirdParty dll files (including those from mingw itself)
+#     are also placed in the same directory.
+#
+# Steps
+#   - bundles common files and directories (bin, etc, META-INFO, ...)
+#
+#   - copies .exe files from FOAM_APPBIN and .dll files from FOAM_LIBBIN
+#     to the new target platforms/win64MingwDPInt32Opt/bin.
+#
+#   - copies mingw sys-root .dll files to the new target
+#     platforms/win64MingwDPInt32Opt/bin
+#
+#   - copies other ThirdParty dll files (scotch, fftw, etc) to
+#     platforms/win64MingwDPInt32Opt/bin
+#
+#   - copies tutorials (can be deactivated)
+#
+# Note
+#     Can only be called when the linux64Mingw environment is active.
+#
+#     Slightly ad hoc, potentially incomplete.
+#
+#------------------------------------------------------------------------------
+printHelp() {
+    cat<<USAGE
+
+usage: ${0##*/} [OPTION]
+options:
+  -name=NAME        Stem for tar-file (default: auto)
+  -output=DIR       Output directory (default: ".")
+  -prefix=NAME      Prefix directory within tar-file (default: auto)
+  -no-tutorials     Exclude tutorials
+  -no-patch         Ignore '_patch' number for output tar-file
+  -no-prefix        Do not prefix subdirectory
+  -no-compress      Disable compression
+  -compress=TYPE    Use specified compression type
+  -sep=SEP          Change version/patch separator from '_' to SEP
+  -with-api=NUM     Specify alternative api value for packaging
+  -with-testbin     Include any Test-* files from user appbin (expert option)
+  -tgz, -xz, -zip   Alias for -compress=tgz, -compress=xz, -compress=zip
+  -help             Print help
+
+Pack OpenFOAM cross-compiled linux64Mingw -> win64Mingw (run-time)
+
+USAGE
+    exit 0 # Clean exit
+}
+
+# Report error and exit
+die()
+{
+    exec 1>&2
+    echo
+    echo "Error encountered:"
+    while [ "$#" -ge 1 ]; do echo "    $1"; shift; done
+    echo
+    echo "See '${0##*/} -help' for usage"
+    echo
+    exit 1
+}
+
+#-------------------------------------------------------------------------------
+outputDir="."
+versionSeparator='_'
+withPatchNum=true
+unset compress packageApi withLibs withTutorials prefixDir tarName
+unset withTestBin
+
+# Cleanup tarName to remove trailing '.tar', detect compression etc
+cleanTarName() {
+    case "$tarName" in
+    (*.tar)
+        tarName="${tarName%.tar}"
+        ;;
+    (*.tar.*)
+        compress="${tarName#*.tar.}"
+        tarName="${tarName%.tar*}"
+        ;;
+    (*.tgz)
+        compress="tgz"
+        tarName="${tarName%.tgz}"
+        ;;
+    esac
+}
+
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    -h | -help*)
+        printHelp
+        ;;
+    -name=*)
+        tarName="${1#*=}"
+        cleanTarName
+        ;;
+    -output=*)
+        outputDir="${1#*=}"
+        ;;
+    -prefix=*)
+        prefixDir="${1#*=}"
+        prefixDir="${prefixDir%/}"
+        ;;
+    -no-tutor*)
+        withTutorials=false
+        ;;
+    -no-patch)
+        withPatchNum=false
+        ;;
+    -no-prefix)
+        prefixDir=false
+        ;;
+    -no-compress)
+        unset compress
+        ;;
+    -compress=*)
+        compress="${1#*=}"
+        ;;
+    -sep=*)
+        versionSeparator="${1#*=}"
+        ;;
+    -with-api=*)
+        packageApi="${1#*=}"
+        ;;
+    -with-testbin*)
+        withTestBin=true
+        ;;
+    -tgz | -xz | -zip)
+        compress="${1#*-}"
+        ;;
+    --)
+        shift
+        break
+        ;;
+    -*)
+        die "unknown option: '$1'"
+        ;;
+    *)
+        break
+        ;;
+    esac
+    shift
+done
+
+# Failsafe version separator
+: "${versionSeparator:=_}"
+
+# Verify some basic values
+buildPlatform="$WM_ARCH$WM_COMPILER"
+compOptions="${WM_OPTIONS#$buildPlatform}"
+
+targetPlatform="win64$WM_COMPILER"  # <- x86_64-w64-mingw32
+expectedBuildPlatform="linux64Mingw"
+
+if [ "$buildPlatform" != "$expectedBuildPlatform" ]
+then
+    die "Requires <$expectedBuildPlatform> environment: found <$buildPlatform>"
+fi
+
+#-------------------------------------------------------------------------------
+# Resolve the output directory
+outputDir="$(cd "$outputDir" 2>/dev/null && pwd -L)" || \
+    die "Cannot resolve output directory"
+
+[ -w "$outputDir" ] || \
+    die "Output directory non-writable: $outputDir"
+
+#-------------------------------------------------------------------------------
+# Determine the API and PATCH numbers.
+# Extract from META-INFO/api-info
+
+api="$($WM_PROJECT_DIR/bin/foamEtcFile -show-api)"
+patch="$($WM_PROJECT_DIR/bin/foamEtcFile -show-patch)"
+
+echo "Detected api, patch as '$api', '$patch'" 1>&2
+if [ -n "$packageApi" ]
+then
+    echo "Specified package api=$packageApi" 1>&2
+else
+    packageApi="$api"
+fi
+
+
+# Define the output names
+
+if [ -z "$prefixDir" ]
+then
+    prefixDir="OpenFOAM-v${packageApi}"
+elif [ "$prefixDir" = false ]
+then
+    unset prefixDir
+fi
+
+if [ -z "$tarName" ]
+then
+    tarName="OpenFOAM-v${packageApi}"
+    if [ "$withPatchNum" = false ]
+    then
+        echo "Ignoring patch number for output name" 1>&2
+    elif [ "${patch:-0}" -gt 0 ]
+    then
+        tarName="${tarName}${versionSeparator}${patch}"
+    fi
+
+    tarName="${tarName}-win64"
+fi
+
+echo 1>&2
+echo "Tar-file name:   $tarName.tar" 1>&2
+echo "Directory name:  $prefixDir${prefixDir:+/}" 1>&2
+echo "Output directory: $outputDir" 1>&2
+echo 1>&2
+
+# ---------------------------------------------------------------------------
+
+# Create
+cd "$WM_PROJECT_DIR" || exit
+
+tmpDir="$(mktemp -d openfoam-mingw-runtime.XXXXXXXX --tmpdir)"
+tmpTarget="$tmpDir${prefixDir:+/}${prefixDir}"
+
+trap 'echo "remove $tmpDir"; rm -f $tmpDir 2>/dev/null; exit' EXIT TERM INT
+echo "Using tmp directory: $tmpDir"
+
+# Proper umask
+umask 022
+
+# Runtime directories
+mkdir -p "$tmpTarget/platforms/$targetPlatform$compOptions"
+
+# No separate ThirdParty
+echo "Third-party libraries in platforms/$targetPlatform$compOptions" >| "$tmpTarget/ThirdParty"
+
+echo "Copy common files" 1>&2
+rsync -a --exclude .gitignore COPYING META-INFO README.md bin etc "$tmpTarget"
+
+# Remove branch info (probably spurious)
+if [ -f "$tmpTarget/META-INFO/build-info" ]
+then
+    sed -i -e '/^branch=/d' "$tmpTarget/META-INFO/build-info"
+fi
+
+# One-level only?
+configEtcDir="${FOAM_CONFIG_ETC##*/}"
+if [ -n "$configEtcDir" ]
+then
+    case "$FOAM_CONFIG_ETC" in
+    ("$configEtcDir" | "$WM_PROJECT_DIR/$configEtcDir")
+        echo "Copy config dir: $configEtcDir" 1>&2
+        rsync -a "$configEtcDir" "$tmpTarget"
+        ;;
+    (*)
+        echo "Do not know how to copy additional config dir: $FOAM_CONFIG_ETC" 1>&2
+        ;;
+    esac
+else
+    echo "No additional config dir" 1>&2
+fi
+
+
+root="platforms/$buildPlatform$compOptions"
+binDir="$tmpTarget/platforms/$targetPlatform$compOptions/bin"
+libDir="$tmpTarget/platforms/$targetPlatform$compOptions/lib"
+
+userBinDir="$tmpTarget/platforms/$targetPlatform$compOptions/user-bin"
+
+# Definitely need this directory
+mkdir -p "$binDir"
+
+# Mingw installation libs
+other=/usr/x86_64-w64-mingw32/sys-root/mingw
+if [ -d "$other" ] && [ -d "$other"/bin ]
+then
+    echo "Copy mingw sys-root .dll files -> platforms bin/" 1>&2
+    rsync -a "$other"/bin/*.dll "$binDir"
+else
+    echo "Missing mingw .dll files? This looks strange..." 1>&2
+fi
+
+echo "Copy .exe files and .dll files -> platforms bin/" 1>&2
+rsync -a "$root"/bin/*.exe "$root"/lib/*.dll "$binDir"
+
+# Pstream .dll into bin directory
+other="$root/lib/$FOAM_MPI"
+if [ -d "$other" ] && [ -n "$FOAM_MPI" ] && [ "$FOAM_MPI" != dummy ]
+then
+    echo "Copy ($FOAM_MPI) *.dll -> platforms bin/" 1>&2
+    rsync -a "$other"/*.dll "$binDir"
+
+    ending="$(echo "$FOAM_MPI" | tr '[:upper:]' '[:lower:]' | sed -e 's/[^A-Za-z].*//')"
+    [ -n "$ending" ] || continue
+
+    for name in libPstream.dll
+    do
+        if [ -f "$other/$name" ]
+        then
+            # Keep duplicate for manual replacement if needed
+            newName="$name-$ending"
+            echo "    [copy] $FOAM_MPI/$name -> $newName" 1>&2
+            cp -p "$other/$name" "$binDir/$newName"
+        fi
+   done
+fi
+
+
+# Various dummy (stub) libraries
+other="$root/lib/dummy"
+if [ -d "$other" ]
+then
+    echo "Copy (dummy) *.dll -> platforms bin/" 1>&2
+    for fullpath in "$other"/*.dll
+    do
+        [ -f "$fullpath" ] || continue;
+        name="${fullpath##*/}"
+
+        if [ -f "$binDir/$name" ]
+        then
+            case "$name" in
+            (libPstream*)
+                # Keep for manual replacement if needed
+                newName="$name-dummy"
+                echo "    [copy] dummy/$name -> $newName" 1>&2
+                cp -p "$fullpath" "$binDir/$newName"
+                ;;
+            (*)
+                echo "    [skip] dummy/$name" 1>&2
+                ;;
+            esac
+        else
+            echo "    dummy/$name" 1>&2
+            cp -p "$fullpath" "$binDir"
+        fi
+    done
+fi
+
+# Miscellaneous ThirdParty items
+other="$FOAM_EXT_LIBBIN"
+if [ -d "$other" ]
+then
+    echo "Copy FOAM_EXT_LIBBIN .dll files -> platforms bin/" 1>&2
+    rsync -a "$other"/*.dll "$binDir"
+fi
+
+other="$FFTW_ARCH_PATH"
+if [ -d "$other" ] && [ -d "$other"/bin ]
+then
+    echo "Copy FFTW_ARCH_PATH .dll files -> platforms bin/" 1>&2
+    rsync -a "$other"/bin/*.dll "$binDir"
+fi
+
+
+# Other (non .dll) files into lib
+if [ "$withLibs" = true ]
+then
+    echo "Copy non-dll library files -> platforms lib/" 1>&2
+    echo "... currently unsupported" 1>&2
+    # mkdir -p "$libDir"
+    # rsync -a \
+    #     --exclude='*.dll' --exclude='*.o' \
+    #     "$root"/lib/ \
+    #     "$libDir"
+else
+    :
+    # echo "Skip non-dll library files -> platforms lib/" 1>&2
+fi
+
+
+# Any Test-* files from FOAM_USER_APPBIN
+if [ "$withTestBin" = true ]
+then
+    if [ "$(find "$FOAM_USER_APPBIN" -name 'Test-*.exe' | wc -l)" -ge 1 ]
+    then
+        echo "Copy Test-*.exe files from user appbin -> platforms user-bin/"
+        mkdir -p "$userBinDir"
+        rsync -a "$FOAM_USER_APPBIN"/Test-*.exe "$userBinDir"
+    else
+        echo "No Test-*.exe files in user appbin"
+    fi
+fi
+
+
+# Add in tutorials
+if [ "$withTutorials" != false ]
+then
+    if [ -d ".git" ]
+    then
+        echo "Copy tutorials from git..." 1>&2
+        git archive --format=tar HEAD tutorials | (cd "$tmpTarget" && tar -xf -)
+    else
+        echo "Copying the tutorials directory" 1>&2
+        rsync -a tutorials "$tmpTarget"
+    fi
+else
+    echo "Skip tutorials" 1>&2
+fi
+
+echo ===============
+echo "Done copying. Now create archive"
+
+
+# Compression
+archiveCommand="tar -cf"
+archiveSuffix=".tar"
+
+case "$compress" in
+    ('' | no | none)
+    echo "No compression requested" 1>&2
+    ;;
+
+    (gz | gzip)
+    echo "Use gzip compression" 1>&2
+    archiveCommand="tar -czf"
+    archiveSuffix=".tar.gz"
+    ;;
+
+    (tgz)
+    echo "Use gzip compression with tgz ending" 1>&2
+    archiveCommand="tar -czf"
+    archiveSuffix=".tgz"
+    ;;
+
+    (bz | bz2 | bzip | bzip2)
+    echo "Use bzip2 compression" 1>&2
+    archiveCommand="tar -cjf"
+    archiveSuffix=".tar.bz2"
+    ;;
+
+    (xz)
+    echo "Use xz compression" 1>&2
+    archiveCommand="tar -cJf"
+    archiveSuffix=".tar.xz"
+    ;;
+
+    (zip)
+    echo "Use zip archive" 1>&2
+    archiveCommand="zip -r"
+    archiveSuffix=".zip"
+    ;;
+
+    (*)
+    echo "Unknown compression scheme: $compress" 1>&2
+    ;;
+esac
+
+(
+    cd "$tmpDir" || exit
+    time $archiveCommand "$outputDir/$tarName$archiveSuffix" "${prefixDir:-.}"
+)
+
+echo
+echo "# End of creating archive"
+echo "    $outputDir/$tarName$archiveSuffix"
+echo
+
+
+# ---------------------------------------------------------------------------

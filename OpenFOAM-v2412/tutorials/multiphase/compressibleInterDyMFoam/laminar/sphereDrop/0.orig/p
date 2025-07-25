@@ -1,0 +1,71 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    object      p;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [1 -1 -2 0 0 0 0];
+
+internalField   uniform 101325;
+
+boundaryField
+{
+    front
+    {
+        type            wedge;
+    }
+
+    back
+    {
+        type            wedge;
+    }
+
+    innerAMI
+    {
+        type            cyclicAMI;
+        value           uniform 101325;
+    }
+
+    outerAMI
+    {
+        type            cyclicAMI;
+        value           uniform 101325;
+    }
+
+    top
+    {
+        type            calculated;
+        value           uniform 101325;
+    }
+
+    bottom
+    {
+        type            calculated;
+        value           uniform 101325;
+    }
+
+    farFieldWall
+    {
+        type            calculated;
+        value           uniform 101325;
+    }
+
+    sphere
+    {
+        type            calculated;
+        value           uniform 101325;
+    }
+}
+
+
+// ************************************************************************* //

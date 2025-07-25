@@ -1,0 +1,30 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+restore0Dir
+
+# Create the mesh
+m4 system/blockMeshDict.m4 > system/blockMeshDict
+runApplication blockMesh
+
+# Create faceSet for burner inlet and faceZone for coupled wall
+runApplication topoSet
+
+# Create burner inlet
+runApplication createPatch -overwrite
+
+# Set alpha.water
+runApplication setFields
+
+# Decompose mesh
+runApplication decomposePar
+
+# Run
+runParallel $(getApplication)
+
+# Reconstruct case
+runApplication reconstructPar
+
+#------------------------------------------------------------------------------

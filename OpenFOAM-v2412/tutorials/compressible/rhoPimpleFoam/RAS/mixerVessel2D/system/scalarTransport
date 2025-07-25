@@ -1,0 +1,87 @@
+// -*- C++ -*-
+
+tracer0
+{
+    type  scalarTransport;
+    libs  (solverFunctionObjects);
+    log   off;
+
+    resetOnStartUp  false;
+    writeControl    writeTime;
+    writeInterval   1;
+    field           tracer0;
+    D               0.001;
+
+    fvOptions
+    {
+        source1
+        {
+            type            scalarSemiImplicitSource;
+
+            volumeMode      specific;
+
+            selectionMode   geometric;
+
+            selection
+            {
+                cylinder
+                {
+                    action  use;
+                    source  cylinder;
+                    point1  (0.050 0 -1);
+                    point2  (0.050 0  1);
+                    radius  0.01;
+                }
+            }
+
+            sources
+            {
+                tracer0
+                {
+                    explicit constant 0.01;
+                }
+            }
+        }
+
+        source2
+        {
+            type            scalarSemiImplicitSource;
+
+            volumeMode      specific;
+
+            selectionMode   all;
+
+            sources
+            {
+                tracer0
+                {
+                    explicit
+                    {
+                        type       exprField;
+
+                        functions<scalar>
+                        {
+                            square
+                            {
+                                type square;
+                                scale 0.0025;
+                                level 0.0025;
+                                frequency 10;
+                            }
+                        }
+
+                        expression
+                        #{
+                            (hypot(pos().x() + 0.025, pos().y()) < 0.01)
+                          ? fn:square(time())
+                          : 0
+                        #};
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+// ************************************************************************* //

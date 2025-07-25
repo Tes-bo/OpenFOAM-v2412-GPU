@@ -1,0 +1,226 @@
+#!/bin/bash
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2017-2023 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     foamCreateCompletionCache
+#
+# Description
+#     Create cache of bash completion values for OpenFOAM applications
+#     The cached values are typically used by the tcsh completion wrapper.
+#
+#------------------------------------------------------------------------------
+defaultOutputFile="$WM_PROJECT_DIR/etc/config.sh/completion_cache"
+
+usage() {
+    exec 1>&2
+    while [ "$#" -ge 1 ]; do echo "$1"; shift; done
+    cat<<USAGE
+
+Usage: ${0##*/} [OPTION] [appName .. [appNameN]]
+options:
+  -dir DIR          Directory to process
+  -user             Add \$FOAM_USER_APPBIN to the search directories
+  -no-header        Suppress header generation
+  -output FILE, -o FILE
+                    Write to alternative output
+  -h | -help        Print the usage
+
+Create cache of bash completion values for OpenFOAM applications.
+The cached values are typically used by the tcsh completion wrapper.
+Default search: \$FOAM_APPBIN only.
+Default output: $defaultOutputFile
+
+Uses the search directory if applications are specified.
+
+USAGE
+    exit 1
+}
+
+# Report error and exit
+die()
+{
+    exec 1>&2
+    echo
+    echo "Error encountered:"
+    while [ "$#" -ge 1 ]; do echo "    $1"; shift; done
+    echo
+    echo "See '${0##*/} -help' for usage"
+    echo
+    exit 1
+}
+
+#-------------------------------------------------------------------------------
+
+searchDirs="$FOAM_APPBIN"
+optHeader=true
+unset outputFile
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    -h | -help*)
+        usage
+        ;;
+    -dir)
+        [ "$#" -ge 2 ] || die "'$1' option requires an argument"
+        searchDirs="$2"
+        [ -d "$searchDirs" ] || die "directory not found '$searchDirs'"
+        shift
+        ;;
+    -user)
+        searchDirs="$searchDirs $FOAM_USER_APPBIN"
+        ;;
+    -no-head*)
+        optHeader=false
+        ;;
+    -o | -output)
+        [ "$#" -ge 2 ] || die "'$1' option requires an argument"
+        outputFile="$2"
+        shift
+        ;;
+    -*)
+        usage "unknown option: '$1'"
+        ;;
+    *)
+        break
+        ;;
+    esac
+    shift
+done
+
+: ${outputFile:=$defaultOutputFile}
+
+# Verify that output is writeable
+if [ -e "$outputFile" ]
+then
+    [ -f "$outputFile" ] || \
+        die "Cannot overwrite $outputFile" "Not a file"
+    [ -w "$outputFile" ] || \
+        die "Cannot overwrite $outputFile" "No permission?"
+else
+    [ -w "$(dirname $outputFile)" ] || \
+        die "Cannot write $outputFile" "directory is not writeble"
+fi
+
+exec 1>| $outputFile || exit $?
+echo "Writing $outputFile" 1>&2
+echo 1>&2
+
+# Header not disabled
+[ "$optHeader" = true ] && cat << HEADER
+#----------------------------------*-sh-*--------------------------------------
+# Cached options for bash completion of OpenFOAM applications,
+# primarily for use with the tcsh completion mechanism.
+# These are the values expected by the '_of_complete_' function
+#
+# Recreate with "${0##*/}"
+
+# Global associative array (cached options for OpenFOAM applications)
+declare -gA _of_complete_cache_;
+
+# Clear existing cache.
+_of_complete_cache_=()
+
+#------------------------------------------------------------------------------
+HEADER
+
+#-------------------------------------------------------------------------------
+
+# Scans the output of the application -help-full to detect options with/without
+# arguments.  Dispatch via _of_complete_
+#
+# Extract all options of the format
+#   -opt1         descrip
+#   -opt2 <arg>   descrip
+#   -help-full
+#
+# Ignores
+#   -doc-source   Advanced (deprecated?) option
+#   -help-man     Internal option
+#   -hostRoots    Advanced distributed run option
+#   -roots        Advanced distributed run option
+#   -debug-switch, -opt-switch, -info-switch, -lib  Advanced options
+#
+# Begin parsing after first appearance of "^[Oo]ptions:"
+# Terminate parsing on first appearance of "-help-full"
+# - options with '=' (eg, -mode=ugo) are not handled very well at all.
+# - alternatives (eg, -a, -all) are not handled nicely either,
+#   for these treat ',' like a space to catch the worst of them.
+#
+# Remove anything that starts with more than 8 spaces to avoid parsing
+# any of the option description text
+extractOptions()
+{
+    local appName="$1"
+    local helpText=$($appName -help-full 2>/dev/null | \
+        sed -ne '1,/^[Oo]ptions:/d' \
+            -e '/^ \{8\}/d;' \
+            -e 's/^ *//; /^$/d; /^[^-]/d; /^--/d;' \
+            -e '/^-doc-source/d; /^-help-man/d;' \
+            -e '/^-hostRoots /d; /^-roots /d;' \
+            -e '/^-lib /d; /^-no-libs /d;' \
+            -e '/^-[a-z]*-switch /d;' \
+            -e 'y/,/ /; s/=.*$/=/;' \
+            -e '/^-[^ ]* </{ s/^\(-[^ ]* <\).*$/\1/; p; d }' \
+            -e 's/^\(-[^ ]*\).*$/\1/; p; /^-help-full/q;' \
+            )
+
+    # After this bit of sed, we have "-opt1" or "-opt2 <"
+    # for entries without or with arguments.
+
+    [ -n "$helpText" ] || {
+        echo "Error calling $appName" 1>&2
+        return 1
+    }
+
+    # Array of options with args
+    local argOpts=($(awk '/</ {print $1}' <<< "$helpText"))
+
+    # Array of options without args, but skip the following:
+    #     -help-compat -help-full etc
+    local boolOpts=($(awk '!/</ && !/help-/ {print $1}' <<< "$helpText"))
+
+    appName="${appName##*/}"
+    echo "$appName" 1>&2
+    echo "_of_complete_cache_[${appName}]=\"${argOpts[@]} | ${boolOpts[@]}\""
+}
+#------------------------------------------------------------------------------
+
+# Default to standard search directories and a few scripts from bin/
+[ "$#" -gt 0 ] || set -- ${searchDirs} paraFoam wmake
+
+for item
+do
+    if command -v "$item" >/dev/null
+    then
+        extractOptions "$item"
+    elif [ -d "$item" ]
+    then
+        # Process directory for applications - sort with ignore-case
+        echo "[directory] $item" 1>&2
+        choices="$(find $item -maxdepth 1 -executable -type f | sort -f 2>/dev/null)"
+        for appName in $choices
+        do
+            extractOptions $appName
+        done
+    else
+        echo "No such file or directory: $item" 1>&2
+    fi
+done
+
+# Generate footer
+[ "$optHeader" = true ] && cat << FOOTER
+
+#------------------------------------------------------------------------------
+FOOTER
+
+#------------------------------------------------------------------------------

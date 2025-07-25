@@ -1,0 +1,3 @@
+foamRestoreFields.C
+
+EXE = $(FOAM_APPBIN)/foamRestoreFields

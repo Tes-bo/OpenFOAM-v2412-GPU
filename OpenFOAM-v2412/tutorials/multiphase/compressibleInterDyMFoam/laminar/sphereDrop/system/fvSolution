@@ -1,0 +1,109 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      fvSolution;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+solvers
+{
+    "alpha.water.*"
+    {
+        nAlphaCorr      1;
+        nAlphaSubCycles 1;
+        cAlpha          1;
+    }
+
+    cellDisplacement
+    {
+        solver          GAMG;
+        tolerance       1e-5;
+        relTol          0;
+        smoother        GaussSeidel;
+        cacheAgglomeration true;
+        nCellsInCoarsestLevel 10;
+        agglomerator    faceAreaPair;
+        mergeLevels     1;
+    }
+
+    "rho.*|pcorr.*"
+    {
+        solver          PCG;
+        preconditioner  DIC;
+        tolerance       1e-8;
+        relTol          0;
+    }
+
+    p_rgh
+    {
+        solver           GAMG;
+        tolerance        1e-8;
+        relTol           0.05;
+        smoother         DICGaussSeidel;
+        nPreSweeps       0;
+        nPostSweeps      2;
+        cacheAgglomeration on;
+        agglomerator     faceAreaPair;
+        nCellsInCoarsestLevel 10;
+        mergeLevels      1;
+    }
+
+    p_rghFinal
+    {
+        $p_rgh;
+        tolerance       1e-08;
+        relTol          0;
+    }
+
+    "(U|k|epsilon|T)"
+    {
+        solver          smoothSolver;
+        smoother        symGaussSeidel;
+        tolerance       1e-08;
+        relTol          0.1;
+    }
+
+    "(U|k|epsilon|T)Final"
+    {
+        $U;
+        tolerance       1e-08;
+        relTol          0;
+    }
+}
+
+
+PIMPLE
+{
+    momentumPredictor no;
+    nOuterCorrectors 2;
+    nCorrectors      4;
+    nNonOrthogonalCorrectors 1;
+    correctPhi              yes;
+    checkMeshCourantNo      no;
+    moveMeshOuterCorrectors no;
+    transonic   false;
+}
+
+
+relaxationFactors
+{
+    fields
+    {
+    }
+    equations
+    {
+        ".*"    1;
+    }
+}
+
+// ************************************************************************* //

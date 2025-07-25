@@ -1,0 +1,63 @@
+#----------------------------------*-sh-*--------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2017-2024 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# File
+#     etc/config.sh/adios2
+#     - sourced by OpenFOAM-*/etc/bashrc
+#
+# Description
+#     Setup for ADIOS2 include/libraries (usually ThirdParty installation).
+#
+#     Use with -force when sourcing directly from the command-line
+#------------------------------------------------------------------------------
+# USER EDITABLE PART: Changes made here may be lost with the next upgrade
+
+adios2_version=ADIOS2-2.10.1
+export ADIOS2_ARCH_PATH="$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/$adios2_version"
+
+# END OF (NORMAL) USER EDITABLE PART
+#------------------------------------------------------------------------------
+if [ -n "$FOAM_VERBOSE" ] && [ -n "$PS1" ]
+then
+    echo "Using adios ($adios2_version)  ->  $ADIOS2_ARCH_PATH" 1>&2
+fi
+
+if command -v _foamAddLibAuto >/dev/null
+then
+    # Normal sourcing (not makeAdios2)
+    # Only add to PATH if the directory really exists
+
+    if _foamAddLibAuto $ADIOS2_ARCH_PATH
+    then
+        _foamAddPath $ADIOS2_ARCH_PATH/bin
+    fi
+
+    unset adios2_version
+
+elif [ "$1" = "-force" ]
+then
+    # Forced command-line sourcing
+
+    if output="$($WM_PROJECT_DIR/bin/tools/lib-dir -sh $ADIOS2_ARCH_PATH 2>/dev/null)"
+    then
+        eval "$output"
+        if [ -d "$ADIOS2_ARCH_PATH/bin" ]
+        then
+            PATH="$ADIOS2_ARCH_PATH/bin:$PATH"
+        fi
+    fi
+
+    unset adios2_version output
+fi
+
+
+#------------------------------------------------------------------------------

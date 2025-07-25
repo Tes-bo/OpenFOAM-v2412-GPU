@@ -1,0 +1,3 @@
+EXE_INC = /* -DFoam_no_besselFunc */ -I$(LIB_SRC)/ODE/lnInclude
+
+EXE_LIBS = -lODE

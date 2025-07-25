@@ -1,0 +1,74 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+libs        (utilityFunctionObjects);
+
+DebugSwitches
+{
+//    mappedPatchBase 2;
+//    syncObjects     2;
+}
+
+
+application     laplacianFoam;
+
+startFrom       startTime;  //latestTime;
+
+startTime       0;
+
+stopAt          endTime;
+
+endTime         1;
+
+deltaT          1;
+
+//writeControl    runTime;
+//writeInterval   0.1;
+writeControl    timeStep;
+writeInterval   1;
+
+purgeWrite      0;
+
+writeFormat     ascii;
+
+writePrecision  6;
+
+writeCompression off;
+
+timeFormat      general;
+
+timePrecision   6;
+
+runTimeModifiable true;
+
+//functions
+//{
+//    syncObjects
+//    {
+//        type        syncObjects;
+//        libs        (utilityFunctionObjects);
+//
+//        // Where is data located relative to runTime. Given as a filename
+//        // with every '/' indicating a sub-objectRegistry w.r.t. runTime.
+//        // Local data is under <root>/send/processorXXX. After execution
+//        // data will be under the corresponding <root>/receive/processorYYY
+//        // objectRegistry
+//        //root        "level0/level1/level2";
+//    }
+//}
+
+// ************************************************************************* //

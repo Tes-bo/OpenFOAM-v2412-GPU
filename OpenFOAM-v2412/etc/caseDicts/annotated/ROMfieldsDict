@@ -1,0 +1,59 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      ROMfieldsDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// Mandatory entries
+
+// Type of reduced-order model
+ROMmodel        DMD;
+
+// Name of reconstructed field
+field           U;
+
+// Name of operand function object
+object          stdmd02;
+
+// Time-step size of DMD
+deltaT          0.5;
+
+// Time instant in which modes are located
+time            200;
+
+// List of mode indices
+modes           (0 1 2 3 4 5);
+
+// Amplitude coefficients (complex)
+amplitudes
+(
+    // real     imag
+    // (1e-01   2e-02)
+);
+
+// Eigenvalues (complex)
+eigenvalues
+(
+    // real     imag
+    // (1e-01   2e-02)
+);
+
+// Optional entries
+
+// Start time for mode-information collection
+startTime   10;
+
+// Dimensions of reconstructed fields
+dimensions  [0 1 -1 0 0 0 0];
+
+// ************************************************************************* //

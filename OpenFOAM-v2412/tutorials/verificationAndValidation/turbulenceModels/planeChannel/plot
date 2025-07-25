@@ -1,0 +1,707 @@
+#!/bin/bash
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+# settings
+
+    # operand setups
+    setups="
+    EBRSM
+    kOmegaSST
+    "
+
+
+#------------------------------------------------------------------------------
+
+plot_initial_iteration_residuals() {
+
+    setup="$1"
+
+    echo "## Plots the initial-iteration residuals"
+
+    sampleFile="results/$setup/logs"
+    image="plots/$setup/initial-iteration-residuals.png"
+
+    gnuplot<<PLT_IRES
+    set terminal pngcairo font "helvetica,20" size 1000, 1000
+    set grid
+    #set xrange [0:200]
+    set yrange [1e-16:1]
+    set logscale y
+    set key right top
+    set key samplen 2
+    set key spacing 0.75
+    set xlabel "Iterations"
+    set ylabel "Initial-iteration residuals"
+    set offset .2, .05
+    set output "$image"
+    set title "Setup: $setup"
+
+    file_exists(file) = system("[ -f '".file."' ] && echo '1' || echo '0'") + 0
+
+    # OpenFOAM
+        Ux="$sampleFile/Ux_0"
+        p="$sampleFile/p_0"
+        k="$sampleFile/k_0"
+        omega="$sampleFile/omega_0"
+        epsilon="$sampleFile/epsilon_0"
+        Rxx="$sampleFile/Rxx_0"
+        Ryy="$sampleFile/Ryy_0"
+        Rzz="$sampleFile/Rzz_0"
+        Rxy="$sampleFile/Rxy_0"
+        nuTilda="$sampleFile/nuTilda_0"
+        gammaInt="$sampleFile/gammaInt_0"
+        ReThetat="$sampleFile/ReThetat_0"
+
+    if ( file_exists(Rxx) ) {
+        plot \
+        Ux u 1:2 t "Ux" w l lw 2 lc rgb "#009E73", \
+        p u 1:2 t "p" w l lw 2 lc rgb "#F0E440", \
+        epsilon u 1:2 t "epsilon" w l lw 2 lc rgb "#D55E00", \
+        Rxx u 1:2 t "Rxx" w l lw 2 lc rgb "#0072B2", \
+        Ryy u 1:2 t "Ryy" w l lw 2 lc rgb "#CC79A7", \
+        Rzz u 1:2 t "Rzz" w l lw 2 lc rgb "#440154", \
+        Rxy u 1:2 t "Rxy" w l lw 2 lc rgb "#4169e1"
+    }
+
+    if ( file_exists(k) ) {
+        if ( ! file_exists(gammaInt) ) {
+            plot \
+                Ux u 1:2 t "Ux" w l lw 2 lc rgb "#009E73", \
+                p u 1:2 t "p" w l lw 2 lc rgb "#F0E440", \
+                k u 1:2 t "k" w l lw 2 lc rgb "#0072B2", \
+                omega u 1:2 t "omega" w l lw 2 lc rgb "#D55E00"
+        } else {
+            plot \
+                Ux u 1:2 t "Ux" w l lw 2 lc rgb "#009E73", \
+                p u 1:2 t "p" w l lw 2 lc rgb "#F0E440", \
+                k u 1:2 t "k" w l lw 2 lc rgb "#0072B2", \
+                omega u 1:2 t "omega" w l lw 2 lc rgb "#D55E00", \
+                gammaInt u 1:2 t "gammaInt" w l lw 2 lc rgb "#CC79A7", \
+                ReThetat u 1:2 t "ReThetat" w l lw 2 lc rgb "#440154"
+            }
+    }
+
+    if ( file_exists(nuTilda) ) {
+        plot \
+            Ux u 1:2 t "Ux" w l lw 2 lc rgb "#009E73", \
+            p u 1:2 t "p" w l lw 2 lc rgb "#F0E440", \
+            nuTilda u 1:2 t "nuTilda" w l lw 2 lc rgb "#0072B2"
+        }
+PLT_IRES
+}
+
+
+plot_final_iteration_residuals() {
+
+    setup="$1"
+
+    echo "## Plots the final-iteration residuals"
+
+    sampleFile="results/$setup/logs"
+    image="plots/$setup/final-iteration-residuals.png"
+
+    gnuplot<<PLT_FRES
+    set terminal pngcairo font "helvetica,20" size 1000, 1000
+    set grid
+    #set xrange [0:200]
+    set yrange [1e-16:1]
+    set logscale y
+    set key right top
+    set key samplen 2
+    set key spacing 0.75
+    set xlabel "Iterations"
+    set ylabel "Final-iteration residuals"
+    set offset .2, .05
+    set output "$image"
+    set title "Setup: $setup"
+
+    file_exists(file) = system("[ -f '".file."' ] && echo '1' || echo '0'") + 0
+
+    # OpenFOAM
+        Ux="$sampleFile/UxFinalRes_0"
+        p="$sampleFile/pFinalRes_0"
+        k="$sampleFile/kFinalRes_0"
+        omega="$sampleFile/omegaFinalRes_0"
+        epsilon="$sampleFile/epsilonFinalRes_0"
+        Rxx="$sampleFile/RxxFinalRes_0"
+        Ryy="$sampleFile/RyyFinalRes_0"
+        Rzz="$sampleFile/RzzFinalRes_0"
+        Rxy="$sampleFile/RxyFinalRes_0"
+        nuTilda="$sampleFile/nuTildaFinalRes_0"
+        gammaInt="$sampleFile/gammaIntFinalRes_0"
+        ReThetat="$sampleFile/ReThetatFinalRes_0"
+
+    if ( file_exists(Rxx) ) {
+        plot \
+        Ux u 1:2 t "Ux" w l lw 2 lc rgb "#009E73", \
+        p u 1:2 t "p" w l lw 2 lc rgb "#F0E440", \
+        epsilon u 1:2 t "epsilon" w l lw 2 lc rgb "#D55E00", \
+        Rxx u 1:2 t "Rxx" w l lw 2 lc rgb "#0072B2", \
+        Ryy u 1:2 t "Ryy" w l lw 2 lc rgb "#CC79A7", \
+        Rzz u 1:2 t "Rzz" w l lw 2 lc rgb "#440154", \
+        Rxy u 1:2 t "Rxy" w l lw 2 lc rgb "#4169e1"
+    }
+
+    if ( file_exists(k) ) {
+        if ( ! file_exists(gammaInt) ) {
+            plot \
+                Ux u 1:2 t "Ux" w l lw 2 lc rgb "#009E73", \
+                p u 1:2 t "p" w l lw 2 lc rgb "#F0E440", \
+                k u 1:2 t "k" w l lw 2 lc rgb "#0072B2", \
+                omega u 1:2 t "omega" w l lw 2 lc rgb "#D55E00"
+        } else {
+            plot \
+                Ux u 1:2 t "Ux" w l lw 2 lc rgb "#009E73", \
+                p u 1:2 t "p" w l lw 2 lc rgb "#F0E440", \
+                k u 1:2 t "k" w l lw 2 lc rgb "#0072B2", \
+                omega u 1:2 t "omega" w l lw 2 lc rgb "#D55E00", \
+                gammaInt u 1:2 t "gammaInt" w l lw 2 lc rgb "#CC79A7", \
+                ReThetat u 1:2 t "ReThetat" w l lw 2 lc rgb "#440154"
+            }
+    }
+
+    if ( file_exists(nuTilda) ) {
+        plot \
+            Ux u 1:2 t "Ux" w l lw 2 lc rgb "#009E73", \
+            p u 1:2 t "p" w l lw 2 lc rgb "#F0E440", \
+            nuTilda u 1:2 t "nuTilda" w l lw 2 lc rgb "#0072B2"
+        }
+PLT_FRES
+}
+
+
+plot_yPlus_vs_uPlus() {
+
+    setup="$1"
+    endTime="$2"
+    nu="$3"
+    uTau="$4"
+
+    benchmarkDir="$FOAM_TUTORIALS/verificationAndValidation/turbulentInflow/oneCellThickPlaneChannel"
+    benchmarkFile="$benchmarkDir/resources/dataset/chan395.means"
+    sampleFile="results/$setup/postProcessing/sampleU/$endTime/y_U.xy"
+    image="plots/$setup/yPlus_vs_uPlus.png"
+
+    gnuplot<<PLT_Y_VS_U
+    set terminal pngcairo font "helvetica,20" size 1000, 1000
+    set grid
+    #set xrange [0:200]
+    #set yrange [0:20]
+    set logscale x
+    set key left top reverse
+    set key samplen 2
+    set key spacing 0.75
+    set xlabel "y^+"
+    set ylabel "u^+"
+    set output "$image"
+    set title "Setup: $setup" noenhanced
+
+    # Benchmark
+        benchmark="$benchmarkFile"
+
+    # OpenFOAM
+        samples="$sampleFile"
+
+    plot \
+        benchmark u 2:3 t "DNS" w p ps 2 pt 7 lc rgb "#ffc020", \
+        samples u (\$1*$uTau/$nu):(\$2/$uTau) t "OpenFOAM" w l lw 2 lc rgb "#4169e1"
+PLT_Y_VS_U
+}
+
+
+plot_yPlus_vs_R() {
+
+    setup="$1"
+    endTime="$2"
+    nu="$3"
+    uTau="$4"
+
+    benchmarkDir="$FOAM_TUTORIALS/verificationAndValidation/turbulentInflow/oneCellThickPlaneChannel"
+    benchmarkFile="$benchmarkDir/resources/dataset/chan395.reystress"
+    sampleFile="results/$setup/postProcessing/sampleR/$endTime/y_turbulenceProperties:R.xy"
+    sampleFileK="results/$setup/postProcessing/sampleK/$endTime/y_turbulenceProperties:k.xy"
+    imageUU="plots/$setup/yPlus_vs_Ruu.png"
+    imageVV="plots/$setup/yPlus_vs_Rvv.png"
+    imageWW="plots/$setup/yPlus_vs_Rww.png"
+    imageUV="plots/$setup/yPlus_vs_Ruv.png"
+    imageK0="plots/$setup/yPlus_vs_kPlus0.png"
+    imageK1="plots/$setup/yPlus_vs_kPlus1.png"
+
+    gnuplot<<PLT_Y_VS_R
+    set terminal pngcairo font "helvetica,20" size 1000, 1000
+    set grid
+    #set xrange [0:200]
+    #set yrange [0:1]
+    set logscale x
+    set key left top reverse
+    set key samplen 2
+    set key spacing 0.75
+    set xlabel "y^+"
+    set ylabel "(uu)^+"
+    set output "$imageUU"
+    set title "Setup: $setup" noenhanced
+
+    # Benchmark
+        benchmark="$benchmarkFile"
+
+    # OpenFOAM
+        samples="$sampleFile"
+        samplesK="$sampleFileK"
+
+    plot \
+        benchmark u 2:3 t "DNS" w p ps 2 pt 7 lc rgb "#ffc020", \
+        samples u (\$1*$uTau/$nu):(\$2/$uTau**2) t "OpenFOAM" w l lw 2 lc rgb "#4169e1"
+
+    set output "$imageVV"
+    set ylabel "(vv)^+"
+    plot \
+        benchmark u 2:4 t "DNS" w p ps 2 pt 7 lc rgb "#ffc020", \
+        samples u (\$1*$uTau/$nu):(\$5/$uTau**2) t "OpenFOAM" w l lw 2 lc rgb "#4169e1"
+
+    set output "$imageWW"
+    set ylabel "(ww)^+"
+    plot \
+        benchmark u 2:5 t "DNS" w p ps 2 pt 7 lc rgb "#ffc020", \
+        samples u (\$1*$uTau/$nu):(\$7/$uTau**2) t "OpenFOAM" w l lw 2 lc rgb "#4169e1"
+
+    set output "$imageUV"
+    set ylabel "(uv)^+"
+    plot \
+        benchmark u 2:(\$6*-1) t "DNS" w p ps 2 pt 7 lc rgb "#ffc020", \
+        samples u (\$1*$uTau/$nu):(-\$3/$uTau**2) t "OpenFOAM" w l lw 2 lc rgb "#4169e1"
+
+    set output "$imageK0"
+    set ylabel "k^+"
+    plot \
+        benchmark u 2:(0.5*(\$3 + \$4 + \$5)) t "DNS" w p ps 2 pt 7 lc rgb "#ffc020", \
+        samples u (\$1*$uTau/$nu):(0.5*(\$2 + \$5 + \$7)/$uTau**2) t "OpenFOAM" w l lw 2 lc rgb "#4169e1"
+
+    set output "$imageK1"
+    set ylabel "k^+"
+    plot \
+        benchmark u 2:(0.5*(\$3 + \$4 + \$5)) t "DNS" w p ps 2 pt 7 lc rgb "#ffc020", \
+        samplesK u (\$1*$uTau/$nu):(\$2/$uTau**2) t "OpenFOAM" w l lw 2 lc rgb "#4169e1"
+PLT_Y_VS_R
+}
+
+
+plot_yPlus_vs_epsilonPlus() {
+
+    setup="$1"
+    endTime="$2"
+    nu="$3"
+    uTau="$4"
+
+    benchmarkDir="$FOAM_TUTORIALS/verificationAndValidation/turbulentInflow/oneCellThickPlaneChannel"
+    benchmarkFile="$benchmarkDir/resources/dataset/chan395.kbal"
+    sampleFile="results/$setup/postProcessing/sampleEpsilon/$endTime/y_turbulenceProperties:epsilon.xy"
+    image="plots/$setup/yPlus_vs_epsilonPlus.png"
+
+    gnuplot<<PLT_Y_VS_EPSILON
+    set terminal pngcairo font "helvetica,20" size 1000, 1000
+    set grid
+    #set xrange [0:200]
+    #set yrange [0:20]
+    set logscale x
+    set key left top reverse
+    set key samplen 2
+    set key spacing 0.75
+    set xlabel "y^+"
+    set ylabel "{/Symbol e}^+"
+    set output "$image"
+    set title "Setup: $setup" noenhanced
+
+    # Benchmark
+        benchmark="$benchmarkFile"
+
+    # OpenFOAM
+        samples="$sampleFile"
+
+    plot \
+        benchmark u 2:(-\$3) t "DNS" w p ps 2 pt 7 lc rgb "#ffc020", \
+        samples u (\$1*$uTau/$nu):(\$2*$nu/$uTau**4) t "OpenFOAM" w l lw 2 lc rgb "#4169e1"
+PLT_Y_VS_EPSILON
+}
+
+
+plot_yPlus_vs_productionRatePlus() {
+
+    setup="$1"
+    endTime="$2"
+    nu="$3"
+    uTau="$4"
+
+    benchmarkDir="$FOAM_TUTORIALS/verificationAndValidation/turbulentInflow/oneCellThickPlaneChannel"
+    benchmarkFile="$benchmarkDir/resources/dataset/chan395.kbal"
+    sampleFile="results/$setup/postProcessing/sampleG/$endTime/y_productionRate.xy"
+    image="plots/$setup/yPlus_vs_productionRatePlus.png"
+
+    gnuplot<<PLT_Y_VS_PRODUCTION_RATE
+    set terminal pngcairo font "helvetica,20" size 1000, 1000
+    set grid
+    #set xrange [0:200]
+    #set yrange [0:20]
+    set logscale x
+    set key left top reverse
+    set key samplen 2
+    set key spacing 0.75
+    set xlabel "y^+"
+    set ylabel "P^+"
+    set output "$image"
+    set title "Setup: $setup" noenhanced
+
+    # Benchmark
+        benchmark="$benchmarkFile"
+
+    # OpenFOAM
+        samples="$sampleFile"
+
+    plot \
+        benchmark u 2:4 t "DNS" w p ps 2 pt 7 lc rgb "#ffc020", \
+        samples u (\$1*$uTau/$nu):(\$2*$nu/$uTau**4) t "OpenFOAM" w l lw 2 lc rgb "#4169e1"
+PLT_Y_VS_PRODUCTION_RATE
+}
+
+
+plot_yPlus_vs_uPlus_all_setups() {
+
+    setups=$@
+
+    benchmarkDir="$FOAM_TUTORIALS/verificationAndValidation/turbulentInflow/oneCellThickPlaneChannel"
+    benchmarkFile="$benchmarkDir/resources/dataset/chan395.means"
+
+    n=0
+    for setup in $setups
+    do
+        # few manipulations
+        endTime=$(foamDictionary results/$setup/system/controlDict -entry endTime -value)
+        nu=$(foamDictionary results/$setup/constant/transportProperties -entry nu | sed 's|^.*\s\(.*\);|\1|g')
+        tau=$(foamDictionary results/$setup/$endTime/wallShearStress -entry boundaryField/bottom/value -value | sed -n '/(/,/)/p' | sed -e 's/[()]//g;/^\s*$/d' | cut -d' ' -f6)
+        uTau=$(awk -v tau="$tau" 'BEGIN { printf "%.16f", sqrt(-1*tau) }')
+
+        sampleFiles[$n]="results/$setup/postProcessing/sampleU/$endTime/y_U.xy"
+        nus[$n]="$nu"
+        uTaus[$n]="$uTau"
+        n=$(($n+1))
+    done
+
+    image="plots/all_setups_yPlus_vs_uPlus.png"
+
+    gnuplot<<PLT_Y_VS_U_ALL_SETUPS
+    set terminal pngcairo font "helvetica,20" size 1000, 1000
+    set grid
+    #set xrange [0:200]
+    #set yrange [0:20]
+    set logscale x
+    set key left top reverse
+    set key samplen 2
+    set key spacing 0.75
+    set xlabel "y^+"
+    set ylabel "u^+"
+    set output "$image"
+    set title "Ground-normal profile" noenhanced
+
+    # Benchmark
+        benchmark="$benchmarkFile"
+
+    # OpenFOAM
+        models="${setups[*]}"
+        samples="${sampleFiles[*]}"
+        nus="${nus[*]}"
+        uTaus="${uTaus[*]}"
+
+    plot \
+        benchmark u 2:3 t "DNS" w p ps 2 pt 7 lc rgb "#ffc020", \
+        for [i=1:words(samples)] word(samples, i) \
+            u (\$1*word(uTaus, i)/word(nus, i)):(\$2/word(uTaus, i)) \
+            t word(models, i) w l lw 2
+PLT_Y_VS_U_ALL_SETUPS
+}
+
+
+plot_yPlus_vs_R_all_setups() {
+
+    setups=$@
+
+    benchmarkDir="$FOAM_TUTORIALS/verificationAndValidation/turbulentInflow/oneCellThickPlaneChannel"
+    benchmarkFile="$benchmarkDir/resources/dataset/chan395.reystress"
+
+    n=0
+    for setup in $setups
+    do
+        # few manipulations
+        endTime=$(foamDictionary results/$setup/system/controlDict -entry endTime -value)
+        nu=$(foamDictionary results/$setup/constant/transportProperties -entry nu | sed 's|^.*\s\(.*\);|\1|g')
+        tau=$(foamDictionary results/$setup/$endTime/wallShearStress -entry boundaryField/bottom/value -value | sed -n '/(/,/)/p' | sed -e 's/[()]//g;/^\s*$/d' | cut -d' ' -f6)
+        uTau=$(awk -v tau="$tau" 'BEGIN { printf "%.16f", sqrt(-1*tau) }')
+
+        sampleFiles[$n]="results/$setup/postProcessing/sampleR/$endTime/y_turbulenceProperties:R.xy"
+        sampleFilesK[$n]="results/$setup/postProcessing/sampleK/$endTime/y_turbulenceProperties:k.xy"
+        nus[$n]="$nu"
+        uTaus[$n]="$uTau"
+        n=$(($n+1))
+    done
+
+    imageUU="plots/all_setups_yPlus_vs_Ruu.png"
+    imageVV="plots/all_setups_yPlus_vs_Rvv.png"
+    imageWW="plots/all_setups_yPlus_vs_Rww.png"
+    imageUV="plots/all_setups_yPlus_vs_Ruv.png"
+    imageK0="plots/all_setups_yPlus_vs_kPlus0.png"
+    imageK1="plots/all_setups_yPlus_vs_kPlus1.png"
+
+    gnuplot<<PLT_Y_VS_R
+    set terminal pngcairo font "helvetica,20" size 1000, 1000
+    set grid
+    #set xrange [0:200]
+    #set yrange [0:1]
+    set logscale x
+    set key left top reverse
+    set key samplen 2
+    set key spacing 0.75
+    set xlabel "y^+"
+    set ylabel "(uu)^+"
+    set output "$imageUU"
+    set title "Ground-normal profile" noenhanced
+
+    # Benchmark
+        benchmark="$benchmarkFile"
+
+    # OpenFOAM
+        models="${setups[*]}"
+        samples="${sampleFiles[*]}"
+        samplesK="${sampleFilesK[*]}"
+        nus="${nus[*]}"
+        uTaus="${uTaus[*]}"
+
+    plot \
+        benchmark u 2:3 t "DNS" w p ps 2 pt 7 lc rgb "#ffc020", \
+        for [i=1:words(samples)] word(samples, i) \
+            u (\$1*word(uTaus, i)/word(nus, i)):(\$2/word(uTaus, i)**2) \
+            t word(models, i) w l lw 2
+
+    set output "$imageVV"
+    set ylabel "(vv)^+"
+    plot \
+        benchmark u 2:4 t "DNS" w p ps 2 pt 7 lc rgb "#ffc020", \
+        for [i=1:words(samples)] word(samples, i) \
+            u (\$1*word(uTaus, i)/word(nus, i)):(\$5/word(uTaus, i)**2) \
+            t word(models, i) w l lw 2
+
+    set output "$imageWW"
+    set ylabel "(ww)^+"
+    plot \
+        benchmark u 2:5 t "DNS" w p ps 2 pt 7 lc rgb "#ffc020", \
+        for [i=1:words(samples)] word(samples, i) \
+            u (\$1*word(uTaus, i)/word(nus, i)):(\$7/word(uTaus, i)**2) \
+            t word(models, i) w l lw 2
+
+    set output "$imageUV"
+    set ylabel "(uv)^+"
+    plot \
+        benchmark u 2:(\$6*-1) t "DNS" w p ps 2 pt 7 lc rgb "#ffc020", \
+        for [i=1:words(samples)] word(samples, i) \
+            u (\$1*word(uTaus, i)/word(nus, i)):(-\$3/word(uTaus, i)**2) \
+            t word(models, i) w l lw 2
+
+    set output "$imageK0"
+    set ylabel "k^+"
+    plot \
+        benchmark u 2:(0.5*(\$3 + \$4 + \$5)) t "DNS" w p ps 2 pt 7 lc rgb "#ffc020", \
+        for [i=1:words(samples)] word(samples, i) \
+            u (\$1*word(uTaus, i)/word(nus, i)):(0.5*(\$2 + \$5 + \$7)/word(uTaus, i)**2) \
+            t word(models, i) w l lw 2
+
+    set output "$imageK1"
+    set ylabel "k^+"
+    plot \
+        benchmark u 2:(0.5*(\$3 + \$4 + \$5)) t "DNS" w p ps 2 pt 7 lc rgb "#ffc020", \
+        for [i=1:words(samplesK)] word(samplesK, i) \
+            u (\$1*word(uTaus, i)/word(nus, i)):(\$2/word(uTaus, i)**2) \
+            t word(models, i) w l lw 2
+PLT_Y_VS_R
+}
+
+
+plot_yPlus_vs_epsilonPlus_all_setups() {
+
+    setups=$@
+
+    benchmarkDir="$FOAM_TUTORIALS/verificationAndValidation/turbulentInflow/oneCellThickPlaneChannel"
+    benchmarkFile="$benchmarkDir/resources/dataset/chan395.kbal"
+
+    n=0
+    for setup in $setups
+    do
+        # few manipulations
+        endTime=$(foamDictionary results/$setup/system/controlDict -entry endTime -value)
+        nu=$(foamDictionary results/$setup/constant/transportProperties -entry nu | sed 's|^.*\s\(.*\);|\1|g')
+        tau=$(foamDictionary results/$setup/$endTime/wallShearStress -entry boundaryField/bottom/value -value | sed -n '/(/,/)/p' | sed -e 's/[()]//g;/^\s*$/d' | cut -d' ' -f6)
+        uTau=$(awk -v tau="$tau" 'BEGIN { printf "%.16f", sqrt(-1*tau) }')
+
+        sampleFiles[$n]="results/$setup/postProcessing/sampleEpsilon/$endTime/y_turbulenceProperties:epsilon.xy"
+        nus[$n]="$nu"
+        uTaus[$n]="$uTau"
+        n=$(($n+1))
+    done
+
+    image="plots/all_setups_yPlus_vs_epsilonPlus.png"
+
+    gnuplot<<PLT_Y_VS_EPSILON_ALL_SETUPS
+    set terminal pngcairo font "helvetica,20" size 1000, 1000
+    set grid
+    #set xrange [0:200]
+    #set yrange [0:20]
+    set logscale x
+    set key left top reverse
+    set key samplen 2
+    set key spacing 0.75
+    set xlabel "y^+"
+    set ylabel "{/Symbol e}^+"
+    set output "$image"
+    set title "Ground-normal profile" noenhanced
+
+    # Benchmark
+        benchmark="$benchmarkFile"
+
+    # OpenFOAM
+        models="${setups[*]}"
+        samples="${sampleFiles[*]}"
+        nus="${nus[*]}"
+        uTaus="${uTaus[*]}"
+
+    plot \
+        benchmark u 2:(-\$3) t "DNS" w p ps 2 pt 7 lc rgb "#ffc020", \
+        for [i=1:words(samples)] word(samples, i) \
+            u (\$1*word(uTaus, i)/word(nus, i)):(\$2*word(nus, i)/word(uTaus, i)**4) \
+            t word(models, i) w l lw 2
+PLT_Y_VS_EPSILON_ALL_SETUPS
+}
+
+
+plot_yPlus_vs_productionRatePlus_all_setups() {
+
+    setups=$@
+
+    benchmarkDir="$FOAM_TUTORIALS/verificationAndValidation/turbulentInflow/oneCellThickPlaneChannel"
+    benchmarkFile="$benchmarkDir/resources/dataset/chan395.kbal"
+
+    n=0
+    for setup in $setups
+    do
+        # few manipulations
+        endTime=$(foamDictionary results/$setup/system/controlDict -entry endTime -value)
+        nu=$(foamDictionary results/$setup/constant/transportProperties -entry nu | sed 's|^.*\s\(.*\);|\1|g')
+        tau=$(foamDictionary results/$setup/$endTime/wallShearStress -entry boundaryField/bottom/value -value | sed -n '/(/,/)/p' | sed -e 's/[()]//g;/^\s*$/d' | cut -d' ' -f6)
+        uTau=$(awk -v tau="$tau" 'BEGIN { printf "%.16f", sqrt(-1*tau) }')
+
+        sampleFiles[$n]="results/$setup/postProcessing/sampleG/$endTime/y_productionRate.xy"
+        nus[$n]="$nu"
+        uTaus[$n]="$uTau"
+        n=$(($n+1))
+    done
+
+    image="plots/all_setups_yPlus_vs_productionRatePlus.png"
+
+    gnuplot<<PLT_Y_VS_PRODUCTION_RATE_ALL_SETUPS
+    set terminal pngcairo font "helvetica,20" size 1000, 1000
+    set grid
+    #set xrange [0:200]
+    #set yrange [0:20]
+    set logscale x
+    set key left top reverse
+    set key samplen 2
+    set key spacing 0.75
+    set xlabel "y^+"
+    set ylabel "P^+"
+    set output "$image"
+    set title "Ground-normal profile" noenhanced
+
+    # Benchmark
+        benchmark="$benchmarkFile"
+
+    # OpenFOAM
+        models="${setups[*]}"
+        samples="${sampleFiles[*]}"
+        nus="${nus[*]}"
+        uTaus="${uTaus[*]}"
+
+    plot \
+        benchmark u 2:4 t "DNS" w p ps 2 pt 7 lc rgb "#ffc020", \
+        for [i=1:words(samples)] word(samples, i) \
+            u (\$1*word(uTaus, i)/word(nus, i)):(\$2*word(nus, i)/word(uTaus, i)**4) \
+            t word(models, i) w l lw 2
+PLT_Y_VS_PRODUCTION_RATE_ALL_SETUPS
+}
+
+
+#------------------------------------------------------------------------------
+
+# Requires gnuplot
+command -v gnuplot >/dev/null || {
+    echo "gnuplot not found - skipping graph creation" 1>&2
+    exit 1
+}
+
+# Requires awk
+command -v awk >/dev/null || {
+    echo "awk not found - skipping graph creation" 1>&2
+    exit 1
+}
+
+# Check "results" directory
+[ -d "results" ] || {
+    echo "No results directory found - skipping graph creation" 1>&2
+    exit 1
+}
+
+
+#------------------------------------------------------------------------------
+
+for setup in $setups
+do
+
+    echo ""
+    echo "# Plots for the setup: $setup"
+    echo ""
+
+    [ -d "results/$setup" ] || {
+        echo "No results/$setup directory found - skipping graph creation" 1>&2
+        continue
+    }
+
+    dirPlots="plots/$setup"
+    [ -d "$dirPlots" ] || mkdir -p "$dirPlots"
+
+    # few manipulations
+    RASModel=$(foamDictionary results/$setup/constant/turbulenceProperties -entry RAS.RASModel -value)
+    endTime=$(foamDictionary results/$setup/system/controlDict -entry endTime -value)
+    nu=$(foamDictionary results/$setup/constant/transportProperties -entry nu | sed 's|^.*\s\(.*\);|\1|g')
+    tau=$(foamDictionary results/$setup/$endTime/wallShearStress -entry boundaryField/bottom/value -value | sed -n '/(/,/)/p' | sed -e 's/[()]//g;/^\s*$/d' | cut -d' ' -f6)
+    uTau=$(awk -v tau="$tau" 'BEGIN { printf "%.16f", sqrt(-1*tau) }')
+
+    plot_initial_iteration_residuals "$setup"
+
+    plot_final_iteration_residuals "$setup"
+
+    plot_yPlus_vs_uPlus "$setup" "$endTime" "$nu" "$uTau"
+
+    plot_yPlus_vs_R "$setup" "$endTime" "$nu" "$uTau"
+
+    plot_yPlus_vs_epsilonPlus "$setup" "$endTime" "$nu" "$uTau"
+
+    plot_yPlus_vs_productionRatePlus "$setup" "$endTime" "$nu" "$uTau"
+
+done
+
+plot_yPlus_vs_uPlus_all_setups $setups
+
+plot_yPlus_vs_R_all_setups $setups
+
+plot_yPlus_vs_epsilonPlus_all_setups $setups
+
+plot_yPlus_vs_productionRatePlus_all_setups $setups
+
+
+#------------------------------------------------------------------------------

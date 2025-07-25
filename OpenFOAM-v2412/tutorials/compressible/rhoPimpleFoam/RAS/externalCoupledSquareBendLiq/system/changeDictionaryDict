@@ -1,0 +1,47 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      changeDictionaryDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+boundary
+{
+    inletWalls
+    {
+        inGroups        (coupleGroup wall);
+    }
+}
+
+T
+{
+    boundaryField
+    {
+        inletWalls
+        {
+            type        externalCoupledTemperature;
+            outputTemperature   fluid;      // (fluid|wall)
+            htcRefTemperature   user;       // (cell|user)
+
+            Tref
+            {
+                type        expression;
+
+                // arg() means time here
+                expression  #{ arg() <= 0.1 ? 300 : 320 #};
+            }
+        }
+    }
+}
+
+
+// ************************************************************************* //

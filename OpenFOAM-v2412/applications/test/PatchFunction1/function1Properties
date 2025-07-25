@@ -1,0 +1,38 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      function1Properties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+x0  0.5;
+x1  1;
+
+
+//- Dictionary notation
+function1 uniformValue;
+
+function1Coeffs
+{
+    function1 (0 1 0);  //table ((0 (0 0 0))(1 (1 1 1)));
+    coordinateSystem
+    {
+        type    cylindrical;
+        origin  (0.05 0.1 0.05);
+        e3      (0 1 0);
+        e1      (1 0 0);
+    }
+    scale1  table ((0 (0 0 0))(1 (1 1 1)));
+}
+
+// ************************************************************************* //

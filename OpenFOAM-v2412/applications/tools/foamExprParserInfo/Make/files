@@ -1,0 +1,3 @@
+foamExprParserInfo.C
+
+EXE = $(FOAM_APPBIN)/foamExprParserInfo

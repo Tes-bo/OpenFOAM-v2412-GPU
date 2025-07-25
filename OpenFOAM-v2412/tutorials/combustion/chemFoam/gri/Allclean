@@ -1,0 +1,14 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/CleanFunctions      # Tutorial clean functions
+#------------------------------------------------------------------------------
+
+cleanCase0
+
+rm -f chemFoam.out
+rm -f constant/reactions
+rm -f constant/thermo
+rm -f validation/OF_vs_CHEMKINII.eps
+rm -f validation/chemkinII
+
+#------------------------------------------------------------------------------

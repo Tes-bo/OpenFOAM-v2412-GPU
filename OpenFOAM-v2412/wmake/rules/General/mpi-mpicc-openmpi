@@ -1,0 +1,8 @@
+#------------------------------------------------------------------------------
+# Use openmpi mpicc to obtain settings - mpicc must be available
+
+PFLAGS  = -DMPICH_SKIP_MPICXX -DOMPI_SKIP_MPICXX
+PINC    = $(shell mpicc --showme:compile)
+PLIBS   = $(shell mpicc --showme:link)
+
+#------------------------------------------------------------------------------

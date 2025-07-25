@@ -1,0 +1,32 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+refineMeshByCellSet()
+{
+   while [ $# -ge 1 ]
+   do
+      if [ ! -e log.refineMesh.$1 ]
+      then
+          echo "Creating cell set for primary zone - $1"
+          cp system/topoSetDict.$1 system/topoSetDict
+          topoSet > log.topoSet.$1 2>&1
+
+          echo "Refining primary zone - $1"
+          refineMesh -dict system/refineMeshDict -overwrite \
+              > log.refineMesh.$1 2>&1
+      fi
+      shift
+   done
+}
+
+restore0Dir
+
+runApplication blockMesh
+
+refineMeshByCellSet 1 2 3
+
+runApplication $(getApplication)
+
+#------------------------------------------------------------------------------

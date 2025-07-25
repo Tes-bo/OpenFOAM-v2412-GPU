@@ -1,0 +1,149 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      noiseDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+noiseModel      surfaceNoise;
+
+surfaceNoiseCoeffs
+{
+    windowModel     Hanning;
+
+    HanningCoeffs
+    {
+        // Window overlap percentage
+        overlapPercent  50;
+        symmetric       yes;
+        extended        yes;
+
+        // Optional number of windows, default = all available
+        // nWindow         1;
+    }
+
+/*
+    windowModel     uniform;
+
+    uniformCoeffs
+    {
+        // Window overlap percentage
+        overlapPercent  50;
+
+        value           1;
+
+        // Optional number of windows, default = all available
+        // nWindow         1;
+    }
+*/
+
+
+    // Input file(s)
+    file   "postProcessing/faceSource1/surface/patch1/patch1.case";
+    // Multiple inputs
+    //files   ( "postProcessing/faceSource1/surface/patch1/patch1.case"
+    //          "postProcessing/faceSource2/surface/patch2/patch2.case" );
+
+    // Surface reader
+    reader      ensight;
+
+    // Surface writer
+    writer      ensight;
+
+    // Collate times for ensight output - ensures geometry is only written once
+    writeOptions
+    {
+        ensight
+        {
+            collateTimes true;
+        }
+    }
+
+    // Reference density (to convert from kinematic to static pressure)
+    rhoRef          1.205;
+
+    // Number of samples in sampling window, default = 2^16 (=65536)
+    N               4096; // 8192; // 4096;
+
+    // Lower frequency limit, default = 25Hz
+    //fl              25;
+
+    // Upper frequency limit, default = 10kHz
+    fu              15000;
+
+    // Start time, default = 0s
+    //startTime       0;
+
+    // Write interval for FFT data, default = 1
+    //fftWriteInterval 100;
+
+    // Bounds for valid pressure from input source
+        // Maximum pressure, default 0.5*VGREAT
+        //maxPressure 150e5;
+
+        // Minimum pressure, default -0.5*VGREAT
+        //minPressure -150e5;
+}
+
+pointNoiseCoeffs
+{
+    file            "pressureData";
+    //files           ( "pressureData" "pressureData2");
+    nHeaderLine     1;
+    refColumn       0;
+    componentColumns (1);
+    separator       " ";
+    mergeSeparators yes;
+
+    HanningCoeffs
+    {
+        // Window overlap percentage
+        overlapPercent  50;
+        symmetric       yes;
+        extended        yes;
+
+        // Optional number of windows, default = all available
+        //nWindow         5;
+    }
+
+    // Graph format, default = raw
+    graphFormat     raw;
+
+    // Reference density (to convert from kinematic to static pressure)
+    rhoRef          1.2;
+
+    // Number of samples in sampling window, default = 2^16 (=65536)
+    N               4096;
+
+    // Lower frequency limit, default = 25Hz
+    //fl              25;
+
+    // Upper frequency limit, default = 10kHz
+    //fu              10000;
+
+    // Start time, default = 0s
+    //startTime       0;
+
+    // Write interval for FFT data, default = 1
+    fftWriteInterval 100;
+
+    // Bounds for valid pressure from input source
+        // Maximum pressure, default 0.5*VGREAT
+        //maxPressure 150e5;
+
+        // Minimum pressure, default -0.5*VGREAT
+        //minPressure -150e5;
+}
+
+
+// ************************************************************************* //

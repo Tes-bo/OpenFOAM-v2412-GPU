@@ -1,0 +1,142 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+residualGraph1
+{
+    // Mandatory entries
+    type            graphFunctionObject;
+    libs            (utilityFunctionObjects);
+
+    functions
+    {
+        Ux
+        {
+            // Mandatory entries
+            object      solverInfo1;
+            entry       Ux_initial;
+
+            // Optional entries
+            // title       <string>;
+            // colour      <labelVector>;
+            // dashes      <labelList>;
+        }
+        Uy
+        {
+            object      solverInfo1;
+            entry       Uy_initial;
+        }
+        Uz
+        {
+            object      solverInfo1;
+            entry       Uz_initial;
+        }
+        p
+        {
+            object      solverInfo1;
+            entry       p_initial;
+        }
+    }
+
+    // Optional entries
+    logScaleX       no;
+    logScaleY       yes;
+    xlabel          "Iteration";
+    ylabel          "log10(Initial residual)";
+    // xMin            <scalar>;
+    // xMax            <scalar>;
+    // yMin            <scalar>;
+    // yMax            <scalar>;
+    // width           <label>;
+    // height          <label>;
+    // strokeWidth     <label>;
+    // drawGrid        <bool>;
+
+    // Inherited entries
+    writePrecision   6;
+    writeToFile      true;
+    useUserTime      true;
+
+    region          region0;
+    enabled         true;
+    log             true;
+    timeStart       0;
+    timeEnd         1000;
+    executeControl  timeStep;
+    executeInterval 1;
+    writeControl    writeTime;
+    writeInterval   -1;
+}
+
+
+forceCoeffsGraph1
+{
+    type            graphFunctionObject;
+    libs            (utilityFunctionObjects);
+    writeControl    writeTime;
+
+    logScaleX       no;
+    logScaleY       no;
+
+    xlabel          "Iteration";
+    ylabel          "Coefficient";
+
+    yMin            -1;
+    yMax            1;
+
+    functions
+    {
+        Cd
+        {
+            object      forceCoeffs1;
+            entry       Cd;
+        }
+        // CdMean
+        // {
+        //     object      valueAverage1;
+        //     entry       CdMean;
+        // }
+        Cd(f)
+        {
+            object      forceCoeffs1;
+            entry       Cd(f);
+        }
+        Cd(r)
+        {
+            object      forceCoeffs1;
+            entry       Cd(r);
+        }
+        Cl
+        {
+            object      forceCoeffs1;
+            entry       Cl;
+            //colour      (0, 0, 0);
+        }
+        // ClMean
+        // {
+        //     object      valueAverage1;
+        //     entry       ClMean;
+        // }
+        Cl(f)
+        {
+            object      forceCoeffs1;
+            entry       Cl(f);
+            //colour      (0, 0, 0);
+            title       Cl(f);
+        }
+        Cl(r)
+        {
+            object      forceCoeffs1;
+            entry       Cl(r);
+            //colour      (0, 0, 0);
+            title       Cl(r);
+        }
+    }
+}
+
+
+// ************************************************************************* //

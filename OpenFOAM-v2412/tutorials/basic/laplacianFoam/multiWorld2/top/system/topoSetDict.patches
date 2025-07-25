@@ -1,0 +1,71 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      topoSetDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+_newFromPatch
+{
+    type    faceSet;
+    action  new;
+    source  patchToFace;
+    patch   interface;
+}
+
+_subsetBox
+{
+    type    faceSet;
+    action  subset;
+    source  boxToFace;
+    min     (0  0 -1);
+    span    (0.05 2 2);
+}
+
+
+actions
+(
+    // slab 1 (offset 0)
+    { name top_to_1; $_newFromPatch }
+    {
+        name top_to_1;
+        $_subsetBox;
+        min (0 0 -1);
+    }
+
+    // slab 2 (offset 1)
+    { name top_to_2; $_newFromPatch }
+    {
+        name top_to_2;
+        $_subsetBox;
+        min (0.05 0 -1);
+    }
+
+    // slab 3 (offset 2)
+    { name top_to_3; $_newFromPatch }
+    {
+        name top_to_3;
+        $_subsetBox;
+        min (0.10 0 -1);
+    }
+
+    // slab 4 (offset 3)
+    { name top_to_4; $_newFromPatch }
+    {
+        name top_to_4;
+        $_subsetBox;
+        min (0.15 0 -1);
+    }
+);
+
+
+// ************************************************************************* //

@@ -1,0 +1,39 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      mergeOrSplitBafflesDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// Detect baffles (boundary faces sharing points) on selected set of patches
+// and write to a faceSet.
+detect
+{
+    patches (".*Wall");
+}
+
+// Detect baffles (on selected patches) and merge these into internal faces.
+merge
+{
+    patches ("mergePatch");
+}
+
+// Detect baffles (on selected patches) and duplicate the points. This is
+// used if e.g. the two sides need to move separately. Note that since the
+// points are duplicated the two faces are no longer baffles.
+split
+{
+    patches ("split.*Patches");
+}
+
+
+// ************************************************************************* //

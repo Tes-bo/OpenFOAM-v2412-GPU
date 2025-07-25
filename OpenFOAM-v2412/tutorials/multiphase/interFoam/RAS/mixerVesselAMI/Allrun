@@ -1,0 +1,20 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+./Allrun.pre
+
+# Copy fields after meshing to avoid the generation of unnecessary patch fields
+restore0Dir
+
+# Initialize alpha
+runApplication setFields
+
+runApplication decomposePar -force
+
+runParallel $(getApplication)
+
+runApplication reconstructPar -noFunctionObjects
+
+#------------------------------------------------------------------------------

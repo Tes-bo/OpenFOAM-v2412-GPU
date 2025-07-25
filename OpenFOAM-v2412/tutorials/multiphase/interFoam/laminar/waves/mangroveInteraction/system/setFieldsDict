@@ -1,0 +1,54 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      setFieldsDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+defaultFieldValues
+(
+    volScalarFieldValue alpha.water 0
+    volScalarFieldValue MangrovesIndex 0
+    volVectorFieldValue U (0 0 0)
+);
+
+regions
+(
+    boxToCell
+    {
+        box (-10 -10 -10) (100 100 0.15);
+        fieldValues
+        (
+            volScalarFieldValue alpha.water 1
+        );
+    }
+
+    surfaceToCell
+    {
+        file            "$FOAM_TUTORIALS/resources/geometry/seaweed.stl.gz";
+        outsidePoints   ((2 0.25 0.15));
+        includeCut      true;
+        includeInside   true;
+        includeOutside  false;
+        nearDistance    -1;
+
+        curvature       -100;
+
+        fieldValues
+        (
+            volScalarFieldValue MangrovesIndex 1
+        );
+    }
+);
+
+
+// ************************************************************************* //

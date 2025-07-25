@@ -1,0 +1,21 @@
+NAME
+  ParaView::pqWidgets
+SPDX_LICENSE_IDENTIFIER
+  BSD-3-Clause
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Kitware Inc.
+CONDITION
+  PARAVIEW_USE_QT
+GROUPS
+  PARAVIEW_CANONICAL
+DEPENDS
+  ParaView::qttesting
+  ParaView::Versioning
+  VTK::GUISupportQt
+PRIVATE_DEPENDS
+  VTK::IOCore
+  ParaView::RemotingServerManager
+  ParaView::VTKExtensionsCore
+TEST_LABELS
+  ParaView
+EXCLUDE_WRAP

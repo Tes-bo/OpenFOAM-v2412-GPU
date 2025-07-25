@@ -1,0 +1,14 @@
+include $(GENERAL_RULES)/mpi-rules
+
+EXE_INC = \
+    -I$(ZOLTAN_INC_DIR) \
+    $(PFLAGS) $(PINC) \
+    $(c++LESSWARN) \
+    -I$(LIB_SRC)/renumber/renumberMethods/lnInclude \
+    -I$(LIB_SRC)/meshTools/lnInclude
+
+LIB_LIBS = \
+    -lmeshTools \
+    -lrenumberMethods \
+    $(PLIBS) \
+    -L$(ZOLTAN_LIB_DIR) -lzoltan
