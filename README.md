@@ -1,3 +1,6 @@
+[![OpenFOAM](https://img.shields.io/badge/OpenFOAM-v2412-blue.svg)](https://www.openfoam.com/)
+[![License](https://img.shields.io/badge/License-GPL--3.0-red.svg)](LICENSE)
+
 # OpenFOAM-v2412 GPU Acceleration 🚀🖥️
 
 **Fully GPU-accelerated OpenFOAM based on OpenFOAM-v2412**
@@ -29,7 +32,7 @@ The project is under active development and maintenance to continuously improve 
 1. Clone this repository:
 
 ```shell
-git clone https://github.com/yourusername/OpenFOAM-v2412-GPU.git
+git clone https://github.com/Tes-bo/OpenFOAM-v2412-GPU.git
 cd OpenFOAM-v2412-GPU
 ```
 
@@ -53,8 +56,10 @@ Contributions and feedback are welcome! Feel free to open issues or submit pull 
 ## **Contact**
 
 Developed and maintained by **Tesbo**
-Email: cotsqa@qq.com
-GitHub: https://github.com/Tes-bo
+
+📮Email: cotsqa@qq.com
+
+👨‍💻GitHub: https://github.com/Tes-bo
 
 
 ------
