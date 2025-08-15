@@ -1,0 +1,53 @@
+#/*--------------------------------------------------------------------------*\
+#  ████████╗███████╗███████╗██████╗  ██████╗        ██████╗███████╗██████╗ 
+#  ╚══██╔══╝██╔════╝██╔════╝██╔══██╗██╔═══██╗      ██╔════╝██╔════╝██╔══██╗
+#     ██║   █████╗  ███████╗██████╔╝██║   ██║█████╗██║     █████╗  ██║  ██║
+#     ██║   ██╔══╝  ╚════██║██╔══██╗██║   ██║╚════╝██║     ██╔══╝  ██║  ██║
+#     ██║   ███████╗███████║██████╔╝╚██████╔╝      ╚██████╗██║     ██████╔╝
+#     ╚═╝   ╚══════╝╚══════╝╚═════╝  ╚═════╝        ╚═════╝╚═╝     ╚═════╝ 
+#    Tesbo-CFD | Open Source CFD & HPC
+#    Author: Tesbo (aka seeeeeeeeeeer) | GitHub: https://github.com/Tes-bo
+#    Email:  cotsqa@qq.com
+#------------------------------------------------------------------------------
+#License
+#    This file is part of the Tesbo-CFD/Software projects.
+#
+#    This software is free: you can redistribute it and/or modify it
+#    under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License,
+#    or (at your option) any later version.
+#
+#    This software is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#    See the GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this software.
+#    If not, see <http://www.gnu.org/licenses/>.
+#
+#File
+#    etc/config.sh/compiler-Nvcc
+#
+#Description
+#    Configuration for NVIDIA NVCC compiler
+#    Target GPU architecture
+#
+#\*--------------------------------------------------------------------------*/
+
+# NVIDIA NVCC compiler configuration
+case "$WM_COMPILER" in
+Nvcc*)
+    # Set GPU architecture (can be overridden by environment variable)
+    export WM_GPU_ARCH="${WM_GPU_ARCH:-sm_86}"
+    
+    # Optional: Set CUDA-specific paths if needed
+    # export CUDA_HOME="${CUDA_HOME:-/usr/local/cuda}"
+    # export CUDA_PATH="${CUDA_PATH:-$CUDA_HOME}"
+    
+    # Ensure nvcc is in PATH
+    # _foamAddPath "$CUDA_HOME/bin"
+    ;;
+esac
+
+#------------------------------------------------------------------------------

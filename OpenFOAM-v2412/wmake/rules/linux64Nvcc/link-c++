@@ -1,0 +1,20 @@
+#------------------------------------------------------------------------------
+# NVCC-specific link rules that filter problematic flags
+#------------------------------------------------------------------------------
+
+# Custom link functions that wrap nvcc properly for linking
+define NVCC_LINK_TEMPLATE
+$(strip $(patsubst -pthread,-Xcompiler -pthread,$1))
+endef
+
+# Override the standard linking rules for shared libraries
+$(LIB)$(EXT_SO): $(OBJECTS)
+	@$(WM_SCRIPTS)/makeTargetDir $(LIB)
+	$(call QUIET_MESSAGE,link,$(LIB)$(EXT_SO))
+	$E $(CC) $(call FILTER_NVCC_FLAGS,$(c++FLAGS)) -shared -cudart shared \
+	    -Xlinker --add-needed -Xlinker --no-as-needed \
+	    $(call NVCC_LINK_TEMPLATE,$(FOAM_EXTRA_LDFLAGS)) \
+	    $(OBJECTS) -L$(LIB_PLATFORMS) -L$(LIB_PLATFORMS)/$(FOAM_MPI) \
+	    $(call NVCC_LINK_TEMPLATE,$(LIB_LIBS) $(GLIB_LIBS)) -o $(LIB)$(EXT_SO)
+
+#------------------------------------------------------------------------------

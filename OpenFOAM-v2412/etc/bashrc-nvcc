@@ -1,0 +1,111 @@
+#/*--------------------------------------------------------------------------*\
+#  ████████╗███████╗███████╗██████╗  ██████╗        ██████╗███████╗██████╗ 
+#  ╚══██╔══╝██╔════╝██╔════╝██╔══██╗██╔═══██╗      ██╔════╝██╔════╝██╔══██╗
+#     ██║   █████╗  ███████╗██████╔╝██║   ██║█████╗██║     █████╗  ██║  ██║
+#     ██║   ██╔══╝  ╚════██║██╔══██╗██║   ██║╚════╝██║     ██╔══╝  ██║  ██║
+#     ██║   ███████╗███████║██████╔╝╚██████╔╝      ╚██████╗██║     ██████╔╝
+#     ╚═╝   ╚══════╝╚══════╝╚═════╝  ╚═════╝        ╚═════╝╚═╝     ╚═════╝ 
+#    Tesbo-CFD | Open Source CFD & HPC
+#    Author: Tesbo (aka seeeeeeeeeeer) | GitHub: https://github.com/Tes-bo
+#    Email:  cotsqa@qq.com
+#------------------------------------------------------------------------------
+#License
+#    This file is part of the Tesbo-CFD/Software projects.
+#
+#    This software is free: you can redistribute it and/or modify it
+#    under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License,
+#    or (at your option) any later version.
+#
+#    This software is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#    See the GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this software.
+#    If not, see <http://www.gnu.org/licenses/>.
+#
+#File
+#    etc/bashrc-nvcc
+#
+#Description
+#    Example OpenFOAM environment setup for NVCC compilation
+#    Source this file to configure OpenFOAM with NVCC compiler
+#
+#Usage:
+#    source /path/to/OpenFOAM-v2412/etc/bashrc-nvcc
+#
+#\*--------------------------------------------------------------------------*/
+
+# Source the main OpenFOAM environment first
+# Determine project directory using the same method as standard bashrc
+_nvccProjectDir="${BASH_SOURCE:-${ZSH_NAME:+$0}}"
+[ -n "$_nvccProjectDir" ] && _nvccProjectDir="$(\cd $(dirname $_nvccProjectDir)/.. && \pwd -L)"
+
+# Store any existing FOAM_INST_DIR to restore later (for compatibility with other projects)
+_saved_foam_inst_dir="$FOAM_INST_DIR"
+
+# Set FOAM_INST_DIR for this OpenFOAM installation
+export FOAM_INST_DIR="$_nvccProjectDir"
+
+# Source the main bashrc
+source "$FOAM_INST_DIR/etc/bashrc"
+
+# Restore the original FOAM_INST_DIR if it existed (don't export our value globally)
+# This allows other OpenFOAM projects to work correctly
+if [ -n "$_saved_foam_inst_dir" ]; then
+    export FOAM_INST_DIR="$_saved_foam_inst_dir"
+else
+    unset FOAM_INST_DIR
+fi
+
+# Clean up temporary variables
+unset _nvccProjectDir _saved_foam_inst_dir
+
+# Override compiler settings for NVCC
+export WM_COMPILER=Nvcc
+export WM_COMPILER_TYPE=system
+
+# Set target GPU architecture (adjust as needed for your GPU)
+# Common values: sm_60, sm_70, sm_75, sm_80, sm_86, sm_89, sm_90
+export WM_GPU_ARCH=sm_86
+
+# Use GCC for ThirdParty libraries, NVCC for OpenFOAM core
+export WM_THIRDPARTY_USE_GCC=true
+
+# Rebuild WM_OPTIONS with new compiler
+export WM_OPTIONS="$WM_ARCH$WM_COMPILER$WM_PRECISION_OPTION$WM_LABEL_OPTION$WM_COMPILE_OPTION"
+
+# Update paths with new options
+export FOAM_APPBIN="$WM_PROJECT_DIR/platforms/$WM_OPTIONS/bin"
+export FOAM_LIBBIN="$WM_PROJECT_DIR/platforms/$WM_OPTIONS/lib"
+
+# Remove old paths and add new ones
+export PATH=$(echo "$PATH" | sed "s|$WM_PROJECT_DIR/platforms/[^/]*/bin||g")
+export LD_LIBRARY_PATH=$(echo "$LD_LIBRARY_PATH" | sed "s|$WM_PROJECT_DIR/platforms/[^/]*/lib||g")
+
+# Add new paths
+export PATH="$FOAM_APPBIN:$PATH"
+export LD_LIBRARY_PATH="$FOAM_LIBBIN:$LD_LIBRARY_PATH"
+
+# Add MPI library paths for NVCC (critical for Pstream library)
+# Always add dummy path (for basic Pstream functionality)
+if [ -d "$FOAM_LIBBIN/dummy" ]; then
+    export LD_LIBRARY_PATH="$FOAM_LIBBIN/dummy:$LD_LIBRARY_PATH"
+    echo "Added dummy MPI library path: $FOAM_LIBBIN/dummy"
+fi
+
+# Add specific MPI library path if available
+if [ -n "$FOAM_MPI" ] && [ -d "$FOAM_LIBBIN/$FOAM_MPI" ]; then
+    export LD_LIBRARY_PATH="$FOAM_LIBBIN/$FOAM_MPI:$LD_LIBRARY_PATH"
+    echo "Added MPI library path: $FOAM_LIBBIN/$FOAM_MPI"
+fi
+
+# Enable parallel compilation
+# Set number of compilation processes - can be overridden by user
+# export WM_NCOMPPROCS=8  # uncomment and adjust for your system
+echo "NVCC parallel compilation: Set WM_NCOMPPROCS to enable parallel build"
+echo "Example: export WM_NCOMPPROCS=8 && ./Allwmake"
+
+#------------------------------------------------------------------------------

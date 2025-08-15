@@ -1,0 +1,72 @@
+#!/bin/bash
+#------------------------------------------------------------------------------
+# NVCC wrapper script that filters problematic flags
+#------------------------------------------------------------------------------
+
+# Path to real nvcc
+REAL_NVCC="/usr/local/cuda-12.4/bin/nvcc"
+
+# Filter out problematic flags and wrap others with -Xcompiler or -Xlinker
+FILTERED_ARGS=()
+i=0
+args=("$@")
+force_cpp=false
+
+# Check if we're dealing with a flex-generated file (.L.C)
+for arg in "$@"; do
+    if [[ "$arg" == *.L.C ]]; then
+        force_cpp=true
+        break
+    fi
+done
+
+while [[ $i -lt ${#args[@]} ]]; do
+    arg="${args[$i]}"
+    
+    case "$arg" in
+        -Xcompiler)
+            # Pass through -Xcompiler and its following argument as-is
+            FILTERED_ARGS+=("$arg")
+            ((i++))
+            if [[ $i -lt ${#args[@]} ]]; then
+                FILTERED_ARGS+=("${args[$i]}")
+            fi
+            ;;
+        -pthread)
+            # Replace bare -pthread with -Xcompiler -pthread
+            FILTERED_ARGS+=("-Xcompiler" "-pthread")
+            ;;
+        -fPIC)
+            # Replace bare -fPIC with -Xcompiler -fPIC
+            FILTERED_ARGS+=("-Xcompiler" "-fPIC")
+            ;;
+        -Wno-old-style-cast)
+            # Skip this GCC-specific warning flag that NVCC doesn't support
+            ;;
+        -Wl,*)
+            # Linker options need to be passed through -Xlinker
+            # Split -Wl,option1,option2 into separate -Xlinker args
+            IFS=',' read -ra LINKER_OPTS <<< "${arg#-Wl,}"
+            for opt in "${LINKER_OPTS[@]}"; do
+                FILTERED_ARGS+=("-Xlinker" "$opt")
+            done
+            ;;
+        -rpath)
+            # Handle -rpath as linker option
+            FILTERED_ARGS+=("-Xlinker" "-rpath")
+            ;;
+        *)
+            # Keep other arguments as-is
+            FILTERED_ARGS+=("$arg")
+            ;;
+    esac
+    ((i++))
+done
+
+# Execute real nvcc with filtered arguments
+if [[ "$force_cpp" == "true" ]]; then
+    # Add -x c++ for flex-generated files
+    exec "$REAL_NVCC" -x c++ "${FILTERED_ARGS[@]}"
+else
+    exec "$REAL_NVCC" "${FILTERED_ARGS[@]}"
+fi

@@ -30,7 +30,41 @@ wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
 }
 . "${WM_THIRD_PARTY_DIR:?}"/etc/tools/ThirdPartyFunctions
 #------------------------------------------------------------------------------
-exportCompiler true     # Compiler info + flags for CMake/configure
+# Force GCC for ThirdParty when WM_THIRDPARTY_USE_GCC is set
+if [ "$WM_THIRDPARTY_USE_GCC" = "true" ]
+then
+    echo "Using GCC for ThirdParty libraries (WM_THIRDPARTY_USE_GCC=true)"
+    useGcc
+    # Clean environment from NVCC-specific variables
+    unset WM_GPU_ARCH
+    unset cuFLAGS
+    # Clean CMAKE variables that might contain NVCC flags
+    unset CMAKE_C_FLAGS
+    unset CMAKE_CXX_FLAGS
+    # Force direct GCC usage, bypass wmake compiler detection
+    export CC="gcc"
+    export CXX="g++"
+    # Clean CFLAGS and CXXFLAGS from NVCC-specific options
+    export CFLAGS="-m64 -fPIC -O3"
+    export CXXFLAGS="-m64 -fPIC -O3 -std=c++14"
+    # Set clean CMAKE flags and force CMAKE to use GCC
+    export CMAKE_C_COMPILER="gcc"
+    export CMAKE_CXX_COMPILER="g++"
+    export CMAKE_C_FLAGS="-m64 -fPIC -O3"
+    export CMAKE_CXX_FLAGS="-m64 -fPIC -O3 -std=c++14"
+    # Force CMake to use absolute paths to bypass wmake compiler detection
+    export CMAKE_C_COMPILER="/usr/bin/gcc"
+    export CMAKE_CXX_COMPILER="/usr/bin/g++"
+    # Also update build directories to use GCC paths
+    buildBASE="$WM_THIRD_PARTY_DIR/build/${WM_ARCH}Gcc"
+    installBASE="$WM_THIRD_PARTY_DIR/platforms/${WM_ARCH}Gcc"
+    echo "ThirdParty environment: CC=$CC, CXX=$CXX"
+    echo "ThirdParty CFLAGS: $CFLAGS"
+    echo "ThirdParty CXXFLAGS: $CXXFLAGS"
+else
+    exportCompiler true     # Normal export for non-NVCC builds
+fi
+
 exportLinker            # Linker flags for CMake/configure
 useGccFlag $@           # Scan arguments for a '-gcc' option
 

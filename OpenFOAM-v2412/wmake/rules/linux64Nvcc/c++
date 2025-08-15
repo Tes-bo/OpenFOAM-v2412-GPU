@@ -1,0 +1,74 @@
+#------------------------------------------------------------------------------
+# Include standard patterns but override with NVCC-specific settings
+#------------------------------------------------------------------------------
+
+SUFFIXES   += .cu .C .cc .cpp .cxx .L.C
+
+CC         := $(WM_DIR)/rules/linux64Nvcc/nvcc-wrapper -Xptxas -dlcm=cg -std=c++14 -m64 -arch=$(WM_GPU_ARCH)
+
+c++ARCH    := -Xcompiler -m64 -Xcompiler -pthread
+c++DBUG    :=
+c++OPT     := -O3
+
+# NVCC-specific warnings and suppressions
+c++WARN     = -Xcompiler -Wall -Xcompiler -Wextra \
+              -Xcompiler -Wno-unused-parameter \
+              -Xcompiler -Wno-vla \
+              -Xcudafe "--diag_suppress=null_reference" \
+              -Xcudafe "--diag_suppress=subscript_out_of_range" \
+              -Xcudafe "--diag_suppress=extra_semicolon" \
+              -Xcudafe "--diag_suppress=partial_override" \
+              -Xcudafe "--diag_suppress=implicit_return_from_non_void_function" \
+              -Xcudafe "--diag_suppress=virtual_function_decl_hidden"
+
+ptFLAGS    := -DNoRepository
+
+# Include compile options
+ifneq (,$(strip $(WM_COMPILE_OPTION)))
+    sinclude $(DEFAULT_RULES)/c++$(WM_COMPILE_OPTION)
+endif
+
+cuFLAGS     = -x cu -D__HOST____DEVICE__='__host__ __device__' \
+              -DCUB_IGNORE_DEPRECATED_CPP_DIALECT \
+              -DTHRUST_IGNORE_DEPRECATED_CPP_DIALECT
+
+ptFLAGS     = -DNoRepository
+
+# Process header dirs to add -Xcompiler prefix for gcc-specific options
+NVCC_HEADER_DIRS = $(patsubst -iquote%,-Xcompiler -iquote%,$(patsubst -I%,-I%,$(LIB_HEADER_DIRS)))
+
+# Process all compiler flags to wrap gcc-specific options with -Xcompiler
+# This is more comprehensive - handles all standard gcc flags
+PROCESS_FLAGS = $(strip $(patsubst -pthread,-Xcompiler -pthread,\
+                $(patsubst -fPIC,-Xcompiler -fPIC,\
+                $(patsubst -fopenmp,-Xcompiler -fopenmp,\
+                $1))))
+
+c++FLAGS    = $(c++ARCH) $(GFLAGS) $(c++WARN) $(c++OPT) $(c++DBUG) $(ptFLAGS) \
+              $(call PROCESS_FLAGS,$(FOAM_EXTRA_CXXFLAGS)) $(NVCC_HEADER_DIRS) -fPIC
+
+# Filter function to remove problematic flags and wrap them properly
+# Note: Don't filter -fPIC here since our wrapper will handle it
+FILTER_NVCC_FLAGS = $(filter-out -pthread,$1)
+
+# Standard C++ compilation without CUDA flags  
+Ctoo        = $(WM_SCHEDULER) $(CC) -x c++ $(call FILTER_NVCC_FLAGS,$(c++FLAGS)) -c $< -o $@
+cxxtoo      = $(Ctoo)
+cctoo       = $(Ctoo)
+cpptoo      = $(Ctoo)
+# Only .cu files get CUDA flags
+cutoo       = $(WM_SCHEDULER) $(CC) $(call FILTER_NVCC_FLAGS,$(c++FLAGS)) $(cuFLAGS) -c $< -o $@
+
+LINK_LIBS   = $(c++DBUG)
+
+LINKLIBSO   = $(CC) $(call FILTER_NVCC_FLAGS,$(c++FLAGS)) -shared -cudart shared \
+              -Xlinker --add-needed -Xlinker --no-as-needed
+LINKEXE     = $(CC) $(call FILTER_NVCC_FLAGS,$(c++FLAGS)) -cudart shared \
+              -Xlinker --add-needed -Xlinker --no-as-needed
+
+# Link dummy stub to resolve libPstream symbols used by libOpenFOAM (NVCC version)
+ifneq (,$(findstring -lOpenFOAM,$(PROJECT_LIBS)))
+    LINKEXE += -L$(FOAM_LIBBIN)/dummy -lPstream
+endif
+
+#include $(WM_DIR)/rules/linux64Nvcc/link-c++

@@ -42,6 +42,15 @@ Icx*)
     export I_MPI_CC=icx
     export I_MPI_CXX=icpx
     ;;
+Nvcc*)
+    # NVCC uses host compiler for non-CUDA code
+    case "$WM_MPLIB" in
+    INTELMPI*)
+        export I_MPI_CC=gcc
+        export I_MPI_CXX=g++
+        ;;
+    esac
+    ;;
 Gcc*)
     case "$WM_MPLIB" in
     INTELMPI*)

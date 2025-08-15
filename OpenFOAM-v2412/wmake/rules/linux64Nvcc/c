@@ -1,0 +1,25 @@
+.SUFFIXES: .c .h
+
+cWARN        = -Xcompiler -Wall
+
+cc          = $(WM_DIR)/rules/linux64Nvcc/nvcc-wrapper -m64 -arch=$(WM_GPU_ARCH)
+
+# NVCC architecture flags for C compilation
+cARCH       = -Xcompiler -m64 -Xcompiler -pthread
+
+ifneq (,$(strip $(WM_COMPILE_OPTION)))
+    sinclude $(DEFAULT_RULES)/c$(WM_COMPILE_OPTION)
+endif
+
+# Process header dirs to add -Xcompiler prefix for gcc-specific options
+NVCC_HEADER_DIRS = $(patsubst -iquote%,-Xcompiler -iquote%,$(patsubst -I%,-I%,$(LIB_HEADER_DIRS)))
+
+cFLAGS      = $(cARCH) $(GFLAGS) $(cWARN) $(cOPT) $(cDBUG) \
+              $(NVCC_HEADER_DIRS) -Xcompiler -fPIC
+
+ctoo        = $(WM_SCHEDULER) $(cc) $(cFLAGS) -c $< -o $@
+
+LINK_LIBS   = $(cDBUG)
+
+LINKLIBSO   = $(cc) -Xcompiler -shared
+LINKEXE     = $(cc) -Xlinker --add-needed -Xlinker -z -Xlinker nodefs
