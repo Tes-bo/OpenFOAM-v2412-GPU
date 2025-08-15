@@ -30,6 +30,7 @@ wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
 }
 . "${WM_THIRD_PARTY_DIR:?}"/etc/tools/ThirdPartyFunctions
 #------------------------------------------------------------------------------
+# Added by tesbo, 15/Aug/2025
 # Force GCC for ThirdParty when WM_THIRDPARTY_USE_GCC is set
 if [ "$WM_THIRDPARTY_USE_GCC" = "true" ]
 then
