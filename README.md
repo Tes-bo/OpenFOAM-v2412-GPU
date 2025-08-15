@@ -2,6 +2,8 @@
 [![License](https://img.shields.io/badge/License-GPL--3.0-red.svg)](LICENSE)
 
 # OpenFOAM-v2412 GPU Acceleration 🚀🖥️
+**🦖NOTE🦕**
+> The GPU acceleration feature is still under development and will likely take another six months to become fully functional.
 
 **Fully GPU-accelerated OpenFOAM based on OpenFOAM-v2412**
 
