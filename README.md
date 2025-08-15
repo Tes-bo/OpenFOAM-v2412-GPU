@@ -48,14 +48,14 @@ The project is under active development and maintenance to continuously improve 
 
 ```shell
 git clone https://github.com/Tes-bo/OpenFOAM-v2412-GPU.git
-cd OpenFOAM-v2412-GPU
+cd OpenFOAM-v2412-GPU/OpenFOAM-v2412
 ```
 
 2. Follow the build instructions in the docs/ folder (or specify your build steps here).
 3. Source the environment setup script:
 
 ```shell
-source etc/bashrc
+source etc/bashrc-nvcc
 ```
 
 4. Start running GPU-accelerated simulations!
