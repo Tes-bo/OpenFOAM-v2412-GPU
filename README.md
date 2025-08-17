@@ -1,11 +1,11 @@
 [![OpenFOAM](https://img.shields.io/badge/OpenFOAM-v2412-blue.svg)](https://www.openfoam.com/)
 [![License](https://img.shields.io/badge/License-GPL--3.0-red.svg)](LICENSE)
 
-# OpenFOAM-v2412 GPU Acceleration 🚀🖥️
-**🦖NOTE🦕**
-> The GPU acceleration feature is still under development and will likely take another six months to become fully functional.
+# Tesbo-CFD : Fully GPU-Accelerated CFD Solver 🚀
+> Developed based on OpenFOAM-v2412
 
-**Fully GPU-accelerated OpenFOAM based on OpenFOAM-v2412**
+**🦖NOTE🦕**
+> This project is still under development and will likely take another six months to become fully functional.
 
 ```C++
 /*---------------------------------------------------------------------------*\
@@ -24,7 +24,7 @@
 ---
 ## Overview
 
-This project is a **fully GPU-powered** version of OpenFOAM (v2412), designed to accelerate computational fluid dynamics (CFD) simulations using modern GPU architectures. Leveraging CUDA and advanced GPU computing techniques, this implementation aims to deliver significant speedups compared to traditional CPU-based OpenFOAM.
+This project is a **fully GPU-powered** CFD solver that is developed based on OpenFOAM (v2412), designed to accelerate computational fluid dynamics (CFD) simulations using modern GPU architectures. Leveraging CUDA and advanced GPU computing techniques, this implementation aims to deliver significant speedups compared to traditional CPU-based OpenFOAM.
 
 The project is under active development and maintenance to continuously improve performance, stability, and usability.
 
