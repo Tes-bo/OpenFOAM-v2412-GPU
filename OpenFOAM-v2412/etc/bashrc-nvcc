@@ -9,6 +9,10 @@
 #    Author: Tesbo (aka seeeeeeeeeeer) | GitHub: https://github.com/Tes-bo
 #    Email:  cotsqa@qq.com
 #------------------------------------------------------------------------------
+#   Copyright (C) 2024-2025 Tesbo-CFD
+#   Copyright (C) 2011-2016 OpenFOAM Foundation
+#   Copyright (C) 2017-2023 OpenCFD Ltd.
+#------------------------------------------------------------------------------
 #License
 #    This file is part of the Tesbo-CFD/Software projects.
 #
@@ -37,7 +41,7 @@
 #    source /path/to/OpenFOAM-v2412/etc/bashrc-nvcc
 #
 #\*--------------------------------------------------------------------------*/
-
+#
 # Source the main OpenFOAM environment first
 # Determine project directory using the same method as standard bashrc
 _nvccProjectDir="${BASH_SOURCE:-${ZSH_NAME:+$0}}"
@@ -93,13 +97,13 @@ export LD_LIBRARY_PATH="$FOAM_LIBBIN:$LD_LIBRARY_PATH"
 # Always add dummy path (for basic Pstream functionality)
 if [ -d "$FOAM_LIBBIN/dummy" ]; then
     export LD_LIBRARY_PATH="$FOAM_LIBBIN/dummy:$LD_LIBRARY_PATH"
-    echo "Added dummy MPI library path: $FOAM_LIBBIN/dummy"
+    #echo "Added dummy MPI library path: $FOAM_LIBBIN/dummy"
 fi
 
 # Add specific MPI library path if available
 if [ -n "$FOAM_MPI" ] && [ -d "$FOAM_LIBBIN/$FOAM_MPI" ]; then
     export LD_LIBRARY_PATH="$FOAM_LIBBIN/$FOAM_MPI:$LD_LIBRARY_PATH"
-    echo "Added MPI library path: $FOAM_LIBBIN/$FOAM_MPI"
+    #echo "Added MPI library path: $FOAM_LIBBIN/$FOAM_MPI"
 fi
 
 # Enable parallel compilation
