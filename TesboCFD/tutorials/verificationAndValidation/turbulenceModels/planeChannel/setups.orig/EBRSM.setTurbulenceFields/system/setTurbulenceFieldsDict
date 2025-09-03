@@ -1,0 +1,41 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      setTurbulenceFieldsDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// Mandatory entries
+uRef            17.55;
+
+
+// Optional entries
+initialiseU     true;
+initialiseEpsilon true;
+initialiseK     true;
+initialiseOmega true;
+initialiseR     true;
+writeF          true;
+
+kappa           0.41;
+Cmu             0.09;
+dPlusRef        15.0;
+
+f               f;
+U               U;
+epsilon         epsilon;
+k               k;
+omega           omega;
+R               R;
+
+
+// ************************************************************************* //

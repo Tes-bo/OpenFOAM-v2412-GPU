@@ -1,0 +1,79 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+residuals
+{
+    type                solverInfo;
+    libs                (utilityFunctionObjects);
+    writeResidualFields true;
+    writeControl        writeTime;
+    fields              (p);
+}
+
+blendingFactor
+{
+    // Mandatory entries
+    type                stabilityBlendingFactor;
+    libs                (fieldFunctionObjects);
+    field               U;
+    result              UBlendingFactor;
+
+    // Optional entries
+    tolerance           0.001;
+
+    // Any of the options can be chosen in combinations
+    // Option-1
+    switchNonOrtho      yes;
+    maxNonOrthogonality 20;
+    minNonOrthogonality 60;
+
+    // Option-2
+    switchGradCc        no;
+    maxGradCc           3;
+    minGradCc           4;
+
+    // Option-3
+    switchResiduals     yes;
+    maxResidual         100;
+    P                   5;
+    I                   0.01;
+    D                   0.5;
+
+    // Option-4
+    switchFaceWeight    no;
+    minFaceWeight       0.3;
+    maxFaceWeight       0.2;
+
+    // Option-5
+    switchSkewness      no;
+    maxSkewness         2;
+    minSkewness         3;
+
+    // Option-6
+    switchCo            no;
+    Co1                 1;
+    Co2                 2;
+
+    // Optional (inherited) entries
+    writePrecision  10;
+    writeToFile     false;
+    useUserTime     true;
+
+    region          region0;
+    enabled         true;
+    log             true;
+    timeStart       0;
+    timeEnd         1000;
+    executeControl  timeStep;
+    executeInterval 1;
+    writeControl    writeTime;
+    writeInterval   -1;
+}
+
+
+// ************************************************************************* //

@@ -1,0 +1,15 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+./Allrun.pre
+
+runApplication $(getApplication)
+
+runApplication -s "columnAverage" postProcess -func columnAverage -latestTime
+runApplication -s "UMean" postProcess -func sampleUMean -latestTime
+runApplication -s "UPrime2Mean" postProcess -func sampleUPrime2Mean -latestTime
+runApplication -s "Cf" postProcess -func sampleCf -latestTime
+
+#------------------------------------------------------------------------------

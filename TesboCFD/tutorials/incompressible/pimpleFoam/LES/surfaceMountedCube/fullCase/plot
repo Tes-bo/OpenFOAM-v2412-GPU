@@ -1,0 +1,51 @@
+#!/bin/sh
+cd "${0%/*}" || exit    # Run from this directory
+
+time=$1
+resultsDir="postProcessing/sample1/$time"
+gnuplot<<EOF
+    set terminal pngcairo font "arial,16" size 600,600
+    set xlabel "U/U_b"
+    set ylabel "y/H"
+    set grid
+    set key right top
+    set xrange [-0.5:1.5]
+    set yrange [0:2]
+    Ub=1.10763
+
+    set output "U_at_x_by_hm10.png"
+    plot "$resultsDir/xm10_U_UMean.xy" u (\$5/Ub):1 title "X/h = -1" w lines lc "black" lw 2
+
+    set output "U_at_x_by_hm05.png"
+    plot "$resultsDir/xm05_U_UMean.xy" u (\$5/Ub):1 title "X/h = -0.5" w lines lc "black" lw 2
+
+    set output "U_at_x_by_00.png"
+    plot "$resultsDir/x00_U_UMean.xy" u (\$5/Ub):1 title "X/h = 0" w lines lc "black" lw 2
+
+    set output "U_at_x_by_05.png"
+    plot "$resultsDir/x05_U_UMean.xy" u (\$5/Ub):1 title "X/h = 0.5" w lines lc "black" lw 2
+
+    set output "U_at_x_by_10.png"
+    plot "$resultsDir/x10_U_UMean.xy" u (\$5/Ub):1 title "X/h = 1" w lines lc "black" lw 2
+
+    set output "U_at_x_by_15.png"
+    plot "$resultsDir/x15_U_UMean.xy" u (\$5/Ub):1 title "X/h = 1.5" w lines lc "black" lw 2
+
+    set output "U_at_x_by_20.png"
+    plot "$resultsDir/x20_U_UMean.xy" u (\$5/Ub):1 title "X/h = 2" w lines lc "black" lw 2
+
+    set output "U_at_x_by_25.png"
+    plot "$resultsDir/x25_U_UMean.xy" u (\$5/Ub):1 title "X/h = 2.5" w lines lc "black" lw 2
+
+    set output "U_at_x_by_30.png"
+    plot "$resultsDir/x30_U_UMean.xy" u (\$5/Ub):1 title "X/h = 3" w lines lc "black" lw 2
+
+    set output "U_at_x_by_35.png"
+    plot "$resultsDir/x35_U_UMean.xy" u (\$5/Ub):1 title "X/h = 3.5" w lines lc "black" lw 2
+
+    set output "U_at_x_by_40.png"
+    plot "$resultsDir/x40_U_UMean.xy" u (\$5/Ub):1 title "X/h = 4" w lines lc "black" lw 2
+
+EOF
+
+# ------------------------------------------------------------------------------

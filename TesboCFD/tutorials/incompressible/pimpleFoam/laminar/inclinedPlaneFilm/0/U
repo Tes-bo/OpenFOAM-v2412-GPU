@@ -1,0 +1,96 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volVectorField;
+    object      U;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+Uinlet          (1 0 0);
+
+dimensions      [0 1 -1 0 0 0 0];
+
+internalField   uniform (0 0 0);
+
+boundaryField
+{
+    inlet
+    {
+        type            fixedValue;
+        value           uniform $Uinlet;
+    }
+
+    "(outlet|side|top)"
+    {
+        type            zeroGradient;
+        value           uniform (0 0 0);
+    }
+
+    film
+    {
+        type            velocityFilmShell;
+        active          true;
+        U               U;
+        pRef            1e5;
+        T0              300;
+
+        thermo
+        {
+            H2O;
+        }
+
+        turbulence          laminar;
+
+        laminarCoeffs
+        {
+            shearStress     simple;
+            friction        ManningStrickler;
+            n               0.1; // Manning number
+            Cf              0.9; // Gas friction
+        }
+
+        injectionModels ();
+
+        forces (dynamicContactAngle);
+
+        dynamicContactAngleCoeffs
+        {
+            Ccf     0.085;
+            Ttheta  constant 45;
+            distribution
+            {
+                type            normal;
+                normalDistribution
+                {
+                    minValue        50;
+                    maxValue        100;
+                    mu              75;
+                    sigma           100;
+                }
+            }
+        }
+
+        region              film;
+        liquidFilmModel     kinematicThinFilm;
+        value               uniform (0 0 0);
+    }
+
+    cylinder
+    {
+        type            fixedValue;
+        value           uniform (0 0 0);
+    }
+
+    #includeEtc "caseDicts/setConstraintTypes"
+}
+
+
+// ************************************************************************* //

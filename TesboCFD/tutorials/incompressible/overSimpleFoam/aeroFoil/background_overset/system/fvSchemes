@@ -1,0 +1,93 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      fvSchemes;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+ddtSchemes
+{
+    default         steadyState;
+}
+
+gradSchemes
+{
+    default         Gauss linear;
+    grad(yPsi)      cellLimited Gauss linear 1.0;
+}
+
+divSchemes
+{
+    default         none;
+    div(phi,U)      bounded  Gauss limitedLinearV 1;
+    div(phi,k)      bounded Gauss upwind;
+    div(phi,epsilon) Gauss upwind;
+    div(phi,R)      Gauss upwind;
+    div(R)          Gauss linear;
+    div(phid,p)     Gauss limitedLinear 1;
+    div(phi,K)      Gauss limitedLinear 1;
+    div(phi,e)      Gauss limitedLinear 1;
+    div(((rho*nuEff)*dev2(T(grad(U))))) Gauss linear;
+    div(phi,omega)  bounded Gauss limitedLinear 1;
+    div((nuEff*dev2(T(grad(U)))))  Gauss linear;
+
+}
+
+laplacianSchemes
+{
+    default         Gauss linear limited corrected 0.5;
+    laplacian(diffusivity,cellDisplacement)  Gauss linear corrected;
+    laplacian(yPsi) Gauss linear corrected;
+}
+
+interpolationSchemes
+{
+    default         linear;
+}
+
+snGradSchemes
+{
+    default         corrected;
+}
+
+fluxRequired
+{
+    default         no;
+    pcorr           ;
+    p               ;
+    yPsi            ;
+}
+
+oversetInterpolation
+{
+    method          inverseDistance;    //trackingInverseDistance;
+
+    // The inverseDistance method uses a 'voxel' like search structure.
+    // Optionally specify the extent and number of divisions n.
+    // Note that it will allocate an array of nx*ny*nz. If not specified:
+    // - searchBox          : local mesh bounding box
+    // - searchBoxDivisions : root (2D) or cube-root(3D) of number of cells
+    searchBox           (-0.1 -0.5 0)(1.1 0.5 1);
+    searchBoxDivisions  (100 100 1);
+}
+
+oversetInterpolationSuppressed
+{
+}
+
+
+wallDist
+{
+    method Poisson;
+}
+
+// ************************************************************************* //

@@ -1,0 +1,53 @@
+// -*- C++ -*-
+
+// ************************************************************************* //
+
+debug
+{
+    type    surfaces;
+    libs    (sampling);
+    log     true;
+    writeControl  timeStep;
+    writeInterval 1;
+
+    fields  (U);
+
+    sampleScheme  cellPoint;
+    interpolationScheme cellPoint;
+    // surfaceFormat ensight;
+    surfaceFormat vtk;
+
+    formatOptions
+    {
+        ensight
+        {
+            collateTimes  true;
+            // collateTimes  false;
+        }
+    }
+
+    surfaces
+    {
+        angledPlane
+        {
+            type        distanceSurface;
+            distance    0;
+            signed      true;
+            regularise  true;
+            surfaceType triSurfaceMesh;
+            surfaceName angledPlane.obj;
+        }
+
+        iso
+        {
+            type        isoSurface;
+            isoField    p;
+            isoValue    1e5;
+            regularise  true;
+            interpolate true;
+        }
+    }
+}
+
+
+// ************************************************************************* //

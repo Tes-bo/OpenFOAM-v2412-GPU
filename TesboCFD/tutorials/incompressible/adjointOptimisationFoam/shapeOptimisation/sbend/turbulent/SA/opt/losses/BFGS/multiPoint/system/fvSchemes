@@ -1,0 +1,76 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      fvSchemes;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+ddtSchemes
+{
+    default         steadyState;
+}
+
+gradSchemes
+{
+    default         Gauss linear;
+    gradDConv       cellLimited Gauss linear 1;
+}
+
+divSchemes
+{
+    default            Gauss linear;
+
+    div(phip1,Up1)         bounded Gauss linearUpwind gradUConv;
+    div(phip1,nuTildap1)   bounded Gauss linearUpwind gradNuTildaConv;
+    div(phip2,Up2)         bounded Gauss linearUpwind gradUConv;
+    div(phip2,nuTildap2)   bounded Gauss linearUpwind gradNuTildaConv;
+
+    div(yPhi,yWall)                Gauss linearUpwind gradDConv;
+
+    div(-phip1,Uaas1)       bounded Gauss linearUpwind gradUaConv;
+    div(-phip1,nuaTildaas1) bounded Gauss linearUpwind gradNuaTildaConv;
+    div(-phip2,Uaas2)       bounded Gauss linearUpwind gradUaConv;
+    div(-phip2,nuaTildaas2) bounded Gauss linearUpwind gradNuaTildaConv;
+
+    div(-yPhi,daas1)                Gauss linearUpwind gradDaConv;
+    div(-yPhi,daas2)                Gauss linearUpwind gradDaConv;
+}
+
+laplacianSchemes
+{
+    default         Gauss linear corrected;
+}
+
+interpolationSchemes
+{
+    default         linear;
+}
+
+snGradSchemes
+{
+    default         corrected;
+}
+
+wallDist
+{
+    method advectionDiffusion;
+    advectionDiffusionCoeffs
+    {
+        method    meshWave;
+        tolerance 1.e-6;
+        maxIter   1000;
+        epsilon   0.1;
+    }
+}
+
+
+// ************************************************************************* //

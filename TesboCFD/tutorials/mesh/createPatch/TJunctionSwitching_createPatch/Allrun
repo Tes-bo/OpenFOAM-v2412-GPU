@@ -1,0 +1,20 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+runApplication blockMesh
+
+(cd inlet && runApplication blockMesh)
+(cd top && runApplication blockMesh)
+(cd bottom && runApplication blockMesh)
+
+runApplication -s inlet mergeMeshes . inlet -overwrite
+runApplication -s top mergeMeshes . top -overwrite
+runApplication -s bottom mergeMeshes . bottom -overwrite
+
+runApplication createPatch -overwrite
+
+runApplication checkMesh
+
+#------------------------------------------------------------------------------

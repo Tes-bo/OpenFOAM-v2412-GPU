@@ -1,0 +1,274 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+scale     1;
+
+R         0.06; // Cylinder radius
+x0        #eval{ 0.5*$R };
+x2        #eval{ 2.38732*$R };
+x3        #eval{ 10.0*$R };
+xOutlet   #eval{ 18.6667*$R };
+xInlet    #eval{ -10.125*$R };
+
+RsinPi8   #eval{ $R*sin(0.125*pi()) };
+RsinPi8n  #eval{ -$RsinPi8 };
+RcosPi8   #eval{ $R*cos(0.125*pi()) };
+RcosPi8n  #eval{ -$RcosPi8 };
+RsinPi4   #eval{ $R*sin(0.25*pi()) };
+
+x2sinPi8  #eval{ $x2*sin(0.125*pi()) };
+x2sinPi8n #eval{ -$x2sinPi8 };
+x2cosPi8  #eval{ $x2*cos(0.125*pi()) };
+x2cosPi8n #eval{ -$x2cosPi8 };
+x2sinPi4  #eval{ $x2*sin(0.25*pi()) };
+
+z0        -0.0075;
+z1        0.0075;
+nz        1;
+
+
+vertices #codeStream
+{
+    codeInclude
+    #{
+        #include "pointField.H"
+    #};
+
+    code
+    #{
+        pointField points(19);
+        points[0] = point($R, 0, $z0);
+        points[1] = point($x2, 0, $z0);
+        points[2] = point($x3, 0, $z0);
+        points[3] = point($x3, $x2sinPi4, $z0);
+        points[4] = point($x2sinPi4, $x2sinPi4, $z0);
+        points[5] = point($RsinPi4, $RsinPi4, $z0);
+        points[6] = point($x3, $x3, $z0);
+        points[7] = point($x2sinPi4, $x3, $z0);
+
+        // Mirror +x points to -x side
+        points[11] = point(-points[0].x(), points[0].y(), points[0].z());
+        points[12] = point(-points[1].x(), points[1].y(), points[1].z());
+        points[13] = point(-points[2].x(), points[2].y(), points[2].z());
+        points[14] = point(-points[3].x(), points[3].y(), points[3].z());
+        points[15] = point(-points[4].x(), points[4].y(), points[4].z());
+        points[16] = point(-points[5].x(), points[5].y(), points[5].z());
+        points[17] = point(-points[6].x(), points[6].y(), points[6].z());
+        points[18] = point(-points[7].x(), points[7].y(), points[7].z());
+
+        // Points on the y-z-plane
+        points[8] = point(0, $x3, $z0);
+        points[9] = point(0, $x2, $z0);
+        points[10] = point(0, $R, $z0);
+
+        // Mirror -z points to +z side
+        label sz = points.size();
+        points.setSize(2*sz);
+        for (label i = 0; i < sz; ++i)
+        {
+            const point& pt = points[i];
+            points[i + sz] = point(pt.x(), pt.y(), $z1);
+        }
+
+        // Add an inner cylinder
+        sz = points.size();
+        label nAdd = 6;
+        points.setSize(sz + nAdd);
+
+        // Points within the inner cylinder
+        points[sz] = point(0, 0, $z0);
+        points[sz + 1] = point(0, $x0, $z0);
+        points[sz + 2] = point($x0, $x0, $z0);
+        points[sz + 3] = point($x0, 0, $z0);
+
+        // Mirror points from +x side to -x side
+        points[sz + 4] =
+            point(-points[sz + 2].x(), points[sz + 2].y(), points[sz + 2].z());
+        points[sz + 5] =
+            point(-points[sz + 3].x(), points[sz + 3].y(), points[sz + 3].z());
+
+        // Mirror -z points to +z side
+        sz = points.size();
+        points.setSize(sz + nAdd);
+        for (label i = 0; i < nAdd; ++i)
+        {
+            const point& pt = points[i+sz-nAdd];
+            points[i+sz] = point(pt.x(), pt.y(), $z1);
+        }
+
+        // Add downstream and upstream blocks
+        sz = points.size();
+        nAdd = 6;
+        points.setSize(sz + nAdd);
+
+        // Points on outlet
+        points[sz] = point($xOutlet, 0, $z0);
+        points[sz + 1] = point($xOutlet, $x3, $z0);
+        points[sz + 4] = point($xOutlet, $x2sinPi4, $z0);
+
+        // Points on inlet
+        points[sz + 2] = point($xInlet, 0, $z0);
+        points[sz + 3] = point($xInlet, $x3, $z0);
+        points[sz + 5] = point($xInlet, $x2sinPi4, $z0);
+
+        // Mirror -z points to +z side
+        sz = points.size();
+        points.setSize(sz + nAdd);
+        for (label i = 0; i < nAdd; ++i)
+        {
+            const point& pt = points[i + sz - nAdd];
+            points[i + sz] = point(pt.x(), pt.y(), $z1);
+        }
+
+        os  << points;
+    #};
+};
+
+
+blocks
+(
+    hex ( 5  4  9 10 24 23 28 29) (16 15 $nz) simpleGrading (1.6 1 1)
+    hex ( 0  1  4  5 19 20 23 24) (16 15 $nz) simpleGrading (1.6 1 1)
+    hex ( 1  2  3  4 20 21 22 23) (61 15 $nz) simpleGrading (1 1 1)
+    hex ( 4  3  6  7 23 22 25 26) (61 61 $nz) simpleGrading (1 1 1)
+    hex ( 9  4  7  8 28 23 26 27) (15 61 $nz) simpleGrading (1 1 1)
+    hex (15 16 10  9 34 35 29 28) (16 15 $nz) simpleGrading (0.625 1 1)
+    hex (12 11 16 15 31 30 35 34) (16 15 $nz) simpleGrading (0.625 1 1)
+    hex (13 12 15 14 32 31 34 33) (61 15 $nz) simpleGrading (1 1 1)
+    hex (14 15 18 17 33 34 37 36) (61 61 $nz) simpleGrading (1 1 1)
+    hex (15  9  8 18 34 28 27 37) (15 61 $nz) simpleGrading (1 1 1)
+    hex (2 50 54 3 21 56 60 22)  (69 15 $nz) simpleGrading (1 1 1) // downstream
+    hex (3 54 51 6 22 60 57 25)  (69 61 $nz) simpleGrading (1 1 1)
+    hex (52 13 14 55 58 32 33 61)  (1 15 $nz) simpleGrading (1 1 1) // upstream
+    hex (55 14 17 53 61 33 36 59)  (1 61 $nz) simpleGrading (1 1 1)
+);
+
+edges
+(
+    arc  0  5 ($RcosPi8   $RsinPi8  $z0)
+    arc  5 10 ($RsinPi8   $RcosPi8  $z0)
+    arc  1  4 ($x2cosPi8  $x2sinPi8 $z0)
+    arc  4  9 ($x2sinPi8  $x2cosPi8 $z0)
+    arc 19 24 ($RcosPi8   $RsinPi8  $z1)
+    arc 24 29 ($RsinPi8   $RcosPi8  $z1)
+    arc 20 23 ($x2cosPi8  $x2sinPi8 $z1)
+    arc 23 28 ($x2sinPi8  $x2cosPi8 $z1)
+    arc 11 16 ($RcosPi8n  $RsinPi8  $z0)
+    arc 16 10 ($RsinPi8n  $RcosPi8  $z0)
+    arc 12 15 ($x2cosPi8n $x2sinPi8 $z0)
+    arc 15  9 ($x2sinPi8n $x2cosPi8 $z0)
+    arc 30 35 ($RcosPi8n  $RsinPi8  $z1)
+    arc 35 29 ($RsinPi8n  $RcosPi8  $z1)
+    arc 31 34 ($x2cosPi8n $x2sinPi8 $z1)
+    arc 34 28 ($x2sinPi8n $x2cosPi8 $z1)
+);
+
+boundary
+(
+    inlet
+    {
+        type patch;
+        faces
+        (
+            (53 59 61 55)
+            (55 61 58 52)
+        );
+    }
+    outlet
+    {
+        type patch;
+        faces
+        (
+            (60 57 51 54)
+            (56 60 54 50)
+        );
+    }
+    topAndBottom
+    {
+        type symmetry;
+        faces
+        (
+            (59 53 17 36)
+            (36 17 18 37)
+            (37 18  8 27)
+            (27  8  7 26)
+            (26  7  6 25)
+            (25  6 51 57)
+            (52 58 32 13)
+            (13 32 31 12)
+            (12 31 30 11)
+            (0 19 20 1)
+            (1 20 21 2)
+            (2 21 56 50)
+        );
+    }
+    left
+    {
+        type empty;
+        faces
+        (
+            (55 52 13 14)
+            (53 55 14 17)
+            (13 12 15 14)
+            (14 15 18 17)
+            (15 9 8 18)
+            (12 11 16 15)
+            (15 16 10 9)
+            (9 10 5 4)
+            (5 0 1 4)
+            (9 4 7 8)
+            (4 3 6 7)
+            (1 2 3 4)
+            (3 2 50 54)
+            (6 3 54 51)
+        );
+    }
+    right
+    {
+        type empty;
+        faces
+        (
+            (59 36 33 61)
+            (61 33 32 58)
+            (36 37 34 33)
+            (33 34 31 32)
+            (37 27 28 34)
+            (27 26 23 28)
+            (26 25 22 23)
+            (23 22 21 20)
+            (25 57 60 22)
+            (22 60 56 21)
+            (24 23 20 19)
+            (28 23 24 29)
+            (34 28 29 35)
+            (31 34 35 30)
+        );
+    }
+    cylinder
+    {
+        type wall;
+        faces
+        (
+            (29 24 5 10)
+            (24 19 0 5)
+            (30 35 16 11)
+            (35 29 10 16)
+        );
+    }
+);
+
+
+// ************************************************************************* //

@@ -1,0 +1,13 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+#------------------------------------------------------------------------------
+
+wclean
+
+# Remove executable
+rm -f building-motion
+
+# Remove known output/debug files
+rm -f *.txt *.vtp *.vtp.series
+
+#------------------------------------------------------------------------------

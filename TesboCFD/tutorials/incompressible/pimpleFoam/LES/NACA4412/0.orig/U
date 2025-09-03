@@ -1,0 +1,54 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volVectorField;
+    object      U;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// calculate inflow velocity vector
+AoA             13.87;
+Ux              #eval{ cos(degToRad($AoA)) };
+Uz              #eval{ sin(degToRad($AoA)) };
+
+dimensions      [0 1 -1 0 0 0 0];
+
+internalField   uniform ($Ux 0 $Uz);
+
+boundaryField
+{
+    inlet
+    {
+        type            inletOutlet;
+        inletValue      uniform ($Ux 0 $Uz);
+        value           uniform ($Ux 0 $Uz);
+    }
+
+    outlet
+    {
+        type            inletOutlet; 
+        inletValue      uniform ($Ux 0 $Uz);
+        value           uniform ($Ux 0 $Uz);
+    }
+
+    aerofoil
+    {
+        type            fixedValue;
+        value           uniform (0 0 0);
+    }
+
+    "yPeriodic_.*"
+    {
+        type            cyclic;
+    }
+}
+
+// ************************************************************************* //

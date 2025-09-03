@@ -1,0 +1,55 @@
+runTimeControl1
+{
+    type            runTimeControl;
+    libs            (utilityFunctionObjects);
+    conditions
+    {
+        condition1
+        {
+            type            average;
+            functionObject  forceCoeffs1;
+            fields          (Cd);
+            tolerance       1e-3;
+            window          20;
+            windowType      exact;
+        }
+    }
+    satisfiedAction setTrigger;
+    trigger         1;
+}
+
+runTimeControl2
+{
+    type            runTimeControl;
+    libs            (utilityFunctionObjects);
+    controlMode     trigger;
+    triggerStart    1;
+    conditions
+    {
+        condition1
+        {
+            type            maxDuration;
+            duration        100;
+        }
+    }
+    satisfiedAction end;
+}
+
+/*
+    runTimeControl3
+    {
+        type            runTimeControl;
+        libs            (utilityFunctionObjects);
+        conditions
+        {
+            condition1
+            {
+                type            equationInitialResidual;
+                fields          (U.component(0));
+                value           1e-02;
+                mode            minimum;
+            }
+        }
+        satisfiedAction end;
+    }
+*/

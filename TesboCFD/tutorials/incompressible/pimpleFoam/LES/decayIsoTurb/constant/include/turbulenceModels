@@ -1,0 +1,38 @@
+WALE
+{
+    delta           cubeRootVol;
+
+    cubeRootVolCoeffs
+    {
+        deltaCoeff      1;
+    }
+}
+
+kEqn
+{
+    delta           cubeRootVol;
+    kEqnCoeffs
+    {
+        Ck                  0.094;
+        Ce                  1.048;
+    }
+}
+
+dynamicKEqn
+{
+    delta           cubeRootVol;
+    dynamicKEqnCoeffs
+    {
+        filter          simple;
+    }
+}
+
+Smagorinsky
+{
+    delta           cubeRootVol;
+    SmagorinskyCoeffs
+    {
+        Ck                  0.094;
+        Ce                  1.048;
+    }
+}

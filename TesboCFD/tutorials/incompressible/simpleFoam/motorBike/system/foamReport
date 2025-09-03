@@ -1,0 +1,59 @@
+foamReport1
+{
+    type            foamReport;
+    libs            (utilityFunctionObjects);
+
+    writeControl    writeTime;
+
+    template        "<system>/myReportTemplate.md";
+
+    substitutions
+    {
+        timing1
+        {
+            type        fileRegEx;
+            path        "log.simpleFoam";
+
+            entries
+            {
+                executionTime "ExecutionTime = (.*) s  Clock.*";
+            }
+        }
+        divSchemes1
+        {
+            type        dictionaryValue;
+            path        "<system>/fvSchemes";
+
+            entries
+            {
+                divSchemes      "divSchemes";
+            }
+        }
+        fvSolution1
+        {
+            type        dictionaryValue;
+            path        "<system>/fvSolution";
+
+            entries
+            {
+                solver_p        "solvers/p/solver";
+                solver_p_tol    "solvers/p/tolerance";
+                solver_p_reltol "solvers/p/relTol";
+                solver_U        "solvers/U/solver";
+                solver_U_tol    "solvers/U/tolerance";
+                solver_U_reltol "solvers/U/relTol";
+            }
+        }
+        controlDict1
+        {
+            type        dictionaryValue;
+            path        "<system>/controlDict";
+
+            entries
+            {
+                initial_deltaT       "deltaT";
+            }
+        }
+    }
+}
+

@@ -1,0 +1,22 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+runApplication blockMesh
+
+runApplication decomposePar
+
+echo "Updating fvSchemes to use Gauss"
+sed "s/GAUSS/Gauss/g" system/fvSchemes.template > system/fvSchemes
+
+runParallel -s Gauss $(getApplication)
+
+
+echo "Updating fvSchemes to use fusedGauss"
+sed "s/GAUSS/fusedGauss/g" system/fvSchemes.template > system/fvSchemes
+
+runParallel -s fusedGauss $(getApplication)
+
+
+#------------------------------------------------------------------------------

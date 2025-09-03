@@ -1,0 +1,58 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+if ! canCompile
+then
+    echo "skipping tutorial $PWD"
+    exit 0
+fi
+
+wmake calcRadiusField
+wclean calcRadiusField
+
+runApplication blockMesh
+
+# We need the 0 folder to exist for these steps
+mkdir 0
+
+# Refine over Z, in 6 passes
+for index in 1 2 3 4 5 6
+do
+    suffix="tier$index"
+
+    runApplication -s "$suffix" calcRadiusField
+
+    runApplication -s "$suffix" \
+        topoSet -dict system/topoSetDict.tier$index
+
+    ## foamToVTK -cellSet "$suffix"
+
+    runApplication -s "$suffix" \
+        refineMesh -dict system/refineMeshDict."$suffix" -overwrite
+
+    rm -rf 0/*
+done
+
+# Refine over cylindrical coordinates, in 3 passes
+for index in 1 2 3
+do
+    suffix="range$index"
+
+    runApplication -s "$suffix" calcRadiusField -calcDirections
+
+    runApplication -s "$suffix" \
+        topoSet -dict system/topoSetDict."$suffix"
+
+    ## foamToVTK -cellSet "$suffix"
+
+    runApplication -s "$suffix" \
+        refineMesh -dict system/refineMeshDict."$suffix" -overwrite
+
+    rm -rf 0/*
+done
+
+rmdir 0 2>/dev/null
+
+#------------------------------------------------------------------------------

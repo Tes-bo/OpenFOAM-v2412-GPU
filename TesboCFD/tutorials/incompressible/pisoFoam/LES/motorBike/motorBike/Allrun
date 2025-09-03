@@ -1,0 +1,35 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+# copy motorbike surface from resources directory
+mkdir -p constant/triSurface
+
+cp -f \
+    "$FOAM_TUTORIALS"/resources/geometry/motorBike.obj.gz \
+    constant/triSurface/
+
+# Make dummy 0 directory
+mkdir -p 0
+
+runApplication blockMesh
+
+runApplication decomposePar -decomposeParDict system/decomposeParDict.hierarchical
+
+runParallel snappyHexMesh -decomposeParDict system/decomposeParDict.ptscotch -profiling -overwrite
+
+find . -iname '*level*' -type f -delete
+
+#- Set the initial fields
+restore0Dir -processor
+
+runParallel renumberMesh -overwrite
+
+runParallel potentialFoam -initialiseUBCs -writephi
+
+runParallel checkMesh -writeFields '(nonOrthoAngle)' -constant
+
+runParallel $(getApplication)
+
+#------------------------------------------------------------------------------

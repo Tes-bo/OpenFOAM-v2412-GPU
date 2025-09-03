@@ -1,0 +1,59 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+#------------------------------------------------------------------------------
+
+plot()
+{
+    gnuplot<<PLT
+    set terminal pngcairo font "helvetica,20" size 1000, 1000
+    set encoding utf8
+    set termoption dash
+    set style increment user
+    set style line 1 lt 1 linecolor rgb "blue"  linewidth 1.5
+    set style line 11 lt 2 linecolor rgb "black" linewidth 1.5
+
+    # time = system("foamListTimes -case .. -latestTime")
+    time=$(foamListTimes -case .. -latestTime)
+
+    # benchmark
+    benchmark="exptData/T3A.dat"
+
+    # plot turbulent intensity profile
+    samples="../postProcessing/kGraph/".time."/line_k.xy"
+    set xlabel "x"
+    set ylabel "u'"
+    set output "x_vs_u.png"
+    set title "T3A - Flat plate - Turbulent intensity"
+    plot [:1.5][:0.05] \
+        samples u (\$1-0.04):(1./5.4*sqrt(2./3.*\$2)) t "kOmegaSSTLM" w l ls 1, \
+        benchmark u (\$1/1000):(\$3/100) t "Experiment" w p ls 11
+
+
+    # plot skin-friction coefficient profile
+    samples="../postProcessing/wallShearStressGraph/".time."/line_wallShearStress.xy"
+    set xlabel "Re_x"
+    set ylabel "c_f"
+    set output "Rex_vs_cf.png"
+    set title "T3A - Flat plate - C_f"
+    plot [:6e+5][0:0.01] \
+        samples u ((\$1-0.04)*5.4/1.5e-05):(-\$2/0.5/5.4**2) t "kOmegaSSTLM" w l, \
+        benchmark u (\$1/1000*5.4/1.51e-05):2 t "Experiment" w p ls 11
+PLT
+}
+
+
+#------------------------------------------------------------------------------
+
+# Require gnuplot
+command -v gnuplot >/dev/null || {
+    echo "FOAM FATAL ERROR: gnuplot not found - skipping graph creation" 1>&2
+    exit 1
+}
+
+
+#------------------------------------------------------------------------------
+
+plot
+
+
+#------------------------------------------------------------------------------

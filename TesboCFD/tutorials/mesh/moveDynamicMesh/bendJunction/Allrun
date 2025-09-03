@@ -1,0 +1,54 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+
+# Add bit of preprocessing of the surface
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# Add all surfaces
+runApplication -s BigPipeInlet  surfaceAdd \
+    constant/triSurface/BigPipe.obj constant/triSurface/Inlet.obj \
+    constant/triSurface/geometry.obj
+runApplication -s InletSmall    surfaceAdd \
+    constant/triSurface/geometry.obj constant/triSurface/InletSmall.obj \
+    constant/triSurface/geometry.obj
+runApplication -s Outlet        surfaceAdd \
+    constant/triSurface/geometry.obj constant/triSurface/Outlet.obj \
+    constant/triSurface/geometry.obj
+runApplication -s SmallPipe     surfaceAdd \
+    constant/triSurface/geometry.obj constant/triSurface/SmallPipe.obj \
+    constant/triSurface/geometry.obj
+
+# Extract features from surface
+runApplication surfaceFeatureExtract
+
+
+
+# Generate mesh and features
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+runApplication blockMesh
+runApplication -s presmooth checkMesh
+
+# Detect feature edges on mesh and generate new point patches from these.
+# Note we only are interested in inter-patch features for this particular
+# geometry.
+runApplication surfaceMeshExtract \
+    -featureAngle 180 constant/triSurface/blockMesh.obj
+
+# Generate some VTK files for the added point patches
+setSet <<POINTPATCH
+#pointSet SmallPipeEdges new patchToPoint SmallPipeEdges
+#pointSet BigPipeEdges new patchToPoint BigPipeEdges
+pointSet boundaryEdges new patchToPoint boundaryEdges
+POINTPATCH
+
+# Do mesh motion to conform to surface
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+runApplication moveDynamicMesh
+runApplication -s postsmooth checkMesh
+
+#------------------------------------------------------------------------------

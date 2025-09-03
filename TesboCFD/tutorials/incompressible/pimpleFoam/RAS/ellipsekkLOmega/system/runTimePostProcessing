@@ -1,0 +1,163 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+postPro1
+{
+    #includeEtc "caseDicts/postProcessing/visualization/runTimePostPro.cfg"
+
+    // Time control etc
+    ${_visualization};
+
+    // debug       true;
+    // parallel    true;
+
+    output
+    {
+        name        image;
+        width       800;
+        height      600;
+    }
+
+    camera
+    {
+        // If camera is moving, optionally provide start and end times
+        // startPosition    0.2;
+        // endPosition      0.75;
+
+        // Total number of frames to generate
+        nFrameTotal     1;
+
+        // Parallel projection flag
+        parallelProjection  yes;
+
+        // clipBox is optional
+
+        position        (-2.28 1.28 2.24);
+        focalPoint      (0 0.008 0.024);
+        up              (0.26 0.930 -0.266);
+        zoom    1.75;
+    }
+
+    // Default colours
+    // - If select to colourBy colour, these values are used unless
+    // they are locally overridden
+    colours
+    {
+        ${../colourScheme/paraview};
+    }
+
+    // Line data
+    lines
+    {
+        streamline
+        {
+            type            functionObjectLine;
+            functionObject  streamLines;
+            representation  tube;
+            visible         yes;
+            tubeRadius      0.0025;
+            colourBy        field;
+            field           U;
+            range           (0 10);
+            opacity         0.6;
+            scalarBar
+            {
+                visible     no;
+            }
+        }
+    }
+
+    // Surface data
+    _surface
+    {
+        type            functionObjectSurface;
+        colourMap       coolToWarm;
+        representation  glyph;
+        maxGlyphLength  0.1;
+        visible         yes;
+        featureEdges    no;
+        colourBy        field;
+        field           U;
+        range           (0 10);
+        opacity         1;
+    }
+
+    surfaces
+    {
+        geom
+        {
+            type            geometry;
+            files           ("<case>/ppGeometry.vtp");
+            renderMode      phong;
+            representation  surface;
+            edgeColour      (0.5 0.5 0.5);
+            visible         yes;
+            featureEdges    no;
+            opacity         0.8;
+            visible         false;
+        }
+
+        patches
+        {
+            type            patches;
+            patches         (hole);
+            renderMode      phong;
+            representation  surface;
+            colourMap       coolToWarm;
+            colourBy        field;
+            field           U;
+            range           (0 10);
+            nearCellValue   true;
+            smooth          true;
+        }
+
+        plane0
+        {
+            ${_surface};
+            functionObject  planes.plane0;
+        }
+        plane1
+        {
+            ${_surface};
+            functionObject  planes.plane1;
+        }
+
+        cutting
+        {
+            // Same colours and scaling as surface
+            ${_surface};
+
+            type    plane;
+            point   (0 0 0);
+            normal  (1 0 0);
+            offsets (0.1 0.2 0.3 0.4 0.5);
+
+            colourMap       coolToWarm;
+        }
+    }
+
+    // Text data
+    text
+    {
+        text1
+        {
+            string      "ellipse kkLOmega";
+            position    (0.5 0.15);
+            halign      centre;
+            size        18;
+            opacity     0.4;
+            bold        yes;
+            italic      yes;
+            shadow      yes;
+            visible     yes;
+        }
+    }
+}
+
+
+// ************************************************************************* //

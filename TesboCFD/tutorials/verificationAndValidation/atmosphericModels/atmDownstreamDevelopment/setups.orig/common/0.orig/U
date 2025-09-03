@@ -1,0 +1,66 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volVectorField;
+    object      U;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 1 -1 0 0 0 0];
+
+internalField   uniform (0 0 0);
+
+boundaryField
+{
+    inlet
+    {
+        type            atmBoundaryLayerInletVelocity;
+        #include        "include/ABLConditions"
+        value           uniform (0 0 0);
+    }
+
+    ground
+    {
+        type            noSlip;
+    }
+
+    top
+    {
+    //  (HW:p. 365):
+    //  "In addition, as suggested by RH and often ignored by others, a"
+    //  "constant shear stress of rho*(u^*)^2 was applied at the top boundary."
+    //
+    //  u^* ~ Uref*kappa/ln((Zref+z0)/z0)
+    //  (HW:Table 1):
+    //  Uref = 10 m/s
+    //  Zref = 6 m
+    //  z0 = 0.01 m
+    //  tau = rho*(u^*)^2 = 0.390796574
+        type            fixedShearStress;
+        tau             (0.390796574 0 0);
+        value           uniform (0 0 0);
+    }
+
+    sides
+    {
+        type            symmetry;
+    }
+
+    outlet
+    {
+        type            inletOutlet;
+        inletValue      uniform (0 0 0);
+        value           $internalField;
+    }
+}
+
+
+// ************************************************************************* //

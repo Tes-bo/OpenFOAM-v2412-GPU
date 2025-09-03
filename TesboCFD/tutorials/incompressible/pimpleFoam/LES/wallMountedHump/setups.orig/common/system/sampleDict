@@ -1,0 +1,113 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+sample.lines
+{
+    type                sets;
+    libs                (sampling);
+    writeControl        writeTime;
+    timeStart           $tStartAvg;
+
+    interpolationScheme cellPoint;
+    setFormat           raw;
+
+    sets
+    (
+        xbyc0.65
+        {
+            type            face;
+            axis            y;
+            start           (0.65 0 0.0001);
+            end             (0.65 1 0.0001);
+        }
+        xbyc0.66
+        {
+            type            face;
+            axis            y;
+            start           (0.66 0 0.0001);
+            end             (0.66 1 0.0001);
+        }
+        xbyc0.80
+        {
+            type            face;
+            axis            y;
+            start           (0.80 0 0.0001);
+            end             (0.80 1 0.0001);
+        }
+        xbyc0.90
+        {
+            type            face;
+            axis            y;
+            start           (0.90 0 0.0001);
+            end             (0.90 1 0.0001);
+        }
+        xbyc1.00
+        {
+            type            face;
+            axis            y;
+            start           (1.00 0 0.0001);
+            end             (1.00 1 0.0001);
+        }
+        xbyc1.10
+        {
+            type            face;
+            axis            y;
+            start           (1.10 0 0.0001);
+            end             (1.10 1 0.0001);
+        }
+        xbyc1.20
+        {
+            type            face;
+            axis            y;
+            start           (1.20 0 0.0001);
+            end             (1.20 1 0.0001);
+        }
+        xbyc1.30
+        {
+            type            face;
+            axis            y;
+            start           (1.30 0 0.0001);
+            end             (1.30 1 0.0001);
+        }
+    );
+
+    fields
+    (
+        columnAverage(UMean)
+        columnAverage(UPrime2Mean)
+    );
+}
+
+sample.bottomWall
+{
+    type                surfaces;
+    libs                (sampling);
+    writeControl        writeTime;
+    timeStart           $tStartAvg;
+
+    interpolationScheme cell;
+    surfaceFormat       raw;
+
+    fields
+    (
+        pMean
+        wallShearStressMean
+    );
+
+    surfaces
+    (
+        bottomWall
+        {
+            type            patch;
+            patches         ( "bottomWall" );
+        }
+    );
+}
+
+
+// ************************************************************************* //

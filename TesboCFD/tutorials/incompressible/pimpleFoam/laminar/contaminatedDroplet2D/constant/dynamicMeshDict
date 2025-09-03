@@ -1,0 +1,59 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      dynamicMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+motionSolverLibs (fvMotionSolvers interfaceTrackingFvMesh);
+
+dynamicFvMesh   interfaceTrackingFvMesh;
+
+motionSolver    velocityLaplacian;
+
+diffusivity     uniform;
+
+// Free surface data
+
+fsPatchName freeSurface;
+
+fixedFreeSurfacePatches ();
+
+pointNormalsCorrectionPatches ();
+
+normalMotionDir true;
+
+motionDir (0 1 0);
+
+pureFreeSurface false;
+
+surfactantProperties
+{
+    soluble             true;
+
+    bulkConc            bulkConc            [ 0 -3  0 0  1 0 0 ] 1.0e-2;
+
+    saturatedConc       saturatedSurfConc   [ 0 -2  0 0  1 0 0 ] 5.0e-6;
+
+    adsorptionCoeff     adsorptionCoeff     [ 0  3 -1 0 -1 0 0 ] 400.0;
+
+    desorptionCoeff     desorptionCoeff     [ 0 -3  0 0  1 0 0 ] 0.3;
+
+    bulkDiffusion       bulkDiffusion       [ 0  2 -1 0  0 0 0 ] 5.0e-6;
+
+    diffusion           diffusion           [ 0  2 -1 0  0 0 0 ] 5.0e-6;
+
+    temperature         temperature         [ 0  0  0 1  0 0 0 ] 293.0;
+}
+
+
+// ************************************************************************* //

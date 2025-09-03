@@ -1,0 +1,27 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+mkdir -p constant/triSurface
+
+cp -f \
+    "$FOAM_TUTORIALS"/resources/geometry/channel.vtk.gz \
+    constant/triSurface
+
+# Extrude using arcs
+USE_ARC=true runApplication -s arc extrudeMesh
+
+# For output fields from checkMesh
+mkdir -p 1
+runApplication -s arc checkMesh -writeAllFields -time 1
+
+
+# Extrude using splines
+USE_ARC=false runApplication -s spline extrudeMesh
+
+# For output fields from checkMesh
+mkdir -p 2
+runApplication -s spline checkMesh -writeAllFields -time 2
+
+#------------------------------------------------------------------------------

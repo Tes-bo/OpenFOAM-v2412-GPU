@@ -1,0 +1,121 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+pressure1
+{
+    // Mandatory entries
+    type            pressure;
+    libs            (fieldFunctionObjects);
+    mode            static;
+
+    // Optional entries
+    U               U;
+    rho             rhoInf;
+    rhoInf          1.0;
+    pRef            1.0;
+
+    // Optional (inherited) entries
+    result          staticP;
+    region          region0;
+    enabled         true;
+    log             true;
+    timeStart       0.25;
+    timeEnd         1000;
+    executeControl  timeStep;
+    executeInterval 5;
+    writeControl    timeStep;
+    writeInterval   25;
+}
+
+
+pressure2
+{
+    // Mandatory entries
+    type            pressure;
+    libs            (fieldFunctionObjects);
+    mode            total;
+
+    // Optional entries
+    U               U;
+    rho             rhoInf;
+    rhoInf          1.0;
+    pRef            1.0;
+
+    // Optional (inherited) entries
+    result          totalP;
+    region          region0;
+    enabled         true;
+    log             true;
+    timeStart       1;
+    timeEnd         1000;
+    executeControl  timeStep;
+    executeInterval 10;
+    writeControl    timeStep;
+    writeInterval   50;
+}
+
+
+pressure3
+{
+    // Mandatory entries
+    type            pressure;
+    libs            (fieldFunctionObjects);
+    mode            staticCoeff;
+
+    // Optional entries
+    U               U;
+    rho             rhoInf;
+    rhoInf          1.0;
+    pRef            1.0;
+    pInf            1.0;
+    UInf            (1 0 0);
+
+    // Optional (inherited) entries
+    result          staticCoeffP;
+    region          region0;
+    enabled         true;
+    log             true;
+    timeStart       0.25;
+    timeEnd         1000;
+    executeControl  timeStep;
+    executeInterval 15;
+    writeControl    timeStep;
+    writeInterval   75;
+}
+
+
+pressure4
+{
+    // Mandatory entries
+    type            pressure;
+    libs            (fieldFunctionObjects);
+    mode            totalCoeff;
+
+    // Optional entries
+    U               U;
+    rho             rhoInf;
+    rhoInf          1.0;
+    pRef            1.0;
+    pInf            1.0;
+    UInf            (1.0 0.0 0.0);
+
+    // Optional (inherited) entries
+    result          totalCoeffP;
+    region          region0;
+    enabled         true;
+    log             true;
+    timeStart       0.25;
+    timeEnd         1000;
+    executeControl  timeStep;
+    executeInterval 25;
+    writeControl    timeStep;
+    writeInterval   100;
+}
+
+
+// ************************************************************************* //

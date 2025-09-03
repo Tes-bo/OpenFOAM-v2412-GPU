@@ -1,0 +1,197 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+libs            (turbulenceModelSchemes);
+
+application     pimpleFoam;
+
+startFrom       startTime;
+
+startTime       1500;
+
+stopAt          endTime;
+
+endTime         1510;
+
+deltaT          1e-4;
+
+writeControl    timeStep;
+
+writeInterval   500;
+
+purgeWrite      5;
+
+writeFormat     binary;
+
+writePrecision  8;
+
+writeCompression off;
+
+timeFormat      general;
+
+timePrecision   10;
+
+runTimeModifiable true;
+
+adjustTimeStep  no;
+
+functions
+{
+    fieldAverage1
+    {
+        type            fieldAverage;
+        libs            (fieldFunctionObjects);
+        writeControl    writeTime;
+        timeStart       1500.5; // approx 2x flow-throughs
+        fields
+        (
+            U
+            {
+                mean        on;
+                prime2Mean  on;
+                base        time;
+            }
+
+            p
+            {
+                mean        on;
+                prime2Mean  on;
+                base        time;
+            }
+        );
+    }
+
+    columnAverage
+    {
+        // Mandatory entries
+        type            columnAverage;
+        libs            (fieldFunctionObjects);
+        // Note: include processorCyclics!
+        patches         (front "proc.*throughfront");
+        fields
+        (
+            p
+            U
+            UMean
+            UPrime2Mean
+        );
+
+        // Optional (inherited) entries
+        region          region0;
+        enabled         true;
+        log             true;
+        timeStart       1500.5; // approx 2x flow-throughs
+        // timeEnd          inf;
+        executeControl  writeTime;
+        // executeInterval -1;
+        writeControl    none;
+        // writeInterval   -1;
+    }
+
+    sample
+    {
+        type            sets;
+        libs            (sampling);
+        interpolationScheme cellPoint;
+        setFormat       raw;
+        executeControl  onEnd;
+        writeControl    onEnd;
+
+        fields
+        (
+            U
+            columnAverage:columnAverage(UMean)
+            columnAverage:columnAverage(UPrime2Mean)
+        );
+
+        sets
+        {
+            xbyh0.05
+            {
+                type            face;
+                axis            y;
+                start           (0.0014 0 0.063);
+                end             (0.0014 1 0.063);
+            }
+            xbyh0.5
+            {
+                type            face;
+                axis            y;
+                start           (0.014 0 0.063);
+                end             (0.014 1 0.063);
+            }
+            xbyh1
+            {
+                type            face;
+                axis            y;
+                start           (0.028 0 0.063);
+                end             (0.028 1 0.063);
+            }
+            xbyh2
+            {
+                type            face;
+                axis            y;
+                start           (0.056 0 0.063);
+                end             (0.056 1 0.063);
+            }
+            xbyh3
+            {
+                type            face;
+                axis            y;
+                start           (0.084 0 0.063);
+                end             (0.084 1 0.063);
+            }
+            xbyh4
+            {
+                type            face;
+                axis            y;
+                start           (0.112 0 0.063);
+                end             (0.112 1 0.063);
+            }
+            xbyh5
+            {
+                type            face;
+                axis            y;
+                start           (0.140 0 0.063);
+                end             (0.140 1 0.063);
+            }
+            xbyh6
+            {
+                type            face;
+                axis            y;
+                start           (0.168 0 0.063);
+                end             (0.168 1 0.063);
+            }
+            xbyh7
+            {
+                type            face;
+                axis            y;
+                start           (0.196 0 0.063);
+                end             (0.196 1 0.063);
+            }
+            xbyh8
+            {
+                type            face;
+                axis            y;
+                start           (0.224 0 0.063);
+                end             (0.224 1 0.063);
+            }
+        }
+    }
+}
+
+
+// ************************************************************************* //

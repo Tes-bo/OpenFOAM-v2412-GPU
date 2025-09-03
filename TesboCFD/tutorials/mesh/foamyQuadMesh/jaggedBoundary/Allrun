@@ -1,0 +1,20 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+mkdir -p constant/triSurface
+
+cp -f \
+    "$FOAM_TUTORIALS"/resources/geometry/jaggedBoundary.stl.gz \
+    constant/triSurface
+
+runApplication surfaceFeatureExtract
+
+runApplication foamyQuadMesh -overwrite
+
+runApplication extrude2DMesh -overwrite MeshedSurface
+
+runApplication checkMesh -allGeometry -allTopology -constant -noZero
+
+#------------------------------------------------------------------------------

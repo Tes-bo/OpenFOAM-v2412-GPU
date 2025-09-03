@@ -1,0 +1,175 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+# settings
+
+    # operand setups
+    setups="
+    veryStable
+    stable
+    slightlyStable
+    neutral
+    slightlyUnstable
+    unstable
+    "
+
+    # flag to enable computations
+    run=true
+
+    # flag to enable computations in parallel mode
+    parallel=true
+
+    # flag to enable to use a common mesh
+    common_mesh=true
+
+    # flag to enable to use a common dynamic code
+    common_dynamic_code=false
+
+
+#------------------------------------------------------------------------------
+
+#######################################
+# Create the given setup
+# Arguments:
+#    $1 = Path to create the setup
+# Outputs:
+#    Writes info to stdout
+#######################################
+dry_run_setup() {
+
+    [ $# -eq 0 ] && { echo "Usage error: $0"; exit 1; }
+
+    setup="$1"
+    dirSetup="setups/$setup"
+    dirSetupOrig="setups.orig/$setup"
+    dirOrig="$dirSetupOrig/0.orig"
+    dirConstant="$dirSetupOrig/constant"
+    dirSystem="$dirSetupOrig/system"
+
+    printf "\n# Create the setup: %s\n" "$setup"
+
+    if [ ! -d "$dirSetup" ]
+    then
+        mkdir -p "$dirSetup"
+
+        cp -aRfL "setups.orig/common/." "$dirSetup"
+        cp -afL "$dirSetupOrig"/All* "$dirSetup" 2>/dev/null || :
+        [ -d "$dirOrig" ] && cp -aRfL "$dirOrig/." "$dirSetup/0.orig"
+        [ -d "$dirConstant" ] && cp -aRfL "$dirConstant/." "$dirSetup/constant"
+        [ -d "$dirSystem" ] && cp -aRfL "$dirSystem/." "$dirSetup/system"
+    else
+        printf "\n      # Directory %s already exists\n" "$dirSetup"
+        printf "      # Skipping the creation of a new setup\n"
+    fi
+}
+
+
+#######################################
+# Run the given setup
+# Arguments:
+#    $1 = Path to the setup to run
+# Outputs:
+#    Writes info to stdout
+#######################################
+run_setup() {
+
+    [ $# -eq 0 ] && { echo "Usage error: $0"; exit 1; }
+
+    setup="$1"
+    dirSetup="setups/$setup"
+    dirResult="results/$setup"
+
+    dry_run_setup "$setup"
+    [ -d results ] || mkdir -p results
+
+    printf "\n# Run the setup: %s\n\n" "$setup"
+
+    if [ ! -d "$dirResult" ]
+    then
+        cp -Rf "$dirSetup" "$dirResult"
+
+        if [ "$common_mesh" = true ]
+        then
+            if [ -d results/mesh ]
+            then
+                printf "## Copy the common mesh to the setup: %s\n\n" "$setup"
+                cp -Rf results/mesh/polyMesh "$dirResult"/constant/.
+            fi
+        fi
+
+        if [ "$common_dynamic_code" = true ]
+        then
+            if [ -d results/dynamicCode ]
+            then
+                printf "## Copy the common dynamic code to the setup: %s\n\n" "$setup"
+                cp -Rf results/dynamicCode "$dirResult"/.
+            fi
+        fi
+
+
+        if [ "$parallel" = true ]
+        then
+            ( cd "$dirResult" && ./Allrun-parallel )
+        else
+            ( cd "$dirResult" && ./Allrun )
+        fi
+
+
+        if [ "$common_mesh" = true ]
+        then
+            if [ ! -d results/mesh ]
+            then
+                printf "\n## Store the mesh of %s as the common mesh\n\n" "$setup"
+                mkdir -p results/mesh
+                cp -Rf "$dirResult"/constant/polyMesh results/mesh/.
+            fi
+        fi
+
+        if [ "$common_dynamic_code" = true ]
+        then
+            if [ ! -d results/dynamicCode ] && [ -d "$dirResult"/dynamicCode ]
+            then
+                printf "\n## Store the dynamic code of %s as the common dynamic code\n\n" "$setup"
+                cp -Rf "$dirResult"/dynamicCode results/.
+            fi
+        fi
+
+
+    else
+        printf "      # Directory %s already exists\n" "$dirResult"
+        printf "      # Skipping the computation of the given setup\n"
+    fi
+}
+
+
+#------------------------------------------------------------------------------
+
+for setup in $setups
+do
+    dirSetupOrig="setups.orig/$setup"
+
+    if [ ! -d "$dirSetupOrig" ]
+    then
+        echo "Setup directory: $dirSetupOrig" \
+             "could not be found - skipping execution" 1>&2
+        continue
+    fi
+
+    if [ "$run" = true ]
+    then
+        run_setup "$setup"
+    else
+        dry_run_setup "$setup"
+    fi
+done
+
+
+if notTest "$@" && [ "$run" = true ]
+then
+    ./plot
+fi
+
+
+#------------------------------------------------------------------------------

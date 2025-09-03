@@ -1,0 +1,88 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+application     interCondensatingEvaporatingFoam;
+
+startFrom       startTime;
+
+startTime       1.36;
+
+stopAt          endTime;
+
+endTime         50;
+
+deltaT          1e-5;
+
+writeControl    adjustableRunTime;
+
+writeInterval   5;
+
+purgeWrite      0;
+
+writeFormat     ascii;
+
+writePrecision  12;
+
+writeCompression off;
+
+timeFormat      general;
+
+timePrecision   10;
+
+runTimeModifiable yes;
+
+adjustTimeStep  yes;
+
+maxCo           0.01;
+maxAlphaCo      0.01;
+maxDeltaT       0.01;
+
+
+functions
+{
+    interfaceHeight1
+    {
+        // Mandatory entries
+        type            interfaceHeight;
+        libs            (fieldFunctionObjects);
+        locations       ((0 0.0001 1e-5));
+
+        // Optional entries
+        alpha           alpha.liquid;
+        direction       (1 0 0);
+        liquid          true;
+        interpolationScheme    cellPoint;
+
+        // Optional (inherited) entries
+        writePrecision   16;
+        writeToFile      true;
+        useUserTime      true;
+
+        region          region0;
+        enabled         true;
+        log             true;
+        timeStart       0;
+        timeEnd         1000;
+        executeControl  timeStep;
+        executeInterval 1;
+        writeControl    timeStep;
+        writeInterval   3;
+    }
+}
+
+
+// ************************************************************************* //

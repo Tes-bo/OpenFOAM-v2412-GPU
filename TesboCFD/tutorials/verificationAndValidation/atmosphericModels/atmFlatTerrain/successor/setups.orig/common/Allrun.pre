@@ -1,0 +1,26 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+restore0Dir
+
+if [ ! -d constant/polyMesh ]
+then
+    runApplication blockMesh
+
+    runApplication topoSet
+
+    runApplication createPatch -overwrite
+
+    runApplication renumberMesh -overwrite -constant
+
+    runApplication checkMesh -allTopology -allGeometry -constant
+fi
+
+setup=${PWD##*/}
+
+runApplication mapFields \
+    ../../../precursor/results/"$setup" -sourceTime latestTime
+
+#------------------------------------------------------------------------------

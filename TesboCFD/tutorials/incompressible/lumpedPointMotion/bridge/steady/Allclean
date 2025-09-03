@@ -1,0 +1,14 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/CleanFunctions      # Tutorial clean functions
+#------------------------------------------------------------------------------
+
+cleanCase0
+
+# Clean up copied/derived files
+rm -rf constant/triSurface
+
+# Clean up debug/setup files
+rm -f *.txt *.vtp *.vtp.series
+
+#------------------------------------------------------------------------------

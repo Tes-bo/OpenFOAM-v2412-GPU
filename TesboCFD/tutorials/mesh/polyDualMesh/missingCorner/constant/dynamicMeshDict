@@ -1,0 +1,43 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      dynamicMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dynamicFvMesh   dynamicMotionSolverFvMesh;
+
+motionSolverLibs (fvMotionSolvers);
+
+solver          displacementPointSmoothing;
+
+displacementPointSmoothingCoeffs
+{
+    //// Use geometricElementTransform to maintain relative sizes
+    //pointSmoother           geometricElementTransform;
+    //transformationParameter 0.667;
+    //nPointSmootherIter      10;
+
+    // Use laplacian to untangle problem areas
+    pointSmoother           laplacian;
+    nPointSmootherIter      10;
+
+    //relaxationFactors       (1.0 0.8 0.6 0.4 0.2 0.0);
+    //meshQuality
+    //{
+    //    #includeEtc "caseDicts/meshQualityDict"
+    //}        
+}
+
+
+// ************************************************************************* //

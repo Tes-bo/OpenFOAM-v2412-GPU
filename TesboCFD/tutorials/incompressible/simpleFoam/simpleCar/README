@@ -1,0 +1,95 @@
+# Tutorial case: simpleCar
+
+Provides example of using the function objects:
+
+- forceCoeffs
+- fieldAverage
+- reference
+- runTimeControls
+
+The case automatically terminates according to the runTimeControls:
+
+- The first condition monitors the average drag coefficient, derived from a
+  combination of the forceCoeffs and valueAverage function objects.  When the
+  average stabilises to a tolerance of 1e-3 it sets the trigger 1 index
+
+```
+    runTimeControl1
+    {
+        type            runTimeControl;
+        libs            (utilityFunctionObjects);
+        conditions
+        {
+            condition1
+            {
+                type            average;
+                functionObject  forceCoeffs1;
+                fields          (Cd);
+                tolerance       1e-3;
+                window          20;
+                windowType      exact;
+            }
+        }
+        satisfiedAction setTrigger;
+        trigger         1;
+    }
+```
+
+- This starts the second condition, which instructs the code to terminate
+  after a further 100 time steps.
+
+```
+    runTimeControl2
+    {
+        type            runTimeControl;
+        libs            (utilityFunctionObjects);
+        controlMode     trigger;
+        triggerStart    1;
+        conditions
+        {
+            condition1
+            {
+                type            maxDuration;
+                duration        100;
+            }
+        }
+        satisfiedAction end;
+    }
+```
+
+The `reference` function object provides an additional example where:
+
+- the average of the sample object values are averaged in time:
+
+```
+    average1
+    {
+        type            valueAverage;
+        libs            (fieldFunctionObjects);
+        writeControl    writeTime;
+
+        // Average the result of the `sample1` function object, where the
+        // result is given by the name `average(p)`
+        functionObject  sample1;
+        fields          (average(p));
+    }
+```
+
+- this value is used by the `reference` function object, where the refValue
+  is a Function1 entry:
+
+```
+    reference1
+    {
+        type            reference;
+        libs            (fieldFunctionObjects);
+        writeControl    writeTime;
+        field           p;
+
+        // Set the refValue according to the result of the `average1` function
+        // object, where the result is given by the name `average(p)Mean`
+        refValue        functionObjectValue;
+        functionObject  average1;
+        functionObjectResult average(p)Mean;
+    }
+```

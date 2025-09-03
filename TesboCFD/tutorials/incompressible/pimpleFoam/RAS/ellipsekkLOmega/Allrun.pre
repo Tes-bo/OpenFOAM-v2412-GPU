@@ -1,0 +1,23 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+runApplication blockMesh
+runApplication transformPoints -scale '(1.6666 1 1)'
+
+runApplication -s xplane mirrorMesh -dict system/mirrorMeshDict.X -overwrite
+runApplication -s yplane mirrorMesh -dict system/mirrorMeshDict.Y -overwrite
+
+restore0Dir
+
+runApplication topoSet
+
+runApplication createPatch -overwrite
+
+runApplication surfaceMeshExtract \
+    -patches hole ppGeometry.vtp -constant -time none
+
+echo "End"
+
+#------------------------------------------------------------------------------

@@ -1,0 +1,102 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+application     pimpleFoam;
+
+startFrom       startTime;
+
+startTime       0;
+
+stopAt          endTime;
+
+endTime         0.2;
+
+deltaT          1e-3;
+
+writeControl    adjustableRunTime;
+
+writeInterval   0.1;
+
+purgeWrite      0;
+
+writeFormat     binary; //ascii;
+
+writePrecision  6;
+
+writeCompression off;
+
+timeFormat      general;
+
+timePrecision   6;
+
+runTimeModifiable true;
+
+adjustTimeStep  yes;
+
+maxCo           0.5;
+
+functions
+{
+    AMI1
+    {
+        type            surfaceFieldValue;
+        libs            (fieldFunctionObjects);
+        log             true;
+        executeControl  timeStep;
+        executeInterval 1;
+        writeFields     true;
+        regionType      patch;
+        name            AMI1;
+        operation       sum;
+        surfaceFormat   none;
+        fields          (phi);
+    }
+
+    AMI2
+    {
+        type            surfaceFieldValue;
+        libs            (fieldFunctionObjects);
+        log             true;
+        executeControl  timeStep;
+        executeInterval 1;
+        writeFields     true;
+        regionType      patch;
+        name            AMI2;
+        operation       sum;
+        surfaceFormat   none;
+        fields          (phi);
+    }
+
+    forces
+    {
+        type            forces;
+        libs            (forces);
+        writeControl    timeStep;
+        timeInterval    1;
+        log             yes;
+        patches         ( "rotor" );
+        pName           p;
+        UName           U;
+        rho             rhoInf;     // Indicates incompressible
+        log             true;
+        rhoInf          997;        // Redundant for incompressible
+        CofR            (0 0 0);    // Rotation around centre line of propeller
+        pitchAxis       (0 0 1);
+    }
+}
+
+
+// ************************************************************************* //

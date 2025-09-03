@@ -1,0 +1,208 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+application     pimpleFoam;
+
+startFrom       startTime;
+
+startTime       0;
+
+stopAt          endTime;
+
+endTime         200;
+
+deltaT          0.05;
+
+writeControl    runTime;
+
+writeInterval   0.5;
+
+purgeWrite      0;
+
+writeFormat     ascii;
+
+writePrecision  16;
+
+timeFormat      general;
+
+timePrecision   8;
+
+runTimeModifiable false;
+
+
+functions
+{
+    fieldAverage1
+    {
+        type                fieldAverage;
+        libs                (fieldFunctionObjects);
+
+        fields
+        (
+            U
+            {
+                mean            on;
+                prime2Mean      off;
+                base            time;
+                windowType      exact;
+                window          0.25;
+                windowName      movingAverageWindow;
+                allowRestart    no;
+            }
+
+            U
+            {
+                mean        on;
+                prime2Mean  on;
+                base        time;
+            }
+
+            p
+            {
+                mean        on;
+                prime2Mean  on;
+                base        time;
+            }
+        );
+
+        timeStart           10;
+        executeControl      timeStep;
+        executeInterval     1;
+        writeControl        onEnd;
+    }
+
+    mapFields1
+    {
+        type            mapFields;
+        libs            (fieldFunctionObjects);
+        mapRegion       coarseMesh;
+        mapMethod       cellVolumeWeight;
+        consistent      no;
+        patchMap        ();
+        cuttingPatches  ();
+        fields
+        (
+            U
+            p
+        );
+
+        timeStart       10;
+        timeEnd         2000;
+
+        executeControl  timeStep;
+        executeInterval 10;
+
+        writeControl    timeStep;
+        writeInterval   50;
+    }
+
+    mapFields2
+    {
+        ${mapFields1}
+        fields
+        (
+            UMean
+            pMean
+            UPrime2Mean
+            pPrime2Mean
+            UMean_movingAverageWindow
+        );
+    }
+
+    yPlus1
+    {
+        type            yPlus;
+        libs            (fieldFunctionObjects);
+        timeStart       10;
+        writeFields     yes;
+        executeControl  timeStep;
+        executeInterval 1;
+        writeControl    writeTime;
+    }
+
+    #include "DMDs/stdmd01" // field=U
+    #include "DMDs/stdmd02" // field=U, region=coarseMesh
+    #include "DMDs/stdmd03" // field=U, patch=cylinder
+    #include "DMDs/stdmd04" // field=U, patch=outlet
+    #include "DMDs/stdmd05" // field=U, maxRank=10
+    #include "DMDs/stdmd06" // field=U, region=coarseMesh, maxRank=5
+    #include "DMDs/stdmd07" // field=U, patch=outlet, maxRank=2
+
+    #include "DMDs/stdmd08" // field=p
+    #include "DMDs/stdmd09" // field=p, region=coarseMesh
+    #include "DMDs/stdmd10" // field=p, patch=cylinder
+    #include "DMDs/stdmd11" // field=p, patch=outlet
+    #include "DMDs/stdmd12" // field=p, maxRank=10
+    #include "DMDs/stdmd13" // field=p, region=coarseMesh, maxRank=5
+    #include "DMDs/stdmd14" // field=p, patch=outlet, maxRank=2
+
+    #include "DMDs/stdmd15" // field=U, modeSorter=kiewat
+    #include "DMDs/stdmd16" // field=U, region=coarseMesh, modeSorter=kiewat
+    #include "DMDs/stdmd17" // field=U, patch=cylinder, modeSorter=kiewat
+    #include "DMDs/stdmd18" // field=U, patch=outlet, modeSorter=kiewat
+    #include "DMDs/stdmd19" // field=U, maxRank=10, modeSorter=kiewat
+    #include "DMDs/stdmd20" // field=U, region=coarseMesh, maxRank=5, modeSorter=kiewat
+    #include "DMDs/stdmd21" // field=U, patch=outlet, maxRank=2, modeSorter=kiewat
+
+    #include "DMDs/stdmd22" // field=p, modeSorter=kiewat
+    #include "DMDs/stdmd23" // field=p, region=coarseMesh, modeSorter=kiewat
+    #include "DMDs/stdmd24" // field=p, patch=cylinder, modeSorter=kiewat
+    #include "DMDs/stdmd25" // field=p, patch=outlet, modeSorter=kiewat
+    #include "DMDs/stdmd26" // field=p, maxRank=10, modeSorter=kiewat
+    #include "DMDs/stdmd27" // field=p, region=coarseMesh, maxRank=5, modeSorter=kiewat
+    #include "DMDs/stdmd28" // field=p, patch=outlet, maxRank=2, modeSorter=kiewat
+
+    #include "DMDs/stdmd29" // field=UMean
+    // #include "DMDs/stdmd30" // field=UMean, region=coarseMesh
+    #include "DMDs/stdmd31" // field=UMean, patch=cylinder
+    #include "DMDs/stdmd32" // field=UMean, patch=outlet
+    #include "DMDs/stdmd33" // field=UMean, maxRank=10
+    // #include "DMDs/stdmd34" // field=UMean, region=coarseMesh, maxRank=5
+    #include "DMDs/stdmd35" // field=UMean, patch=outlet, maxRank=2
+
+    #include "DMDs/stdmd36" // field=pMean
+    // #include "DMDs/stdmd37" // field=pMean, region=coarseMesh
+    #include "DMDs/stdmd38" // field=pMean, patch=cylinder
+    #include "DMDs/stdmd39" // field=pMean, patch=outlet
+    #include "DMDs/stdmd40" // field=pMean, maxRank=10
+    // #include "DMDs/stdmd41" // field=pMean, region=coarseMesh, maxRank=5
+    #include "DMDs/stdmd42" // field=pMean, patch=outlet, maxRank=2
+
+    #include "DMDs/stdmd43" // field=UPrime2Mean
+    // #include "DMDs/stdmd44" // field=UPrime2Mean, region=coarseMesh
+    #include "DMDs/stdmd45" // field=UPrime2Mean, patch=cylinder
+    #include "DMDs/stdmd46" // field=UPrime2Mean, patch=outlet
+    #include "DMDs/stdmd47" // field=UPrime2Mean, maxRank=10
+    // #include "DMDs/stdmd48" // field=UPrime2Mean, region=coarseMesh, maxRank=5
+    #include "DMDs/stdmd49" // field=UPrime2Mean, patch=outlet, maxRank=2
+
+    #include "DMDs/stdmd50" // field=UMean_movingAverageWindow
+    // #include "DMDs/stdmd51" // field=UMean_movingAverageWindow, region=coarseMesh
+    #include "DMDs/stdmd52" // field=UMean_movingAverageWindow, patch=cylinder
+    #include "DMDs/stdmd53" // field=UMean_movingAverageWindow, patch=outlet
+    #include "DMDs/stdmd54" // field=UMean_movingAverageWindow, maxRank=10
+    // #include "DMDs/stdmd55" // field=UMean_movingAverageWindow, region=coarseMesh, maxRank=5
+    #include "DMDs/stdmd56" // field=UMean_movingAverageWindow, patch=outlet, maxRank=2
+
+    #include "DMDs/stdmd57" // field=yPlus
+    #include "DMDs/stdmd58" // field=yPlus, patch=cylinder
+    #include "DMDs/stdmd59" // field=yPlus, patch=outlet
+    #include "DMDs/stdmd60" // field=yPlus, maxRank=10
+    #include "DMDs/stdmd61" // field=yPlus, patch=cylinder, maxRank=2
+}
+
+
+// ************************************************************************* //

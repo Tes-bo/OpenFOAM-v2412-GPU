@@ -1,0 +1,538 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+scale       1;
+
+// * * * * coordinate positions
+// x-coordinate of inlet patch
+xInlet      -2.14;
+
+// x-coordinates for end of x-Zone 1 (i.e. upstream of hump)
+x1Top       -0.5712197653;
+x1Bottom    0;
+
+// x-coordinates for end of x-Zone 2 (i.e. downstream of hump)
+x2Top       1.657187218;
+x2Bottom    1;
+
+// x-coordinate of outlet patch
+xOutlet     4;
+
+// min/max y-coordinate of tunnel
+yMin        0;
+yMax        0.90905;
+
+// min/max z-coordinate of tunnel
+zMin        0;
+zMax        0.4;
+
+// * * * * grid parameter
+// x-spacing at inlet
+dxInlet     0.1;
+
+// cell-to-cell growth ratio from inlet to hump (x-Zone 1)
+rxInlet     1.2;
+
+// x-spacing in focus region (i.e. hump region)
+dxFocus     0.005;
+
+// x-spacing at outlet
+dxOutlet    0.05;
+
+// cell-to-cell growth ratio from focus region to outlet (x-Zone 3)
+rxOutlet    1.2;
+
+// y-spacing of 1st near-wall cell at bottom wall
+dyWall      1.5e-05;
+
+// cell-to-cell growth ratio near the wall (y-Zone 1)
+ryBL        1.15;
+
+// vertical length of y-Zone 1
+LyBL        0.05;
+
+// y-spacing in focus region (y-Zone 2)
+dyFocus     0.005;
+
+// vertical length of y-Zone 2
+LyFocus     0.11;
+
+// y-spacing in channel core (y-Zone 3)
+dyMid       0.025;
+
+// cell-to-cell growth from focus region to channel core (y-Zone 3)
+ryMid       1.2;
+
+// vertical length of y-Zone 3
+LyMid       0.34;
+
+// cell-to-cell growth from channel core to top wall (y-Zone 4)
+ryTop       1.2;
+
+// y-spacing of 1st near-wall cell at top wall
+dyTop       0.005;
+
+// uniform z-spacing (spanwise direction)
+dz          0.01;
+
+// * * * * meshing / x-direction
+
+// x-Zone 1 with grading
+NxZ1    #codeStream
+{
+    code
+    #{
+        const scalar tol  = 1.0e-10;
+        const int maxIter = 100;
+        scalar expRcorr   = $rxInlet;
+        scalar totExpR    = $dxInlet/$dxFocus;
+        scalar Nx         = Foam::log(totExpR)/Foam::log(expRcorr);
+        scalar deltaStart = $dxFocus;
+        scalar lEdge      = $x1Bottom - $xInlet;
+
+        for (int iter=0; iter < maxIter; ++iter)
+        {
+            scalar coeff  = pow(totExpR, 1./(Nx-1.));
+            scalar coeffN = pow(totExpR, Nx/(Nx-1.));
+
+            scalar f      = (deltaStart*((1.-coeffN) / ((1.-coeff)))) - lEdge;
+            scalar fPrime = deltaStart * Foam::log(totExpR) * (1./sqr(Nx-1.)) * ((1.-coeff)*coeffN - (1.-coeffN)*coeff)/ sqr(1.-coeff);
+            Nx            = Nx - (f/fPrime);
+
+            scalar residual = mag((deltaStart*((1.-coeffN) / ((1.-coeff)))) - lEdge);
+            if (residual <= tol) break;
+        }
+        os  << floor(Nx);
+    #};
+};
+
+totExpZ1x    #eval{ $dxFocus/$dxInlet };
+totExpZ1xTop #eval{ ($x2Top - $x1Top)/($NxZ1*$dxInlet) };
+
+// x-Zone 2 with uniform spacing
+NxFocus      #eval{ floor( ($x2Bottom-$x1Bottom)/$dxFocus ) };
+
+// x-Zone 3 with grading
+NxZ3    #codeStream
+{
+    code
+    #{
+        const scalar tol  = 1.0e-10;
+        const int maxIter = 100;
+        scalar expRcorr   = $rxOutlet;
+        scalar totExpR    = $dxOutlet/(1.05377349658562*$dxFocus);
+        scalar Nx         = Foam::log(totExpR)/Foam::log(expRcorr);
+        scalar deltaStart = $dxFocus;
+        scalar lEdge      = $xOutlet - $x2Bottom;
+
+        for (int iter=0; iter < maxIter; ++iter)
+        {
+            scalar coeff  = pow(totExpR, 1./(Nx-1.));
+            scalar coeffN = pow(totExpR, Nx/(Nx-1.));
+
+            scalar f      = (deltaStart*((1.-coeffN) / ((1.-coeff)))) - lEdge;
+            scalar fPrime = deltaStart * Foam::log(totExpR) * (1./sqr(Nx-1.)) * ((1.-coeff)*coeffN - (1.-coeffN)*coeff)/ sqr(1.-coeff);
+            Nx            = Nx - (f/fPrime);
+
+            scalar residual = mag((deltaStart*((1.-coeffN) / ((1.-coeff)))) - lEdge);
+            if (residual <= tol) break;
+        }
+        os  << floor(Nx);
+    #};
+};
+totExpZ3x    #eval{ $dxOutlet/$dxFocus };
+
+rxOutletcorr #codeStream
+{
+    code
+    #{
+        const scalar tol  = 1.0e-10;
+        const int maxIter = 100;
+        scalar expRcorr   = $rxOutlet;
+        scalar deltaStart = 1.00141417674807*($x2Top - $x1Top)/$NxFocus;
+        scalar lEdge      = $xOutlet - $x2Top;
+        int Nx            = $NxZ3;
+
+        for (int iter=0; iter < maxIter; ++iter)
+        {
+            scalar f      = (deltaStart*((pow(expRcorr, Nx))-1)/(expRcorr-1)) - lEdge;
+            scalar fPrime = deltaStart*((expRcorr-1)*Nx*(pow(expRcorr, (Nx-1)))-((pow(expRcorr, Nx))-1))/(sqr(expRcorr-1));
+            expRcorr      = expRcorr - (f/fPrime);
+
+            scalar residual = mag((deltaStart*(pow(expRcorr, Nx)-1)/(expRcorr-1)) - lEdge);
+            if (residual <= tol) break;
+        }
+        os  << expRcorr;
+    #};
+};
+totExpZ3xTop #eval{ pow($rxOutletcorr, $NxZ3-1.0) };
+
+// total number of cells in the x-direction
+Nx           #eval{ floor( $NxZ1 + $NxFocus + $NxZ3 ) };
+
+// * * * * meshing / y-direction
+
+// y-Zone 1 with grading
+NyZ1    #codeStream
+{
+    code
+    #{
+        const scalar tol  = 1.0e-10;
+        const int maxIter = 100;
+        scalar expRcorr   = $ryBL;
+        scalar totExpR    = $dyFocus/$dyWall;
+        scalar Nx         = Foam::log(totExpR)/Foam::log(expRcorr);
+        scalar deltaStart = $dyWall;
+        scalar lEdge      = $LyBL;
+
+        for (int iter=0; iter < maxIter; ++iter)
+        {
+            scalar coeff  = pow(totExpR, 1./(Nx-1.));
+            scalar coeffN = pow(totExpR, Nx/(Nx-1.));
+
+            scalar f      = (deltaStart*((1.-coeffN) / ((1.-coeff)))) - lEdge;
+            scalar fPrime = deltaStart * Foam::log(totExpR) * (1./sqr(Nx-1.)) * ((1.-coeff)*coeffN - (1.-coeffN)*coeff)/ sqr(1.-coeff);
+            Nx            = Nx - (f/fPrime);
+
+            scalar residual = mag((deltaStart*((1.-coeffN) / ((1.-coeff)))) - lEdge);
+            if (residual <= tol) break;
+        }
+        os  << floor(Nx);
+    #};
+};
+totExpZ1y   #eval{ $dyFocus/$dyWall };
+
+// y-Zone 2 with uniform spacing
+NyZ2        #eval{ floor( $LyFocus/$dyFocus )};
+
+// y-Zone 3 with grading
+NyZ3    #codeStream
+{
+    code
+    #{
+        const scalar tol  = 1.0e-10;
+        const int maxIter = 100;
+        scalar expRcorr   = $ryMid;
+        scalar totExpR    = $dyMid/$dyFocus;
+        scalar Nx         = Foam::log(totExpR)/Foam::log(expRcorr);
+        scalar deltaStart = $dyFocus;
+        scalar lEdge      = $LyMid;
+
+        for (int iter=0; iter < maxIter; ++iter)
+        {
+            scalar coeff  = pow(totExpR, 1./(Nx-1.));
+            scalar coeffN = pow(totExpR, Nx/(Nx-1.));
+
+            scalar f      = (deltaStart*((1.-coeffN) / ((1.-coeff)))) - lEdge;
+            scalar fPrime = deltaStart * Foam::log(totExpR) * (1./sqr(Nx-1.)) * ((1.-coeff)*coeffN - (1.-coeffN)*coeff)/ sqr(1.-coeff);
+            Nx            = Nx - (f/fPrime);
+
+            scalar residual = mag((deltaStart*((1.-coeffN) / ((1.-coeff)))) - lEdge);
+            if (residual <= tol) break;
+        }
+        os  << floor(Nx);
+    #};
+};
+totExpZ3y   #eval{ $dyMid/$dyFocus };
+
+
+// y-Zone 4 with grading
+NyZ4    #codeStream
+{
+    code
+    #{
+        const scalar tol  = 1.0e-10;
+        const int maxIter = 100;
+        scalar expRcorr   = $ryTop;
+        scalar totExpR    = $dyMid/$dyTop;
+        scalar Nx         = Foam::log(totExpR)/Foam::log(expRcorr);
+        scalar deltaStart = $dyTop;
+        scalar lEdge      = $yMax - $yMin - $LyMid - $LyFocus - $LyBL;
+
+        for (int iter=0; iter < maxIter; ++iter)
+        {
+            scalar coeff  = pow(totExpR, 1./(Nx-1.));
+            scalar coeffN = pow(totExpR, Nx/(Nx-1.));
+
+            scalar f      = (deltaStart*((1.-coeffN) / ((1.-coeff)))) - lEdge;
+            scalar fPrime = deltaStart * Foam::log(totExpR) * (1./sqr(Nx-1.)) * ((1.-coeff)*coeffN - (1.-coeffN)*coeff)/ sqr(1.-coeff);
+            Nx            = Nx - (f/fPrime);
+
+            scalar residual = mag((deltaStart*((1.-coeffN) / ((1.-coeff)))) - lEdge);
+            if (residual <= tol) break;
+        }
+        os  << floor(Nx);
+    #};
+};
+totExpZ4y   #eval{ $dyTop/$dyMid };
+
+// total number of cells in the y-direction
+Ny          #eval{ floor($NyZ1 + $NyZ2 + $NyZ3 + $NyZ4) };
+
+// * * * * meshing / z-direction
+
+// total number of cells in the z-direction
+Nz          #eval{ floor(($zMax-$zMin)/$dz) };
+
+// * * * * report additional grid statistics
+#codeStream
+{
+    code
+    #{
+        Info<< nl
+            << "Computed grid parameters:" << nl
+            << "    > x-direction: " << nl
+            << "      - Zone 1 (x): " << nl
+            << "        - first spacing:                        dxInlet      = " << $dxInlet << " x c" << nl
+            << "        - last spacing:                         dxFocus      = " << $dxFocus << " x c" << nl
+            << "        - number of cells:                      NxZ1         = " << $NxZ1 << nl
+            << "        - cell-to-cell ratio (prescribed):      rxInlet      = " << $rxInlet << nl
+            << "        - first-to-last ratio (bottom):         totExpZ1x    = " << $totExpZ1x << nl
+            << "        - first-to-last ratio (top):            totExpZ1xTop = " << $totExpZ1xTop << nl
+            << "      - Zone 2 (x): " << nl
+            << "        - first / last spacing:                 dxFocus      = " << $dxFocus << " x c" << nl
+            << "        - number of cells:                      NxFocus      = " << $NxFocus << nl
+            << "        - cell-to-cell ratio:                   rxFocus      = 1" << nl
+            << "      - Zone 3 (x): " << nl
+            << "        - first spacing:                        dxFocus      = " << $dxFocus << " x c" << nl
+            << "        - last spacing:                         dxOutlet     = " << $dxOutlet << " x c" << nl
+            << "        - number of cells:                      NxZ3         = " << $NxZ3 << nl
+            << "        - cell-to-cell ratio (prescribed):      rxOutlet     = " << $rxOutlet << nl
+            << "        - cell-to-cell ratio (corrected,top):   rxOutletcorr = " << $rxOutletcorr << nl
+            << "        - first-to-last ratio (bottom):         totExpZ3x    = " << $totExpZ3x << nl
+            << "        - first-to-last ratio (top):            totExpZ3xTop = " << $totExpZ3xTop << nl
+            << "    - Total number of cells (x):                Nx           = " << $Nx << nl
+            << endl;
+        Info<< "    > y-direction: " << nl
+            << "      - Zone 1 (y): " << nl
+            << "        - length of edge:                       LyBL         = " << $LyBL << " x c" << nl
+            << "        - first spacing:                        dyWall       = " << $dyWall << " x c" << nl
+            << "        - last spacing:                         dyFocus      = " << $dyFocus << " x c" << nl
+            << "        - number of cells:                      NyZ1         = " << $NyZ1 << nl
+            << "        - cell-to-cell ratio (prescribed):      ryBL         = " << $ryBL << nl
+            << "        - first-to-last ratio:                  totExpZ1y    = " << $totExpZ1y << nl
+            << "      - Zone 2 (y): " << nl
+            << "        - length of edge:                       LyFocus      = " << $LyFocus << " x c" << nl
+            << "        - first / last spacing:                 dyFocus      = " << $dyFocus << " x c" << nl
+            << "        - number of cells:                      NyZ2         = " << $NyZ2 << nl
+            << "        - cell-to-cell ratio:                   ryFocus      = 1" << nl
+            << "      - Zone 3 (y): " << nl
+            << "        - length of edge:                       LyMid        = " << $LyMid << " x c" << nl
+            << "        - first spacing:                        dyFocus      = " << $dyFocus << " x c" << nl
+            << "        - last spacing:                         dyMid        = " << $dyMid << " x c" << nl
+            << "        - number of cells:                      NyZ3         = " << $NyZ3 << nl
+            << "        - cell-to-cell ratio (prescribed):      ryMid        = " << $ryMid << nl
+            << "        - first-to-last ratio:                  totExpZ3y    = " << $totExpZ3y << nl
+            << "      - Zone 4 (y): " << nl
+            << "        - first spacing:                        dyMid        = " << $dyMid << " x c" << nl
+            << "        - last spacing:                         dyTop        = " << $dyTop << " x c" << nl
+            << "        - number of cells:                      NyZ4         = " << $NyZ4 << nl
+            << "        - cell-to-cell ratio (prescribed):      ryTop        = " << $ryTop << nl
+            << "        - first-to-last ratio:                  totExpZ4y    = " << $totExpZ4y << nl
+            << "    - Total number of cells (y):                Ny           = " << $Ny << nl
+            << endl;
+    #};
+};
+
+vertices
+(
+    ( $xInlet    $yMin  $zMax )  // 0
+    ( $xInlet    $yMin  $zMin )  // 1
+    ( $xInlet    $yMax  $zMax )  // 2
+    ( $xInlet    $yMax  $zMin )  // 3
+    ( $x1Bottom  $yMin  $zMax )  // 4
+    ( $x1Bottom  $yMin  $zMin )  // 5
+    ( $x1Top     $yMax  $zMax )  // 6
+    ( $x1Top     $yMax  $zMin )  // 7
+    ( $x2Bottom  $yMin  $zMax )  // 8
+    ( $x2Bottom  $yMin  $zMin )  // 9
+    ( $x2Top     $yMax  $zMax )  // 10
+    ( $x2Top     $yMax  $zMin )  // 11
+    ( $xOutlet   $yMin  $zMax )  // 12
+    ( $xOutlet   $yMin  $zMin )  // 13
+    ( $xOutlet   $yMax  $zMax )  // 14
+    ( $xOutlet   $yMax  $zMin )  // 15
+);
+
+zoneX1Bottom
+(
+    (1 1 $totExpZ1x)
+);
+
+zoneX1Top
+(
+    (1 1 $totExpZ1xTop)
+);
+
+zoneX3Bottom
+(
+    (1 1 $totExpZ3x)
+);
+
+zoneX3Top
+(
+    (1 1 $totExpZ3xTop)
+);
+
+zoneY
+(
+    ( $LyBL                                              $NyZ1 $totExpZ1y )
+    ( $LyFocus                                           $NyZ2 1          )
+    ( $LyMid                                             $NyZ3 $totExpZ3y )
+    ( #eval{ $yMax - $yMin - $LyMid - $LyFocus - $LyBL } $NyZ4 $totExpZ4y )
+);
+
+blocks
+(
+    hex ( 1  5  7  3  0  4  6  2  ) ($NxZ1 $Ny $Nz) edgeGrading
+    (
+        $zoneX1Bottom
+        $zoneX1Top
+        $zoneX1Top
+        $zoneX1Bottom
+        $zoneY
+        $zoneY
+        $zoneY
+        $zoneY
+        1
+        1
+        1
+        1
+    )
+
+    hex ( 5  9  11 7  4  8  10 6  ) ($NxFocus $Ny $Nz) simpleGrading
+    (
+        (
+            (1 1 1)
+        )
+        $zoneY
+        (
+            (1 1 1)
+        )
+    )
+
+    hex ( 9  13 15 11 8  12 14 10 ) ($NxZ3 $Ny $Nz) edgeGrading
+    (
+        $zoneX3Bottom
+        $zoneX3Top
+        $zoneX3Top
+        $zoneX3Bottom
+        $zoneY
+        $zoneY
+        $zoneY
+        $zoneY
+        1
+        1
+        1
+        1
+    )
+);
+
+edges
+(
+    // definition of poly lines for hump contour
+    polyLine 4 8
+    (
+        #include "geometry/polyLine_4to8"
+    )
+    polyLine 5 9
+    (
+        #include "geometry/polyLine_5to9"
+    )
+
+    // definition of poly lines for contour of top wall
+    polyLine 6 10
+    (
+        #include "geometry/polyLine_6to10"
+    )
+    polyLine 7 11
+    (
+        #include "geometry/polyLine_7to11"
+    )
+);
+
+boundary
+(
+    inlet
+    {
+        type            patch;
+        faces
+        (
+            (0 2 3 1)
+        );
+    }
+
+    outlet
+    {
+        type            patch;
+        faces
+        (
+            (12 13 15 14)
+        );
+    }
+
+    topWall
+    {
+        type            wall;
+        faces
+        (
+            ( 2  6  7  3  )
+            ( 6  10 11 7  )
+            ( 10 14 15 11 )
+        );
+    }
+
+    bottomWall
+    {
+        type            wall;
+        faces
+        (
+            ( 0  1  5  4  )
+            ( 4  5  9  8  )
+            ( 8  9  13 12 )
+        );
+    }
+
+    zPeriodic_half0
+    {
+        type            cyclic;
+        neighbourPatch  zPeriodic_half1;
+        faces
+        (
+            ( 1  3  7  5  )
+            ( 5  7  11 9  )
+            ( 9  11 15 13 )
+        );
+    }
+
+    zPeriodic_half1
+    {
+        type            cyclic;
+        neighbourPatch  zPeriodic_half0;
+        faces
+        (
+            ( 0  4  6  2  )
+            ( 4  8  10 6  )
+            ( 8  12 14 10 )
+        );
+    }
+);
+
+mergePatchPairs
+(
+);
+
+// ************************************************************************* //

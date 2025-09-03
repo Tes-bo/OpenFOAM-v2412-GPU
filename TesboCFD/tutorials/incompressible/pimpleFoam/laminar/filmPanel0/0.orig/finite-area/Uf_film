@@ -1,0 +1,51 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       areaVectorField;
+    location    "0";
+    object      Uf_film;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+Uin 0.309;
+// To fix original position, no rotate, gravity is modified
+
+// alphaPlateFix 90;
+// Uin_y #eval{ - $Uin*sin(degToRad($alphaPlateFix)) };
+// Uin_z #eval{   $Uin*cos(degToRad($alphaPlateFix)) };
+
+dimensions      [0 1 -1 0 0 0 0];
+
+internalField   uniform (0 0 0);
+
+boundaryField
+{
+    inlet
+    {
+        type    fixedValue;
+        value   uniform (0 #eval{ -$Uin } 0);
+    }
+
+    outlet
+    {
+        type    zeroGradient;
+    }
+
+    side
+    {
+        //type    fixedValue;
+        //value   $internalField;
+        type    slip;
+        value   $internalField;
+    }
+}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

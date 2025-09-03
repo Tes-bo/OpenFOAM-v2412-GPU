@@ -1,0 +1,16 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/CleanFunctions      # Tutorial clean functions
+#------------------------------------------------------------------------------
+
+#cleanCase0
+cleanCase
+
+rm -f constant/triSurface/boundary.obj
+rm -f constant/triSurface/geometry.eMesh
+rm -f constant/triSurface/geometry.obj
+rm -f constant/triSurface/blockMesh.obj
+rm -f constant/triSurface/outside*.obj
+rm -rf constant/extendedFeatureEdgeMesh
+
+#------------------------------------------------------------------------------

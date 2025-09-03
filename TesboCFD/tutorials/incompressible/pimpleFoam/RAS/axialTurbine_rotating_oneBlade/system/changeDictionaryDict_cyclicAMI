@@ -1,0 +1,209 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      changeDictionaryDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+boundary
+{
+    GVINLET
+    {
+        type            patch;
+        inGroups        1(inlet);
+    }
+    GVCYCLIC1
+    {
+        type            cyclicAMI;
+        inGroups        1(cyclicAMI);
+        matchTolerance  0.0001;
+        transform       rotational;
+        rotationAxis    (0 0 1);
+        rotationCentre  (0 0 0);
+        rotationAngle   72;
+        neighbourPatch  GVCYCLIC2;
+        AMIMethod       faceAreaWeightAMI;
+        restartUncoveredSourceFace 1;
+    }
+    GVCYCLIC2
+    {
+        type            cyclicAMI;
+        inGroups        1(cyclicAMI);
+        matchTolerance  0.0001;
+        transform       rotational;
+        rotationAxis    (0 0 1);
+        rotationCentre  (0 0 0);
+        rotationAngle   -72;
+        neighbourPatch  GVCYCLIC1;
+        AMIMethod       faceAreaWeightAMI;
+        restartUncoveredSourceFace 1;
+    }
+    GVBLADE
+    {
+        type            wall;
+        inGroups        1(blades);
+        closedSolidBodyMotion false;
+    }
+    GVHUB
+    {
+        type            wall;
+        inGroups        1(hub);
+        closedSolidBodyMotion false;
+    }
+    GVSHROUD
+    {
+        type            wall;
+        inGroups        1(shroud);
+        closedSolidBodyMotion false;
+    }
+    GVOUTLET
+    {
+        type            cyclicPeriodicAMI;
+        inGroups        2(cyclicAMI upstreamRSIs);
+        matchTolerance  0.01;
+        transform       unknown;
+        neighbourPatch  RUINLET;
+        periodicPatch   RUCYCLIC1;
+        AMIMethod       faceAreaWeightAMI;
+        requireMatch    0;
+        restartUncoveredSourceFace 1;
+        maxIter         4;
+    }
+    RUINLET
+    {
+        type            cyclicPeriodicAMI;
+        inGroups        2(cyclicAMI downstreamRSIs);
+        matchTolerance  0.01;
+        transform       unknown;
+        neighbourPatch  GVOUTLET;
+        periodicPatch   RUCYCLIC1;
+        AMIMethod       faceAreaWeightAMI;
+        requireMatch    0;
+        restartUncoveredSourceFace 1;
+        maxIter         4;
+    }
+    RUCYCLIC1
+    {
+        type            cyclicAMI;
+        inGroups        1(cyclicAMI);
+        matchTolerance  0.0001;
+        transform       rotational;
+        neighbourPatch  RUCYCLIC2;
+        rotationAxis    (0 0 1);
+        rotationCentre  (0 0 0);
+        rotationAngle   72;
+        AMIMethod       faceAreaWeightAMI;
+        restartUncoveredSourceFace 1;
+    }
+    RUCYCLIC2
+    {
+        type            cyclicAMI;
+        inGroups        1(cyclicAMI);
+        matchTolerance  0.0001;
+        transform       rotational;
+        neighbourPatch  RUCYCLIC1;
+        rotationAxis    (0 0 1);
+        rotationCentre  (0 0 0);
+        rotationAngle   -72;
+        AMIMethod       faceAreaWeightAMI;
+        restartUncoveredSourceFace 1;
+    }
+    RUBLADE
+    {
+        type            wall;
+        inGroups        1(blades);
+        closedSolidBodyMotion false;
+    }
+    RUHUB
+    {
+        type            wall;
+        inGroups        1(hub);
+        closedSolidBodyMotion false;
+    }
+    RUSHROUD
+    {
+        type            wall;
+        inGroups        1(shroud);
+        closedSolidBodyMotion false;
+    }
+    RUOUTLET
+    {
+        type            cyclicPeriodicAMI;
+        inGroups        2(cyclicAMI upstreamRSIs);
+        matchTolerance  0.01;
+        transform       unknown;
+        neighbourPatch  DTINLET;
+        periodicPatch   RUCYCLIC1;
+        AMIMethod       faceAreaWeightAMI;
+        requireMatch    0;
+        restartUncoveredSourceFace 1;
+        maxIter         4;
+    }
+    DTINLET
+    {
+        type            cyclicPeriodicAMI;
+        inGroups        2(cyclicAMI downstreamRSIs);
+        matchTolerance  0.01;
+        transform       unknown;
+        neighbourPatch  RUOUTLET;
+        periodicPatch   RUCYCLIC1;
+        AMIMethod       faceAreaWeightAMI;
+        requireMatch    0;
+        restartUncoveredSourceFace 1;
+        maxIter         4;
+    }
+    DTOUTLET
+    {
+        type            patch;
+        inGroups        1(outlet);
+    }
+    DTCYCLIC1
+    {
+        type            cyclicAMI;
+        inGroups        1(cyclicAMI);
+        matchTolerance  0.0001;
+        transform       rotational;
+        neighbourPatch  DTCYCLIC2;
+        rotationAxis    (0 0 1);
+        rotationCentre  (0 0 0);
+        rotationAngle   72;
+        AMIMethod       faceAreaWeightAMI;
+        restartUncoveredSourceFace 1;
+    }
+    DTCYCLIC2
+    {
+        type            cyclicAMI;
+        inGroups        1(cyclicAMI);
+        matchTolerance  0.0001;
+        transform       rotational;
+        neighbourPatch  DTCYCLIC1;
+        rotationAxis    (0 0 1);
+        rotationCentre  (0 0 0);
+        rotationAngle   -72;
+        AMIMethod       faceAreaWeightAMI;
+        restartUncoveredSourceFace 1;
+    }
+    DTHUB
+    {
+        type            wall;
+        inGroups        1(hub);
+        closedSolidBodyMotion false;
+    }
+    DTSHROUD
+    {
+        type            wall;
+        inGroups        1(shroud);
+        closedSolidBodyMotion false;
+    }
+}
+
+// ************************************************************************* //

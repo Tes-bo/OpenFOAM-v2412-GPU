@@ -1,0 +1,165 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      optimisationDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+optimisationManager steadyOptimisation;
+
+primalSolvers
+{
+    op1
+    {
+        active                 true;
+        type                   incompressible;
+        solver                 simple;
+        solutionControls
+        {
+            nIters        700;
+            nInitialIters 1000;
+            residualControl
+            {
+                "p.*"       5.e-5;
+                "U.*"       5.e-7;
+                "nu.*"      5.e-5;
+            }
+        }
+    }
+}
+
+adjointManagers
+{
+    adjManager1
+    {
+        primalSolver             op1;
+        adjointSolvers
+        {
+            as1
+            {
+                // choose adjoint solver
+                //----------------------
+                active                 true;
+                type                   incompressible;
+                solver                 adjointSimple;
+                // manage objectives
+                //------------------
+                objectives
+                {
+                    type  incompressible;
+                    objectiveNames
+                    {
+                        losses
+                        {
+                            weight          1.; 
+                            type            PtLosses;
+                            patches         (inlet "outlet.*");
+                            normalise       true;
+                        }
+                    }
+                }
+                // ATC treatment
+                //--------------
+                ATCModel
+                {
+                    ATCModel        standard;
+                }
+                // solution control
+                //------------------
+                solutionControls
+                {
+                    nIters        700;
+                    nInitialIters 1000;
+                    printMaxMags  true;
+                    residualControl
+                    {
+                        "pa.*"       5.e-5;
+                        "Ua.*"       5.e-5;
+                        "nua.*"      5.e-5;
+                    }
+                }
+            }
+            vol
+            {
+                // choose adjoint solver
+                //----------------------
+                active                 true;
+                type                   null;
+                isConstraint           true;
+                // manage objectives
+                //------------------
+                objectives
+                {
+                    type  geometric;
+                    objectiveNames
+                    {
+                        vol
+                        {
+                            weight         -1.; 
+                            type            topOSolidVolume;
+                          //percentage      0.462;
+                            percentage
+                            {
+                                type scale;
+                                scale
+                                {
+                                    type      stepRamp;
+                                    start     0;
+                                    duration  70;
+                                    interval  1;
+                                }
+                                value
+                                {
+                                    type constant;
+                                    value constant 0.538;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+optimisation
+{
+    designVariables
+    {
+        type levelSet;
+        sensitivityType topO;
+        fixedZeroPorousZones   (IEntranceSet OEntranceSet OREntranceSet);
+        regularisation
+        {
+            regularise     true;
+            meanRadiusMult 20;
+        }
+        interpolation
+        {
+            function    sigmoidalHeaviside;
+            meanRadiusMult  1;
+            //d           0.01;
+        }
+        initialisation
+        { 
+            method      meshWave;
+        }
+        betaMax    50;
+    }
+    updateMethod
+    {
+        method MMA;
+        eta 1;
+    }
+}
+
+// ************************************************************************* //

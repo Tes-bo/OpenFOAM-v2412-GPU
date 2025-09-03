@@ -1,0 +1,48 @@
+propellerInfo1
+{
+    type            propellerInfo;
+    libs            (forces);
+    writeControl    writeTime;
+
+    patches         ("propeller.*");
+
+    // Setting reference back to wake average Uz velocity computed by [this]
+    // function object
+    URef            functionObjectValue;
+    functionObject  propellerInfo1;
+    functionObjectResult UzMean;
+
+    rho             rhoInf; // incompressible
+    rhoInf          1.2;
+
+
+    // Propeller data:
+
+    writePropellerPerformance yes;
+
+    // Radius
+    radius          0.1;
+
+    rotationMode    specified;
+
+    // rotationMode = specified:
+    origin          (0 -0.1 0);
+    n               25.15;
+    axis            (0 1 0);
+
+    // Optionally write wake text files
+    // Note: controlled by writeControl
+    writeWakeFields yes;
+
+    // Sample plane (disk) properties
+    // Note: controlled by writeControl
+    sampleDisk
+    {
+        r1              0.05;
+        r2              0.2;
+        nTheta          36;
+        nRadial         10;
+        interpolationScheme cellPoint;
+        surfaceWriter   vtk;
+    }
+}

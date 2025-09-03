@@ -1,0 +1,21 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+# Set-up the LES case
+cp -f ../lesFiles/fvS* ../lesFiles/controlDict system/
+cp -f ../lesFiles/turbulenceProperties constant/
+
+# restart from iteration 500
+ls -d processor* | xargs -I {} rm -rf ./{}/0
+ls -d processor* | xargs -I {} mv -f ./{}/500 ./{}/0
+ls -d processor* | xargs -I {} rm -rf ./{}/0/uniform
+
+runParallel pisoFoam
+
+runApplication reconstructParMesh -constant
+
+runApplication reconstructPar
+
+#------------------------------------------------------------------------------

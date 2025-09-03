@@ -1,0 +1,9 @@
+Unit testcase demonstrating extruding from internal faces
+(using a faceZone instead of a faceSet)
+
+- pass 1 :  extrude on bottom left cell both internal faces and a boundary face.
+            These faces will all be extruded away from cell 0 (i.e. no flip in
+            the faceZone)
+
+- pass 2 :  extrude on top right cell both internal and boundary faces.
+            The internal faces will all have flip in the faceZone)

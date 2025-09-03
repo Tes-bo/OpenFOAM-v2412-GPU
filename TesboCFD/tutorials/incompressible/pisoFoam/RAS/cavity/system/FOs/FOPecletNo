@@ -1,0 +1,33 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+PecletNo1
+{
+    // Mandatory entries
+    type            PecletNo;
+    libs            (fieldFunctionObjects);
+
+    // Optional entries
+    rho             rho;
+
+    // Optional (inherited) entries
+    field           phi;
+    result          PecletNoField;
+    region          region0;
+    enabled         true;
+    log             true;
+    timeStart       0.1;
+    timeEnd         1000;
+    executeControl  timeStep;
+    executeInterval 5;
+    writeControl    writeTime;
+    writeInterval   -1;
+}
+
+
+// ************************************************************************* //

@@ -1,0 +1,178 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      createPatchDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// Do a synchronisation of coupled points after creation of any patches.
+// Note: this does not work with points that are on multiple coupled patches
+//       with transformations (i.e. cyclics).
+pointSync false;
+
+// Patches to create.
+patches
+(
+    // Central <-> Inlet
+    // ~~~~~~~~~~~~~~~~~
+
+    {
+        //- Master side patch
+        name            central_inlet_couple;
+        patchInfo
+        {
+            type            cyclicACMI;
+            nonOverlapPatch central_inlet_blockage;
+            neighbourPatch  inlet_central_couple;
+        }
+        constructFrom patches;
+        patches (central_inlet);
+    }
+    {
+        //- Blockage
+        name            central_inlet_blockage;
+        patchInfo
+        {
+            type            wall;
+        }
+        constructFrom patches;
+        patches (central_inlet);
+    }
+
+    {
+        //- Master side patch
+        name            inlet_central_couple;
+        patchInfo
+        {
+            type            cyclicACMI;
+            nonOverlapPatch inlet_central_blockage;
+            neighbourPatch  central_inlet_couple;
+        }
+        constructFrom patches;
+        patches (inlet_couple);
+    }
+    {
+        //- Blockage
+        name            inlet_central_blockage;
+        patchInfo
+        {
+            type            wall;
+        }
+        constructFrom patches;
+        patches (inlet_couple);
+    }
+
+
+
+    // Central <-> Bottom
+    // ~~~~~~~~~~~~~~~~~~
+
+    {
+        //- Master side patch
+        name            central_bottom_couple;
+        patchInfo
+        {
+            type            cyclicACMI;
+            nonOverlapPatch central_bottom_blockage;
+            neighbourPatch  bottom_central_couple;
+        }
+        constructFrom patches;
+        patches (central_bottom);
+    }
+    {
+        //- Blockage
+        name            central_bottom_blockage;
+        patchInfo
+        {
+            type            wall;
+        }
+        constructFrom patches;
+        patches (central_bottom);
+    }
+
+    {
+        //- Master side patch
+        name            bottom_central_couple;
+        patchInfo
+        {
+            type            cyclicACMI;
+            nonOverlapPatch bottom_central_blockage;
+            neighbourPatch  central_bottom_couple;
+        }
+        constructFrom patches;
+        patches (bottom_couple);
+    }
+    {
+        //- Blockage
+        name            bottom_central_blockage;
+        patchInfo
+        {
+            type            wall;
+        }
+        constructFrom patches;
+        patches (bottom_couple);
+    }
+
+
+
+    // Central <-> Top
+    // ~~~~~~~~~~~~~~~
+
+    {
+        //- Master side patch
+        name            central_top_couple;
+        patchInfo
+        {
+            type            cyclicACMI;
+            nonOverlapPatch central_top_blockage;
+            neighbourPatch  top_central_couple;
+        }
+        constructFrom patches;
+        patches (central_top);
+    }
+    {
+        //- Blockage
+        name            central_top_blockage;
+        patchInfo
+        {
+            type            wall;
+        }
+        constructFrom patches;
+        patches (central_top);
+    }
+
+    {
+        //- Master side patch
+        name            top_central_couple;
+        patchInfo
+        {
+            type            cyclicACMI;
+            nonOverlapPatch top_central_blockage;
+            neighbourPatch  central_top_couple;
+        }
+        constructFrom patches;
+        patches (top_couple);
+    }
+    {
+        //- Blockage
+        name            top_central_blockage;
+        patchInfo
+        {
+            type            wall;
+        }
+        constructFrom patches;
+        patches (top_couple);
+    }
+);
+
+
+// ************************************************************************* //

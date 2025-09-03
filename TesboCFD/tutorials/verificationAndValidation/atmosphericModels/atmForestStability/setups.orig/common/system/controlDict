@@ -1,0 +1,108 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// Make sure all utilities know specialised models
+libs            (atmosphericModels);
+
+application     buoyantBoussinesqSimpleFoam;
+
+startFrom       startTime;
+
+startTime       0;
+
+stopAt          endTime;
+
+endTime         100000;
+
+deltaT          1;
+
+writeControl    timeStep;
+
+writeInterval   50000;
+
+purgeWrite      0;
+
+writeFormat     ascii;
+
+writePrecision  16;
+
+writeCompression off;
+
+timeFormat      general;
+
+timePrecision   6;
+
+runTimeModifiable false;
+
+functions
+{
+    ObukhovLength1
+    {
+        // Mandatory entries
+        type            ObukhovLength;
+        libs            (fieldFunctionObjects);
+
+        // Optional entries
+        U               U;
+        result1         ObukhovLength;
+        result2         Ustar;
+        rhoRef          1.0;
+        kappa           0.4;
+        beta            3e-3;
+
+        // Optional (inherited) entries
+        writeControl    writeTime;
+    }
+
+    fieldAverage1
+    {
+        type            fieldAverage;
+        libs            (fieldFunctionObjects);
+        writeControl    writeTime;
+
+        fields
+        (
+            U
+            {
+                mean        on;
+                prime2Mean  off;
+                base        time;
+            }
+
+            ObukhovLength
+            {
+                mean        on;
+                prime2Mean  off;
+                base        time;
+            }
+
+            Ustar
+            {
+                mean        on;
+                prime2Mean  off;
+                base        time;
+            }
+        );
+    }
+
+    #includeFunc "turbulenceFields"
+    #includeFunc "sampleU"
+    #includeFunc "sampleScalars"
+    #includeFunc "sampleR"
+}
+
+
+// ************************************************************************* //

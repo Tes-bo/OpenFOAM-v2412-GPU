@@ -1,0 +1,20 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+// Controllers for lumpedPointMotion
+
+controllers
+(
+    girderA girderB
+    girderCross1 girderCross2 girderCross3
+    girderCross4 girderCross5 girderCross6
+    tower
+    support
+);
+
+// ************************************************************************* //

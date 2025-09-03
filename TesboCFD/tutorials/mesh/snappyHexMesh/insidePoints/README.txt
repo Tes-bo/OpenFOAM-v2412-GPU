@@ -1,0 +1,2 @@
+- demo multiple insidePoints per cellZone
+- two boxes, one additionally split in y direction so in total 3 separate regions

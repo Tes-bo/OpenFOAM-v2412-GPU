@@ -1,0 +1,15 @@
+! ------------------------------
+! PROSTAR file of NACA airfoil
+! 40000 cells, 80860 points
+! scaling = meters
+! ------------------------------
+
+ctable 2 fluid ,,,,,,
+ctname 2 fluid
+
+*set icvo mxv - 1" << nl
+vread nacaAirfoil.vrt icvo,,,coded
+cread nacaAirfoil.cel icvo,,,add,coded
+*set icvo
+
+! end

@@ -1,0 +1,18 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+./Allrun.pre
+
+runApplication $(getApplication)
+
+
+runApplication -s "epsilon" postProcess -func sampleEpsilon -latestTime
+runApplication -s "k" postProcess -func sampleK -latestTime
+runApplication -s "R" postProcess -func sampleR -latestTime
+runApplication -s "G" postProcess -func sampleG -latestTime
+runApplication -s "U" postProcess -func sampleU -latestTime
+runApplication foamLog log.$(getApplication)
+
+#------------------------------------------------------------------------------

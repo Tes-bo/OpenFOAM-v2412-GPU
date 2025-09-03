@@ -1,0 +1,9 @@
+1) When we expect a high oscillation of the flow residuals and, especially,
+of the objective value, it is recommended to use averaging (see corresponding
+dict in the primal solver setup). Even with this engineering trick, optimisation
+in cases involving practically unsteady of highly oscillating flows, using
+steady-state adjoint solutions should be used with caution.
+
+2) The adjoint equations, with the current setup, have an almost monotonic
+convergence. Hence, no averaging is needed since the last time-step will be the
+more converged one.

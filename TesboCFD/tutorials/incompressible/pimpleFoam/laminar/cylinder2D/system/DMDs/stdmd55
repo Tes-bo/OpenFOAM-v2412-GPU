@@ -1,0 +1,13 @@
+// -*- C++ -*-
+
+stdmd55
+{
+    ${stdmd01}
+
+    field            UMean_movingAverageWindow;
+    maxRank          5;
+    region           coarseMesh;
+}
+
+
+// ************************************************************************* //

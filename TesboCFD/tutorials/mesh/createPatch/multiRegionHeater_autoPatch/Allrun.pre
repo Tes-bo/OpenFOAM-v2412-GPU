@@ -1,0 +1,25 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+for region in $(foamListRegions)
+do
+    runApplication -s $region blockMesh -region $region
+done
+
+#- createPatch creates patchFields out of dictionary only but only then
+#  moves faces to it. Hence most of its state (refValue, valueFraction etc)
+#  will not be sized. Make sure to not to fail construction so disable
+#  floating point error checking
+#unset FOAM_SIGFPE
+runApplication createPatch -allRegions -overwrite
+
+# Output weights on AMI mapped patches
+runApplication checkMesh -allRegions -allGeometry
+
+restore0Dir
+
+echo "End"
+
+#------------------------------------------------------------------------------

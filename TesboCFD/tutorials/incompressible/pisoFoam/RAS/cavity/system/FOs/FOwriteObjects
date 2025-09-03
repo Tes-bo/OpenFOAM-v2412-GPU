@@ -1,0 +1,36 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+writeObjects1
+{
+    // Mandatory entries
+    type            writeObjects;
+    libs            (utilityFunctionObjects);
+
+    // Optional entries
+    writeOption     log;
+
+    // Conditional entries
+    // field        U;
+    // fields       ( ".*" );
+    objects         ( ".*" );
+
+    // Inherited entries
+    region          region0;
+    enabled         true;
+    log             true;
+    timeStart       0;
+    timeEnd         1000;
+    executeControl  timeStep;
+    executeInterval -1;
+    writeControl    onEnd;
+    writeInterval   -1;
+}
+
+
+// ************************************************************************* //

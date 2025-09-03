@@ -1,0 +1,58 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+# Make 3D mesh in slab of cells.
+(
+    cd wingMotion_snappyHexMesh || exit
+
+    mkdir -p constant/triSurface
+
+    cp -rf \
+        "$FOAM_TUTORIALS"/resources/geometry/wing_5degrees.obj.gz \
+        constant/triSurface/
+
+    runApplication blockMesh
+
+    runApplication snappyHexMesh -overwrite
+)
+
+# Make a 2D mesh by extruding a patch and solve to steady state.
+(
+    cd wingMotion2D_simpleFoam || exit
+
+    runApplication extrudeMesh
+
+    runApplication createPatch -overwrite
+
+    restore0Dir
+
+    runApplication simpleFoam
+)
+
+# Copy mesh from the steady state case, map the results to a mesh motion case,
+# then solve transient.
+(
+    cd wingMotion2D_pimpleFoam || exit
+
+    rm -rf constant/polyMesh
+
+    cp -rf \
+        ../wingMotion2D_simpleFoam/constant/polyMesh \
+        constant
+
+    restore0Dir
+
+    runApplication mapFields ../wingMotion2D_simpleFoam -sourceTime latestTime -consistent
+
+    mv -f 0/pointDisplacement.unmapped 0/pointDisplacement
+
+    runApplication decomposePar
+
+    runParallel $(getApplication)
+
+    runApplication reconstructPar
+)
+
+#------------------------------------------------------------------------------

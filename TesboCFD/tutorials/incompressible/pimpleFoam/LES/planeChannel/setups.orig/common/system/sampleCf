@@ -1,0 +1,35 @@
+// -*- C++ -*-
+
+type                sets;
+libs                (sampling);
+interpolationScheme cellPoint;
+setFormat           raw;
+
+fields              ( CfMean );
+
+_planes
+{
+    type            patchEdge;
+    axis            xyz;
+    patches         ( bottom );
+    surfaceType     plane;
+    planeType       pointAndNormal;
+    origin          ( 0 0 1.57079632679 );
+}
+
+sets
+{
+    // Intersections of patches with plane
+    planeAA
+    {
+        ${_planes}
+        pointAndNormalDict
+        {
+            point  ( 0 0 1.57079632679 );
+            normal ( 0 0 1 );
+        }
+    }
+}
+
+
+// ************************************************************************* //

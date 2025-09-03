@@ -1,0 +1,75 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       pointVectorField;
+    object      pointDisplacement;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 1 0 0 0 0 0];
+
+internalField   uniform (0 0 0);
+
+boundaryField
+{
+    // Specify directly (without include) for benefit of the paraview reader
+    processor
+    {
+        type    processor;
+        value   uniform (0 0 0);
+    }
+
+    inlet
+    {
+        type            uniformFixedValue;
+        uniformValue    (0 0 0);
+    }
+
+    outlet
+    {
+        type            uniformFixedValue;
+        uniformValue    (0 0 0);
+    }
+
+    // Unspecified negative sides
+    "(_[xy])"
+    {
+        type            uniformFixedValue;
+        uniformValue    (0 0 0);
+    }
+
+    // Unspecified positive sides
+    "([xy]_)"
+    {
+        type            uniformFixedValue;
+        uniformValue    (0 0 0);
+    }
+
+    sky
+    {
+        type            uniformFixedValue;
+        uniformValue    (0 0 0);
+    }
+
+    ground
+    {
+        type            slip;
+    }
+
+    "(?i).*bridge.*"
+    {
+        type            lumpedPointDisplacement;
+        value           uniform (0 0 0);
+        #include        "include/controllers"
+    }
+}
+
+// ************************************************************************* //

@@ -1,0 +1,27 @@
+// ParaView Catalyst function object for OpenFOAM (-*- C++ -*-)
+
+catalyst
+{
+    #includeEtc "caseDicts/insitu/catalyst/catalyst.cfg"
+
+    scripts
+    (
+        "<system>/scripts/pressure.py"
+        // "<system>/scripts/vorticity.py"
+        // "<etc>/caseDicts/insitu/catalyst/writeAll.py"
+    );
+
+    inputs
+    {
+        region
+        {
+            // No boundary, otherwise we have funny lines in the slice.
+            boundary    false;
+
+            // Selected fields (words or regex).
+            fields      ( U p );
+        }
+    }
+}
+
+// ************************************************************************* //

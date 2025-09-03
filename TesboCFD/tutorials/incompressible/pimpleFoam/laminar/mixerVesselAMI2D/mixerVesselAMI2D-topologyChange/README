@@ -1,0 +1,11 @@
+Refined version that includes wall layers.
+
+- this causes significant pressure spikes using the default AMI
+
+    dynamicFvMesh   dynamicMotionSolverFvMesh;
+
+- enabling topology change where a 1-to-1 connectivity is established across
+  the AMI leads to a much smoother pressure trace.  Ony change needed is to the
+  motion solver:
+
+    dynamicFvMesh   dynamicMotionSolverFvMeshAMI;

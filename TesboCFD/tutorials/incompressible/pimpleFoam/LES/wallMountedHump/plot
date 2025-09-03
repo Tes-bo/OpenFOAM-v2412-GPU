@@ -1,0 +1,496 @@
+#!/bin/bash
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+# settings
+
+    # operand setups
+    setups="
+    SpalartAllmarasDDES-DeltaOmegaTilde-useSigmaTrue
+    kOmegaSSTDDES-DeltaOmegaTilde-useSigmaTrue
+    SpalartAllmarasDDES-SLADelta-useSigmaFalse
+    SpalartAllmarasDDES-maxDeltaxyzCubeRoot
+    SpalartAllmarasIDDES-IDDESDelta
+    "
+
+
+#------------------------------------------------------------------------------
+
+plot_u_R_all_setups() {
+
+    echo ""
+    echo "# Plots the velocity and Reynolds stress tensor components"
+    echo ""
+
+    setups=$@
+
+    n=0
+    for setup in $setups
+    do
+        pre="resources/dataset/exp_vel_and_turb_xbyc"
+        benchmarkFiles0="${pre}0.65.dat"
+        benchmarkFiles1="${pre}0.66.dat"
+        benchmarkFiles2="${pre}0.80.dat"
+        benchmarkFiles3="${pre}0.90.dat"
+        benchmarkFiles4="${pre}1.00.dat"
+        benchmarkFiles5="${pre}1.10.dat"
+        benchmarkFiles6="${pre}1.20.dat"
+        benchmarkFiles7="${pre}1.30.dat"
+
+        endTime=$(foamDictionary results/$setup/system/controlDict -entry endTime -value)
+        pre="results/$setup/postProcessing/sample.lines/$endTime/xbyc"
+        post="_columnAverage(UMean)_columnAverage(UPrime2Mean).xy"
+        sampleFiles0[$n]="${pre}0.65${post}"
+        sampleFiles1[$n]="${pre}0.66${post}"
+        sampleFiles2[$n]="${pre}0.80${post}"
+        sampleFiles3[$n]="${pre}0.90${post}"
+        sampleFiles4[$n]="${pre}1.00${post}"
+        sampleFiles5[$n]="${pre}1.10${post}"
+        sampleFiles6[$n]="${pre}1.20${post}"
+        sampleFiles7[$n]="${pre}1.30${post}"
+        n=$(($n+1))
+    done
+
+    gnuplot<<PLT
+    set terminal pngcairo font "helvetica,16" size 1800, 1800
+    set grid
+
+    # Benchmark
+        bench0="$benchmarkFiles0"
+        bench1="$benchmarkFiles1"
+        bench2="$benchmarkFiles2"
+        bench3="$benchmarkFiles3"
+        bench4="$benchmarkFiles4"
+        bench5="$benchmarkFiles5"
+        bench6="$benchmarkFiles6"
+        bench7="$benchmarkFiles7"
+
+    # OpenFOAM
+        models="${setups[*]}"
+        samples0="${sampleFiles0[*]}"
+        samples1="${sampleFiles1[*]}"
+        samples2="${sampleFiles2[*]}"
+        samples3="${sampleFiles3[*]}"
+        samples4="${sampleFiles4[*]}"
+        samples5="${sampleFiles5[*]}"
+        samples6="${sampleFiles6[*]}"
+        samples7="${sampleFiles7[*]}"
+
+
+    ### u ###
+    set key bottom right
+    set key font ",10"
+    set xrange [-0.4:1.2]
+    set yrange [0:0.2]
+    set xlabel "U_x/U_0"
+    set ylabel "y/c"
+    set output "plots/all_setups_u_vs_y.png"
+    set multiplot layout 2,4 rowsfirst
+
+    # --- GRAPH x/c=0.65
+    set title "x/c=0.65"
+    plot \
+        bench0 every 2 u 3:2 t "Experiment" \
+            w p ps 1.5 pt 7 lw 2 lc rgb "black", \
+        for [i=1:words(samples0)] word(samples0, i) \
+            u 2:1 t word(models, i) w l lw 2
+
+    # --- GRAPH x/c=0.66
+    unset ylabel
+    unset key
+    set title "x/c=0.66"
+    plot \
+        bench1 every 2 u 3:2 t "Exp. x/c=0.66" \
+            w p ps 1.5 pt 7 lw 2 lc rgb "black", \
+        for [i=1:words(samples1)] word(samples1, i) \
+            u 2:1 t word(models, i) w l lw 2
+
+    # --- GRAPH x/c=0.80
+    set title "x/c=0.80"
+    plot \
+        bench2 every 2 u 3:2 t "Exp. x/c=0.80" \
+            w p ps 1.5 pt 7 lw 2 lc rgb "black", \
+        for [i=1:words(samples2)] word(samples2, i) \
+            u 2:1 t word(models, i) w l lw 2
+
+    # --- GRAPH x/c=0.90
+    set title "x/c=0.90"
+    plot \
+        bench3 every 2 u 3:2 t "Exp. x/c=0.90" \
+            w p ps 1.5 pt 7 lw 2 lc rgb "black", \
+        for [i=1:words(samples3)] word(samples3, i) \
+            u 2:1 t word(models, i) w l lw 2
+
+    # --- GRAPH x/c=1.00
+    set title "x/c=1.00"
+    set ylabel "y/c"
+    plot \
+        bench4 every 2 u 3:2 t "Exp. x/c=1.00" \
+            w p ps 1.5 pt 7 lw 2 lc rgb "black", \
+        for [i=1:words(samples4)] word(samples4, i) \
+            u 2:1 t word(models, i) w l lw 2
+
+    # --- GRAPH x/c=1.10
+    set title "x/c=1.10"
+    unset ylabel
+    plot \
+        bench5 every 2 u 3:2 t "Exp. x/c=1.10" \
+            w p ps 1.5 pt 7 lw 2 lc rgb "black", \
+        for [i=1:words(samples5)] word(samples5, i) \
+            u 2:1 t word(models, i) w l lw 2
+
+    # --- GRAPH x/c=1.20
+    set title "x/c=1.20"
+    plot \
+        bench6 every 2 u 3:2 t "Exp. x/c=1.20" \
+            w p ps 1.5 pt 7 lw 2 lc rgb "black", \
+        for [i=1:words(samples6)] word(samples6, i) \
+            u 2:1 t word(models, i) w l lw 2
+
+    # --- GRAPH x/c=1.30
+    set title "x/c=1.30"
+    plot \
+        bench7 every 2 u 3:2 t "Exp. x/c=1.30" \
+            w p ps 1.5 pt 7 lw 2 lc rgb "black", \
+        for [i=1:words(samples7)] word(samples7, i) \
+            u 2:1 t word(models, i) w l lw 2
+
+    unset multiplot
+    unset output
+
+
+    ### Ruu ###
+    set key bottom right
+    set key font ",10"
+    set xrange [0:0.1]
+    set yrange [0:0.2]
+    set xlabel "<u'u'>/{U_0}^2"
+    set ylabel "y/c"
+    set output "plots/all_setups_Ruu_vs_y.png"
+    set multiplot layout 2,4 rowsfirst
+
+    # --- GRAPH x/c=0.65
+    set title "x/c=0.65"
+    plot \
+        bench0 every 2 u 5:2 t "Experiment" \
+            w p ps 1.5 pt 7 lw 2 lc rgb "black", \
+        for [i=1:words(samples0)] word(samples0, i) \
+            u 5:1 t word(models, i) w l lw 2
+
+    # --- GRAPH x/c=0.66
+    unset ylabel
+    unset key
+    set title "x/c=0.66"
+    plot \
+        bench1 every 2 u 5:2 t "Exp. x/c=0.66" \
+            w p ps 1.5 pt 7 lw 2 lc rgb "black", \
+        for [i=1:words(samples1)] word(samples1, i) \
+            u 5:1 t word(models, i) w l lw 2
+
+    # --- GRAPH x/c=0.80
+    set title "x/c=0.80"
+    plot \
+        bench2 every 2 u 5:2 t "Exp. x/c=0.80" \
+            w p ps 1.5 pt 7 lw 2 lc rgb "black", \
+        for [i=1:words(samples2)] word(samples2, i) \
+            u 5:1 t word(models, i) w l lw 2
+
+    # --- GRAPH x/c=0.90
+    set title "x/c=0.90"
+    plot \
+        bench3 every 2 u 5:2 t "Exp. x/c=0.90" \
+            w p ps 1.5 pt 7 lw 2 lc rgb "black", \
+        for [i=1:words(samples3)] word(samples3, i) \
+            u 5:1 t word(models, i) w l lw 2
+
+    # --- GRAPH x/c=1.00
+    set title "x/c=1.00"
+    set ylabel "y/c"
+    plot \
+        bench4 every 2 u 5:2 t "Exp. x/c=1.00" \
+            w p ps 1.5 pt 7 lw 2 lc rgb "black", \
+        for [i=1:words(samples4)] word(samples4, i) \
+            u 5:1 t word(models, i) w l lw 2
+
+    # --- GRAPH x/c=1.10
+    set title "x/c=1.10"
+    unset ylabel
+    plot \
+        bench5 every 2 u 5:2 t "Exp. x/c=1.10" \
+            w p ps 1.5 pt 7 lw 2 lc rgb "black", \
+        for [i=1:words(samples5)] word(samples5, i) \
+            u 5:1 t word(models, i) w l lw 2
+
+    # --- GRAPH x/c=1.20
+    set title "x/c=1.20"
+    plot \
+        bench6 every 2 u 5:2 t "Exp. x/c=1.20" \
+            w p ps 1.5 pt 7 lw 2 lc rgb "black", \
+        for [i=1:words(samples6)] word(samples6, i) \
+            u 5:1 t word(models, i) w l lw 2
+
+    # --- GRAPH x/c=1.30
+    set title "x/c=1.30"
+    plot \
+        bench7 every 2 u 5:2 t "Exp. x/c=1.30" \
+            w p ps 1.5 pt 7 lw 2 lc rgb "black", \
+        for [i=1:words(samples7)] word(samples7, i) \
+            u 5:1 t word(models, i) w l lw 2
+
+    unset multiplot
+    unset output
+
+
+    ### Rvv ###
+    set key bottom right
+    set key font ",10"
+    set xrange [0:0.06]
+    set yrange [0:0.2]
+    set xlabel "<v'v'>/{U_0}^2"
+    set ylabel "y/c"
+    set output "plots/all_setups_Rvv_vs_y.png"
+    set multiplot layout 2,4 rowsfirst
+
+    # --- GRAPH x/c=0.65
+    set title "x/c=0.65"
+    plot \
+        bench0 every 2 u 6:2 t "Experiment" \
+            w p ps 1.5 pt 7 lw 2 lc rgb "black", \
+        for [i=1:words(samples0)] word(samples0, i) \
+            u 8:1 t word(models, i) w l lw 2
+
+    # --- GRAPH x/c=0.66
+    unset ylabel
+    unset key
+    set title "x/c=0.66"
+    plot \
+        bench1 every 2 u 6:2 t "Exp. x/c=0.66" \
+            w p ps 1.5 pt 7 lw 2 lc rgb "black", \
+        for [i=1:words(samples1)] word(samples1, i) \
+            u 8:1 t word(models, i) w l lw 2
+
+    # --- GRAPH x/c=0.80
+    set title "x/c=0.80"
+    plot \
+        bench2 every 2 u 6:2 t "Exp. x/c=0.80" \
+            w p ps 1.5 pt 7 lw 2 lc rgb "black", \
+        for [i=1:words(samples2)] word(samples2, i) \
+            u 8:1 t word(models, i) w l lw 2
+
+    # --- GRAPH x/c=0.90
+    set title "x/c=0.90"
+    plot \
+        bench3 every 2 u 6:2 t "Exp. x/c=0.90" \
+            w p ps 1.5 pt 7 lw 2 lc rgb "black", \
+        for [i=1:words(samples3)] word(samples3, i) \
+            u 8:1 t word(models, i) w l lw 2
+
+    # --- GRAPH x/c=1.00
+    set title "x/c=1.00"
+    set ylabel "y/c"
+    plot \
+        bench4 every 2 u 6:2 t "Exp. x/c=1.00" \
+            w p ps 1.5 pt 7 lw 2 lc rgb "black", \
+        for [i=1:words(samples4)] word(samples4, i) \
+            u 8:1 t word(models, i) w l lw 2
+
+    # --- GRAPH x/c=1.10
+    set title "x/c=1.10"
+    unset ylabel
+    plot \
+        bench5 every 2 u 6:2 t "Exp. x/c=1.10" \
+            w p ps 1.5 pt 7 lw 2 lc rgb "black", \
+        for [i=1:words(samples5)] word(samples5, i) \
+            u 8:1 t word(models, i) w l lw 2
+
+    # --- GRAPH x/c=1.20
+    set title "x/c=1.20"
+    plot \
+        bench6 every 2 u 6:2 t "Exp. x/c=1.20" \
+            w p ps 1.5 pt 7 lw 2 lc rgb "black", \
+        for [i=1:words(samples6)] word(samples6, i) \
+            u 8:1 t word(models, i) w l lw 2
+
+    # --- GRAPH x/c=1.30
+    set title "x/c=1.30"
+    plot \
+        bench7 every 2 u 6:2 t "Exp. x/c=1.30" \
+            w p ps 1.5 pt 7 lw 2 lc rgb "black", \
+        for [i=1:words(samples7)] word(samples7, i) \
+            u 8:1 t word(models, i) w l lw 2
+
+    unset multiplot
+    unset output
+
+
+    ### Ruv ###
+    set key bottom right
+    set key font ",10"
+    set xrange [-0.04:0]
+    set yrange [0:0.2]
+    set xtics 0.01
+    set xlabel "<u'v'>/{U_0}^2"
+    set ylabel "y/c"
+    set output "plots/all_setups_Ruv_vs_y.png"
+    set multiplot layout 2,4 rowsfirst
+
+    # --- GRAPH x/c=0.65
+    set title "x/c=0.65"
+    plot \
+        bench0 every 2 u 7:2 t "Experiment" \
+            w p ps 1.5 pt 7 lw 2 lc rgb "black", \
+        for [i=1:words(samples0)] word(samples0, i) \
+            u 6:1 t word(models, i) w l lw 2
+
+    # --- GRAPH x/c=0.66
+    unset ylabel
+    unset key
+    set title "x/c=0.66"
+    plot \
+        bench1 every 2 u 7:2 t "Exp. x/c=0.66" \
+            w p ps 1.5 pt 7 lw 2 lc rgb "black", \
+        for [i=1:words(samples1)] word(samples1, i) \
+            u 6:1 t word(models, i) w l lw 2
+
+    # --- GRAPH x/c=0.80
+    set title "x/c=0.80"
+    plot \
+        bench2 every 2 u 7:2 t "Exp. x/c=0.80" \
+            w p ps 1.5 pt 7 lw 2 lc rgb "black", \
+        for [i=1:words(samples2)] word(samples2, i) \
+            u 6:1 t word(models, i) w l lw 2
+
+    # --- GRAPH x/c=0.90
+    set title "x/c=0.90"
+    plot \
+        bench3 every 2 u 7:2 t "Exp. x/c=0.90" \
+            w p ps 1.5 pt 7 lw 2 lc rgb "black", \
+        for [i=1:words(samples3)] word(samples3, i) \
+            u 6:1 t word(models, i) w l lw 2
+
+    # --- GRAPH x/c=1.00
+    set title "x/c=1.00"
+    set ylabel "y/c"
+    plot \
+        bench4 every 2 u 7:2 t "Exp. x/c=1.00" \
+            w p ps 1.5 pt 7 lw 2 lc rgb "black", \
+        for [i=1:words(samples4)] word(samples4, i) \
+            u 6:1 t word(models, i) w l lw 2
+
+    # --- GRAPH x/c=1.10
+    set title "x/c=1.10"
+    unset ylabel
+    plot \
+        bench5 every 2 u 7:2 t "Exp. x/c=1.10" \
+            w p ps 1.5 pt 7 lw 2 lc rgb "black", \
+        for [i=1:words(samples5)] word(samples5, i) \
+            u 6:1 t word(models, i) w l lw 2
+
+    # --- GRAPH x/c=1.20
+    set title "x/c=1.20"
+    plot \
+        bench6 every 2 u 7:2 t "Exp. x/c=1.20" \
+            w p ps 1.5 pt 7 lw 2 lc rgb "black", \
+        for [i=1:words(samples6)] word(samples6, i) \
+            u 6:1 t word(models, i) w l lw 2
+
+    # --- GRAPH x/c=1.30
+    set title "x/c=1.30"
+    plot \
+        bench7 every 2 u 7:2 t "Exp. x/c=1.30" \
+            w p ps 1.5 pt 7 lw 2 lc rgb "black", \
+        for [i=1:words(samples7)] word(samples7, i) \
+            u 6:1 t word(models, i) w l lw 2
+
+    unset multiplot
+    unset output
+PLT
+}
+
+
+plot_cf_all_setups() {
+
+    echo ""
+    echo "# Plots the skin-friction coefficient"
+    echo ""
+
+    setups=$@
+
+    benchmarkFile="resources/dataset/exp_cf.dat"
+
+    n=0
+    for setup in $setups
+    do
+        # few manipulations
+        endTime=$(foamDictionary results/$setup/system/controlDict -entry endTime -value)
+
+        sampleFiles[$n]="results/$setup/postProcessing/sample.bottomWall/$endTime/wallShearStressMean_bottomWall.raw"
+        n=$(($n+1))
+    done
+
+    image="plots/all_setups_x_vs_cf.png"
+
+    gnuplot<<PLT_X_VS_CF
+    set terminal pngcairo font "helvetica,20" size 1000, 1000
+    set grid
+    set xrange [-0.1:1.6]
+    set yrange [-0.0025:0.01]
+    set key left top reverse
+    set key samplen 2
+    set key spacing 0.75
+    set xlabel "x/c"
+    set ylabel "C_f"
+    set output "$image"
+    set title "Skin-friction coefficient" noenhanced
+
+    # Benchmark
+        benchmark="$benchmarkFile"
+
+    # OpenFOAM
+        models="${setups[*]}"
+        samples="${sampleFiles[*]}"
+        U0=1
+        c=1
+
+    plot \
+        benchmark u 1:2 t "Experiment" w p ps 1.5 pt 7 lc rgb "black", \
+        for [i=1:words(samples)] word(samples, i) \
+            u (\$1/c):(-2.0*\$4/U0/U0) \
+            t word(models, i) w l lw 2
+PLT_X_VS_CF
+}
+
+
+#------------------------------------------------------------------------------
+
+# Requires gnuplot
+command -v gnuplot >/dev/null || {
+    echo "gnuplot not found - skipping graph creation" 1>&2
+    exit 1
+}
+
+# Requires awk
+command -v awk >/dev/null || {
+    echo "awk not found - skipping graph creation" 1>&2
+    exit 1
+}
+
+# Check "results" directory
+[ -d "results" ] || {
+    echo "No results directory found - skipping graph creation" 1>&2
+    exit 1
+}
+
+
+#------------------------------------------------------------------------------
+
+dirPlots="plots"
+[ -d "$dirPlots" ] || mkdir -p "$dirPlots"
+
+plot_u_R_all_setups $setups
+
+plot_cf_all_setups $setups
+
+
+#------------------------------------------------------------------------------

@@ -1,0 +1,16 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+# Create aeroFoil mesh using snappyHexMesh
+( cd aeroFoil_snappyHexMesh && ./Allrun.pre )
+
+# Extrude mesh
+( cd aeroFoil_overset && ./Allrun.pre )
+
+( cd background_snappyHexMesh && ./Allrun.pre )
+
+( cd background_overset && ./Allrun.pre )
+
+#------------------------------------------------------------------------------

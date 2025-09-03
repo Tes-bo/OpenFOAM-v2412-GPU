@@ -1,0 +1,37 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+canCompile || exit 0    # Dynamic code
+
+./Allrun.pre
+
+runApplication decomposePar
+
+cp -f system/decomposeParDict system/coarseMesh
+
+runApplication -s coarseMesh \
+    decomposePar -region coarseMesh
+
+runParallel $(getApplication)
+
+runParallel -s main \
+    redistributePar -reconstruct -overwrite
+
+runParallel -s coarseMesh \
+    redistributePar -reconstruct -region coarseMesh -time '100,200' -overwrite
+
+if notTest "$@"
+then
+    runParallel -s main \
+        createROMfields -dict system/ROMfieldsDict.main
+
+    runParallel -s coarse \
+        createROMfields -region coarseMesh -dict system/ROMfieldsDict.coarse
+
+    runParallel -s postProcess \
+        $(getApplication) -postProcess -fields '(U p)' -time '10:'
+fi
+
+#------------------------------------------------------------------------------

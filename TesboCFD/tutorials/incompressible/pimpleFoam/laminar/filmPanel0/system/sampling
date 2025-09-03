@@ -1,0 +1,73 @@
+// -*- C++ -*-
+
+probes
+{
+    type    probes;
+    libs    (sampling);
+
+    writeControl    timeStep;
+    writeInterval   2;
+    probeLocations
+    (
+        (0.305 0.02 -0.01)
+        (0.305 0.27 -0.01)
+        (0.305 0.52 -0.01)
+        (0.305 0.77 -0.01)
+        (0.305 1.02 -0.01)
+        (0.305 1.21 -0.01)
+    );
+    fixedLocations  false;
+    fields
+    (
+        p U
+    );
+}
+
+patch
+{
+    enabled false;
+    type    surfaces;
+    libs    (sampling);
+
+    surfaceFormat   boundaryData;
+    writeControl    adjustableRunTime;
+    writeInterval   0.1;
+    interpolationScheme cell;
+
+    surfaceFormat   vtk;
+    fields          (U p hf_film  ); // ( alpha.water p U k omega);
+    surfaces
+    {
+        film
+        {
+            type            patch;
+            patches         ("film.*");
+            interpolate     true;
+        }
+    }
+}
+
+
+area
+{
+    type    areaWrite;
+    libs    (utilityFunctionObjects);
+
+    // Write at same frequency as fields
+    writeControl    writeTime;
+    writeInterval   1;
+
+    fields          (U p hf_film );
+
+    surfaceFormat   ensight;
+    formatOptions
+    {
+        ensight
+        {
+            format binary;
+        }
+    }
+}
+
+
+// ************************************************************************* //

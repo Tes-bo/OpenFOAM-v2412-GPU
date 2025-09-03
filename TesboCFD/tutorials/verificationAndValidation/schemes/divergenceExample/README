@@ -1,0 +1,17 @@
+Divergence scheme test
+======================
+
+Various divergence schemes are examined on a 2-D structured mesh, where a
+passive scalar is convected at 45deg to the mesh coordinate system using a
+uniform flow velocity.  Executing:
+
+./Allrun
+
+will update the system/fvSchemes file to use each scheme listed in the file
+system/schemesToTest and perform the test using the scalarTransportFoam solver.
+A test file for each run is generated that can be used to compare the predicted
+scalar profile against the exact solution.
+
+For more information, see:
+
+https://www.openfoam.com/documentation/guides/latest/doc/guide-schemes-divergence-example.html

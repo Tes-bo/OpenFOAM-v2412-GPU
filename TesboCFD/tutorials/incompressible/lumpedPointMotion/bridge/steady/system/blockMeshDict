@@ -1,0 +1,98 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// Bounding Box : (-23.275 -250 5) (23.275 250 200)
+
+scale   1;
+
+vertices
+(
+    ( -160 -400  0)
+    (  160 -400  0)
+    (  160  400  0)
+    ( -160  400  0)
+    ( -160 -400  400)
+    (  160 -400  400)
+    (  160  400  400)
+    ( -160  400  400)
+);
+
+blocks
+(
+    // Higher resolution sizes ...
+
+    // Low resolution sizes (8 8 8)
+    hex (0 1 2 3 4 5 6 7) (40 100 50) simpleGrading (1 1 1)
+);
+
+edges
+(
+);
+
+boundary
+(
+    inlet // -ve X
+    {
+        type patch;
+        faces
+        (
+            ( 0 4 7 3 )
+        );
+    }
+    outlet // +ve X
+    {
+        type patch;
+        faces
+        (
+            ( 1 2 6 5 )
+        );
+    }
+    y_ // -ve Y
+    {
+        type patch; // (slip)
+        faces
+        (
+            ( 0 1 5 4)
+        );
+    }
+    _y // +ve Y
+    {
+        type patch; // (slip)
+        faces
+        (
+            ( 3 7 6 2)
+        );
+    }
+    ground
+    {
+        type wall;
+        faces
+        (
+            ( 0 3 2 1)
+        );
+    }
+    sky
+    {
+        type patch; // (slip)
+        faces
+        (
+            ( 4 5 6 7)
+        );
+    }
+);
+
+// ************************************************************************* //

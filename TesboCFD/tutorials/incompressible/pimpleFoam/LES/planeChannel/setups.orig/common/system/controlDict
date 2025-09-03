@@ -1,0 +1,157 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+application     pisoFoam;
+
+startFrom       latestTime;
+
+startTime       0;
+
+stopAt          endTime;
+
+endTime         180;
+
+deltaT          2e-3;
+
+writeControl    timeStep;
+
+writeInterval   1000;
+
+purgeWrite      3;
+
+writeFormat     binary;
+
+writePrecision  8;
+
+writeCompression off;
+
+timeFormat      general;
+
+timePrecision   8;
+
+runTimeModifiable false;
+
+adjustTimeStep  false;
+
+// Allow one-third of time for initialisation before sampling
+timeStart    #eval #{ 1.0/3.0 * ${/endTime} #};
+
+functions
+{
+    wallShearStress
+    {
+        type                wallShearStress;
+        libs                (fieldFunctionObjects);
+        log                 yes;
+        patches             ( bottom top );
+        writePrecision      10;
+        writeFields         yes;
+        writeToFile         yes;
+        executeControl      timeStep;
+        executeInterval     1;
+        writeControl        writeTime;
+        timeStart           $/timeStart;
+    }
+
+    Cf
+    {
+        type                coded;
+        libs                (utilityFunctionObjects);
+        name                Cf;
+        timeStart           $/timeStart;
+        writeControl        writeTime;
+
+        codeExecute
+        #{
+            auto* CfPtr =
+                mesh().getObjectPtr<volScalarField>("Cf");
+
+            if (!CfPtr)
+            {
+                Info<< "Create skin-friction coefficient field" << nl;
+                CfPtr = new volScalarField
+                (
+                    IOobject
+                    (
+                        "Cf",
+                        mesh().time().timeName(),
+                        mesh(),
+                        IOobject::NO_READ,
+                        IOobject::AUTO_WRITE,
+                        IOobject::REGISTER
+                    ),
+                    mesh(),
+                    dimless
+                );
+
+                regIOobject::store(CfPtr);
+            }
+
+            auto& Cf = *CfPtr;
+
+            Info<< "Computing skin-friction coefficient field\n" << endl;
+
+            const auto& tau =
+                mesh().lookupObject<volVectorField>("wallShearStress");
+
+            const dimensionedScalar Ubulk(dimVelocity, 17.55);
+
+            Cf = mag(tau.component(0))/(0.5*sqr(Ubulk));
+        #};
+    }
+
+    fieldAverage1
+    {
+        type                fieldAverage;
+        libs                (fieldFunctionObjects);
+        timeStart           $/timeStart;
+        writeControl        writeTime;
+
+        fields
+        (
+            U
+            {
+                mean        on;
+                prime2Mean  on;
+                base        time;
+            }
+
+            p
+            {
+                mean        on;
+                prime2Mean  on;
+                base        time;
+            }
+
+            wallShearStress
+            {
+                mean        on;
+                prime2Mean  off;
+                base        time;
+            }
+
+            Cf
+            {
+                mean        on;
+                prime2Mean  off;
+                base        time;
+            }
+        );
+    }
+}
+
+
+// ************************************************************************* //

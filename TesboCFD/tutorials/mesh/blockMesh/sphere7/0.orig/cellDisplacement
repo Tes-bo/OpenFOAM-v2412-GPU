@@ -1,0 +1,58 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    arch        "LSB;label=32;scalar=64";
+    class       volVectorField;
+    location    "1";
+    object      cellDisplacement;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 1 0 0 0 0 0];
+
+internalField   uniform (0 0 0);
+
+boundaryField
+{
+    minX
+    {
+        type            cellMotion;
+        value           uniform (0 0 0);
+    }
+    maxX
+    {
+        type            cellMotion;
+        value           uniform (0 0 0);
+    }
+    minY
+    {
+        type            cellMotion;
+        value           uniform (0 0 0);
+    }
+    maxY
+    {
+        type            cellMotion;
+        value           uniform (0 0 0);
+    }
+    minZ
+    {
+        type            cellMotion;
+        value           uniform (0 0 0);
+    }
+    maxZ
+    {
+        type            cellMotion;
+        value           uniform (0 0 0);
+    }
+}
+
+
+// ************************************************************************* //

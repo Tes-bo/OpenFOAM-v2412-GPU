@@ -1,0 +1,15 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+if [ ! -d constant/polyMesh ]
+then
+    cp -Rf ../../setups.orig/common/constant/polyMesh constant/.
+fi
+
+runApplication checkMesh \
+    -allTopology -allGeometry -constant \
+    -writeAllFields -writeAllSurfaceFields
+
+#------------------------------------------------------------------------------

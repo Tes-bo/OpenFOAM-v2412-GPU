@@ -1,0 +1,29 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+if [ ! -d constant/polyMesh ]
+then
+    runApplication blockMesh
+
+    runApplication renumberMesh -overwrite -constant
+
+    runApplication checkMesh -allTopology -allGeometry -constant
+fi
+
+restore0Dir
+
+runApplication setTurbulenceFields
+
+runApplication $(getApplication)
+
+
+runApplication -s "U" postProcess -func sampleU -latestTime
+runApplication -s "k" postProcess -func sampleK -latestTime
+runApplication -s "epsilon" postProcess -func sampleEpsilon -latestTime
+runApplication -s "R" postProcess -func sampleR -latestTime
+runApplication -s "G" postProcess -func sampleG -latestTime
+runApplication foamLog log."$(getApplication)"
+
+#------------------------------------------------------------------------------

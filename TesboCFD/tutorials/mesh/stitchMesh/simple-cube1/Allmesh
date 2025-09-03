@@ -1,0 +1,23 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+runApplication blockMesh
+
+runApplication topoSet
+
+runApplication subsetMesh final -patch outer -resultTime 0
+
+# Avoid any inconsistencies
+rm -f constant/polyMesh/{cellZones,faceZones,pointZones}
+
+runApplication -s patches topoSet -dict system/topoSetDict.patches
+
+runApplication createPatch -overwrite
+
+# rm -f 0/polyMesh/{cellZones,faceZones,pointZones}
+
+echo "End"
+
+# -----------------------------------------------------------------------------

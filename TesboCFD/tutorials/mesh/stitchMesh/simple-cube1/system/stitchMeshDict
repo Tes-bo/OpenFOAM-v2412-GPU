@@ -1,0 +1,39 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      stitchMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+outerx
+{
+    match   partial;    // partial | integral | perfect
+    master  outerx;
+    slave   innerx;
+}
+
+outery
+{
+    match   partial;
+    master  outery;
+    slave   innery;
+}
+
+outerz
+{
+    match   partial;
+    master  outerz;
+    slave   innerz;
+}
+
+
+// ************************************************************************* //

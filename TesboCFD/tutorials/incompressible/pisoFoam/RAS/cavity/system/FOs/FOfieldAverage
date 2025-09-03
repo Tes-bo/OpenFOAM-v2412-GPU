@@ -1,0 +1,61 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+fieldAverage1
+{
+    // Mandatory entries
+    type            fieldAverage;
+    libs            (fieldFunctionObjects);
+    fields
+    (
+        U
+        {
+            mean         on;
+            prime2Mean   on;
+            base         time;
+            /*
+            windowType   exact;
+            window       10.0;
+            windowName   w1U;
+            allowRestart true;
+            */
+        }
+
+        /*
+        p
+        {
+            mean         on;
+            prime2Mean   on;
+            base         iteration;
+            windowType   approximate;
+            window       1000;
+            windowName   w1p;
+        }
+        */
+    );
+
+    // Optional entries
+    restartOnRestart    false;
+    restartOnOutput     false;
+    periodicRestart     false;
+    // restartPeriod       0.002;
+
+    // Optional (inherited) entries
+    region          region0;
+    enabled         true;
+    log             true;
+    timeStart       0;
+    timeEnd         1000;
+    executeControl  timeStep;
+    executeInterval 1;
+    writeControl    writeTime;
+    writeInterval   -1;
+}
+
+
+// ************************************************************************* //

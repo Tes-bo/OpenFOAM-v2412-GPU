@@ -1,0 +1,73 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      fvSchemes;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+ddtSchemes
+{
+    default         backward;
+}
+
+gradSchemes
+{
+    default         Gauss linear;
+}
+
+divSchemes
+{
+    default                             Gauss linear;
+
+    div(phi,U)                          Gauss DEShybrid
+        linear                        // scheme 1
+        linearUpwind grad(U)          // scheme 2
+        delta                         // LES delta name, e.g. 'delta', 'hmax'
+        0.65                          // CDES coefficient
+        1.0                           // Reference velocity scale
+        1.0                           // Reference length scale
+        0.0                           // Minimum sigma limit (0-1)
+        1.0                           // Maximum sigma limit (0-1)
+        1.0                           // Limiter of B function
+        10.0;                         // nut limiter (if > 1, GAM extension is active)
+
+    turbulence                          Gauss limitedLinear 1;
+    div(phi,k)                          $turbulence;
+    div(phi,omega)                      $turbulence;
+    div(phi,epsilon)                    $turbulence;
+    div(phi,nuTilda)                    $turbulence;
+
+    div((nuEff*dev2(T(grad(U)))))       Gauss linear;
+}
+
+laplacianSchemes
+{
+    default         Gauss linear corrected;
+}
+
+interpolationSchemes
+{
+    default         linear;
+}
+
+snGradSchemes
+{
+    default         corrected;
+}
+
+wallDist
+{
+    method          exactDistance;
+    nRequired       yes;
+}
+
+// ************************************************************************* //

@@ -1,0 +1,98 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volVectorField;
+    object      U;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+Ux  0;
+Uy  0;
+Uz  0;
+CON 100;
+
+Uinlet          uniform ($Ux $Uy $Uz);
+
+dimensions      [0 1 -1 0 0 0 0];
+
+internalField   uniform (0 0 0);
+
+boundaryField
+{
+    "(inlet|outlet)"
+    {
+        type            fixedValue;
+        value           $Uinlet;
+    }
+
+    "(side|back)"
+    {
+        //type            zeroGradient;
+        type            fixedValue;
+        value           $Uinlet;
+    }
+
+    film
+    {
+        type            velocityFilmShell;
+        active          true;
+        U               U;
+        pRef            1e5;
+        T0              313.15;;
+        deltaWet        5e-5; // dry vs wet
+
+        thermo
+        {
+            H2O;
+        }
+
+        turbulence          laminar;
+
+        laminarCoeffs
+        {
+            shearStress     simple;
+            friction        quadraticProfile; //
+            //n               0.03;// Manning number
+            Cf              0; //1e-18;//0.001;//0.9;
+            // Gas/liquid/surface friction for DarcyWeisbach 0.0
+            // the friction is with the wall
+        }
+
+        injectionModels ();
+
+        forces (dynamicContactAngle);
+
+        dynamicContactAngleCoeffs
+        {
+            Ccf     0.4;
+            Ttheta  constant 0;
+            distribution
+            {
+                type            normal;
+                normalDistribution
+                {
+                    minValue        $CON;
+                    maxValue        $CON;
+                    mu              $CON;
+                    sigma           100;
+                }
+            }
+        }
+
+        region              film;
+        liquidFilmModel     kinematicThinFilm;
+        value               uniform (0 0 0);
+    }
+
+    #includeEtc "caseDicts/setConstraintTypes"
+}
+
+// ************************************************************************* //

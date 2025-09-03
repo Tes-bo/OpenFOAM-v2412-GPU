@@ -1,0 +1,51 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+mag1
+{
+    // Mandatory entries
+    type            mag;
+    libs            (fieldFunctionObjects);
+    field           U;
+
+    // Optional (inherited) entries
+    result          magU;
+    region          region0;
+    enabled         true;
+    log             true;
+    timeStart       0.25;
+    timeEnd         1000;
+    executeControl  timeStep;
+    executeInterval 5;
+    writeControl    timeStep;
+    writeInterval   25;
+}
+
+
+mag2
+{
+    // Mandatory entries
+    type            mag;
+    libs            (fieldFunctionObjects);
+    field           p;
+
+    // Optional (inherited) entries
+    result          magP;
+    region          region0;
+    enabled         true;
+    log             true;
+    timeStart       0.25;
+    timeEnd         1000;
+    executeControl  timeStep;
+    executeInterval 10;
+    writeControl    timeStep;
+    writeInterval   50;
+}
+
+
+// ************************************************************************* //

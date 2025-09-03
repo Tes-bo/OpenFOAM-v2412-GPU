@@ -1,0 +1,153 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+scale   1;
+verbose no;
+
+// Geometric parameters
+outerRadius 1;
+innerRatio  0.5;
+
+// Divisions in x/y/z and radial directions. Can be unequal.
+nx   10;
+ny   $nx;
+nz   $nx;
+nr   6;
+
+geometry
+{
+    sphere
+    {
+        type    sphere;
+        origin  (0 0 0);
+        radius  $outerRadius;
+    }
+
+    innerSphere
+    {
+        $sphere
+        radius  #eval{ $outerRadius * $innerRatio };
+    }
+}
+
+
+// Outer box size (approximate)
+vo   #eval{ $outerRadius/sqrt(3) };
+
+// Inner box size - % of overall dimension
+vi   #eval{ $vo * $innerRatio };
+
+vertices
+(
+    // Inner block points
+    project (-$vi -$vi -$vi) (innerSphere)
+    project ( $vi -$vi -$vi) (innerSphere)
+    project ( $vi  $vi -$vi) (innerSphere)
+    project (-$vi  $vi -$vi) (innerSphere)
+    project (-$vi -$vi  $vi) (innerSphere)
+    project ( $vi -$vi  $vi) (innerSphere)
+    project ( $vi  $vi  $vi) (innerSphere)
+    project (-$vi  $vi  $vi) (innerSphere)
+
+    // Outer block points
+    project (-$vo -$vo -$vo) (sphere)
+    project ( $vo -$vo -$vo) (sphere)
+    project ( $vo  $vo -$vo) (sphere)
+    project (-$vo  $vo -$vo) (sphere)
+    project (-$vo -$vo  $vo) (sphere)
+    project ( $vo -$vo  $vo) (sphere)
+    project ( $vo  $vo  $vo) (sphere)
+    project (-$vo  $vo  $vo) (sphere)
+);
+
+blocks
+(
+    hex (0 1 2 3 4 5 6 7) ($nx $ny $nz) grading (1 1 1)  // Inner block
+
+    // Outer blocks
+    hex ( 8  0  3 11 12  4  7 15) ($nr $ny $nz) grading (1 1 1)  // x-min
+    hex ( 1  9 10  2  5 13 14  6) ($nr $ny $nz) grading (1 1 1)  // x-max
+    hex ( 8  9  1  0 12 13  5  4) ($nx $nr $nz) grading (1 1 1)  // y-min
+    hex ( 3  2 10 11  7  6 14 15) ($nx $nr $nz) grading (1 1 1)  // y-max
+    hex ( 8  9 10 11  0  1  2  3) ($nx $ny $nr) grading (1 1 1)  // z-min
+    hex ( 4  5  6  7 12 13 14 15) ($nx $ny $nr) grading (1 1 1)  // z-max
+);
+
+edges
+(
+    // Outer blocks
+    project  8  9 (sphere)
+    project 10 11 (sphere)
+    project 14 15 (sphere)
+    project 12 13 (sphere)
+
+    project  8 11 (sphere)
+    project  9 10 (sphere)
+    project 13 14 (sphere)
+    project 12 15 (sphere)
+
+    project  8 12 (sphere)
+    project  9 13 (sphere)
+    project 10 14 (sphere)
+    project 11 15 (sphere)
+
+    // Inner block
+    project 0 1 (innerSphere)
+    project 2 3 (innerSphere)
+    project 6 7 (innerSphere)
+    project 4 5 (innerSphere)
+
+    project 0 3 (innerSphere)
+    project 1 2 (innerSphere)
+    project 5 6 (innerSphere)
+    project 4 7 (innerSphere)
+
+    project 0 4 (innerSphere)
+    project 1 5 (innerSphere)
+    project 2 6 (innerSphere)
+    project 3 7 (innerSphere)
+);
+
+faces
+(
+    // Outer blocks
+    project (1 0) sphere  // block 1: x-min
+    project (2 1) sphere  // block 2: x-max
+    project (3 2) sphere  // block 3: y-min
+    project (4 3) sphere  // block 4: y-max
+    project (5 4) sphere  // block 5: z-min
+    project (6 5) sphere  // block 6: z-max
+);
+
+boundary
+(
+    walls
+    {
+        type wall;
+        faces
+        (
+            (1 0)  // block 1: x-min
+            (2 1)  // block 2: x-max
+            (3 2)  // block 3: y-min
+            (4 3)  // block 4: y-max
+            (5 4)  // block 5: z-min
+            (6 5)  // block 6: z-max
+        );
+    }
+);
+
+
+// ************************************************************************* //

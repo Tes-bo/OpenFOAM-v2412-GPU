@@ -1,0 +1,13 @@
+Test for momentum wall functions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Computes a series of steady boundary layer calculations, varying the Reynolds
+number. Wall u+ plotted as a function of log10(y+), and compared with wall
+profile given by Spalding's law.
+
+
+Usage:
+
+- run test using Allrun script
+- uses foamLog to generate u+ and y+ values
+- plots are generated using gnuplot, and can be found under plots directory

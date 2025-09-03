@@ -1,0 +1,50 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+fileHandler="-fileHandler collated"
+unset fileHandler
+## decompDict5="-decomposeParDict system/decomposeParDict.5"
+
+# Create mesh
+runApplication blockMesh
+
+# Restore 0/ from 0.orig/
+restore0Dir
+
+# Create sets
+runApplication topoSet
+
+# Create baffles and fields
+runApplication createBaffles -overwrite
+
+runApplication $(getApplication)
+
+#- RedistributePar to do decomposition
+runParallel redistributePar -decompose -cellDist $fileHandler
+
+#- Continue running for a bit more
+runParallel -s parallel $(getApplication) $fileHandler
+
+if :
+then
+    #- Reconstruct all times
+    runParallel -s reconstruct \
+        redistributePar -reconstruct $fileHandler
+
+else
+    # Not yet entirely working...
+
+    #- Send to more ranks
+    runParallel -s more-ranks $decompDict5 redistributePar $fileHandler
+
+    #- Continue running for a bit more
+    runParallel -s more-ranks $decompDict5 $(getApplication) $fileHandler
+
+    #- Reconstruct all times
+    runParallel -s reconstruct $decompDict5 \
+        redistributePar -reconstruct $fileHandler -latestTime
+fi
+
+#------------------------------------------------------------------------------

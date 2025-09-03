@@ -1,0 +1,418 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2011-2016 OpenFOAM Foundation
+#     Copyright (C) 2017-2024 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     Alltest
+#
+# Description
+#     Quickly test the tutorials and write out the scheme/solver information
+#
+# Environment
+#     The entire OpenFOAM environment (WM_PROJECT_DIR, etc)
+#
+#------------------------------------------------------------------------------
+cd "${0%/*}" || exit  # Run from this directory
+
+printHelp() {
+    cat<<USAGE
+
+usage: ${0##*/} [OPTION]
+
+options:
+  -backup       Backup existing tutorialsTest directory
+  -force        Force overwrite of existing tutorialsTest directory
+  -debug        Adjust DebugSwitches (fvSchemes, solution)
+  -default      Sets up a default scheme on all schemes
+  -init         Initialise/copy only without running
+  -git          Use git to retrieve the tutorials
+  -no-git       Do not use git to retrieve the tutorials
+  -print-context Print git context for tutorials
+  -root=DIR     Root directory to start tests from (non-git only)
+  -help         Print the usage
+
+Quickly tests the tutorials and writes out the scheme/solver information.
+Detects and uses 'git' to obtain a fresh set of files when possible.
+
+USAGE
+    exit 0  # A clean exit
+}
+
+# Report error and exit
+die()
+{
+    exec 1>&2
+    echo
+    echo "Error encountered:"
+    while [ "$#" -ge 1 ]; do echo "    $1"; shift; done
+    echo
+    echo "See '${0##*/} -help' for usage"
+    echo
+    exit 1
+}
+
+#------------------------------------------------------------------------------
+
+rootDir="./"
+adjustDebugSwitches=false
+useDefaultSchemes=false
+useGit=auto
+unset opt_backup opt_initOnly opt_printContext
+
+# Parse options
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    -h* | -help*)   printHelp ;;
+    -f | -force)    opt_backup='force' ;;
+    -backup)        opt_backup='backup' ;;
+    -init)          opt_initOnly=true ;;
+    -print-cont*)   opt_printContext=true ;;
+
+    -root=*)
+        rootDir="${1#*=}"
+        ;;
+
+    -r | -root)
+        [ "$#" -ge 2 ] || die "'$1' option requires an argument"
+        rootDir="$2"
+        shift
+        ;;
+    -git)
+        useGit=true
+        ;;
+    -no-git)
+        unset useGit
+        ;;
+    -debug)
+        adjustDebugSwitches=true
+        ;;
+    -default)
+        useDefaultSchemes=true
+        ;;
+    *)
+        die "Unknown option/argument: '$1'"
+        ;;
+    esac
+    shift
+done
+
+# Sets FOAM_TUTORIALS directory location, as required
+. "${WM_PROJECT_DIR:?}"/bin/tools/RunFunctions
+
+
+#------------------------------------------------------------------------------
+
+#
+# Set up a default scheme on all schemes
+#
+setDefaultFvSchemes()
+{
+cat<<EOF
+gradSchemes { default Gauss linear; }
+divSchemes
+{
+    default Gauss linear;
+    div(phi,fu_ft_ha) Gauss multivariateSelection
+    {
+        fu upwind;
+        ft upwind;
+        h  upwind;
+    };
+    div(phi,ft_b_ha_hau) Gauss multivariateSelection
+    {
+        fu upwind;
+        ft upwind;
+        b  upwind;
+        h  upwind;
+        hu upwind;
+    };
+}
+laplacianSchemes { default Gauss linear corrected; }
+interpolationSchemes { default linear; }
+snGradSchemes { default corrected; }
+EOF
+}
+
+#
+# Modify case controlDicts to run only one time step
+#
+optRunLimit="1"
+modifyCaseControlDict()
+{
+    for dict in $(find . -name "controlDict*" -type f)
+    do
+        case "${dict}" in (*.orig) continue;; esac
+        cp -f "${dict}" "${dict}.orig"
+        sed \
+            -e 's/\(startFrom[ \t]*\)[^ \t;]*;/\1 latestTime;/' \
+            -e 's/\(stopAt[ \t]*\)[^ \t;]*;/\1 nextWrite;/' \
+            -e 's/\(writeControl[ \t]*\)[^ \t;]*;/\1 timeStep;/' \
+            -e 's/\(writeInterval[ \t]*\)[^ \t;]*;/\1 '"${optRunLimit:-1}"';/' \
+            "${dict}.orig" > "${dict}"
+    done
+}
+
+
+#------------------------------------------------------------------------------
+
+# Summary information about how the tutorials were created
+# - provide full commit information since the SHA1 changes if rebased
+printContext_git()
+{
+cat << '__HEADER_TEXT__'
+# ===================================
+# Tutorials based on following commit
+# ===================================
+
+__HEADER_TEXT__
+    git log -1
+
+    # - some additional context about previous commits
+cat << '__CONTEXT_TEXT__'
+
+# ==============
+# within context
+# ==============
+
+__CONTEXT_TEXT__
+    git log --oneline -8
+cat << '__FOOTER_TEXT__'
+
+# ===========
+# end-of-file
+# ===========
+__FOOTER_TEXT__
+}
+
+
+#------------------------------------------------------------------------------
+
+# Early exit
+
+if [ "$opt_printContext" = true ]
+then
+    printContext_git
+    exit 0  # A clean exit
+fi
+
+
+#------------------------------------------------------------------------------
+
+# Locate the user or project controlDict to adjust
+unset ETC_CONTROL_DICT
+if [ "$adjustDebugSwitches" = true ]
+then
+    if ETC_CONTROL_DICT="$($WM_PROJECT_DIR/bin/foamEtcFile -mode=uo controlDict)"
+    then
+        if [ -e "${ETC_CONTROL_DICT}.orig" ]
+        then
+            echo "File ${ETC_CONTROL_DICT}.orig already exists" \
+                "Did Alltest fail in some way and then run again?" 2>&1
+
+            echo "Not adjusting DebugSwitches ..." 2>&1
+            unset ETC_CONTROL_DICT
+        else
+            grep DebugSwitches "${ETC_CONTROL_DICT}" 1> /dev/null 2>&1 || {
+                echo "No DebugSwitches to adjust in ${ETC_CONTROL_DICT}" 1>&2
+                unset ETC_CONTROL_DICT
+            }
+        fi
+    else
+        echo "No main (user or project) controlDict to adjust" 1>&2
+        unset ETC_CONTROL_DICT
+    fi
+fi
+
+
+TEST_RUN_DIR=../tutorialsTest
+FV_SCHEMES=\
+" \
+    gradScheme \
+    divScheme \
+    laplacianScheme \
+    interpolationScheme \
+    snGradScheme \
+"
+SCHEMES_FILE="FvSchemes"
+SCHEMES_TEMP="FvSchemes.temp"
+SOLVERS_FILE="FvSolution"
+SOLVERS_TEMP="FvSolution.temp"
+
+
+#
+# MAIN
+#
+
+if [ -d "$TEST_RUN_DIR" ]
+then
+    echo "Directory already exists: $TEST_RUN_DIR" 1>&2
+    case "$opt_backup" in
+    (backup)
+        unset failed newName
+        # Max of ten backups should be plenty
+        for num in 01 02 03 04 05 06 07 08 09 10
+        do
+            newName=".bak$num"
+            if [ -e "${TEST_RUN_DIR}${newName}" ]
+            then
+                failed="${failed}${failed:+,}$num"
+            else
+                mv -f -- "$TEST_RUN_DIR" "${TEST_RUN_DIR}${newName}"
+                break
+            fi
+        done
+
+        if [ -d "$TEST_RUN_DIR" ]
+        then
+            echo '    could not backup as .bak{'"${failed}"'}' 1>&2
+            echo '    retry with -force?' 1>&2
+            echo 1>&2
+            exit 1
+        else
+            echo "Saved as backup: ${TEST_RUN_DIR##*/}${newName}" 1>&2
+            echo 1>&2
+        fi
+        ;;
+
+    (force)
+        echo "   ... removing" 1>&2
+        rm -rf "$TEST_RUN_DIR"
+        ;;
+    (*)
+        echo '    use -force to remove, or -backup to preserve' 1>&2
+        echo 1>&2
+        exit 1
+        ;;
+    esac
+fi
+
+# Remove old build/ directory
+buildDir="$WM_PROJECT_DIR/build/$WM_OPTIONS/${TEST_RUN_DIR##*/}"
+if [ -d "$buildDir" ]
+then
+    echo "Removing old build directory: $buildDir" 1>&2
+    rm -rf "$buildDir"
+fi
+
+unset gitbase
+
+if [ -n "$useGit" ]
+then
+    if git rev-parse --is-inside-work-tree > /dev/null 2>&1
+    then
+        gitbase="$(git rev-parse --show-toplevel 2>/dev/null)"
+    fi
+
+    case "$useGit" in
+    auto)
+        if [ -n "$gitbase" ]
+        then
+            echo "Detected git repository" 1>&2
+        else
+            echo "No git repository detected" 1>&2
+        fi
+        ;;
+
+    true)
+        [ -n "$gitbase" ] || die "Not in a git repository"
+        ;;
+    esac
+fi
+
+
+if [ -n "$gitbase" ]
+then
+    echo "Copying the tutorials from current git branch" 1>&2
+    mkdir -p "$TEST_RUN_DIR"
+    ( cd "$gitbase/tutorials" && git archive --format=tar HEAD . ) | \
+    ( cd "$TEST_RUN_DIR" && tar -xf - )
+
+    printContext_git >| "$TEST_RUN_DIR/commit-info"
+
+else
+    echo "Copying the tutorials directory" 1>&2
+    cp -a "$rootDir" "$TEST_RUN_DIR"
+
+    # How the tutorials were created
+cat << '__HEADER_TEXT__' >| "$TEST_RUN_DIR/commit-info"
+# ==========================
+# Tutorials copied from disk
+# ==========================
+__HEADER_TEXT__
+fi
+
+cd "$TEST_RUN_DIR" || exit
+
+
+# Generate Alltest script (replacement for this one)
+echo "Generating Alltest script" 1>&2
+echo '#!/bin/sh' >| Alltest
+echo 'exec "${0%/*}/Allrun" -test "$@"' >> Alltest
+
+
+# Adjust etc controlDict, and clean up on termination and on Ctrl-C
+if [ -f "${ETC_CONTROL_DICT}" ]
+then
+    trap 'mv ${ETC_CONTROL_DICT}.orig ${ETC_CONTROL_DICT} 2>/dev/null; exit 0' \
+        EXIT TERM INT
+
+    echo "Modifying DebugSwitches: ${ETC_CONTROL_DICT}" 1>&2
+
+    cp -f "${ETC_CONTROL_DICT}" "${ETC_CONTROL_DICT}.orig"
+    sed \
+        -e 's/\(fvSchemes[ \t]*\)\([0-9]\);/\1 1;/g' \
+        -e 's/"\(solution[ \t]*\)\([0-9]\);/\1 1;/g'  \
+        "${ETC_CONTROL_DICT}.orig" > "${ETC_CONTROL_DICT}"
+fi
+
+echo "Modifying the case controlDicts to run only one time step" 1>&2
+echo 1>&2
+modifyCaseControlDict
+
+if [ "$useDefaultSchemes" = true ]
+then
+    echo "Modifying the fvSchemes to contain only default schemes" 1>&2
+    for FV_SC in $(find . -name fvSchemes -type f)
+    do
+        for S in $FV_SCHEMES
+        do
+            cp -f "${FV_SC}" "${FV_SC}.orig"
+            sed -e /"${S}"/,/$p/d "${FV_SC}.orig" > "${FV_SC}"
+        done
+        setDefaultFvSchemes >> "${FV_SC}"
+    done
+fi
+
+[ -f Allrun ] || cp -f "${FOAM_TUTORIALS:?}/Allrun" .
+
+
+#------------------------------------------------------------------------------
+
+# Dispatch
+
+if [ "$opt_initOnly" = true ]
+then
+    echo "Initialised only - call 'Allrun -test' separately" 1>&2
+    echo "    $PWD" 1>&2
+    echo 1>&2
+    exit 0  # A clean exit
+fi
+
+echo "Starting Allrun -test" 1>&2
+echo "    $PWD" 1>&2
+echo 1>&2
+
+exec ./Allrun -test
+
+#------------------------------------------------------------------------------

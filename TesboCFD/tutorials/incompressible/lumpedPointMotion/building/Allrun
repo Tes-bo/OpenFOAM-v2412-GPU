@@ -1,0 +1,51 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+# 1) Run steady-state to establish a good initial field
+# 2) Copy state-state results -> transient case,
+#    but need to copy the pointDisplacement from the 0/ directory
+#    since it will not have been used for the steady-state case
+# 3) Relocate this initial solution to coincide with the first deltaT
+#    to avoid overwriting the 0/ directory at all.
+
+# Do steady-state case
+(cd steady && foamRunTutorials)
+
+if notTest "$@"
+then
+    if canCompile
+    then
+        (cd code && wmake)
+    else
+        exit 0
+    fi
+
+    . files/RunFunctions
+
+    caseName="transient"
+
+    latestTime=$(foamListTimes -case steady -noZero -latestTime -processor)
+
+    # Clone steady-state case to transient
+    cloneParallelCase steady "$caseName" 0 "$latestTime"
+
+    copyParallelPointDisplacement "$caseName" "$latestTime"
+
+    # Adjust application (from simpleFoam -> pimpleFoam)
+    foamDictionary "$caseName"/system/controlDict \
+        -entry application -set pimpleFoam
+
+    # Adjust dynamicMeshDict (from static -> dynamicMotionSolver)
+    foamDictionary "$caseName"/constant/dynamicMeshDict \
+        -entry dynamicFvMesh -set dynamicMotionSolverFvMesh
+
+    # Copy/link support files
+    linkFiles files "$caseName"
+
+    # Run
+    "$caseName/Allrun.$caseName" $*
+fi
+
+#------------------------------------------------------------------------------

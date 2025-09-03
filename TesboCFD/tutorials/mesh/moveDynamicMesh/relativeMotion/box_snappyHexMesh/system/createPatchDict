@@ -1,0 +1,84 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      createPatchDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// Do a synchronisation of coupled points after creation of any patches.
+// Note: this does not work with points that are on multiple coupled patches
+//       with transformations (i.e. cyclics).
+pointSync false;
+
+// Patches to create.
+patches
+(
+    {
+        //- Master side patch
+        name            AMI_rotor;
+        patchInfo
+        {
+            type            cyclicAMI;
+            matchTolerance  0.0001;
+            neighbourPatch  AMI_rotor_slave;
+            transform       noOrdering;
+        }
+        constructFrom patches;
+        patches (v_rotor);
+    }
+
+    {
+        //- Slave side patch
+        name            AMI_rotor_slave;
+        patchInfo
+        {
+            type            cyclicAMI;
+            matchTolerance  0.0001;
+            neighbourPatch  AMI_rotor;
+            transform       noOrdering;
+        }
+        constructFrom patches;
+        patches (v_rotor_slave);
+    }
+
+    {
+        //- Master side patch
+        name            AMI_dualWing;
+        patchInfo
+        {
+            type            cyclicAMI;
+            matchTolerance  0.0001;
+            neighbourPatch  AMI_dualWing_slave;
+            transform       noOrdering;
+        }
+        constructFrom patches;
+        patches (v_dualWing);
+    }
+
+    {
+        //- Slave side patch
+        name            AMI_dualWing_slave;
+        patchInfo
+        {
+            type            cyclicAMI;
+            matchTolerance  0.0001;
+            neighbourPatch  AMI_dualWing;
+            transform       noOrdering;
+        }
+        constructFrom patches;
+        patches (v_dualWing_slave);
+    }
+
+);
+
+
+// ************************************************************************* //

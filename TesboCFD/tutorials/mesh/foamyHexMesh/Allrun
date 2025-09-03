@@ -1,0 +1,19 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+# Any cases that are links to solver test cases and are run when the Allrun
+# scripts of those solvers are run.  This script avoids meshing these cases
+# twice.
+
+( cd blob && ./Allrun $* )
+( cd simpleShapes && ./Allrun $* )
+
+if notTest "$@"
+then
+    ( cd flange && ./Allrun $* )
+    ( cd mixerVessel && ./Allrun $* )
+fi
+
+#------------------------------------------------------------------------------

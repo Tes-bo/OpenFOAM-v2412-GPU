@@ -1,0 +1,80 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    arch        "LSB;label=32;scalar=64";
+    class       pointVectorField;
+    location    "0";
+    object      pointDisplacement;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 1 0 0 0 0 0];
+
+internalField   uniform (0 0 0);
+
+
+// Some macros
+__surfaceSlipDisplacement
+{
+    type            surfaceSlipDisplacement;
+    value           uniform (0 0 0);
+    geometry
+    {
+        box
+        {
+            type            triSurfaceMesh;
+            file            blockMesh.obj;
+        }
+    }
+    projectMode     nearest;
+}
+
+__edgeSlipDisplacement
+{
+    type            edgeSlipDisplacement;
+    file            "blockMesh.eMesh";
+    // Underrelax the displacement on edges since conflicts with
+    // smoothing. TBD.
+    velocity        (1 1 1);
+}
+
+
+boundaryField
+{
+    // Attract to feature lines
+    exposedFacesEdges
+    {
+        ${__edgeSlipDisplacement};
+    }
+
+    // Attract to feature lines
+    boundaryEdges
+    {
+        ${__edgeSlipDisplacement};
+    }
+
+    // Attract to feature lines
+    boundaryPoints
+    {
+        ${__edgeSlipDisplacement};
+        // Override to point-based attraction
+        type            pointAttraction;
+    }
+
+    // Default is to attract to surface
+    ".*"
+    {
+        ${__surfaceSlipDisplacement};
+    }
+}
+
+
+// ************************************************************************* //

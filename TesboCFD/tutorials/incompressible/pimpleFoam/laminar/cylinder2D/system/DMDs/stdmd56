@@ -1,0 +1,13 @@
+// -*- C++ -*-
+
+stdmd56
+{
+    ${stdmd01}
+
+    field            UMean_movingAverageWindow;
+    patch            outlet;
+    maxRank          2;
+}
+
+
+// ************************************************************************* //

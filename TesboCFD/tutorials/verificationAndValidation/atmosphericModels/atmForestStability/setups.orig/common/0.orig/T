@@ -1,0 +1,46 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    object      T;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 0 0 1 0 0 0];
+
+internalField   uniform 300;
+
+boundaryField
+{
+    bottom
+    {
+        type            atmTurbulentHeatFluxTemperature;
+        heatSource      flux;
+        alphaEff        alphaEff;
+        Cp0             1005.0;
+        q               uniform 0.0;
+        value           uniform 300;
+    }
+
+    top
+    {
+        type           fixedValue;
+        value          uniform 300;
+    }
+
+    "(inlet|outlet|left|right)"
+    {
+        type            cyclic;
+    }
+}
+
+
+// ************************************************************************* //

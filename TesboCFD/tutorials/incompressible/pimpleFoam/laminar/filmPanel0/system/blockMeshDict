@@ -1,0 +1,118 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+scale   1;
+
+xside 0.05;
+xcore 0.51;
+ymax  1.22;
+zmin  -0.01;
+
+cellWidth 0.005;
+//cellWidth 0.01;
+
+nx      #eval{ round($xside / $cellWidth) };
+nxin    #eval{ round($xcore / $cellWidth) };
+ny      #eval{ round($ymax / $cellWidth) };
+nz      1;
+
+vertices
+(
+    // side
+    (0      0  $zmin)
+    ($xside 0  $zmin)
+    ($xside $ymax  $zmin)
+    (0      $ymax  $zmin)
+    (0      0 0)
+    ($xside 0 0)
+    ($xside $ymax 0)
+    (0      $ymax 0)
+
+    // central core
+    (#eval{$xcore + $xside}  0      $zmin)
+    (#eval{$xcore + $xside}  $ymax  $zmin)
+    (#eval{$xcore + $xside}  0      0)
+    (#eval{$xcore + $xside}  $ymax  0)
+
+    // side
+    (#eval{$xcore + 2*$xside} 0      $zmin)
+    (#eval{$xcore + 2*$xside} $ymax  $zmin)
+    (#eval{$xcore + 2*$xside} 0      0)
+    (#eval{$xcore + 2*$xside} $ymax  0)
+);
+
+blocks
+(
+    hex (0 1 2 3 4 5 6 7      ) ($nx   $ny $nz) grading (1 1 1)
+    hex (1 8 9 2 5 10 11 6    ) ($nxin $ny $nz) grading (1 1 1)
+    hex (8 12 13 9 10 14 15 11) ($nx   $ny $nz) grading (1 1 1)
+);
+
+boundary
+(
+    inlet
+    {
+        type patch;
+        faces
+        (
+            (2 9 11 6)
+        );
+    }
+    outlet
+    {
+        type patch;
+        faces
+        (
+            (0 1 5 4)
+            (1 8 10 5)
+            (8 12 14 10)
+        );
+    }
+    side
+    {
+        type patch;
+        faces
+        (
+            (0 3 7 4)
+            (12 14 15 13)
+            (3 2 6 7)
+            (9 13 15 11)
+        );
+    }
+    back
+    {
+        type patch;
+        faces
+        (
+            (4 5 6 7)
+            (5 10 11 6)
+            (10 14 15 11)
+        );
+    }
+    film
+    {
+        type patch;
+        faces
+        (
+            (0 1 2 3)
+            (1 8 9 2)
+            (8 12 13 9)
+        );
+    }
+);
+
+
+// ************************************************************************* //

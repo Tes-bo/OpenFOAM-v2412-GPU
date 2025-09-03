@@ -1,0 +1,130 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       pointVectorField;
+    location    "0";
+    object      pointDisplacement;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 1 0 0 0 0 0];
+
+internalField   uniform (0 0 0);
+
+_surfaceDisplacement
+{
+    type                surfaceSlipDisplacement;
+    value               $internalField;
+    projectMode         nearest;
+//    // if fixedNormal : normal
+//    projectDirection    (0 0 1);
+//    //- -1 or component to knock out before doing projection
+//    wedgePlane          -1;
+//    relax               0.5;
+    //- Underrelax motion by limiting displacement velocity
+    velocity        (100 100 100);
+}
+
+
+boundaryField
+{
+    //#includeEtc "caseDicts/setConstraintTypes"
+
+    InletSmall
+    {
+        ${^_surfaceDisplacement}
+        geometry
+        {
+            InletSmall
+            {
+                type    triSurfaceMesh;
+                file    "InletSmall.obj";
+            }
+        }
+    }
+    Outlet
+    {
+        ${^_surfaceDisplacement}
+        geometry
+        {
+            Outlet
+            {
+                type    triSurfaceMesh;
+                file    "Outlet.obj";
+            }
+        }
+    }
+    SmallPipe
+    {
+        ${^_surfaceDisplacement}
+        geometry
+        {
+            SmallPipe
+            {
+                type    triSurfaceMesh;
+                file    "SmallPipe.obj";
+            }
+        }
+    }
+    Inlet
+    {
+        ${^_surfaceDisplacement}
+        geometry
+        {
+            Inlet
+            {
+                type    triSurfaceMesh;
+                file    "Inlet.obj";
+            }
+        }
+    }
+    BigPipe
+    {
+        ${^_surfaceDisplacement}
+        geometry
+        {
+            BigPipe
+            {
+                type    triSurfaceMesh;
+                file    "BigPipe.obj";
+            }
+        }
+    }
+
+    // Per-patch feature-edges
+    SmallPipeEdges
+    {
+        type            edgeSlipDisplacement;
+        file            "SmallPipe.eMesh";
+        //file            "box222.extendedFeatureEdgeMesh";
+        //- Underrelax motion by limiting displacement velocity
+        velocity        (100 100 100);
+    }
+    BigPipeEdges
+    {
+        type            edgeSlipDisplacement;
+        file            "BigPipe.eMesh";
+        //file            "box222.extendedFeatureEdgeMesh";
+        //- Underrelax motion by limiting displacement velocity
+        velocity        (100 100 100);
+    }
+    // Inter-patch feature-edges
+    boundaryEdges
+    {
+        type            edgeSlipDisplacement;
+        file            "geometry.eMesh";
+        //file            "box222.extendedFeatureEdgeMesh";
+        //- Underrelax motion by limiting displacement velocity
+        velocity        (100 100 100);
+    }
+}
+
+// ************************************************************************* //

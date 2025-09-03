@@ -1,0 +1,95 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+scale   1;
+
+nx      2;
+ny      82;
+nz      23;
+
+xMin    0.0;
+xMax    0.125664;
+yMin    0.0;
+yMax    #eval{ pi() };
+zMin    0.0;
+z1Max   1.0;
+z2Max   #eval{ 2*$z1Max };
+
+z1Exp   10.7028;
+z2Exp   -10.7028;
+
+vertices
+(
+    ($xMin   $yMin   $zMin)
+    ($xMax   $yMin   $zMin)
+    ($xMax   $yMax   $zMin)
+    ($xMin   $yMax   $zMin)
+
+    ($xMin   $yMin   $z1Max) //4
+    ($xMax   $yMin   $z1Max)
+    ($xMax   $yMax   $z1Max)
+    ($xMin   $yMax   $z1Max)
+
+    ($xMin   $yMin   $z2Max) // 8
+    ($xMax   $yMin   $z2Max)
+    ($xMax   $yMax   $z2Max)
+    ($xMin   $yMax   $z2Max)
+);
+
+blocks
+(
+    hex (0  1  2  3  4  5  6  7) ($nx $ny $nz) simpleGrading (1 1 $z1Exp)
+    hex (4  5  6  7  8  9  10 11) ($nx $ny $nz) simpleGrading (1 1 $z2Exp)
+);
+
+boundary
+(
+    bottom
+    {
+        type            wall;
+        faces           ((0 3 2 1));
+    }
+    top
+    {
+        type            wall;
+        faces           ((8 11 10 9));
+    }
+    left
+    {
+        type            cyclic;
+        neighbourPatch  right;
+        faces           ((3 2 6 7)(7 6 10 11));
+    }
+    right
+    {
+        type            cyclic;
+        neighbourPatch  left;
+        faces           ((0 4 5 1)(4 8 9 5));
+    }
+    inlet
+    {
+        type            patch;
+        faces           ((0 3 7 4)(4 7 11 8));
+    }
+    outlet
+    {
+        type            patch;
+        faces           ((1 5 6 2)(5 9 10 6));
+    }
+);
+
+
+// ************************************************************************* //

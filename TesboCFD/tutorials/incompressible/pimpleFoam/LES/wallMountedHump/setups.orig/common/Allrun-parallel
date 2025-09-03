@@ -1,0 +1,47 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+if [ ! -d constant/polyMesh ]
+then
+    runApplication blockMesh
+
+    runApplication renumberMesh -overwrite -constant
+
+    runApplication checkMesh -allTopology -allGeometry -constant
+fi
+
+canCompile || exit 0    # Dynamic code
+
+restore0Dir
+
+runApplication decomposePar
+
+runParallel applyBoundaryLayer -ybl 0.06
+
+runParallel $(getApplication)
+
+runApplication reconstructPar
+
+
+# restart test
+
+latestTime=$(foamListTimes -latestTime)
+
+mv -f "$latestTime" "$latestTime".bak
+
+mkdir old-processors
+
+mv -f processor* old-processors/
+
+runParallel -s "decompose" redistributePar -decompose -latestTime
+
+runParallel -s 2 $(getApplication)
+
+runParallel -s "reconstruct" redistributePar -reconstruct -latestTime
+
+
+runApplication foamLog log."$(getApplication)"
+
+#------------------------------------------------------------------------------

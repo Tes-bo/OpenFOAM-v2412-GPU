@@ -1,0 +1,84 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+# settings
+
+    # operand setups
+    setups="
+    Maxwell
+    Stokes
+    "
+
+
+#------------------------------------------------------------------------------
+
+plot_t_vs_Ux() {
+
+    setups=$@
+
+    n=0
+    for setup in $setups
+    do
+        benchmarkFile="results/$setup/WatersKing.dat"
+        sampleFiles[$n]="results/$setup/postProcessing/probes/0/Unp"
+        n=$(($n+1))
+    done
+
+    endTime=$(foamDictionary results/$setup/system/controlDict -entry endTime -value)
+    image="plots/planarPoiseuille.png"
+
+    gnuplot<<PLT
+    set terminal pngcairo font "helvetica,20" size 1000, 1000
+    set grid
+    set key left top
+    set xrange [0:"$endTime"]
+    set yrange [0:8]
+    set xlabel "t [s]"
+    set ylabel "U_x [m/s]"
+    set output "$image"
+
+    # Benchmark - analytical
+        benchmark="$benchmarkFile"
+
+    # OpenFOAM
+        names="${setups[*]}"
+        samples="${sampleFiles[*]}"
+
+    plot \
+        benchmark u 1:2 t "Analytical" w l lt -1, \
+        for [i=1:words(samples)] word(samples, i) t word(names, i) \
+            w linespoints pointinterval 100 lt i pt 6 ps 1.5
+PLT
+}
+
+
+#------------------------------------------------------------------------------
+
+# Requires gnuplot
+command -v gnuplot >/dev/null || {
+    echo "gnuplot not found - skipping graph creation" 1>&2
+    exit 1
+}
+
+# Check "results" directory
+[ -d "results" ] || {
+    echo "No results directory found - skipping graph creation" 1>&2
+    exit 1
+}
+
+
+#------------------------------------------------------------------------------
+
+echo ""
+echo "# Plots for the streamwise flow speed at y=1.0 [m] as a function of time"
+echo ""
+
+dirPlots="plots"
+[ -d "$dirPlots" ] || mkdir -p "$dirPlots"
+
+plot_t_vs_Ux $setups
+
+
+#------------------------------------------------------------------------------

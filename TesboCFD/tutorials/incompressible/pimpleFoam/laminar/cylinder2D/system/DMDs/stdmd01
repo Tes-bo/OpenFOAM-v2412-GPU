@@ -1,0 +1,49 @@
+// -*- C++ -*-
+
+stdmd01
+{
+    // Mandatory entries (unmodifiable)
+    type                DMD;
+    libs                (fieldFunctionObjects);
+    DMDModel            STDMD;
+    field               U;
+
+    // Optional entries (unmodifiable)
+    /* patch               <patchName>; */
+
+    // Conditional mandatory entries (runtime modifiable)
+
+        // Option-1
+        /* interval            5.5; */
+
+        // Option-2
+        /* executeInterval     10; */
+
+    // Optional entries (runtime modifiable)
+    /* modeSorter          firstSnapshot; */
+    /* nGramSchmidt        5; */
+    /* maxRank             50; */
+    /* nModes              50; */
+    /* fMin                0; */
+    /* fMax                1000000000; */
+
+    // Optional entries (runtime modifiable, yet not recommended)
+    /* minBasis            0.00000001; */
+    /* minEVal             0.00000001; */
+    /* sortLimiter         500.0; */
+
+
+    // Optional (inherited) entries
+    region          region0;
+    enabled         true;
+    log             true;
+    timeStart       10;
+    timeEnd         1000;
+    executeControl  timeStep;
+    executeInterval 10;
+    writeControl    onEnd;
+    writeInterval   1;
+}
+
+
+// ************************************************************************* //

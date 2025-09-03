@@ -1,0 +1,55 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+# Create tet mesh
+# ~~~~~~~~~~~~~~~
+# (using blockMesh but another tool could work as well)
+
+# Create block
+runApplication blockMesh
+
+runApplication topoSet
+
+# Create cut-out to make it more interesting
+runApplication subsetMesh c0 -patch exposedFaces -overwrite
+
+# Create tet decomposition as 'tetMesh' region
+runApplication postProcess -func tetDecomposition
+
+# Move tet mesh to default location
+\rm -r constant/polyMesh
+mv constant/tetMesh/polyMesh constant/polyMesh
+\rm -rf constant/tetMesh system/tetMesh
+
+
+# Convert to poly
+# ~~~~~~~~~~~~~~~
+
+# Convert to poly
+runApplication polyDualMesh 45 -concaveMultiCells -overwrite
+
+
+# Set up to run smoothing
+# ~~~~~~~~~~~~~~~~~~~~~~~
+
+# Detect feature edges on mesh and generate new point patches from these.
+mkdir -p constant/triSurface
+runApplication surfaceMeshExtract \
+    -featureAngle 45 constant/triSurface/blockMesh.obj
+
+#- Extract features from surface (original of blockMesh). Writes .eMesh.
+runApplication surfaceFeatureExtract
+
+cp -r 0.orig 0
+
+
+# Smoothing
+# ~~~~~~~~~
+
+runApplication moveDynamicMesh
+
+runApplication checkMesh -writeFields '(nonOrthoAngle)'
+
+#------------------------------------------------------------------------------

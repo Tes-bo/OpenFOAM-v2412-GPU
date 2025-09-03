@@ -1,0 +1,70 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      topoSetDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+actions
+(
+    {
+        name    f0;
+        type    faceSet;
+        action  new;
+        source  boxToFace;
+
+        box     (-100 -100 -100) (1.01 1.01 1.01);
+    }
+    {
+        name    f0;
+        type    faceSet;
+        action  subtract;
+        source  boundaryToFace;
+    }
+
+    ////- Remove internal faces; do boundary faces only
+    //{
+    //    name    f0;
+    //    type    faceSet;
+    //    action  clear;
+    //}
+
+    //- Add single external face (min-z)
+    {
+        name    f0;
+        type    faceSet;
+        action  add;
+        source  boxToFace;
+
+        box     (-100 -100 -100) (1.01 1.01 0.01);
+    }
+
+    {
+        name    c0;
+        type    cellSet;
+        action  new;
+        source  nearestToCell;
+
+        points  ((0.5 0.5 0.5));
+    }
+    {
+        name    f0Zone;
+        type    faceZoneSet;
+        action  new;
+        source  setsToFaceZone;
+
+        faceSet f0;
+        cellSet c0;
+    }
+);
+
+// ************************************************************************* //

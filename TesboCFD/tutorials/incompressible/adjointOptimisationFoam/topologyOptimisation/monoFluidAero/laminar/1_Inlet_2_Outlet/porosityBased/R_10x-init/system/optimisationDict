@@ -1,0 +1,140 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      optimisationDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+optimisationManager steadyOptimisation;
+
+primalSolvers
+{
+    op1
+    {
+        active                 true;
+        type                   incompressible;
+        solver                 simple;
+        solutionControls
+        {
+            nIters 300;
+            residualControl
+            {
+                "p.*"       5.e-7;
+                "U.*"       5.e-7;
+            }
+        }
+    }
+}
+
+adjointManagers
+{
+    adjManager1
+    {
+        primalSolver             op1;
+        adjointSolvers
+        {
+            as1
+            {
+                // choose adjoint solver
+                //----------------------
+                active                 true;
+                type                   incompressible;
+                solver                 adjointSimple;
+                // manage objectives
+                //------------------
+                objectives
+                {
+                    type  incompressible;
+                    objectiveNames
+                    {
+                        losses
+                        {
+                            weight          1.; 
+                            type            PtLosses;
+                            patches         (inlet "outlet.*");
+                            normalise       true;
+                        }
+                    }
+                }
+                // ATC treatment
+                //--------------
+                ATCModel
+                {
+                    ATCModel        standard;
+                }
+                // solution control
+                //------------------
+                solutionControls
+                {
+                    nIters 300;
+                    residualControl
+                    {
+                        "pa.*"       5.e-7;
+                        "Ua.*"       5.e-7;
+                    }
+                }
+            }
+            vol
+            {
+                // choose adjoint solver
+                //----------------------
+                active                 true;
+                type                   null;
+                isConstraint           true;
+                // manage objectives
+                //------------------
+                objectives
+                {
+                    type  geometric;
+                    objectiveNames
+                    {
+                        vol
+                        {
+                            weight          1.; 
+                            type            topOVolume;
+                            percentage      0.462;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+optimisation
+{
+    designVariables
+    {
+        type topO;
+        sensitivityType topO;
+        fixedZeroPorousZones   (IEntranceSet OEntranceSet OREntranceSet);
+        regularisation
+        {
+            regularise     true;
+            growFromWalls  true;
+            meanRadiusMult 10;
+            function       tanh;
+            b              20;
+        }
+        betaMax    2500;
+        maxInitChange 0.2;
+    }
+    updateMethod
+    {
+        method ISQP;
+        preconditioner ShermanMorrison;
+        includeExtraVars true;
+        c 2;
+    }
+}
+
+// ************************************************************************* //

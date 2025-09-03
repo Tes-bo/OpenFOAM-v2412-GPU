@@ -1,0 +1,80 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      PDRblockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// Bounding Box : (-23.275 -250 5) (23.275 250 200)
+
+scale   1;
+
+x
+{
+    points  ( -50 50 );
+    nCells  ( 50 );
+    ratios  ( 1 );
+}
+
+y
+{
+    points  ( -300 -25 25 300 );
+    nCells  ( 10 10 10 );
+    ratios  ( 1 1 1 );
+}
+
+z
+{
+    points  ( 0 50 80 250 );
+    nCells  ( 2 10 10 );
+    ratios  ( 1 1 1 );
+}
+
+// Low resolution
+
+
+// Faces: 0=x-min, 1=x-max, 2=y-min, 3=y-max, 4=z-min, 5=z-max
+
+boundary
+(
+    sides
+    {
+        type    patch;
+        faces   ( 0 1 );
+    }
+
+    outlet
+    {
+        type    patch;
+        faces   ( 2 );
+    }
+
+    inlet
+    {
+        type    patch;
+        faces   ( 3 );
+    }
+
+    ground
+    {
+        type    wall;
+        faces   ( 4 );
+    }
+
+    sky
+    {
+        type    patch;
+        faces   ( 5 );
+    }
+);
+
+// ************************************************************************* //

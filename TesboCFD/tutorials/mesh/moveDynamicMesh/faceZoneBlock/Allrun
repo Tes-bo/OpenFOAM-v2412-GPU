@@ -1,0 +1,47 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+#- Generate mesh
+runApplication blockMesh
+
+#- Create faceZone (on unrotated mesh so is easy to select box of faces)
+runApplication topoSet
+
+#- Rotate a bit
+#runApplication transformPoints -rotate-z -45
+
+#- Generate pointMesh with additional feature patches
+#  (in constant/pointMesh/boundary)
+# - extracted surface is not used
+# - specify illegal patchname so none will be extracted (could use
+#   '-excludePatches' instead)
+# - extract feature points of faceZone
+# - additionally extract all points of faceZone (-extractZonePoints)
+runApplication surfaceMeshExtract \
+    -featureAngle 45 \
+    -patches '(ZZZZZZ)' \
+    -faceZones '(movingZone)' -extractZonePoints \
+    constant/triSurface/blockMesh.obj
+
+#- For postprocessing: extract new pointPatches as vtk files
+setSet <<EOF
+pointSet p0 new patchToPoint movingZone
+pointSet p1 new patchToPoint movingZoneEdges
+EOF
+
+#- TBD. move triSurfaces to resources
+#mkdir -p constant/triSurface
+#cp -f \
+#    "$FOAM_TUTORIALS"/resources/geometry/box222.obj \
+#    constant/triSurface/
+
+#- Extract features from surface. Writes .eMesh
+runApplication surfaceFeatureExtract
+
+#- Morph mesh to the surface (.obj file) and feature-edges (.eMesh file)
+#- Note: needs point-based motion solver
+runApplication moveDynamicMesh
+
+#------------------------------------------------------------------------------

@@ -1,0 +1,120 @@
+// --------------------------------*- C++ -*-------------------------------- //
+//
+// File
+//     OpenFOAM coded function object
+//
+// Description
+//     Write relative rotational speed
+//
+// ------------------------------------------------------------------------- //
+
+relVelocity
+{
+    type coded;
+    name relVelocity;
+    libs ( utilityFunctionObjects );
+
+    writeControl writeTime;
+
+    coeffs
+    {
+        // User input (duplicate of constant/dynamicMeshDict)
+        // origin  (-3 2 2.6);
+        // axis    (0 0 1);
+        // omega   10;
+        // zones   ( rotatingZone );
+
+        #sinclude "<constant>/dynamicMeshDict"
+    }
+
+    // Additional context for code execute/write
+    codeContext
+    {
+        verbose true;
+    }
+
+    codeData
+    #{
+        vector origin;
+        vector omega;
+        wordRes zoneNames;
+    #};
+
+    codeRead
+    #{
+        const dictionary& coeffs = dict.optionalSubDict("coeffs");
+        const dictionary& context = this->codeContext();
+
+        origin = coeffs.get<vector>("origin");
+
+        omega =
+        (
+            // speed
+            (
+                coeffs.found("rpm")
+              ? degToRad(coeffs.get<scalar>("rpm") / 60.0)
+              : coeffs.get<scalar>("omega")
+            )
+            // axis
+          * normalised(coeffs.getOrDefault<vector>("axis", vector(0,0,1)))
+        );
+
+        if (!coeffs.readIfPresent("zones", zoneNames))
+        {
+            if (coeffs.found("cellZone"))
+            {
+                zoneNames.resize(1);
+                coeffs.readEntry("cellZone", zoneNames[0]);
+            }
+        }
+
+        if (context.getOrDefault<bool>("verbose", false))
+        {
+            Log<< "Relative velocity at origin " << origin << "\n";
+        }
+    #};
+
+    codeWrite
+    #{
+        const dictionary& context = this->codeContext();
+
+        if (context.getOrDefault<bool>("verbose", false))
+        {
+            Log<< "Calculate relative velocity\n";
+        }
+
+        const auto& cc = mesh().C();
+        const auto& U = mesh().lookupObject<volVectorField>("U");
+
+        auto trelVel = volVectorField::New
+        (
+            "relVelocity",
+            mesh(),
+            dimensionedVector(dimVelocity, Zero),
+            fvPatchVectorField::zeroGradientType()
+        );
+        auto& relVel = trelVel.ref();
+        auto& relVelField = relVel.primitiveFieldRef();
+
+        if (zoneNames.empty())
+        {
+            for (label celli = 0; celli < mesh().nCells(); ++celli)
+            {
+                relVelField[celli] = U[celli] - (omega ^ (cc[celli] - origin));
+            }
+        }
+        else
+        {
+            for (const label celli : mesh().cellZones().selection(zoneNames))
+            {
+                relVelField[celli] = U[celli] - (omega ^ (cc[celli] - origin));
+            }
+        }
+
+        relVel.correctBoundaryConditions();
+        relVel.write();
+    #};
+}
+
+
+// ************************************************************************* //

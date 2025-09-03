@@ -1,0 +1,146 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+postPro1
+{
+    #includeEtc "caseDicts/postProcessing/visualization/runTimePostPro.cfg"
+
+    // Time control etc
+    ${_visualization};
+
+    // debug       true;
+    // parallel    true;
+
+    output
+    {
+        name            image;
+        width           2000;
+        height          1200;
+    }
+
+    // Default colours. Used for colourBy == colour unless locally overridden
+    colours
+    {
+        ${../colourScheme/blueGradient};
+    }
+
+    camera
+    {
+        // If camera is moving, optionally provide start and end times
+        // startPosition    0.2;
+        // endPosition      0.75;
+
+        // Total number of frames to generate
+        nFrameTotal         1;
+
+        // Parallel projection flag
+        parallelProjection  off;
+
+        clipBox         (-0.2 -0.2 0)(1.65 0.2 1.25); // optional
+
+        focalPoint      (1.2 1.1 0.2);
+        position        (3.6 5.1 -1.3);
+        up              (0 0 1);
+    }
+
+    // Line data
+    lines
+    {
+        streamline
+        {
+            type            functionObjectLine;
+            functionObject  streamLines;
+            colourMap       rainbow;
+            representation  tube;
+            visible         true;
+            tubeRadius      0.01;
+            colourBy        field;
+            field           U;
+            range           (0 20);
+            opacity         1;
+            scalarBar
+            {
+                visible         true;
+                position        (0.8 0.1);
+                vertical        yes;
+                fontSize        16;
+                title           "velocity [m/s]";
+                labelFormat     "%6.2f";
+                numberOfLabels  5;
+                bold            true;
+                italic          true;
+                italic          true;
+                colour          (0.75 0.75 0.75);
+            }
+        }
+    }
+
+    // Surface data
+    surfaces
+    {
+        surface1
+        {
+            type            geometry;
+            files           ("<constant>/triSurface/motorBike.obj.gz");
+            renderMode      phong;
+            representation  surface;
+            edgeColour      (0 0 0);
+            featureEdges    yes;
+            opacity         1;
+            visible         false;
+        }
+
+        patches
+        {
+            type            patches;
+            patches         ("motorBike.*");
+            renderMode      phong;
+            representation  surface;
+            colourMap       coolToWarm;
+            colourBy        field;
+            field           U;
+            range           (0 30);
+            nearCellValue   true;
+            smooth          true;
+            featureEdges    yes;
+            edgeColour      (0 0 0);
+        }
+
+        plane1
+        {
+            type            functionObjectSurface;
+            functionObject  samples.yNormal;
+            colourMap       coolToWarm;
+            representation  glyph;
+            maxGlyphLength  0.1;
+            visible         true;
+            featureEdges    no;
+            colourBy        field;
+            field           U;
+            range           (0 30);
+            opacity         1;
+        }
+    }
+
+    // Text data
+    text
+    {
+        text1
+        {
+            visible     true;
+            string      "Motorbike";
+            position    (0.1 0.05);
+            size        72;
+            bold        true;
+            italic      true;
+        }
+    }
+}
+
+
+// ************************************************************************* //

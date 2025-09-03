@@ -1,0 +1,24 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+#- Generate mesh
+runApplication blockMesh
+
+mkdir -p constant/triSurface
+runApplication surfaceMeshExtract \
+    -featureAngle 45 \
+    -patches '(minX maxY)' \
+    constant/triSurface/blockMesh.obj
+
+#- For postprocessing: extract new pointPatches as vtk files
+setSet <<EOF
+pointSet p0 new patchToPoint boundaryEdges
+EOF
+
+#- Morph mesh to the surface (.obj file) and feature-edges (.eMesh file)
+#- Note: needs point-based motion solver
+runApplication moveDynamicMesh
+
+#------------------------------------------------------------------------------

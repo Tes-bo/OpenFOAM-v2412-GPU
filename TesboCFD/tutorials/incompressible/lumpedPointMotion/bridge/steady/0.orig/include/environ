@@ -1,0 +1,26 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+// Unspecified negative sides
+"(_[xy])"
+{
+    type slip;
+}
+
+// Unspecified positive sides
+"([xy]_)"
+{
+    type slip;
+}
+
+sky
+{
+    type slip;
+}
+
+// ************************************************************************* //

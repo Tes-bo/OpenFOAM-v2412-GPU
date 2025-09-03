@@ -1,0 +1,106 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      optimisationDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+optimisationManager    singleRun;
+
+primalSolvers
+{
+    op1
+    {
+        active                 true;
+        type                   incompressible;
+        solver                 simple;
+        solutionControls
+        {
+            nIters 3000;
+            residualControl
+            {
+                "p.*"       1.e-7;
+                "U.*"       1.e-7;
+            }
+        }
+    }
+}
+
+adjointManagers
+{
+    adjManager1
+    {
+        primalSolver             op1;
+        adjointSolvers
+        {
+            adjS1
+            {
+                // choose adjoint solver
+                //----------------------
+                active                 true;
+                type                   incompressible;
+                solver                 adjointSimple;
+
+                // manage objectives
+                //------------------
+                objectives
+                {
+                    type               incompressible;
+                    objectiveNames
+                    {
+                        lift
+                        {
+                            weight          1.;
+                            type            force;
+                            patches         (pressure suction);
+                            direction       (0.034899496703 -0.9993908270189999 0);
+                            Aref            2.;
+                            rhoInf          1.225;
+                            UInf            1;
+                        }
+                    }
+                }
+
+                // ATC treatment
+                //--------------
+                ATCModel
+                {
+                    ATCModel        standard;
+                }
+
+                // solution control
+                //------------------
+                solutionControls
+                {
+                    nIters 3000;
+                    residualControl
+                    {
+                        "pa.*"       1.e-7;
+                        "Ua.*"       1.e-7;
+                    }
+                }
+            }
+        }
+    }
+}
+
+optimisation
+{
+    designVariables
+    {
+        sensitivityType surfacePoints;
+        patches         (pressure suction);
+    }
+}
+
+
+// ************************************************************************* //

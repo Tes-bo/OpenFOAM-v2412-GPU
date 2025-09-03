@@ -1,0 +1,84 @@
+#!/bin/bash
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+# settings
+
+    # operand setups
+    setups="
+    icoReactingMultiphaseInterFoam
+    interCondensatingEvaporatingFoam
+    "
+
+
+#------------------------------------------------------------------------------
+
+plot_t_vs_x() {
+
+    setup="$1"
+
+    benchmarkFile="resources/dataset/StefanProblem.dat"
+
+    sampleDir="results/$setup/postProcessing/interfaceHeight1/1.36"
+    sampleFile="$sampleDir/positionClean.dat"
+    sed -e 's/[()]//g' "$sampleDir/position.dat" > "$sampleFile"
+    image="plots/$setup/t_vs_x.png"
+
+    gnuplot<<EOF
+    set terminal pngcairo font "helvetica,20" size 1000, 1000
+    set grid
+    set key left top
+    set xlabel "t [sec]"
+    set ylabel "x [mm]"
+    set output "$image"
+
+    # Benchmark - analytical
+        benchmark="$benchmarkFile"
+
+    # OpenFOAM
+        samples="$sampleFile"
+
+    plot \
+        benchmark u 1:2 t "Analytical", \
+        samples u 1:2 t "OpenFOAM" with line lt -1 lw 1
+EOF
+}
+
+
+#------------------------------------------------------------------------------
+
+# Requires gnuplot
+command -v gnuplot >/dev/null || {
+    echo "gnuplot not found - skipping graph creation" 1>&2
+    exit 1
+}
+
+# Check "results" directory
+[ -d "results" ] || {
+    echo "No results directory found - skipping graph creation" 1>&2
+    exit 1
+}
+
+
+#------------------------------------------------------------------------------
+
+for setup in $setups
+do
+    echo ""
+    echo "# Plots for the setup: $setup"
+    echo ""
+
+    [ -d "results/$setup" ] || {
+        echo "No results/$setup directory found - skipping graph creation" 1>&2
+        continue
+    }
+
+    dirPlots="plots/$setup"
+    [ -d "$dirPlots" ] || mkdir -p "$dirPlots"
+
+    plot_t_vs_x "$setup"
+done
+
+
+#------------------------------------------------------------------------------

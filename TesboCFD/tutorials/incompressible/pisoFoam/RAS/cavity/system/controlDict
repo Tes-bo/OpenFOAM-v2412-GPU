@@ -1,0 +1,107 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+application     pisoFoam;
+
+startFrom       latestTime;
+
+startTime       0;
+
+stopAt          endTime;
+
+endTime         10;
+
+deltaT          0.005;
+
+writeControl    timeStep;
+
+writeInterval   100;
+
+purgeWrite      0;
+
+writeFormat     ascii;
+
+writePrecision  6;
+
+writeCompression off;
+
+timeFormat      general;
+
+timePrecision   6;
+
+runTimeModifiable true;
+
+
+functions
+{
+    // field function objects
+    #include "FOs/FOfieldAverage"
+    #include "FOs/FOadd"
+    #include "FOs/FOblendingFactor"
+    #include "FOs/FOcomponents"
+    #include "FOs/FOCourantNo"
+    #include "FOs/FOcontinuityError"
+    #include "FOs/FOddt"
+    #include "FOs/FOddt2"
+    #include "FOs/FOdiv"
+    #include "FOs/FOenstrophy"
+    #include "FOs/FOflowType"
+    #include "FOs/FOflux"
+    #include "FOs/FOgrad"
+    #include "FOs/FOhistogram"
+    #include "FOs/FOLambda2"
+    #include "FOs/FOLambVector"
+    #include "FOs/FOlimitFields"
+    #include "FOs/FOlog"
+    #include "FOs/FOmag"
+    #include "FOs/FOmagSqr"
+    #include "FOs/FOmultiFieldValue"
+    #include "FOs/FOmultiply"
+    #include "FOs/FOmomentum"
+    #include "FOs/FOnearWallFields"
+    #include "FOs/FOPecletNo"
+    #include "FOs/FOpressure"
+    #include "FOs/FOprocessorField"
+    #include "FOs/FOproudmanAcousticPower"
+    #include "FOs/FOpow"
+    #include "FOs/FOQ"
+    #include "FOs/FOrandomise"
+    #include "FOs/FOreadFields"
+    #include "FOs/FOsetFlow"
+    #include "FOs/FOstreamFunction"
+    #include "FOs/FOstreamLine"
+    #include "FOs/FOsubtract"
+    //#include "FOs/FOsurfaceDistance"
+    #include "FOs/FOsurfaceInterpolate"
+    #include "FOs/FOturbulenceFields"
+    #include "FOs/FOvalueAverage"
+    #include "FOs/FOvolFieldValue"
+    #include "FOs/FOvorticity"
+    #include "FOs/FOreference"
+    #include "FOs/FOwallShearStress"
+    #include "FOs/FOwriteCellCentres"
+    #include "FOs/FOwriteCellVolumes"
+    #include "FOs/FOwriteObjects"
+    #include "FOs/FOyPlus"
+    #include "FOs/FOzeroGradient"
+    #include "FOs/FOnorm"
+
+    // utility function objects
+    #include "FOs/FOsolverInfo"
+}
+
+
+// ************************************************************************* //

@@ -1,0 +1,118 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      topoSetDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+actions
+(
+
+    {
+        name    fixedWalls;
+        type    faceSet;
+        action  new;
+        source  patchToFace;
+        patch   fixedWalls;
+    }
+
+    {
+        name    inlet;
+        type    faceSet;
+        action  new;
+        source  faceToFace;
+        set     fixedWalls;
+    }
+
+    {
+        name    inlet;
+        type    faceSet;
+        action  subset;
+        source  boxToFace;
+        sourceInfo
+        {
+            box  (0.030 0.130 0.080) (0.070 0.170 0.120);
+        }
+    }
+    {
+        name    inletZone;
+        type    cellSet;
+        action  new;
+        source  faceToCell;
+        set     inlet;
+        option  any;
+    }
+
+    {
+        name    outlet1;
+        type    faceSet;
+        action  new;
+        source  faceToFace;
+        set     fixedWalls;
+    }
+
+    {
+        name    outlet1;
+        type    faceSet;
+        action  subset;
+        source  boxToFace;
+        sourceInfo
+        {
+            box (0.199 0.088 0.02) (0.201 0.112 0.044);
+        }
+    }
+    {
+        name    outlet1Zone;
+        type    cellSet;
+        action  new;
+        source  faceToCell;
+        set     outlet1;
+        option  any;
+    }
+
+    {
+        name    outlet2;
+        type    faceSet;
+        action  new;
+        source  faceToFace;
+        set     fixedWalls;
+    }
+
+    {
+        name    outlet2;
+        type    faceSet;
+        action  subset;
+        source  boxToFace;
+        sourceInfo
+        {
+            box (0.199 0.088 0.064) (0.201 0.112 0.088);
+        }
+    }
+    {
+        name    outlet2Zone;
+        type    cellSet;
+        action  new;
+        source  faceToCell;
+        set     outlet2;
+        option  any;
+    }
+
+    {
+        name    allIO;
+        type    cellSet;
+        action  new;
+        source  cellToCell;
+        sets    (inletZone outlet1Zone outlet2Zone);
+    }
+);
+
+// ************************************************************************* //

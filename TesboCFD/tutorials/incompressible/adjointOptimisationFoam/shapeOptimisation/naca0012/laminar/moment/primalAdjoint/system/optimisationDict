@@ -1,0 +1,147 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      optimisationDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+optimisationManager    singleRun;
+
+primalSolvers
+{
+    op1
+    {
+        active                 true;
+        type                   incompressible;
+        solver                 simple;
+        solutionControls
+        {
+            nIters 3000;
+            residualControl
+            {
+                "p.*"       1.e-7;
+                "U.*"       1.e-7;
+            }
+        }
+    }
+}
+
+adjointManagers
+{
+    adjManager1
+    {
+        primalSolver             op1;
+        adjointSolvers
+        {
+            adjS1
+            {
+                // choose adjoint solver
+                //----------------------
+                active                 true;
+                type                   incompressible;
+                solver                 adjointSimple;
+
+                // manage objectives
+                //------------------
+                objectives
+                {
+                    type               incompressible;
+                    objectiveNames
+                    {
+                        moment
+                        {
+                            weight          1.;
+                            type            moment;
+                            patches         (pressure suction);
+                            direction       (0 0 1);
+                            rotationCenter  (0 0 0);
+                            Aref            2.;
+                            lRef            1.;
+                            rhoInf          1.225;
+                            UInf            1;
+                        }
+                    }
+                }
+
+                // ATC treatment
+                //--------------
+                ATCModel
+                {
+                    ATCModel        standard;
+                }
+
+                // solution control
+                //------------------
+                solutionControls
+                {
+                    nIters 3000;
+                    residualControl
+                    {
+                        "pa.*"       1.e-7;
+                        "Ua.*"       1.e-7;
+                    }
+                }
+            }
+        }
+    }
+}
+
+optimisation
+{
+    designVariables
+    {
+        type            shape;
+        shapeType       Bezier;
+        sensitivityType multiple;
+        sensitivityTypes (FI ESI SI);
+        patches         (pressure suction);
+        ESI
+        {
+            sensitivityType shapeESI;
+            patches         (pressure suction);
+        }
+        SI
+        {
+            sensitivityType shapeESI;
+            patches         (pressure suction);
+            includeMeshMovement false;
+        }
+        FI
+        {
+            sensitivityType shapeFI;
+            patches         (pressure suction);
+        }
+    }
+}
+
+Bezier
+{
+    nBezier 16;
+    confineXmovement
+    (
+        true false false false false false false true
+        true false false false false false false true
+    );
+    confineYmovement
+    (
+        true false false false false false false true
+        true false false false false false false true
+    );
+    confineZmovement
+    (
+        true true true true true true true true
+        true true true true true true true true
+    );
+}
+
+
+// ************************************************************************* //

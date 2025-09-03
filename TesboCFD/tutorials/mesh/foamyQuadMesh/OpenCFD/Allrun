@@ -1,0 +1,26 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+mkdir -p constant/triSurface
+
+cp -f \
+    "$FOAM_TUTORIALS"/resources/geometry/{opencfd_box,opencfd_text}.stl.gz \
+    constant/triSurface
+
+# Make sure surface is oriented properly. Since the letters
+# contain disconnected regions use
+#   surfaceOrient -usePierceTest
+
+cp -f system/controlDict.mesher system/controlDict
+
+runApplication surfaceFeatureExtract
+
+runApplication foamyQuadMesh -overwrite
+
+runApplication extrude2DMesh -overwrite polyMesh2D
+
+runApplication checkMesh -allGeometry -allTopology -constant -noZero
+
+#------------------------------------------------------------------------------

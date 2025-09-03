@@ -1,0 +1,26 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+# Make 3D mesh in slab of cells.
+(
+    cd box_snappyHexMesh || exit
+
+    runApplication blockMesh
+    runApplication snappyHexMesh -overwrite
+    runApplication renumberMesh -overwrite
+    runApplication createPatch -overwrite
+)
+
+# Make a 2D mesh by extruding a patch and solve to steady state.
+(
+    cd box2D_moveDynamicMesh || exit
+
+    runApplication extrudeMesh
+    restore0Dir
+    runApplication moveDynamicMesh -checkAMI
+)
+
+
+#------------------------------------------------------------------------------

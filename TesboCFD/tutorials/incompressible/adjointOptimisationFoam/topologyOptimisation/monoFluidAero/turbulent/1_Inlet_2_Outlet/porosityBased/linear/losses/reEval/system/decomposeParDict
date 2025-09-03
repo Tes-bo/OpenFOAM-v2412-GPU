@@ -1,0 +1,58 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      decomposeParDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+numberOfSubdomains 4;
+
+method          scotch;
+//method          metis;
+//method          parMetis;
+
+simpleCoeffs
+{
+    n               (2 2 1);
+    delta           0.001;
+}
+
+hierarchicalCoeffs
+{
+    n               (4 4 2);
+    delta           0.001;
+    order           xyz;
+}
+
+metisCoeffs
+{
+    //processorWeights 
+    //(
+    //    1
+    //    1
+    //    1
+    //    1
+    //);
+}
+
+manualCoeffs
+{
+    dataFile        "";
+}
+
+distributed     no;
+
+roots           
+(
+);
+
+// ************************************************************************* //

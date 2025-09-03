@@ -1,0 +1,23 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+runApplication blockMesh
+runApplication -s 'refinementZones' topoSet
+runApplication refineHexMesh -overwrite allIO
+runApplication -s 'allZones' topoSet
+runApplication setsToZones -noFlipMap
+runApplication createPatch -overwrite
+restore0Dir
+runApplication decomposePar
+runParallel $(getApplication)
+
+if [ -d reEval ]
+then
+    cd reEval
+        ./AllrunReEval > log.AllrunReEval 2>&1 && echo "End" >> log.AllrunReEval 
+    cd ..    
+fi
+
+#------------------------------------------------------------------------------

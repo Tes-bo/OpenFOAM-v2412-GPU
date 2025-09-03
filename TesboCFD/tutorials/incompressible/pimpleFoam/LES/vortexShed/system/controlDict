@@ -1,0 +1,172 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+application     pimpleFoam;
+
+startFrom       latestTime;
+
+startTime       0;
+
+stopAt          endTime;
+
+endTime         200;
+
+deltaT          1e-2;
+
+writeControl    timeStep;
+
+writeInterval   100; // every 1s
+
+purgeWrite      50;
+
+writeFormat     binary;
+
+writePrecision  8;
+
+writeCompression off;
+
+timeFormat      general;
+
+timePrecision   6;
+
+runTimeModifiable true;
+
+functions
+{
+    turbulenceFields1
+    {
+        type            turbulenceFields;
+        libs            (fieldFunctionObjects);
+        writeControl    writeTime;
+
+        fields          (fd LESRegion);
+    }
+
+    minMax1
+    {
+        libs            (fieldFunctionObjects);
+        type            fieldMinMax;
+        fields          (U p);
+    }
+
+    curleSurface
+    {
+        // Mandatory entries
+        type            Curle;
+        libs            (fieldFunctionObjects);
+        patches         (cylinder);
+        c0              343;
+        input           surface;
+        surface         surface.obj;
+        output          surface;
+        surfaceType     ensight;
+        formatOptions
+        {
+            ensight
+            {
+                format ascii; // needed for surfaceNoise ...
+                collateTimes true;
+            }
+        }
+
+        // Optional (inherited) entries
+        p               p;
+        region          region0;
+        enabled         true;
+        log             true;
+        timeStart       100;
+        timeEnd         1000;
+        executeControl  runTime;
+        executeInterval 10;
+    }
+
+    curlePoint
+    {
+        // Mandatory entries
+        type            Curle;
+        libs            (fieldFunctionObjects);
+        patches         (cylinder);
+        c0              343;
+        input           point;
+        output          point;
+        observerPositions
+        (
+            (0.20 0.17 -0.01) // N
+            (0.22 0.15 -0.01) // E
+            (0.20 0.13 -0.01) // S
+            (0.18 0.15 -0.01) // W
+        );
+
+        // Optional (inherited) entries
+        p               p;
+        region          region0;
+        enabled         true;
+        log             true;
+        timeStart       100;
+        timeEnd         1000;
+        executeControl  runTime;
+        executeInterval 10;
+    }
+
+    cuttingPlane
+    {
+        type            surfaces;
+        libs            (sampling);
+        writeControl    writeTime;
+        timeStart       100;
+
+        surfaceFormat   ensight;
+        formatOptions
+        {
+            ensight
+            {
+                format          binary;
+                collateTimes    true;
+            }
+        }
+        fields          (p U);
+
+        interpolationScheme cellPoint;
+
+        surfaces
+        {
+            zNormal
+            {
+                type        cuttingPlane;
+                point       (0 0 -0.01);
+                normal      (0 0 1);
+            }
+        }
+    }
+
+    forces
+    {
+        type            forces;
+        libs            (forces);
+        writeControl    writeTime;
+        timeStart       100;
+
+        patches         (cylinder);
+        CofR            (0.20 0.15 -0.01);
+        writeFields     yes;
+
+        rho             rhoInf;
+        rhoInf          1;
+    }
+}
+
+
+// ************************************************************************* //

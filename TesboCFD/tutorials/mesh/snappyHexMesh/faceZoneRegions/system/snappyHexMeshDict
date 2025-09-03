@@ -1,0 +1,167 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      snappyHexMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#includeEtc "caseDicts/mesh/generation/snappyHexMeshDict.cfg"
+
+castellatedMesh on;
+snap            on;
+addLayers       off;
+
+geometry
+{
+    dummy
+    {
+        type    box;
+        min     (0 0 0);
+        max     (1 1 1);
+    }
+    fixed.obj
+    {
+        // Rename some of the regions inside the obj file
+        type triSurfaceMesh;
+        name fixed;
+        regions
+        {
+            patch0 { name slipWall; }
+            patch1 { name outlet; }
+            patch2 { name inlet; }
+        }
+    }
+
+    box-randomAligned.stl
+    {
+        // Rename some of the regions inside the obj file
+        type triSurfaceMesh;
+        name rotatingZone;
+        regions
+        {
+            front { name myFront; }
+        }
+    }
+}
+
+castellatedMeshControls
+{
+    features
+    (
+      { file "fixed.eMesh"; level 2; }
+      { file "rotatingZone.eMesh"; level 4; }
+    );
+
+    refinementSurfaces
+    {
+        fixed
+        {
+            level       (2 2);
+            patchInfo   { type wall; }
+            inGroups    (fixed);
+
+            // Override per-patch information
+            regions
+            {
+                patch0
+                {
+                    level (3 3);
+                    patchInfo { type patch; }
+                }
+
+                patch1
+                {
+                    level (2 2);
+                    patchInfo { type patch; }
+                }
+
+                patch2
+                {
+                    level (2 2);
+                    patchInfo { type patch; }
+                }
+            }
+        }
+        rotatingZone
+        {
+            level       (4 4);
+
+            // How to handle faceZones
+            //  a. no faceZone. No keyword 'faceZone' or 'faceZoneNaming'
+            //  b. single user-specified faceZone:
+            //      faceZone myZone;
+            //  c. faceZones according to the surface/region:
+            //      faceZoneNaming region;
+
+            // c. faceZones according to the surface/region
+            faceZoneNaming  region;
+
+            cellZone    rotatingZone;
+            cellZoneInside  inside;
+        }
+
+    }
+
+    refinementRegions
+    {
+        fixed
+        {
+            mode inside;
+            levels ((1e-5 1));
+        }
+        rotatingZone
+        {
+            mode inside;
+            levels ((1e-5 4));
+        }
+    }
+
+    locationInMesh (1e-5 -1e-2 1e-5);// Offset from (0 0 0) to avoid
+                                     // coinciding with face or edge and keep
+                                     // away from disk itself
+
+    allowFreeStandingZoneFaces  false;
+
+    // Optional: switch off topological test for cells to-be-squashed
+    //           and use geometric test instead
+    useTopologicalSnapDetection false;
+}
+
+snapControls
+{
+    tolerance 1.0;
+    implicitFeatureSnap     true;
+    strictRegionSnap        true;
+}
+
+addLayersControls
+{
+    layers
+    {
+    }
+
+    relativeSizes       true; // false, usually with firstLayerThickness
+    expansionRatio      1.2;
+    finalLayerThickness 0.5;
+    minThickness        1e-3;
+}
+
+meshQualityControls
+{
+//    minTetQuality -1e+30;
+}
+
+
+mergeTolerance 1e-6;
+
+
+// ************************************************************************* //

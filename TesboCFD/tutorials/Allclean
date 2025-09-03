@@ -1,0 +1,23 @@
+#!/bin/sh
+cd "${0%/*}" || exit                            # Run from this directory
+. "${WM_PROJECT_DIR:?}"/bin/tools/LogFunctions  # Tutorial log-file functions
+#------------------------------------------------------------------------------
+
+echo "--------"
+
+# Remove old build/ directory
+buildDir="${WM_PROJECT_DIR}/build/${WM_OPTIONS}/${PWD##*/}"
+if [ -d "$buildDir" ]
+then
+    echo "Removing old build directory: $buildDir" 1>&2
+    rm -rf -- "$buildDir"
+fi
+
+removeLogs
+
+echo "Cleaning tutorials ..."
+foamCleanTutorials -self    # Run recursively but avoid self
+
+echo "--------"
+
+#------------------------------------------------------------------------------

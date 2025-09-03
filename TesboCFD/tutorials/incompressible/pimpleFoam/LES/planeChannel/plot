@@ -1,0 +1,612 @@
+#!/bin/sh
+cd "${0%/*}" || exit                        # Run from this directory
+#------------------------------------------------------------------------------
+
+# settings
+
+    # operand setups
+    setups="
+    DFSEM
+    DFM
+    FSM
+    "
+
+
+#------------------------------------------------------------------------------
+
+plot_R_vs_y() {
+
+    setup="$1"
+    endTime="$2"
+
+    benchmarkFile="$FOAM_TUTORIALS/verificationAndValidation/turbulentInflow/oneCellThickPlaneChannel/resources/dataset/chan395.reystress"
+
+    n=0
+    m=0
+    for l in {1..11}
+    do
+        m=$(($m+5))
+        sampleFiles[$n]="results/$setup/postProcessing/sampleUPrime2Mean/$endTime/l${m}_columnAverage(UPrime2Mean).xy"
+        n=$(($n+1))
+    done
+
+    image="plots/$setup/Ruu_vs_y.png"
+
+    gnuplot<<PLT_RUU_VS_Y
+    set terminal pngcairo font "helvetica,20" size 5000, 1000
+    set grid
+    set xrange [0:8]
+    set yrange [0:1]
+    set key right top
+    set key samplen 2
+    set key spacing 0.75
+    set xlabel "R_{uu} [m^2/s^2]"
+    set ylabel "y/h [-]"
+    set output "$image"
+    set multiplot layout 1,11 title "Setup: $setup" noenhanced
+
+    # Benchmark
+        benchmark ="$benchmarkFile"
+
+    # OpenFOAM
+        samples="${sampleFiles[*]}"
+        list="5h 10h 15h 20h 25h 30h 35h 40h 45h 50h 55h"
+
+    do for [i = 1:11] {
+        if (i != 1) { unset ylabel }
+        plot \
+            word(samples, i) u 2:1 t word(list, i) w l lw 2 lc rgb "#4169e1", \
+            benchmark  every 4 u 3:1 t "DNS" w p ps 2 pt 7 lc rgb "#D55E00"
+    }
+
+    unset multiplot
+    unset output
+PLT_RUU_VS_Y
+
+    image="plots/$setup/Rvv_vs_y.png"
+
+    gnuplot<<PLT_RVV_VS_Y
+    set terminal pngcairo font "helvetica,20" size 5000, 1000
+    set grid
+    set xrange [0:1]
+    set yrange [0:1]
+    set key right top
+    set key samplen 2
+    set key spacing 0.75
+    set xlabel "R_{vv} [m^2/s^2]"
+    set ylabel "y/h [-]"
+    set output "$image"
+    set multiplot layout 1,11 title "Setup: $setup" noenhanced
+
+    # Benchmark
+        benchmark="$benchmarkFile"
+
+    # OpenFOAM
+        samples="${sampleFiles[*]}"
+        list="5h 10h 15h 20h 25h 30h 35h 40h 45h 50h 55h"
+
+    do for [i = 1:11] {
+        if (i != 1) { unset ylabel }
+        plot \
+            word(samples, i) u 5:1 t word(list, i) w l lw 2 lc rgb "#4169e1", \
+            benchmark every 4 u 4:1 t "DNS" w p ps 2 pt 7 lc rgb "#D55E00"
+    }
+
+    unset multiplot
+    unset output
+PLT_RVV_VS_Y
+
+    image="plots/$setup/Rww_vs_y.png"
+
+    gnuplot<<PLT_RWW_VS_Y
+    set terminal pngcairo font "helvetica,20" size 5000, 1000
+    set grid
+    set xrange [0:1.8]
+        set xtics 1.8/4
+    set yrange [0:1]
+    set key right top
+    set key samplen 2
+    set key spacing 0.75
+    set xlabel "R_{ww} [m^2/s^2]"
+    set ylabel "y/h [-]"
+    set output "$image"
+    set multiplot layout 1,11 title "Setup: $setup" noenhanced
+
+    # Benchmark
+        benchmark="$benchmarkFile"
+
+    # OpenFOAM
+        samples="${sampleFiles[*]}"
+        list="5h 10h 15h 20h 25h 30h 35h 40h 45h 50h 55h"
+
+    do for [i = 1:11] {
+        if (i != 1) { unset ylabel }
+        plot \
+            word(samples, i) u 7:1 t word(list, i) w l lw 2 lc rgb "#4169e1", \
+            benchmark every 4 u 5:1 t "DNS" w p ps 2 pt 7 lc rgb "#D55E00"
+    }
+
+    unset multiplot
+    unset output
+PLT_RWW_VS_Y
+
+    image="plots/$setup/Ruv_vs_y.png"
+
+    gnuplot<<PLT_RUV_VS_Y
+    set terminal pngcairo font "helvetica,20" size 5000, 1000
+    set grid
+    set xrange [0:1]
+    set yrange [0:1]
+    set key right top
+    set key samplen 2
+    set key spacing 0.75
+    set xlabel "R_{uv} [m^2/s^2]"
+    set ylabel "y/h [-]"
+    set output "$image"
+    set multiplot layout 1,11 title "Setup: $setup" noenhanced
+
+    # Benchmark
+        benchmark="$benchmarkFile"
+
+    # OpenFOAM
+        samples="${sampleFiles[*]}"
+        list="5h 10h 15h 20h 25h 30h 35h 40h 45h 50h 55h"
+
+    do for [i = 1:11] {
+        if (i != 1) { unset ylabel }
+        plot \
+            word(samples, i) u (-\$3):1 t word(list, i) w l lw 2 lc rgb "#4169e1", \
+            benchmark every 4 u (-\$6):1 t "DNS" w p ps 2 pt 7 lc rgb "#D55E00"
+    }
+
+    unset multiplot
+    unset output
+PLT_RUV_VS_Y
+}
+
+
+plot_U_vs_y() {
+
+    setup="$1"
+    endTime="$2"
+
+    benchmarkFile="$FOAM_TUTORIALS/verificationAndValidation/turbulentInflow/oneCellThickPlaneChannel/resources/dataset/chan395.means"
+
+    n=0
+    m=0
+    for l in {1..11}
+    do
+        m=$(($m+5))
+        sampleFiles[$n]="results/$setup/postProcessing/sampleUMean/$endTime/l${m}_columnAverage(UMean).xy"
+        n=$(($n+1))
+    done
+
+    image="plots/$setup/u_vs_y.png"
+
+    gnuplot<<PLT_U_VS_Y
+    set terminal pngcairo font "helvetica,20" size 5000, 1000
+    set grid
+    set xrange [0:25]
+    set yrange [0:1]
+    set key left top
+    set key samplen 2
+    set key spacing 0.75
+    set xlabel "u [m/s]"
+    set ylabel "y/h [-]"
+    set output "$image"
+    set multiplot layout 1,11 title "Setup: $setup" noenhanced
+
+    # Benchmark
+        benchmark="$benchmarkFile"
+
+    # OpenFOAM
+        samples="${sampleFiles[*]}"
+        list="5h 10h 15h 20h 25h 30h 35h 40h 45h 50h 55h"
+
+    do for [i = 1:11] {
+        if (i != 1) { unset ylabel }
+        plot \
+            word(samples, i) u 2:1 t word(list, i) w l lw 2 lc rgb "#4169e1", \
+            benchmark every 4 u 3:1 t "DNS" w p ps 2 pt 7 lc rgb "#D55E00"
+    }
+
+    unset multiplot
+    unset output
+PLT_U_VS_Y
+
+    image="plots/$setup/v_vs_y.png"
+
+    gnuplot<<PLT_V_VS_Y
+    set terminal pngcairo font "helvetica,20" size 5000, 1000
+    set grid
+    set yrange [0:1]
+    set key left top
+    set key samplen 2
+    set key spacing 0.75
+    set xlabel "v [m/s]"
+    set ylabel "y/h [-]"
+    set output "$image"
+    set multiplot layout 1,11 title "Setup: $setup" noenhanced
+
+    # Benchmark
+        benchmark="$benchmarkFile"
+
+    # OpenFOAM
+        samples="${sampleFiles[*]}"
+        list="5h 10h 15h 20h 25h 30h 35h 40h 45h 50h 55h"
+
+    do for [i = 1:11] {
+        if (i != 1) { unset ylabel }
+        plot \
+            word(samples, i) u 3:1 t word(list, i) w l lw 2 lc rgb "#4169e1", \
+            benchmark every 4 u 5:1 t "DNS" w p ps 2 pt 7 lc rgb "#D55E00"
+    }
+
+    unset multiplot
+    unset output
+PLT_V_VS_Y
+
+    image="plots/$setup/w_vs_y.png"
+
+    gnuplot<<PLT_W_VS_Y
+    set terminal pngcairo font "helvetica,20" size 5000, 1000
+    set grid
+    set yrange [0:1]
+    set key left top
+    set key samplen 2
+    set key spacing 0.75
+    set xlabel "w [m/s]"
+    set ylabel "y/h [-]"
+    set output "$image"
+    set multiplot layout 1,11 title "Setup: $setup" noenhanced
+
+    # Benchmark
+        benchmark="$benchmarkFile"
+
+    # OpenFOAM
+        samples="${sampleFiles[*]}"
+        list="5h 10h 15h 20h 25h 30h 35h 40h 45h 50h 55h"
+
+    do for [i = 1:11] {
+        if (i != 1) { unset ylabel }
+        plot \
+            word(samples, i) u 4:1 t word(list, i) w l lw 2 lc rgb "#4169e1", \
+            benchmark every 4 u 5:1 t "DNS" w p ps 2 pt 7 lc rgb "#D55E00"
+    }
+
+    unset multiplot
+    unset output
+PLT_W_VS_Y
+}
+
+
+plot_x_vs_cf() {
+
+    setup="$1"
+    endTime="$2"
+
+    #benchmarkFile=N/A
+    sampleFile="results/$setup/postProcessing/sampleCf/$endTime/planeAA_CfMean.xy"
+    image="plots/$setup/x_vs_cf.png"
+
+    gnuplot<<PLT_X_VS_CF
+    set terminal pngcairo font "helvetica,20" size 1000, 1000
+    set grid
+    set xrange [0:60]
+    set yrange [0:0.01]
+    set key right top
+    set key samplen 2
+    set key spacing 0.75
+    set xlabel "x/h [-]"
+    set ylabel "C_f"
+    set output "$image"
+
+    # OpenFOAM
+        samples="$sampleFile"
+
+    plot samples u 1:4 t "OpenFOAM" w l lw 2 lc rgb "#4169e1"
+PLT_X_VS_CF
+}
+
+
+plot_yPlus_vs_u() {
+
+    setup="$1"
+    endTime="$2"
+    nu="$3"
+
+    benchmarkFile="$FOAM_TUTORIALS/verificationAndValidation/turbulentInflow/oneCellThickPlaneChannel/resources/dataset/chan395.means"
+
+    sampleFile_patch="results/$setup/postProcessing/sampleUMean/$endTime/inletPatch_columnAverage(UMean).xy"
+    sampleFile_cell="results/$setup/postProcessing/sampleUMean/$endTime/inletCell_columnAverage(UMean).xy"
+    image_patch="plots/$setup/yPlus_vs_u_patch.png"
+    image_cell="plots/$setup/yPlus_vs_u_cell.png"
+
+    gnuplot<<PLT_Y_VS_U
+    set terminal pngcairo font "helvetica,20" size 1000, 1000
+    set grid
+    set xrange [0:395]
+    set yrange [0:20]
+    set logscale x
+    set key left top reverse
+    set key samplen 2
+    set key spacing 0.75
+    set xlabel "y^+"
+    set ylabel "u [m/s]"
+    set output "$image_patch"
+    set title "Setup: $setup (inlet patch face)" noenhanced
+
+    # Benchmark
+        benchmark="$benchmarkFile"
+
+    # OpenFOAM
+        samples_patch="$sampleFile_patch"
+        samples_cell="$sampleFile_cell"
+
+    plot \
+        samples_patch u (\$1/$nu):2 t "OpenFOAM" w l lw 2 lc rgb "#4169e1", \
+        benchmark u 2:3 t "DNS" w p ps 2 pt 7 lc rgb "#D55E00"
+
+    set output "$image_cell"
+    set title "Setup: $setup (inlet patch cell)" noenhanced
+    plot \
+        samples_cell u (\$1/$nu):2 t "OpenFOAM" w l lw 2 lc rgb "#4169e1", \
+        benchmark u 2:3 t "DNS" w p ps 2 pt 7 lc rgb "#D55E00"
+PLT_Y_VS_U
+}
+
+
+plot_yPlus_vs_R_patch() {
+
+    setup="$1"
+    endTime="$2"
+    nu="$3"
+
+    benchmarkFile="$FOAM_TUTORIALS/verificationAndValidation/turbulentInflow/oneCellThickPlaneChannel/resources/dataset/chan395.reystress"
+    sampleFile="results/$setup/postProcessing/sampleUPrime2Mean/$endTime/inletPatch_columnAverage(UPrime2Mean).xy"
+    imageUU="plots/$setup/yPlus_vs_Ruu_patch.png"
+    imageVV="plots/$setup/yPlus_vs_Rvv_patch.png"
+    imageWW="plots/$setup/yPlus_vs_Rww_patch.png"
+    imageUV="plots/$setup/yPlus_vs_Ruv_patch.png"
+
+    gnuplot<<PLT_Y_VS_R_PATCH
+    set terminal pngcairo font "helvetica,20" size 1000, 1000
+    set grid
+    set xrange [0:395]
+    set yrange [-1:8]
+    set logscale x
+    set key top right
+    set key samplen 2
+    set key spacing 0.75
+    set xlabel "y^+"
+    set ylabel "(uu)^+"
+    set output "$imageUU"
+    set title "Setup: $setup (inlet patch face)" noenhanced
+
+    # Benchmark
+        benchmark = "$benchmarkFile"
+
+    # OpenFOAM
+        samples="$sampleFile"
+
+    plot \
+        samples u (\$1/$nu):2 t "OpenFOAM" w l lw 2 lc rgb "#4169e1", \
+        benchmark u 2:3 t "DNS" w l lw 2 dt 2 lc rgb "#D55E00"
+
+    set output "$imageVV"
+    set ylabel "(vv)^+"
+    plot \
+        samples u (\$1/$nu):5 t "OpenFOAM" w l lw 2 lc rgb "#4169e1", \
+        benchmark u 2:4 t "DNS" w l lw 2 dt 2 lc rgb "#D55E00"
+
+    set output "$imageWW"
+    set ylabel "(ww)^+"
+    plot \
+        samples u (\$1/$nu):7 t "OpenFOAM" w l lw 2 lc rgb "#4169e1", \
+        benchmark u 2:5 t "DNS" w l lw 2 dt 2 lc rgb "#D55E00"
+
+    set output "$imageUV"
+    set ylabel "(uv)^+"
+    plot \
+        samples u (\$1/$nu):(-\$3) t "OpenFOAM" w l lw 2 lc rgb "#4169e1", \
+        benchmark u 2:(\$6*-1) t "DNS" w l lw 2 dt 2 lc rgb "#D55E00"
+PLT_Y_VS_R_PATCH
+}
+
+
+plot_yPlus_vs_R_cell() {
+
+    setup="$1"
+    endTime="$2"
+    nu="$3"
+
+    benchmarkFile="$FOAM_TUTORIALS/verificationAndValidation/turbulentInflow/oneCellThickPlaneChannel/resources/dataset/chan395.reystress"
+    sampleFile="results/$setup/postProcessing/sampleUPrime2Mean/$endTime/inletCell_columnAverage(UPrime2Mean).xy"
+    imageUU="plots/$setup/yPlus_vs_Ruu_cell.png"
+    imageVV="plots/$setup/yPlus_vs_Rvv_cell.png"
+    imageWW="plots/$setup/yPlus_vs_Rww_cell.png"
+    imageUV="plots/$setup/yPlus_vs_Ruv_cell.png"
+
+    gnuplot<<PLT_Y_VS_R_CELL
+    set terminal pngcairo font "helvetica,20" size 1000, 1000
+    set grid
+    set xrange [0:395]
+    set yrange [-1:8]
+    set logscale x
+    set key top right
+    set key samplen 2
+    set key spacing 0.75
+    set xlabel "y^+"
+    set ylabel "(uu)^+"
+    set output "$imageUU"
+    set title "Setup: $setup (inlet patch cell)" noenhanced
+
+    # Benchmark
+        benchmark = "$benchmarkFile"
+
+    # OpenFOAM
+        samples="$sampleFile"
+
+    plot \
+        samples u (\$1/$nu):2 t "OpenFOAM" w l lw 2 lc rgb "#4169e1", \
+        benchmark u 2:3 t "DNS" w l lw 2 dt 2 lc rgb "#D55E00"
+
+    set output "$imageVV"
+    set ylabel "(vv)^+"
+    plot \
+        samples u (\$1/$nu):5 t "OpenFOAM" w l lw 2 lc rgb "#4169e1", \
+        benchmark u 2:4 t "DNS" w l lw 2 dt 2 lc rgb "#D55E00"
+
+    set output "$imageWW"
+    set ylabel "(ww)^+"
+    plot \
+        samples u (\$1/$nu):7 t "OpenFOAM" w l lw 2 lc rgb "#4169e1", \
+        benchmark u 2:5 t "DNS" w l lw 2 dt 2 lc rgb "#D55E00"
+
+    set output "$imageUV"
+    set ylabel "(uv)^+"
+    plot \
+        samples u (\$1/$nu):(-\$3) t "OpenFOAM" w l lw 2 lc rgb "#4169e1", \
+        benchmark u 2:(\$6*-1) t "DNS" w l lw 2 dt 2 lc rgb "#D55E00"
+PLT_Y_VS_R_CELL
+}
+
+
+plot_R_patch() {
+
+    setup="$1"
+    endTime="$2"
+
+    benchmarkFile="$FOAM_TUTORIALS/verificationAndValidation/turbulentInflow/oneCellThickPlaneChannel/resources/dataset/chan395.reystress"
+    sampleFile="results/$setup/postProcessing/sampleUPrime2Mean/$endTime/inletPatch_columnAverage(UPrime2Mean).xy"
+    image="plots/$setup/R_patch.png"
+
+    gnuplot<<PLT_R_PATCH
+    set terminal pngcairo font "helvetica,20" size 1000, 1000
+    set grid
+    set key top right
+    set xrange [0:1]
+    set yrange [-1:8]
+    set key samplen 2
+    set key spacing 0.75
+    set xlabel "Channel height [m]"
+    set ylabel "<u_i^' u_i^'> [m^2/s^2]"
+    set offset .05, .05
+    set output "$image"
+    set title "Reynolds stresses on patch"
+
+    # Benchmark
+        benchmark = "$benchmarkFile"
+
+    # OpenFOAM
+        samples="$sampleFile"
+
+    plot \
+        samples u 1:2 t "<u^' u^'>" w l lw 2 lc rgb "#009E73", \
+        samples u 1:5 t "<v^' v^'>" w l lw 2 lc rgb "#F0E440", \
+        samples u 1:7 t "<w^' w^'>" w l lw 2 lc rgb "#0072B2", \
+        samples u 1:3 t "<u^' v^'>" w l lw 2 lc rgb "#D55E00", \
+        benchmark u 1:3 t "<u^' u^'>_{DNS}" w l lw 2 dt 2 lc rgb "#009E73", \
+        benchmark u 1:4 t "<v^' v^'>_{DNS}" w l lw 2 dt 2 lc rgb "#F0E440", \
+        benchmark u 1:5 t "<w^' w^'>_{DNS}" w l lw 2 dt 2 lc rgb "#0072B2", \
+        benchmark u 1:6 t "<u^' v^'>_{DNS}" w l lw 2 dt 2 lc rgb "#D55E00"
+PLT_R_PATCH
+}
+
+
+plot_R_cell() {
+
+    setup="$1"
+    endTime="$2"
+
+    benchmarkFile="$FOAM_TUTORIALS/verificationAndValidation/turbulentInflow/oneCellThickPlaneChannel/resources/dataset/chan395.reystress"
+    sampleFile="results/$setup/postProcessing/sampleUPrime2Mean/$endTime/inletCell_columnAverage(UPrime2Mean).xy"
+    image="plots/$setup/R_cell.png"
+
+    gnuplot<<PLT_R_CELL
+    set terminal pngcairo font "helvetica,20" size 1000, 1000
+    set grid
+    set key top right
+    set xrange [0:1]
+    set yrange [-1:8]
+    set key samplen 2
+    set key spacing 0.75
+    set xlabel "Channel height [m]"
+    set ylabel "<u_i^' u_i^'> [m^2/s^2]"
+    set offset .05, .05
+    set output "$image"
+    set title "Reynolds stresses on cell"
+
+    # Benchmark
+        benchmark = "$benchmarkFile"
+
+    # OpenFOAM
+        samples="$sampleFile"
+
+    plot \
+        samples u 1:2 t "<u^' u^'>" w l lw 2 lc rgb "#009E73", \
+        samples u 1:5 t "<v^' v^'>" w l lw 2 lc rgb "#F0E440", \
+        samples u 1:7 t "<w^' w^'>" w l lw 2 lc rgb "#0072B2", \
+        samples u 1:3 t "<u^' v^'>" w l lw 2 lc rgb "#D55E00", \
+        benchmark  u 1:3 t "<u^' u^'>_{DNS}" w l lw 2 dt 2 lc rgb "#009E73", \
+        benchmark  u 1:4 t "<v^' v^'>_{DNS}" w l lw 2 dt 2 lc rgb "#F0E440", \
+        benchmark  u 1:5 t "<w^' w^'>_{DNS}" w l lw 2 dt 2 lc rgb "#0072B2", \
+        benchmark  u 1:6 t "<u^' v^'>_{DNS}" w l lw 2 dt 2 lc rgb "#D55E00"
+PLT_R_CELL
+}
+
+
+#------------------------------------------------------------------------------
+
+# Require gnuplot
+command -v gnuplot >/dev/null || {
+    echo "gnuplot not found - skipping graph creation" 1>&2
+    exit 1
+}
+
+# Check directory: "results"
+[ -d "results" ] || {
+    echo "No results directory found - skipping graph creation" 1>&2
+    exit 1
+}
+
+
+#------------------------------------------------------------------------------
+
+for setup in $setups
+do
+    echo ""
+    echo "# Plots for the setup: $setup"
+    echo ""
+
+    [ -d "results/$setup" ] || {
+        echo "No results/$setup directory found - skipping graph creation" 1>&2
+        continue
+    }
+
+    dirPlots="plots/$setup"
+    [ -d "$dirPlots" ] || mkdir -p "$dirPlots"
+
+    # few manipulations
+    endTime=$(foamDictionary results/"$setup"/system/controlDict -entry endTime -value)
+    nu=$(foamDictionary results/"$setup"/constant/transportProperties -entry nu | sed 's|^.*\s\(.*\);|\1|g')
+
+    plot_yPlus_vs_u "$setup" "$endTime" "$nu"
+
+    plot_yPlus_vs_R_patch "$setup" "$endTime" "$nu"
+
+    plot_yPlus_vs_R_cell "$setup" "$endTime" "$nu"
+
+    plot_R_patch "$setup" "$endTime"
+
+    plot_R_cell "$setup" "$endTime"
+
+    plot_R_vs_y "$setup" "$endTime"
+
+    plot_U_vs_y "$setup" "$endTime"
+
+    plot_x_vs_cf "$setup" "$endTime"
+done
+
+
+#------------------------------------------------------------------------------

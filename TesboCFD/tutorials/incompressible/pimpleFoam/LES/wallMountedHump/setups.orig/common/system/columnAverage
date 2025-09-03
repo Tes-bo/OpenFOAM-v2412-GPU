@@ -1,0 +1,33 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+columnAverage
+{
+    // Mandatory entries
+    type            columnAverage;
+    libs            (fieldFunctionObjects);
+
+    // Note: include processorCyclics!
+    patches         ( zPeriodic_half0 "proc.*throughzPeriodic_half0" );
+    fields
+    (
+        UMean
+        UPrime2Mean
+    );
+
+    // Inherited entries
+    region          region0;
+    enabled         true;
+    log             true;
+    timeStart       $tStartAvg;
+    executeControl  writeTime;
+    writeControl    none;
+}
+
+
+// ************************************************************************* //

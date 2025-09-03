@@ -1,0 +1,50 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      transportProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+phases (liquid vapour); // FC-72
+
+liquid
+{
+    transportModel  Newtonian;
+    nu              1e-6;
+    rho             958.4;
+
+
+    Cp              4216;  // irrelevant
+    Cv              4216;  // irrelevant
+    kappa           0.671; // irrelevant
+    hf              0;
+}
+
+vapour
+{
+    transportModel  Newtonian;
+    nu              1e-5; // irrelevant
+    rho             0.581;
+
+
+    Cp              2030;      // FC72 vapour
+    Cv              2030;      // Cv = Cp - R/w
+    kappa           0.025;       // FC72 vapour // 0.01;
+    hf              2260.0e3;
+}
+
+sigma 0;
+
+Prt             0.7;
+
+
+// ************************************************************************* //

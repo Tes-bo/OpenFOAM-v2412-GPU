@@ -1,0 +1,237 @@
+#!/bin/bash
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+# settings
+
+    # operand setups
+    groups="
+    group1
+    group2
+    group3
+    group4
+    group5
+    group6
+    group7
+    "
+
+    group1="
+    Gauss-linear
+    leastSquares
+    Gauss-pointLinear
+    iterativeGauss-linear-1
+    "
+
+    group2="
+    iterativeGauss-linear-1
+    iterativeGauss-linear-2
+    iterativeGauss-linear-3
+    iterativeGauss-linear-4
+    iterativeGauss-linear-5
+    iterativeGauss-linear-10
+    iterativeGauss-linear-20
+    "
+
+    group3="
+    iterativeGauss-linear-5
+    cellLimited-iterativeGauss-linear-5-1
+    cellMDLimited-iterativeGauss-linear-5-1
+    faceLimited-iterativeGauss-linear-5-1
+    faceMDLimited-iterativeGauss-linear-5-1
+    "
+    group4="
+    cellLimited-Gauss-linear-1
+    cellLimited-leastSquares-1
+    cellLimited-Gauss-pointLinear-1
+    cellLimited-iterativeGauss-linear-5-1
+    "
+
+    group5="
+    cellMDLimited-Gauss-linear-1
+    cellMDLimited-leastSquares-1
+    cellMDLimited-Gauss-pointLinear-1
+    cellMDLimited-iterativeGauss-linear-5-1
+    "
+
+    group6="
+    faceLimited-Gauss-linear-1
+    faceLimited-leastSquares-1
+    faceLimited-Gauss-pointLinear-1
+    faceLimited-iterativeGauss-linear-5-1
+    "
+
+    group7="
+    faceMDLimited-Gauss-linear-1
+    faceMDLimited-leastSquares-1
+    faceMDLimited-Gauss-pointLinear-1
+    faceMDLimited-iterativeGauss-linear-5-1
+    "
+
+#------------------------------------------------------------------------------
+
+collect_data(){
+
+    groupName="$1"
+    shift 1
+    group=$@
+    echo $groupName
+
+    local members
+    local meanErrors
+    local meanMagErrors
+    local covErrors
+    local covMagErrors
+
+    n=0
+    for member in $group
+    do
+        meanSample="results/$member/postProcessing/volFieldAverage/0/volFieldValue.dat"
+        covSample="results/$member/postProcessing/volFieldCoV/0/volFieldValue.dat"
+
+        meanError=$(tail -n 1 $meanSample | awk '{ print $2 }' )
+        meanMagError=$(tail -n 1 $meanSample | awk '{ print $3 }' )
+
+        covError=$(tail -n 1 $covSample | awk '{ print $2/10.0 }' )
+        covMagError=$(tail -n 1 $covSample | awk '{ print $3/10.0 }' )
+
+        meanErrors[$n]="$meanError"
+        meanMagErrors[$n]="$meanMagError"
+        covErrors[$n]="$covError"
+        covMagErrors[$n]="$covMagError"
+        members[$n]="$member"
+
+        n=$(($n+1))
+    done
+
+    file="results/$groupName-error-stats.dat"
+    [ ! -f $file ] && \
+        echo "# Scheme    Mean    CoV/10" >> $file && \
+        for ((j = 0; j < "${#members[@]}"; j++)) \
+        do printf "%s %.16f %.16f\n" "${members[$j]}" "${meanErrors[$j]}" "${covErrors[$j]}" \
+        >> $file; done
+
+    file="results/$groupName-mag-error-stats.dat"
+    [ ! -f $file ] && \
+        echo "# Scheme    Mean    CoV/10" >> $file && \
+        for ((j = 0; j < "${#members[@]}"; j++)) \
+        do printf "%s %.16f %.16f\n" "${members[$j]}" "${meanMagErrors[$j]}" "${covMagErrors[$j]}" \
+        >> $file; done
+}
+
+
+plot_error_stats() {
+
+    groupName="$1"
+
+    echo "  Plotting the error statistics for the group: $groupName"
+
+    samples="results/$groupName-error-stats.dat"
+    image="plots/$groupName-error-stats.png"
+
+    gnuplot<<PLT_ERROR_STATS
+    set terminal pngcairo font "helvetica,20" size 1000, 1000
+    set grid
+    set auto x
+    set yrange [0:2]
+    set style data histograms
+    set style histogram cluster gap 1
+    set style fill solid border -1
+    set boxwidth 0.9
+    set xtic rotate by -45 scale 0
+    set key right top
+    set key opaque
+    set key samplen 2
+    set key spacing 0.75
+    set ylabel "Error [\%]"
+    set offset .2, .05
+    set output "$image"
+    set title "Error vs Schemes: $groupName"
+
+    samples="$samples"
+
+    plot samples \
+        u 2:xtic(1) t "Mean", \
+        '' u 3 t "Coefficient of variation/10"
+PLT_ERROR_STATS
+}
+
+
+plot_mag_error_stats() {
+
+    groupName="$1"
+
+    echo "  Plotting the mag error statistics for the group: $groupName"
+
+    samples="results/$groupName-mag-error-stats.dat"
+    image="plots/$groupName-mag-error-stats.png"
+
+    gnuplot<<PLT_MAG_ERROR_STATS
+    set terminal pngcairo font "helvetica,20" size 1000, 1000
+    set grid
+    set auto x
+    set yrange [0:2]
+    set style data histograms
+    set style histogram cluster gap 1
+    set style fill solid border -1
+    set boxwidth 0.9
+    set xtic rotate by -45 scale 0
+    set key right top
+    set key opaque
+    set key samplen 2
+    set key spacing 0.75
+    set ylabel "Magnitude error [\%]"
+    set offset .2, .05
+    set output "$image"
+    set title "Magnitude error vs Schemes: $groupName"
+
+    samples="$samples"
+
+    plot samples \
+        u 2:xtic(1) t "Mean", \
+        '' u 3 t "Coefficient of variation/10"
+PLT_MAG_ERROR_STATS
+}
+
+
+#------------------------------------------------------------------------------
+
+# Requires gnuplot
+command -v gnuplot >/dev/null || {
+    echo "gnuplot not found - skipping graph creation" 1>&2
+    exit 1
+}
+
+# Requires awk
+command -v awk >/dev/null || {
+    echo "awk not found - skipping graph creation" 1>&2
+    exit 1
+}
+
+# Check "results" directory
+[ -d "results" ] || {
+    echo "No results directory found - skipping graph creation" 1>&2
+    exit 1
+}
+
+
+#------------------------------------------------------------------------------
+
+dirPlots="plots"
+[ -d "$dirPlots" ] || mkdir -p "$dirPlots"
+
+rm -f results/*.dat
+
+for group in $groups
+do
+    groupName="$group"
+
+    collect_data "$groupName" ${!group}
+
+    plot_error_stats "$groupName"
+
+    plot_mag_error_stats "$groupName"
+done
+
+
+#------------------------------------------------------------------------------

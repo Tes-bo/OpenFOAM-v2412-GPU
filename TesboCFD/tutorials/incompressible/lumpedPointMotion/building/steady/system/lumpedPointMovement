@@ -1,0 +1,89 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      lumpedPointMovement;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+#include "lumpedPointControllers"
+
+//- Offset/shift for lumped points
+origin  (0.3 0.15 0);
+
+//- Relaxation/scaling factor when updating positions
+relax   1.0;
+
+forces
+{
+    //- The pressure name (default: p)
+    p       p;
+
+    //- Reference pressure [Pa] (default: 0)
+    pRef    0;
+
+    //- Reference density for incompressible calculations (default: 1)
+    rhoRef  1;
+}
+
+
+communication
+{
+    commsDir        "comms";
+
+    log             on;
+
+    waitInterval    1;
+
+    // Coupling frequency (default: 1)
+    //calcFrequency   1;
+
+    timeOut         100;
+
+    initByExternal  false;
+
+    // Input file of positions/rotation, written by external application
+    inputName       positions.in;
+
+    // Output file of forces, written by OpenFOAM
+    outputName      forces.out;
+
+    // Log of points/forces/moments during the simulation
+    logName         movement.log;
+
+    inputFormat     dictionary;
+    outputFormat    dictionary;
+
+    debugTable      "<case>/output.txt";
+
+    // Scaling applied to values read from 'inputName'
+    scaleInput
+    {
+        //- Length multiplier (to metres). Eg 0.001 for [mm] -> [m]
+        length  1;
+    }
+
+    // Scaling applied to values written to 'outputName'
+    scaleOutput
+    {
+        //- Length multiplier (from metres). Eg 1000 for [m] -> [mm]
+        length  1;
+
+        //- Force units multiplier (from Pa)
+        force   1;
+
+        //- Moment units multiplier (from N.m)
+        moment  1;
+    }
+}
+
+// ************************************************************************* //

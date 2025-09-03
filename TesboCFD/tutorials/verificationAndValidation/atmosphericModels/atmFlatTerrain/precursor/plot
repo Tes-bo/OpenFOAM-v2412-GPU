@@ -1,0 +1,134 @@
+#!/bin/bash
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+# settings
+
+    # operand setups
+    setups="
+    kEpsilon
+    kOmegaSST
+    kL
+    "
+
+
+#------------------------------------------------------------------------------
+
+plot_u_vs_z() {
+
+    echo "  # Plots for the ground-normal streamwise flow speed profile"
+
+    setup="$1"
+    endTime="$2"
+
+    benchmarkFile="resources/dataset/u-z-Leipzig.dat"
+    sampleFile="results/$setup/postProcessing/sampleLines/$endTime/lineZ1_U.xy"
+    image="plots/$setup/u_z.png"
+
+    gnuplot<<PLT_U
+    set terminal pngcairo font "helvetica,20" size 600, 1000
+    set grid
+    set key left top
+    set xrange [0:25]
+    set yrange [0:3000]
+    set key samplen 2
+    set key spacing 0.75
+    set xlabel "u [m/s]"
+    set ylabel "z [m]"
+    set offset .05, .05
+    set output "$image"
+
+    # Benchmark - experimental
+        benchmark="$benchmarkFile"
+
+    # OpenFOAM
+        samples="$sampleFile"
+
+    plot \
+        benchmark every ::0::16 u 1:2 t "Leipzig" w p ps 2 pt 6 lc rgb "#000000", \
+        samples u 2:1 t "OpenFOAM" w l lw 2 lc rgb "#D55E00"
+PLT_U
+}
+
+
+plot_v_vs_z() {
+
+    echo "  # Plots for the ground-normal spanwise flow speed profile"
+
+    setup="$1"
+    endTime="$2"
+
+    benchmarkFile="resources/dataset/u-z-Leipzig.dat"
+    sampleFile="results/$setup/postProcessing/sampleLines/$endTime/lineZ1_U.xy"
+    image="plots/$setup/v_z.png"
+
+    gnuplot<<PLT_V
+    set terminal pngcairo font "helvetica,20" size 600, 1000
+    set xrange [-1:6]
+    set yrange [0:3000]
+    set grid
+    set key right top
+    set key samplen 2
+    set key spacing 0.75
+    set xlabel "v [m/s]"
+    set ylabel "z [m]"
+    set offset .2, .05
+    set output "$image"
+
+    # Benchmark - experimental
+        benchmark="$benchmarkFile"
+
+    # OpenFOAM
+        samples="$sampleFile"
+
+    plot \
+        benchmark every ::17::35 u 1:2 t "Leipzig" w p ps 2 pt 6 lc rgb "#000000", \
+        samples u 3:1 t "OpenFOAM" w l lw 2 lc rgb "#D55E00"
+PLT_V
+}
+
+
+#------------------------------------------------------------------------------
+
+# Requires gnuplot
+command -v gnuplot >/dev/null || {
+    echo "gnuplot not found - skipping graph creation" 1>&2
+    exit 1
+}
+
+# Requires awk
+command -v awk >/dev/null || {
+    echo "awk not found - skipping graph creation" 1>&2
+    exit 1
+}
+
+
+#------------------------------------------------------------------------------
+
+for setup in $setups
+do
+    echo ""
+    echo "# Plots for the setup: $setup"
+    echo ""
+
+    [ -d "results/$setup" ] || {
+        echo "No results/$setup directory found - skipping graph creation" 1>&2
+        continue
+    }
+
+    dirPlots="plots/$setup"
+    [ -d "$dirPlots" ] || mkdir -p "$dirPlots"
+
+    endTime=$(\
+        foamDictionary results/$setup/system/controlDict \
+            -disableFunctionEntries -entry endTime -value \
+        )
+
+    plot_u_vs_z "$setup" "$endTime"
+
+    plot_v_vs_z "$setup" "$endTime"
+done
+
+
+#------------------------------------------------------------------------------

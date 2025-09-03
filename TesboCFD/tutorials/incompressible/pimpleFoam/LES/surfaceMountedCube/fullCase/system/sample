@@ -1,0 +1,121 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version         2.0;
+    format          ascii;
+    class           dictionary;
+    object          sample;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+type            sets;
+libs            (sampling);
+writeControl    onEnd;
+interpolationScheme cellPoint;
+setFormat       raw;
+
+fields          ( U UMean );
+
+sets
+{
+    xm10
+    {
+        type            face;
+        axis            z;
+        start           (2.5 4.5 0);
+        end             (2.5 4.5 2);
+    }
+    xm05
+    {
+        type            face;
+        axis            z;
+        start           (3 4.5 0);
+        end             (3 4.5 2);
+    }
+    x00
+    {
+        type            face;
+        axis            z;
+        start           (3.5 4.5 1);
+        end             (3.5 4.5 2);
+    }
+    x05
+    {
+        type            face;
+        axis            z;
+        start           (4 4.5 1);
+        end             (4 4.5 2);
+    }
+    x10
+    {
+        type            face;
+        axis            z;
+        start           (4.5 4.5 1);
+        end             (4.5 4.5 2);
+    }
+    x15
+    {
+        type            face;
+        axis            z;
+        start           (5 4.5 0);
+        end             (5 4.5 2);
+    }
+    x20
+    {
+        type            face;
+        axis            z;
+        start           (5.5 4.5 0);
+        end             (5.5 4.5 2);
+    }
+    x25
+    {
+        type            face;
+        axis            z;
+        start           (6 4.5 0);
+        end             (6 4.5 2);
+    }
+    x30
+    {
+        type            face;
+        axis            z;
+        start           (6.5 4.5 0);
+        end             (6.5 4.5 2);
+    }
+    x35
+    {
+        type            face;
+        axis            z;
+        start           (7 4.5 0);
+        end             (7 4.5 2);
+    }
+    x40
+    {
+        type            face;
+        axis            z;
+        start           (7.5 4.5 0);
+        end             (7.5 4.5 2);
+    }
+    x45
+    {
+        type            face;
+        axis            z;
+        start           (8 4.5 0);
+        end             (8 4.5 2);
+    }
+    x50
+    {
+        type            face;
+        axis            z;
+        start           (8.5 4.5 0);
+        end             (8.5 4.5 2);
+    }
+}
+
+
+// ************************************************************************* //

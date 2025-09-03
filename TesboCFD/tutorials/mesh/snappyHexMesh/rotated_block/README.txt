@@ -1,0 +1,2 @@
+- rotated block inside regular blockMesh
+- set up to add buffer layers after smoothing outside

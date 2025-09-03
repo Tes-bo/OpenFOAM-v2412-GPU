@@ -1,0 +1,35 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+# Cleanup old junk that may prevent things from starting
+rm -f comms/OpenFOAM.lock
+
+# If OpenFOAM stops prematurely, trigger the external solver to stop
+trap '[ -e comms/OpenFOAM.lock ] && echo "status=done" > comms/OpenFOAM.lock' EXIT TERM INT
+
+# Simulated external solver.
+
+if false
+then
+    # Create response file
+    runApplication -overwrite \
+        ../code/polynomial-motion -deltaT 0.001 -nTimes 5001 \
+            -output response.txt \
+            polynomials.dict
+
+    # Use response file for states
+    runApplication -overwrite \
+        lumpedPointMovement -removeLock -slave response.txt &
+else
+
+    # Generate states on demand
+    runApplication -overwrite \
+        ../code/polynomial-motion -removeLock -slave polynomials.dict &
+fi
+
+# Run moveMesh with larger deltaT
+runParallel moveMesh -deltaT 0.001
+
+#------------------------------------------------------------------------------

@@ -1,0 +1,192 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+scale       1;
+
+vertices
+(
+    ( -25.0  0  1 )  // 0
+    (   0    0  1 )  // 1
+    (   0.3  0  1 )  // 2
+    (   1.2  0  1 )  // 3
+    (   1.5  0  1 )  // 4
+    (  26.5  0  1 )  // 5
+
+    (  26.5  5  1 )  // 6
+    (   1.5  5  1 )  // 7
+    (   1.2  5  1 )  // 8
+    (   0.3  5  1 )  // 9
+    (   0    5  1 )  // 10
+    ( -25.0  5  1 )  // 11
+
+    ( -25.0  0  -1 )  // 12
+    (   0    0  -1 )  // 13
+    (   0.3  0  -1 )  // 14
+    (   1.2  0  -1 )  // 15
+    (   1.5  0  -1 )  // 16
+    (  26.5  0  -1 )  // 17
+
+    (  26.5  5  -1 )  // 18
+    (   1.5  5  -1 )  // 19
+    (   1.2  5  -1 )  // 20
+    (   0.3  5  -1 )  // 21
+    (   0    5  -1 )  // 22
+    ( -25.0  5  -1 )  // 23
+);
+
+blocks
+(
+    // Medium level for tutorial
+    hex ( 0  1 13 12 11 10 22 23) (30 1 81) simpleGrading (0.002 1 20000)
+    hex ( 1  2 14 13 10  9 21 22) (25 1 81) simpleGrading (2 1 20000)
+    hex ( 2  3 15 14  9  8 20 21) (60 1 81) simpleGrading (1 1 20000)
+    hex ( 3  4 16 15  8  7 19 20) (25 1 81) simpleGrading (0.5 1 20000)
+    hex ( 4  5 17 16  7  6 18 19) (30 1 81) simpleGrading (500 1 20000)
+
+    // Fine
+    //hex ( 0  1 13 12 11 10 22 23) (240 1 648) simpleGrading (0.002 1 20000)
+    //hex ( 1  2 14 13 10  9 21 22) (200 1 648) simpleGrading (2 1 20000)
+    //hex ( 2  3 15 14  9  8 20 21) (480 1 648) simpleGrading (1 1 20000)
+    //hex ( 3  4 16 15  8  7 19 20) (200 1 648) simpleGrading (0.5 1 20000)
+    //hex ( 4  5 17 16  7  6 18 19) (240 1 648) simpleGrading (500 1 20000)
+);
+
+edges #codeStream
+{
+    codeInclude
+    #{
+        #include "pointField.H"
+        #include "mathematicalConstants.H"
+    #};
+
+    code
+    #{
+        constexpr scalar xMin = 0.3;
+        constexpr scalar xMax = 1.2;
+        constexpr label nPoints = 100;
+        constexpr scalar dx = (xMax - xMin)/scalar(nPoints - 1);
+        constexpr scalar pi = constant::mathematical::pi;
+
+        os  << "(" << nl << "spline 2 3" << nl;
+        pointField profile(nPoints);
+
+        for (label i = 0; i < nPoints; ++i)
+        {
+            scalar x = xMin + i*dx;
+            profile[i].x() = x;
+            profile[i].y() = 0.05*pow4(sin(pi*x/0.9 - (pi/3)));
+            profile[i].z() = 1;
+        }
+        os << profile << nl;
+
+        os << "spline 14 15" << nl;
+        profile.replace(2, -1);
+        os << profile << nl;
+
+        os  << ");" << nl;
+    #};
+};
+
+
+boundary
+(
+    inlet
+    {
+        type        patch;
+        faces
+        (
+            (0 11 23 12)
+        );
+    }
+
+    outlet
+    {
+        type        patch;
+        faces
+        (
+            (17 18 6 5)
+        );
+    }
+
+    top
+    {
+        type        symmetryPlane;
+        faces
+        (
+            (11 10 22 23)
+            (10  9 21 22)
+            ( 9  8 20 21)
+            ( 8  7 19 20)
+            ( 7  6 18 19)
+        );
+    }
+
+    symUp
+    {
+        type        symmetryPlane;
+        faces
+        (
+            ( 0 12 13  1)
+        );
+    }
+
+    bump
+    {
+        type        wall;
+        faces
+        (
+            ( 1 13 14  2)
+            ( 2 14 15  3)
+            ( 3 15 16  4)
+        );
+    }
+
+    symDown
+    {
+        type        symmetryPlane;
+        faces
+        (
+            ( 4 16 17  5)
+        );
+    }
+
+    frontAndBack
+    {
+        type        empty;
+        faces
+        (
+            (12 23 22 13)
+            (13 22 21 14)
+            (14 21 20 15)
+            (15 20 19 16)
+            (16 19 18 17)
+
+            ( 0 11 10  1)
+            ( 1 10  9  2)
+            ( 2  9  8  3)
+            ( 3  8  7  4)
+            ( 4  7  6  5)
+        );
+    }
+
+);
+
+mergePatchPairs
+(
+);
+
+
+// ************************************************************************* //

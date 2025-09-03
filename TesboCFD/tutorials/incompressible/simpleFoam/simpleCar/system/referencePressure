@@ -1,0 +1,66 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+sample1
+{
+    type            sets;
+    libs            (sampling);
+    interpolationScheme cellPointFace;
+    setFormat       raw;
+    fields          ( p );
+
+    sets
+    {
+        cloud
+        {
+            type    cloud;
+            axis    xyz;
+            points
+            (
+                (1 0.2 0.05)
+                (1 0.4 0.05)
+                (1 0.6 0.05)
+                (1 0.8 0.05)
+                (1 1.0 0.05)
+            );
+        }
+    }
+}
+
+average1
+{
+    type            valueAverage;
+    libs            (fieldFunctionObjects);
+    writeControl    writeTime;
+    functionObject  sample1;
+    fields          (average(p));
+}
+
+reference1
+{
+    type            reference;
+    libs            (fieldFunctionObjects);
+    writeControl    writeTime;
+    field           p;
+    refValue        functionObjectValue;
+    functionObject  average1;
+    functionObjectResult average(p)Mean;
+}
+
+reference2
+{
+    type            reference;
+    libs            (fieldFunctionObjects);
+    writeControl    writeTime;
+    field           p;
+    refValue        sample;
+    position        (1 0.2 0.05);
+}
+
+
+// ************************************************************************* //

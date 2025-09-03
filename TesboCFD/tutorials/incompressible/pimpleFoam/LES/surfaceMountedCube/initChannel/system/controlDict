@@ -1,0 +1,95 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+application     boundaryFoam;
+
+startFrom       startTime;
+
+startTime       0;
+
+stopAt          endTime;
+
+endTime         2000;
+
+deltaT          1;
+
+writeControl    timeStep;
+
+writeInterval   200;
+
+purgeWrite      1;
+
+writeFormat     ascii;
+
+writePrecision  6;
+
+writeCompression off;
+
+timeFormat      general;
+
+timePrecision   6;
+
+runTimeModifiable true;
+
+graphFormat     raw;
+
+functions
+{
+    turbulenceFields
+    {
+        type            turbulenceFields;
+        libs            (fieldFunctionObjects);
+        writeControl    writeTime;
+        fields          (R nuTilda k epsilon omega L);
+    }
+
+    surfaces
+    {
+        type            surfaces;
+        surfaceFormat   boundaryData;
+        formatOptions
+        {
+            //// Optionally specify write options
+            //boundaryData
+            //{
+            //    header      true;       // write as OpenFOAM object
+            //    format      binary;     // write binary or ascii
+            //    compression false;      // compress after writing
+            //}
+        }
+        writeControl    writeTime;
+        interpolationScheme cell;
+        fields
+        (
+            U
+            turbulenceProperties:R
+            turbulenceProperties:nuTilda
+            turbulenceProperties:L
+        );
+        surfaces
+        {
+            inlet
+            {
+                type            patch;
+                patches         (inlet);
+                interpolate     false;
+            }
+        }
+    }
+}
+
+
+// ************************************************************************* //

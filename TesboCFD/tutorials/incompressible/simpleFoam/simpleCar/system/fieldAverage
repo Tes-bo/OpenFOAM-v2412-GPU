@@ -1,0 +1,18 @@
+fieldAverage1
+{
+    type            fieldAverage;
+    libs            (fieldFunctionObjects);
+    triggerStart    1;
+    timeStart       500;
+    controlMode     timeOrTrigger;
+    writeControl    writeTime;
+    fields
+    (
+        U
+        {
+            base        iteration;
+            mean        on;
+            prime2Mean  off;
+        }
+    );
+}

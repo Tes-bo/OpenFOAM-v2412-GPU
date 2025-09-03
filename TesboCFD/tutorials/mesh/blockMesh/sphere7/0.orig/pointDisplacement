@@ -1,0 +1,81 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    arch        "LSB;label=32;scalar=64";
+    class       pointVectorField;
+    location    "0";
+    object      pointDisplacement;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 1 0 0 0 0 0];
+
+internalField   uniform (0 0 0);
+
+boundaryField
+{
+    minX
+    {
+        type            surfaceSlipDisplacement;
+        value           uniform (0 0 0);
+        velocity        (0.1 0.1 0.1);
+        //velocity        (100 100 100);
+        geometry
+        {
+            box
+            {
+                type            triSurfaceMesh;
+                file            box222.obj;
+            }
+        }
+        projectMode     nearest;
+    }
+    maxX
+    {
+        $minX
+    }
+    minY
+    {
+        $minX
+    }
+    maxY
+    {
+        $minX
+    }
+    minZ
+    {
+        $minX
+    }
+    maxZ
+    {
+        $minX
+    }
+    boundaryEdges
+    {
+        type            edgeSlipDisplacement;
+        file            "box222.eMesh";
+        //file            "box222.extendedFeatureEdgeMesh";
+        //- Underrelax motion by limiting displacement velocity
+        velocity        (0.1 0.1 0.1);
+        //velocity        (100 100 100);
+    }
+    boundaryPoints
+    {
+        type            pointAttraction;
+        file            "box222.eMesh";
+        //- Underrelax motion by limiting displacement velocity
+        velocity        (0.1 0.1 0.1);
+        //velocity        (100 100 100);
+    }
+}
+
+
+// ************************************************************************* //

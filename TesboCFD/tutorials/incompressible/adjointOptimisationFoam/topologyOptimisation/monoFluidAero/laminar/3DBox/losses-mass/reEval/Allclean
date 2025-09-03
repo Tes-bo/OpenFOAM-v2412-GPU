@@ -1,0 +1,22 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/CleanFunctions      # Tutorial clean functions
+#------------------------------------------------------------------------------
+
+cleanCase0
+
+# Remove surface and features
+rm -rf constant/extendedFeatureEdgeMesh
+rm -rf constant/triSurface/*
+
+# Restore default entries in snappyHexMeshDict and surfaceFeatureExtractDict
+foamDictionary system/snappyHexMeshDict -entry castellatedMeshControls.locationInMesh -remove
+foamDictionary system/snappyHexMeshDict -entry castellatedMeshControls.locationInMesh -add "myLocationInMesh"
+
+topOEndTime=$(foamDictionary ../system/controlDict -entry 'endTime' -value)
+fileName=topOIsoSurface$topOEndTime
+
+sed -i "s|$fileName|stlName|g" system/snappyHexMeshDict
+sed -i "s|$fileName|stlName|g" system/surfaceFeatureExtractDict
+
+#------------------------------------------------------------------------------
