@@ -64,7 +64,6 @@ Description
 \*---------------------------------------------------------------------------*/
 
 #include "fvCFD.H"
-#include "dynamicFvMesh.H"
 #include "singlePhaseTransportModel.H"
 #include "turbulentTransportModel.H"
 #include "simpleControl.H"
@@ -84,7 +83,7 @@ int main(int argc, char *argv[])
     #include "addCheckCaseOptions.H"
     #include "setRootCaseLists.H"
     #include "createTime.H"
-    #include "createDynamicFvMesh.H"
+    #include "createMesh.H"
     #include "createControl.H"
     #include "createFields.H"
     #include "initContinuityErrs.H"
@@ -100,7 +99,7 @@ int main(int argc, char *argv[])
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
         // Do any mesh changes
-        mesh.controlledUpdate();
+        //mesh.controlledUpdate();
 
         if (mesh.changing())
         {
