@@ -1,0 +1,125 @@
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                              AVL/FIRE fpma/fpmb
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+fpma/fpmb are polyhedral formats (ASCII and BINARY).
+The fpmaz/fpmbz are the same, but in compressed format.
+
+The fpma/fpmb format can exported directly from within the FIRE GUI.
+However, it is not recommended to import them directly.
+Instead use the utility fire_wm_convert_file, fire_wm_convert_mesh
+(or equivalents)
+are used to rewrite the fpma/fpmb into the internal FIRE format.
+
+
+~~~~~~
+FORMAT
+~~~~~~
+
+NUMBER_OF_VERTICES
+x0 y0 z0 x1 y1 z1 ... xN-1 yN-1 zN-1
+
+
+NUMBER_OF_FACES
+face-stream0
+...
+face-streamN-1
+
+
+NUMBER_OF_CELLS
+cell-face-stream0
+..
+cell-face-streamN-1
+
+
+NUMBER_OF_SELECTIONS
+selectionName[0]
+selectionType[0] (2 = cells, 3 = faces)
+numberOfIDs
+id0 .. indN-1
+<blank-line>
+
+
+
+The face-stream:
+    nvert vert0 .. vertN
+
+The cell-face-stream:
+    nface faceId0 .. faceIdN
+
+
+CAUTION:
+    The FIRE faces have inward-facing normals.
+    The OPENFOAM faces have outward-facing normals!
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                 AVL/FIRE flma
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The AVL/FIRE flma format is very simple, but can only be used for 1D/2D shapes
+and for 3D primitive shapes.
+
+it is fairly easy to write and to parse.
+For 3D polyhedra, the cell-types are non-obvious and not easily determined
+- the fpma/fpmb format is preferred for that.
+
+
+~~~~~~
+FORMAT
+~~~~~~
+NUMBER_OF_VERTICES
+x0 y0 z0 x1 y1 z1 ... xN-1 yN-1 zN-1
+
+NUMBER_OF_CELLS
+nv[0]
+verts[0]
+nv[N-1]
+...
+verts[N-1]
+<blank-line>
+NUMBER_OF_CELLS
+type0 type1 ... type2
+<blank-line>
+NUMBER_OF_SELECTIONS
+selectionName[0]
+selectionType[0] (2 = cells, 3 = faces)
+numberOfIDs
+id0 .. indN-1
+<blank-line>
+...
+selectionName[N-1]
+selectionType[N-1] (2 = cells, 3 = faces)
+numberOfIDs
+id0 .. indN-1
+<blank-line>
+
+
+-- NOTES (flma) --
+# vertex/cells are zero-based
+
+    cell-types:
+      1 = line
+      2 = tri
+      3 = quad
+      4 = tet
+      5 = hex
+      6 = pyr
+      8 = prism
+
+    +---------------+---------------+
+    |  shape        |  face-order   |
+    +---------------+---------------+
+    +  Tet(FIRE)    |  0 1 2 3      |
+    +  Tet(FOAM)    |  3 2 0 1      |
+    +---------------+---------------+
+    +  Hex(FIRE)    |  0 1 2 3 4 5  |
+    +  Hex(FOAM)    |  4 5 0 1 2 3  |
+    +---------------+---------------+
+    +  Pyr(FIRE)    |  0 1 2 3 4    |
+    +  Pyr(FOAM)    |  0 4 3 2 1    |
+    +---------------+---------------+
+    +  Prism(FIRE)  |  0 1 2 3 4    |
+    +  Prism(FOAM)  |  0 1 4 3 2    |
+    +---------------+---------------+
+
+# ---------------------------------------------------------------------------

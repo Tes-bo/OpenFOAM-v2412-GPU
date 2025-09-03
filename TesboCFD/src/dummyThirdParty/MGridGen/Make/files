@@ -1,0 +1,3 @@
+dummyMGridGen.cxx
+
+LIB = $(FOAM_LIBBIN)/dummy/libMGridGen

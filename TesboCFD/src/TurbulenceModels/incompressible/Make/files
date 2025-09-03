@@ -1,0 +1,22 @@
+incompressibleTurbulenceModel.C
+incompressibleRhoTurbulenceModel.C
+
+turbulentTransportModels/turbulentTransportModels.C
+
+
+RASModels = turbulentTransportModels/RAS
+
+$(RASModels)/qZeta/qZeta.C
+$(RASModels)/kkLOmega/kkLOmega.C
+$(RASModels)/LamBremhorstKE/LamBremhorstKE.C
+$(RASModels)/LienLeschziner/LienLeschziner.C
+$(RASModels)/ShihQuadraticKE/ShihQuadraticKE.C
+$(RASModels)/LienCubicKE/LienCubicKE.C
+
+
+wallFunctions = turbulentTransportModels/derivedFvPatchFields/wallFunctions
+
+$(wallFunctions)/alphatWallFunctions/alphatJayatillekeWallFunction/alphatJayatillekeWallFunctionFvPatchScalarField.C
+
+
+LIB = $(FOAM_LIBBIN)/libincompressibleTurbulenceModels

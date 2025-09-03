@@ -1,0 +1,96 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    note        "remapping for STARCD <-> OPENFOAM translation";
+    object      remapping;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+//
+// rename/combine cellTable entries
+//    target  ( source names )
+//
+cellTable
+{
+    fluid ( FLUID "cat[0-9]_?(In|Out)_?Layer" );
+    cat1  ( CAT1 "cat1_?(Front|Back|Gamma)" );
+    cat2  ( CAT2 "cat2_?(Front|Back|Gamma)" );
+    cat3  ( CAT3 "cat3_?(Front|Back|Gamma)" );
+    cat4  ( CAT4 "cat4_?(Front|Back|Gamma)" );
+}
+
+
+//
+// rename boundary regions
+//     newName <- oldName
+//
+boundaryRegion
+{
+    walls       Default_Boundary_Region;
+    inlet1      inlet_1;
+    inlet2      inlet_2;
+    inlet3      inlet_3;
+    inlet4      inlet_4;
+    inlet5      inlet_5;
+    inlet6      inlet_6;
+    outlet1     outlet_1;
+    outlet2     outlet_2;
+    outlet3     outlet_3;
+    outlet4     outlet_4;
+    outlet5     outlet_5;
+    outlet6     outlet_6;
+}
+
+
+boundary
+{
+    empty       symmetryPlane;
+}
+
+
+//
+// map OPENFOAM field names to CCM fields
+//
+fields
+{
+    tracer0
+    {
+        name    CONC_001;
+        Label   "tracer0";
+    }
+
+    tracer1
+    {
+        name    CONC_002;
+        Label   "tracer1";
+    }
+
+    tracer2
+    {
+        name    CONC_003;
+        Label   "tracer2";
+    }
+
+    divPhi
+    {
+        name    CONC_004;
+        Label   "divPhi";
+    }
+
+    Ma
+    {
+        name    CONC_100;
+        Label   "Mach";
+    }
+}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

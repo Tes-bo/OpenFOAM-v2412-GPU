@@ -1,0 +1,30 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+targetType=libso                                    # Preferred library type
+. ${WM_PROJECT_DIR:?}/wmake/scripts/AllwmakeParseArguments
+. ${WM_PROJECT_DIR:?}/wmake/scripts/have_boost
+. ${WM_PROJECT_DIR:?}/wmake/scripts/have_zoltan
+
+#------------------------------------------------------------------------------
+
+wmake $targetType renumberMethods
+
+warning="==> skip SloanRenumber"
+if have_boost
+then
+    wmake $targetType SloanRenumber || echo "$warning (build issues detected)"
+else
+    echo "$warning (no boost)"
+fi
+
+
+warning="==> skip zoltanRenumber"
+if have_zoltan
+then
+    echo "zoltan - $ZOLTAN_ARCH_PATH"
+    wmake $targetType zoltanRenumber || echo "$warning (build issues detected)"
+else
+    echo "$warning (no library)"
+fi
+
+#------------------------------------------------------------------------------

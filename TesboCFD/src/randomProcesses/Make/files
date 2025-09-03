@@ -1,0 +1,31 @@
+Kmesh = Kmesh
+$(Kmesh)/Kmesh.C
+
+fft = fft
+$(fft)/fft.C
+$(fft)/calcEk.C
+$(fft)/kShellIntegration.C
+
+processes = processes
+UOprocess = $(processes)/UOprocess
+$(UOprocess)/UOprocess.C
+
+turbulence = turbulence
+$(turbulence)/turbGen.C
+
+noise = noise
+$(noise)/noiseFFT/noiseFFT.C
+$(noise)/noiseModels/noiseModel/noiseModel.C
+$(noise)/noiseModels/noiseModel/noiseModelNew.C
+$(noise)/noiseModels/pointNoise/pointNoise.C
+$(noise)/noiseModels/surfaceNoise/surfaceNoise.C
+
+
+windowModels = windowModels
+$(windowModels)/windowModel/windowModel.C
+$(windowModels)/windowModel/windowModelNew.C
+$(windowModels)/Hanning/Hanning.C
+$(windowModels)/uniform/uniform.C
+
+
+LIB = $(FOAM_LIBBIN)/librandomProcesses

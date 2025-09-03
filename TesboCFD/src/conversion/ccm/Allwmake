@@ -1,0 +1,20 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/wmake/scripts/AllwmakeParseArguments
+. ${WM_PROJECT_DIR:?}/wmake/scripts/have_ccmio
+
+#------------------------------------------------------------------------------
+# Optional
+# - may depend on third-party libraries
+
+warning="==> skip optional libccm adapter"
+
+# Link with static libccmio only (fewer issues)
+if have_ccmio
+then
+    wmake $targetType || echo "$warning (build issues detected)"
+else
+    echo $warning
+fi
+
+#------------------------------------------------------------------------------

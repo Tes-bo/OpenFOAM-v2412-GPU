@@ -1,0 +1,17 @@
+/* Add to EXE_INC as required:
+   -DWITH_MONITORING -DDEBUG_MONITORING
+   -DDEBUG_BAFFLES
+   -DDEBUG_CCMIOREAD
+ */
+
+EXE_INC = \
+    -I$(LIB_SRC)/finiteVolume/lnInclude \
+    -I$(LIB_SRC)/fileFormats/lnInclude \
+    -I$(LIB_SRC)/conversion/lnInclude \
+    -I$(CCMIO_INC_DIR)
+
+LIB_LIBS = \
+    -lfiniteVolume \
+    -lfileFormats \
+    -lconversion \
+    -L$(CCMIO_LIB_DIR) -lccmio

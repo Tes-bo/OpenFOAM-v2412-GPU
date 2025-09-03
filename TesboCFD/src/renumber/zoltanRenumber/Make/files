@@ -1,0 +1,4 @@
+zoltanRenumber.C
+
+/* Build with MPI dependency */
+LIB = $(FOAM_MPI_LIBBIN)/libzoltanRenumber

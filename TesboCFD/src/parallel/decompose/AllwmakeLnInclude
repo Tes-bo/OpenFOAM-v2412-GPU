@@ -1,0 +1,12 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+
+#------------------------------------------------------------------------------
+
+wmakeLnInclude -u decompositionMethods
+wmakeLnInclude -u kahipDecomp
+wmakeLnInclude -u metisDecomp
+wmakeLnInclude -u scotchDecomp
+wmakeLnInclude -u ptscotchDecomp
+
+#------------------------------------------------------------------------------

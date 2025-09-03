@@ -1,0 +1,17 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/wmake/scripts/AllwmakeParseArguments
+
+#------------------------------------------------------------------------------
+
+# NOTE TODO compile if needed. tesbo, 03/Sep/2025
+#wmake $targetType field
+#wmake $targetType forces
+#wmake $targetType initialisation
+#wmake $targetType utilities
+#wmake $targetType solvers
+#wmake $targetType phaseSystems
+#
+#./randomProcesses/Allwmake $targetType
+
+#------------------------------------------------------------------------------

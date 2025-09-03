@@ -1,0 +1,5 @@
+processorMeshes.C
+fvFieldReconstructor.C
+pointFieldReconstructor.C
+
+LIB = $(FOAM_LIBBIN)/libreconstruct

@@ -1,0 +1,15 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/wmake/scripts/AllwmakeParseArguments
+
+#------------------------------------------------------------------------------
+
+# Make sure extrudeModel can find blockEdgeList.H
+wmakeLnInclude -u blockMesh
+
+# TODO compile snappyHexMesh. tesbo, 03/Sep/2025
+#wmake $targetType snappyHexMesh
+wmake $targetType blockMesh
+wmake $targetType extrudeModel
+
+#------------------------------------------------------------------------------

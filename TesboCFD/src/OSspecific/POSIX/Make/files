@@ -1,0 +1,30 @@
+POSIX.C
+
+cpuInfo/cpuInfo.C
+cpuTime/cpuTimePosix.C
+memInfo/memInfo.C
+
+signals/sigFpe.C
+signals/sigSegv.C
+signals/sigInt.C
+signals/sigQuit.C
+signals/sigStopAtWriteNow.C
+signals/sigWriteNow.C
+signals/timer.C
+
+regExp/regExpPosix.C
+fileStat/fileStat.C
+
+/*
+ * fileMonitor assumes inotify by default.
+ * Compile with -UFOAM_USE_INOTIFY to use stat (timestamps) instead
+ */
+fileMonitor/fileMonitor.C
+
+#ifdef __sun__
+printStack/dummyPrintStack.C
+#else
+printStack/printStack.C
+#endif
+
+LIB = $(FOAM_LIBBIN)/libOSspecific
