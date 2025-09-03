@@ -75,7 +75,6 @@ Note
 \*---------------------------------------------------------------------------*/
 
 #include "fvCFD.H"
-#include "dynamicFvMesh.H"
 #include "singlePhaseTransportModel.H"
 #include "turbulentTransportModel.H"
 #include "pimpleControl.H"
@@ -99,20 +98,20 @@ int main(int argc, char *argv[])
     #include "addCheckCaseOptions.H"
     #include "setRootCaseLists.H"
     #include "createTime.H"
-    #include "createDynamicFvMesh.H"
+    #include "createMesh.H"
     #include "initContinuityErrs.H"
-    #include "createDyMControls.H"
+    #include "createPimpleControl.H"
     #include "createFields.H"
     #include "createUfIfPresent.H"
     #include "CourantNo.H"
-    #include "setInitialDeltaT.H"
+    //#include "setInitialDeltaT.H"
 
     turbulence->validate();
 
     if (!LTS)
     {
         #include "CourantNo.H"
-        #include "setInitialDeltaT.H"
+        //#include "setInitialDeltaT.H"
     }
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -121,16 +120,16 @@ int main(int argc, char *argv[])
 
     while (runTime.run())
     {
-        #include "readDyMControls.H"
+        //#include "readControls.H"
 
         if (LTS)
         {
-            #include "setRDeltaT.H"
+            //#include "setRDeltaT.H"
         }
         else
         {
             #include "CourantNo.H"
-            #include "setDeltaT.H"
+            //#include "setDeltaT.H"
         }
 
         ++runTime;
@@ -140,11 +139,13 @@ int main(int argc, char *argv[])
         // --- Pressure-velocity PIMPLE corrector loop
         while (pimple.loop())
         {
-            if (pimple.firstIter() || moveMeshOuterCorrectors)
+            //if (pimple.firstIter() || moveMeshOuterCorrectors)
+            if (pimple.firstIter())
             {
                 // Do any mesh changes
-                mesh.controlledUpdate();
+                //mesh.controlledUpdate();
 
+                /*
                 if (mesh.changing())
                 {
                     MRF.update();
@@ -163,9 +164,10 @@ int main(int argc, char *argv[])
 
                     if (checkMeshCourantNo)
                     {
-                        #include "meshCourantNo.H"
+                        //#include "meshCourantNo.H"
                     }
                 }
+                */
             }
 
             #include "UEqn.H"
