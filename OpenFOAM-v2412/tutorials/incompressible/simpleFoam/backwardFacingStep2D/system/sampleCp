@@ -1,7 +1,0 @@
-type            patchProbes;
-libs            (sampling);
-writeControl    writeTime;
-
-patch           lowerWall;
-probeLocations  ();
-fields          (cp);

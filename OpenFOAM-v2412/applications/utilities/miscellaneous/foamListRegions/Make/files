@@ -1,3 +1,0 @@
-foamListRegions.C
-
-EXE = $(FOAM_APPBIN)/foamListRegions

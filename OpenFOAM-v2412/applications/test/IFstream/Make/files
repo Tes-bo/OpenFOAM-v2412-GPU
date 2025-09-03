@@ -1,3 +1,0 @@
-Test-IFstream.cxx
-
-EXE = $(FOAM_USER_APPBIN)/Test-IFstream

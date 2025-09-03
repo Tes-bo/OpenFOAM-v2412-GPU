@@ -1,3 +1,0 @@
-Test-searchableSphere.C
-
-EXE = $(FOAM_USER_APPBIN)/Test-searchableSphere

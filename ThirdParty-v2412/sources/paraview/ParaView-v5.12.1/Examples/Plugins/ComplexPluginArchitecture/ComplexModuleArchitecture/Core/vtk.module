@@ -1,4 +1,0 @@
-NAME
-  ComplexModuleArchitecture::Core
-DEPENDS
-  VTK::CommonCore

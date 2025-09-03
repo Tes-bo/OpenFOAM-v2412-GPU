@@ -1,3 +1,0 @@
-PolyhedronReader.C
-
-LIB = $(FOAM_LIBBIN)/libPolyhedronReader

@@ -1,3 +1,0 @@
-createBoxTurb.C
-
-EXE = $(FOAM_APPBIN)/createBoxTurb

@@ -1,3 +1,0 @@
-foamToCcm.C
-
-EXE = $(FOAM_APPBIN)/foamToCcm

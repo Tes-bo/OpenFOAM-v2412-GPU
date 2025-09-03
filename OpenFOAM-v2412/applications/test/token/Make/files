@@ -1,3 +1,0 @@
-Test-token.cxx
-
-EXE = $(FOAM_USER_APPBIN)/Test-token

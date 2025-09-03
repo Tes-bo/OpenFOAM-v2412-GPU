@@ -1,8 +1,0 @@
-NAME
-  VTK::libharu
-LIBRARY_NAME
-  vtklibharu
-PRIVATE_DEPENDS
-  VTK::png
-  VTK::zlib
-THIRD_PARTY

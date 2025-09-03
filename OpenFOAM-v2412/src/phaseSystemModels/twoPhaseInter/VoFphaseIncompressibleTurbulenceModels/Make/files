@@ -1,3 +1,0 @@
-VoFphaseTurbulentTransportModels.C
-
-LIB = $(FOAM_LIBBIN)/libVoFphaseTurbulentTransportModels

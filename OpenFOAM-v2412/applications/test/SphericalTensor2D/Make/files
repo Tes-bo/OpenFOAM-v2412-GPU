@@ -1,3 +1,0 @@
-Test-SphericalTensor2D.C
-
-EXE = $(FOAM_USER_APPBIN)/Test-SphericalTensor2D

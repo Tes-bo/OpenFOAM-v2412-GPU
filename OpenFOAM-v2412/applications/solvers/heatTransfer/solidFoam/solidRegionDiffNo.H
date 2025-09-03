@@ -1,1 +1,0 @@
-../chtMultiRegionFoam/solid/solidRegionDiffNo.H

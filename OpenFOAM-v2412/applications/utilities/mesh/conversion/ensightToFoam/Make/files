@@ -1,4 +1,0 @@
-ensightMeshReader.C
-ensightToFoam.C
-
-EXE = $(FOAM_APPBIN)/ensightToFoam

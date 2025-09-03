@@ -1,3 +1,0 @@
-Test-CompactListList.cxx
-
-EXE = $(FOAM_USER_APPBIN)/Test-CompactListList

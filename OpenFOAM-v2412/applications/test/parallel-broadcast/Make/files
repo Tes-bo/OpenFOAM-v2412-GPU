@@ -1,3 +1,0 @@
-Test-parallel-broadcast.C
-
-EXE = $(FOAM_USER_APPBIN)/Test-parallel-broadcast

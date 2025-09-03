@@ -1,3 +1,0 @@
-Test-scalarRanges.C
-
-EXE = $(FOAM_USER_APPBIN)/Test-scalarRanges

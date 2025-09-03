@@ -1,1 +1,0 @@
-IOMRFZoneList MRF(mesh);

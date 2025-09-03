@@ -1,3 +1,0 @@
-Test-Tensor2D.C
-
-EXE = $(FOAM_USER_APPBIN)/Test-Tensor2D

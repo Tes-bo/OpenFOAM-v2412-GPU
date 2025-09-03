@@ -1,3 +1,0 @@
-Test-stdFoam-span.C
-
-EXE = $(FOAM_USER_APPBIN)/Test-stdFoam-span

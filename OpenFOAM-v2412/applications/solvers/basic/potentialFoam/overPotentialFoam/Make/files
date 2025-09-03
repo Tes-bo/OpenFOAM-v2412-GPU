@@ -1,3 +1,0 @@
-overPotentialFoam.C
-
-EXE = $(FOAM_APPBIN)/overPotentialFoam

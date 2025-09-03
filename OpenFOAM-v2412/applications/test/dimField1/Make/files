@@ -1,3 +1,0 @@
-Test-dimField1.cxx
-
-EXE = $(FOAM_USER_APPBIN)/Test-dimField1

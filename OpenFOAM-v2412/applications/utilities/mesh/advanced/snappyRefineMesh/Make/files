@@ -1,3 +1,0 @@
-snappyRefineMesh.C
-
-EXE = $(FOAM_APPBIN)/snappyRefineMesh

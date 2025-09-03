@@ -1,2 +1,0 @@
-- sphere with inside and outside meshed
-- demonstrates buffer layers

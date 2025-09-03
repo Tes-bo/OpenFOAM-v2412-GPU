@@ -1,3 +1,0 @@
-Test-memInfo.cxx
-
-EXE = $(FOAM_USER_APPBIN)/Test-memInfo

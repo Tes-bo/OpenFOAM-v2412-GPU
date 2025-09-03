@@ -1,3 +1,0 @@
-Test-PDRblockMesh.C
-
-EXE = $(FOAM_USER_APPBIN)/Test-PDRblockMesh

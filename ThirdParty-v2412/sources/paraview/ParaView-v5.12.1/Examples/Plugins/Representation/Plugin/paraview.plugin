@@ -1,8 +1,0 @@
-NAME
-  Representation
-DESCRIPTION
-  Example plugin for a custom representation.
-REQUIRES_MODULES
-  ParaView::RemotingViews
-  VTK::CommonCore
-  VTK::RenderingOpenGL2

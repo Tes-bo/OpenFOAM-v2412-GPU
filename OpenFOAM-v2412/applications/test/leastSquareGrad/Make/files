@@ -1,3 +1,0 @@
-Test-leastSquareGrad.C
-
-EXE = $(FOAM_USER_APPBIN)/Test-leastSquareGrad

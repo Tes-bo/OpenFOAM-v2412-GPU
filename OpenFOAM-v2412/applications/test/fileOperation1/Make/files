@@ -1,3 +1,0 @@
-Test-fileOperation1.C
-
-EXE = $(FOAM_USER_APPBIN)/Test-fileOperation1

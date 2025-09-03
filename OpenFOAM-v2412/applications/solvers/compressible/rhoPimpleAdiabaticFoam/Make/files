@@ -1,3 +1,0 @@
-rhoPimpleAdiabaticFoam.C
-
-EXE = $(FOAM_APPBIN)/rhoPimpleAdiabaticFoam

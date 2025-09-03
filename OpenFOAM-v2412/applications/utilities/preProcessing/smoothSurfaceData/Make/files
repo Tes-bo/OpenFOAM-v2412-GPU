@@ -1,3 +1,0 @@
-smoothSurfaceData.C
-
-EXE = $(FOAM_APPBIN)/smoothSurfaceData

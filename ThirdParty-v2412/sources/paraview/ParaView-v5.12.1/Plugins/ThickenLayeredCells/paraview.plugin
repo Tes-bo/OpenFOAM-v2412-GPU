@@ -1,8 +1,0 @@
-NAME
-  ThickenLayeredCells
-DESCRIPTION
-  Filter to thicken layered cells
-REQUIRES_MODULES
-  VTK::CommonCore
-  VTK::CommonDataModel
-  VTK::CommonExecutionModel

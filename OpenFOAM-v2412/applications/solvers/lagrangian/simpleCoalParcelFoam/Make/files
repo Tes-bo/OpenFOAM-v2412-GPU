@@ -1,3 +1,0 @@
-simpleCoalParcelFoam.C
-
-EXE = $(FOAM_APPBIN)/simpleCoalParcelFoam

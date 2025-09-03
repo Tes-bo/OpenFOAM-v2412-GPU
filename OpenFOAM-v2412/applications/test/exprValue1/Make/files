@@ -1,3 +1,0 @@
-Test-exprValue1.cxx
-
-EXE = $(FOAM_USER_APPBIN)/Test-exprValue1

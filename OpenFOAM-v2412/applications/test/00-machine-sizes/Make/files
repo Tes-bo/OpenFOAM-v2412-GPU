@@ -1,3 +1,0 @@
-Test-machine-sizes.cpp
-
-EXE = $(FOAM_USER_APPBIN)/Test-machine-sizes

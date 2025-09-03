@@ -1,3 +1,0 @@
-reactingHeterogenousParcelFoam.C
-
-EXE = $(FOAM_APPBIN)/reactingHeterogenousParcelFoam

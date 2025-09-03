@@ -1,3 +1,0 @@
-overBuoyantPimpleDyMFoam.C
-
-EXE = $(FOAM_APPBIN)/overBuoyantPimpleDyMFoam

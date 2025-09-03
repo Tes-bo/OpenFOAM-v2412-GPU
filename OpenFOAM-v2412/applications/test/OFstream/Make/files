@@ -1,3 +1,0 @@
-Test-OFstream.cxx
-
-EXE = $(FOAM_USER_APPBIN)/Test-OFstream

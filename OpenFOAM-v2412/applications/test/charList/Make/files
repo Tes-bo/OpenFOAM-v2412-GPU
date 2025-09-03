@@ -1,3 +1,0 @@
-Test-charList.C
-
-EXE = $(FOAM_USER_APPBIN)/Test-charList

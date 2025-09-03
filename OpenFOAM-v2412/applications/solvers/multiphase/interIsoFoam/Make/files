@@ -1,3 +1,0 @@
-interIsoFoam.C
-
-EXE = $(FOAM_APPBIN)/interIsoFoam

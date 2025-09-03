@@ -1,2 +1,0 @@
--np 2 laplacianFoam -case left  -world left  -parallel
--np 2 laplacianFoam -case right -world right -parallel

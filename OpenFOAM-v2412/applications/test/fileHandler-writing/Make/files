@@ -1,3 +1,0 @@
-Test-fileHandler-writing.cxx
-
-EXE = $(FOAM_USER_APPBIN)/Test-fileHandler-writing

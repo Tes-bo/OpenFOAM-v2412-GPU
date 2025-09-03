@@ -1,7 +1,0 @@
-fusedGaussLaplacianSchemes.C
-fusedLeastSquaresGrads.C
-fusedGaussDivSchemes.C
-fusedGaussConvectionSchemes.C
-fusedGaussGrads.C
-
-LIB = $(FOAM_LIBBIN)/libfusedFiniteVolume

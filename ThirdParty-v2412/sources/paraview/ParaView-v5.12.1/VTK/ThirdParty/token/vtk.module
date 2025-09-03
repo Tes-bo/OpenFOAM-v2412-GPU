@@ -1,7 +1,0 @@
-NAME
-  VTK::token
-LIBRARY_NAME
-  vtktoken
-DEPENDS
-  VTK::nlohmannjson
-THIRD_PARTY

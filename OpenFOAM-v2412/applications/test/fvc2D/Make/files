@@ -1,3 +1,0 @@
-Test-fvc2D.C
-
-EXE = $(FOAM_USER_APPBIN)/Test-fvc2D

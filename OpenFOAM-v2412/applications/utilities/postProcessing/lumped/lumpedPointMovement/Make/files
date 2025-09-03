@@ -1,3 +1,0 @@
-lumpedPointMovement.C
-
-EXE = $(FOAM_APPBIN)/lumpedPointMovement

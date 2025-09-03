@@ -1,8 +1,0 @@
-NAME
-  NetCDFTimeAnnotationPlugin
-DESCRIPTION
-  Provides NetCDF Time Annotation filter
-CONDITION
-  PARAVIEW_USE_PYTHON
-REQUIRES_MODULES
-  ParaView::VTKExtensionsFiltersPython

@@ -1,3 +1,0 @@
-Test-gatherValues1.cxx
-
-EXE = $(FOAM_USER_APPBIN)/Test-gatherValues1

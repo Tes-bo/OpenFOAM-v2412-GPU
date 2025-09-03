@@ -1,6 +1,0 @@
-type            turbulenceFields;
-libs            (fieldFunctionObjects);
-
-writeControl    writeTime;
-
-fields          (devReff);

@@ -1,3 +1,0 @@
-Test-plotFunction1.C
-
-EXE = $(FOAM_USER_APPBIN)/Test-plotFunction1

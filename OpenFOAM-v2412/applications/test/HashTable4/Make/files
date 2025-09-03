@@ -1,3 +1,0 @@
-Test-HashTable4.cxx
-
-EXE = $(FOAM_USER_APPBIN)/Test-HashTable4

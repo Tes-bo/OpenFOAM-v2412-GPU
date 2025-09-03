@@ -1,3 +1,0 @@
-lumpedPointForces.C
-
-EXE = $(FOAM_APPBIN)/lumpedPointForces

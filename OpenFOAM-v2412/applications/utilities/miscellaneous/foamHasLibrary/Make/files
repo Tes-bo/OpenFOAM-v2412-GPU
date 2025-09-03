@@ -1,3 +1,0 @@
-foamHasLibrary.C
-
-EXE = $(FOAM_APPBIN)/foamHasLibrary

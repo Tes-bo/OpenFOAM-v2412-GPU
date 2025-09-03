@@ -1,2 +1,0 @@
--np 1 ./run_world.sh left
--np 1 ./run_world.sh right

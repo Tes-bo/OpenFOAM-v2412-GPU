@@ -1,3 +1,0 @@
-energySpectrum/energySpectrum.C
-
-LIB = $(FOAM_LIBBIN)/librandomProcessesFunctionObjects

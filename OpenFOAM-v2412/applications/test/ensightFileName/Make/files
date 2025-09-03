@@ -1,3 +1,0 @@
-Test-ensightFileName.cxx
-
-EXE = $(FOAM_USER_APPBIN)/Test-ensightFileName

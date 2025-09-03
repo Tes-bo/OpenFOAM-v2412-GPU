@@ -1,3 +1,0 @@
-Test-exprTraits.C
-
-EXE = $(FOAM_USER_APPBIN)/Test-exprTraits

@@ -1,3 +1,0 @@
-adjointOptimisationFoam.C
-
-EXE = $(FOAM_APPBIN)/adjointOptimisationFoam

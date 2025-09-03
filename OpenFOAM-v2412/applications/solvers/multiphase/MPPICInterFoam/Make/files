@@ -1,3 +1,0 @@
-MPPICInterFoam.C
-
-EXE = $(FOAM_APPBIN)/MPPICInterFoam

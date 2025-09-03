@@ -1,3 +1,0 @@
-Test-partition-sort.cxx
-
-EXE = $(FOAM_USER_APPBIN)/Test-partition-sort

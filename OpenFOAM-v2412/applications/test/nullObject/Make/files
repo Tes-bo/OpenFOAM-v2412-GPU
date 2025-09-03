@@ -1,3 +1,0 @@
-Test-nullObject.cxx
-
-EXE = $(FOAM_USER_APPBIN)/Test-nullObject

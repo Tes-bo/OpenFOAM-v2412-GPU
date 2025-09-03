@@ -1,3 +1,0 @@
-Test-IOobject-type.cxx
-
-EXE = $(FOAM_USER_APPBIN)/Test-IOobject-type

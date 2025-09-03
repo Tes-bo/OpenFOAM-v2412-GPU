@@ -1,4 +1,0 @@
-/* Install into central FOAM_MPI_LIBBIN for 'fake' builds (test packaging) */
-dummyMpiLib.cpp
-
-LIB = $(FOAM_MPI_LIBBIN)/libTestDummyMpi

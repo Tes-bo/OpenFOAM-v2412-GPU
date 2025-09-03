@@ -1,4 +1,0 @@
-distributedTriSurfaceMesh/distributedTriSurfaceMesh.C
-patchDistMethods/exact/exactPatchDistMethod.C
-
-LIB = $(FOAM_LIBBIN)/libdistributed

@@ -1,3 +1,0 @@
-foamDictionary.C
-
-EXE = $(FOAM_APPBIN)/foamDictionary

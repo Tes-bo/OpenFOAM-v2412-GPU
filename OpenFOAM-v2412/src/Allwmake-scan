@@ -1,8 +1,0 @@
-#!/bin/sh
-# Allwmake with scan-build (clang)
-
-scan-build \
-    --use-cc="$(wmake -show-path-c)" \
-    --use-c++="$(wmake -show-path-cxx)" \
-    ./Allwmake "$@"
-#------------------------------------------------------------------------------

@@ -1,7 +1,0 @@
-ROMmodels/ROMmodel/ROMmodel.C
-ROMmodels/ROMmodel/ROMmodelNew.C
-ROMmodels/DMD/DMD.C
-
-createROMfields.C
-
-EXE = $(FOAM_APPBIN)/createROMfields

@@ -1,8 +1,0 @@
-NAME
-  VTK::tiff
-LIBRARY_NAME
-  vtktiff
-PRIVATE_DEPENDS
-  VTK::jpeg
-  VTK::zlib
-THIRD_PARTY

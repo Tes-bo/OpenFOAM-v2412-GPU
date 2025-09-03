@@ -1,9 +1,0 @@
-NAME
-  ParaView::qttesting
-LIBRARY_NAME
-  vtkqttesting
-CONDITION
-  PARAVIEW_USE_QT
-GROUPS
-  PARAVIEW_CORE
-THIRD_PARTY

@@ -1,8 +1,0 @@
-plenum
-{
-    type patch;
-    faces
-    (
-        (100 102 103 101)
-    );
-}

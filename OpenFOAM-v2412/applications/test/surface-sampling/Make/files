@@ -1,4 +1,0 @@
-mydebugSurfaceWriter.C
-Test-surface-sampling.C
-
-EXE = $(FOAM_USER_APPBIN)/Test-surface-sampling

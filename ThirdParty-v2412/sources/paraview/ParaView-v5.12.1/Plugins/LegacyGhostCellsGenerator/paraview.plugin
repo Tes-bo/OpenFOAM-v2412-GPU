@@ -1,8 +1,0 @@
-NAME
-  LegacyGhostCellsGenerator
-DESCRIPTION
-  Legacy version of the Ghost Cells Generator restricted to vtkUnstructuredGrid input.
-REQUIRES_MODULES
-  VTK::CommonCore
-  VTK::CommonDataModel
-  VTK::CommonExecutionModel

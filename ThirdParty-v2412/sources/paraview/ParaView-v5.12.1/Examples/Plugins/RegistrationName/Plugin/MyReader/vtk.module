@@ -1,6 +1,0 @@
-NAME
-  MyReader
-DEPENDS
-  VTK::IOImage
-PRIVATE_DEPENDS
-  VTK::CommonCore

@@ -1,3 +1,0 @@
-Test-readDir.C
-
-EXE = $(FOAM_USER_APPBIN)/Test-readDir

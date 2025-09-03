@@ -1,3 +1,0 @@
-foamToFireMesh.C
-
-EXE = $(FOAM_APPBIN)/foamToFireMesh

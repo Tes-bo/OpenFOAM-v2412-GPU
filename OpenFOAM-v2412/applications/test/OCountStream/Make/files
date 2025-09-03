@@ -1,3 +1,0 @@
-Test-OCountStream.cxx
-
-EXE = $(FOAM_USER_APPBIN)/Test-OCountStream

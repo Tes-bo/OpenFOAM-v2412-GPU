@@ -1,3 +1,0 @@
-Test-boundaryMeshEntries.C
-
-EXE = $(FOAM_USER_APPBIN)/Test-boundaryMeshEntries

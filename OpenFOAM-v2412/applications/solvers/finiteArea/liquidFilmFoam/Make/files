@@ -1,3 +1,0 @@
-liquidFilmFoam.C
-
-EXE = $(FOAM_APPBIN)/liquidFilmFoam

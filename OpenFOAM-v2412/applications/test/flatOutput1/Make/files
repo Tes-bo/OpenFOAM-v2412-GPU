@@ -1,3 +1,0 @@
-Test-flatOuput1.C
-
-EXE = $(FOAM_USER_APPBIN)/Test-flatOuput1

@@ -1,7 +1,0 @@
-End User License Agreement
-==========================
-
-Just kidding! This plugin is fairly useless, and only meant for
-testing the EULA mechanism in ParaView.
-
-You can accept or decline as you choose.

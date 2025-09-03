@@ -1,3 +1,0 @@
-incompressibleInterPhaseTransportModels.C
-
-LIB = $(FOAM_LIBBIN)/libincompressibleInterPhaseTransportModels

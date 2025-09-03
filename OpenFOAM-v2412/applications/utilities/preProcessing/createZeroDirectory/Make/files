@@ -1,7 +1,0 @@
-boundaryInfo.C
-boundaryTemplates.C
-caseInfo.C
-solverTemplate.C
-createZeroDirectory.C
-
-EXE = $(FOAM_APPBIN)/createZeroDirectory

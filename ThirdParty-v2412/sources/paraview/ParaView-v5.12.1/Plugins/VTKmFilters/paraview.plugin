@@ -1,8 +1,0 @@
-NAME
-  VTKmFilters
-CONDITION
-  PARAVIEW_USE_VTKM
-DESCRIPTION
-  VTKm many-core filters
-REQUIRES_MODULES
-  VTK::AcceleratorsVTKmFilters

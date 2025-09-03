@@ -1,3 +1,0 @@
-overRhoPimpleDyMFoam.C
-
-EXE = $(FOAM_APPBIN)/overRhoPimpleDyMFoam

@@ -1,3 +1,0 @@
-Test-timeSelector.C
-
-EXE = $(FOAM_USER_APPBIN)/Test-timeSelector

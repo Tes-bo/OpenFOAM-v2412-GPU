@@ -1,3 +1,0 @@
-Test-regex1.C
-
-EXE = $(FOAM_USER_APPBIN)/Test-regex1

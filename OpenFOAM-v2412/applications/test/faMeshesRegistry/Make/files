@@ -1,3 +1,0 @@
-Test-faMeshesRegistry.cxx
-
-EXE = $(FOAM_USER_APPBIN)/Test-faMeshesRegistry

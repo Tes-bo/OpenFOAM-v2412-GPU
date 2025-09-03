@@ -1,3 +1,0 @@
-Test-field1.C
-
-EXE = $(FOAM_USER_APPBIN)/Test-field1

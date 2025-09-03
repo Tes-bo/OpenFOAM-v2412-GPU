@@ -1,3 +1,0 @@
-overInterPhaseChangeDyMFoam.C
-
-EXE = $(FOAM_APPBIN)/overInterPhaseChangeDyMFoam

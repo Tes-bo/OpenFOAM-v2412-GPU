@@ -1,5 +1,0 @@
-/* EXE_INC = */
-/* LIB_LIBS = */
-
-/* Project lib dependencies */
-PROJECT_LIBS = -L$(FOAM_LIBBIN) -lOpenFOAM

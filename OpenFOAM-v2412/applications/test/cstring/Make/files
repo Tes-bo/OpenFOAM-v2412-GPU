@@ -1,3 +1,0 @@
-Test-cstring.cxx
-
-EXE = $(FOAM_USER_APPBIN)/Test-cstring

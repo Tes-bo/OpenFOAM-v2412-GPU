@@ -1,3 +1,0 @@
-Test-write-wrapped-string.C
-
-EXE = $(FOAM_USER_APPBIN)/Test-write-wrapped-string

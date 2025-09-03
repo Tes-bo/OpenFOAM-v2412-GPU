@@ -1,2 +1,0 @@
--np 1 run_fluid.sh
--np 1 run_solid.sh

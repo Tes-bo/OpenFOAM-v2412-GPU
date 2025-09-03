@@ -1,3 +1,0 @@
-icoReactingMultiphaseInterFoam.C
-
-EXE = $(FOAM_APPBIN)/icoReactingMultiphaseInterFoam

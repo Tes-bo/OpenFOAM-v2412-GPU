@@ -1,3 +1,0 @@
-DEShybrid/DEShybrid.C
-
-LIB = $(FOAM_LIBBIN)/libturbulenceModelSchemes

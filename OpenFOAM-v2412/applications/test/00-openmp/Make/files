@@ -1,3 +1,0 @@
-Test-openmp.cpp
-
-EXE = $(FOAM_USER_APPBIN)/Test-openmp

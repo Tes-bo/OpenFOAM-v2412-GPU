@@ -1,3 +1,0 @@
-Test-dynamicLibrary.C
-
-EXE = $(FOAM_USER_APPBIN)/Test-dynamicLibrary

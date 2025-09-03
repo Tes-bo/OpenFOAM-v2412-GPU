@@ -1,6 +1,0 @@
-faFieldDecomposer.C
-faFieldDecomposerCache.C
-
-faMeshDecomposition.C
-
-LIB = $(FOAM_LIBBIN)/libfaDecompose
