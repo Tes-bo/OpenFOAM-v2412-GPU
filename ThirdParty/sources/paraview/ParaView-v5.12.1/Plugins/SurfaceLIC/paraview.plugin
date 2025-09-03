@@ -1,0 +1,6 @@
+NAME
+  SurfaceLIC
+DESCRIPTION
+  No longer necessary; built into ParaView
+REQUIRES_MODULE
+  VTK::CommonCore

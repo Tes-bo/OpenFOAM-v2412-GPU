@@ -1,0 +1,261 @@
+// SPDX-FileCopyrightText: Copyright (c) Kitware Inc.
+// SPDX-FileCopyrightText: Copyright (c) Sandia Corporation
+// SPDX-License-Identifier: BSD-3-Clause
+#include "pqVRQueueHandler.h"
+
+#include "vtkCollection.h"
+#include "vtkNew.h"
+#include "vtkObjectFactory.h"
+#include "vtkPVXMLElement.h"
+#include "vtkSMRenderViewProxy.h"
+#include "vtkSMVRInteractorStyleProxy.h"
+#include "vtkVRInteractorStyleFactory.h"
+#include "vtkVRQueue.h"
+#include "vtkWeakPointer.h"
+
+#include "pqActiveObjects.h"
+#include "pqApplicationCore.h"
+#include "pqView.h"
+
+#include <QList>
+#include <QTimer>
+#include <QtDebug>
+
+#include <cassert>
+
+class pqVRQueueHandler::pqInternals
+{
+public:
+  vtkNew<vtkCollection> Styles;
+  vtkWeakPointer<vtkVRQueue> Queue;
+  QTimer Timer;
+};
+
+//----------------------------------------------------------------------------
+QPointer<pqVRQueueHandler> pqVRQueueHandler::Instance;
+
+//----------------------------------------------------------------------------
+pqVRQueueHandler* pqVRQueueHandler::instance()
+{
+  return pqVRQueueHandler::Instance;
+}
+
+//----------------------------------------------------------------------------
+void pqVRQueueHandler::setInstance(pqVRQueueHandler* inst)
+{
+  pqVRQueueHandler::Instance = inst;
+}
+
+//----------------------------------------------------------------------------
+pqVRQueueHandler::pqVRQueueHandler(vtkVRQueue* queue, QObject* parentObject)
+  : Superclass(parentObject)
+{
+  this->Internals = new pqInternals();
+  this->Internals->Queue = queue;
+  this->Internals->Timer.setInterval(1);
+  this->Internals->Timer.setSingleShot(true);
+  QObject::connect(&this->Internals->Timer, SIGNAL(timeout()), this, SLOT(processEvents()));
+
+  QObject::connect(pqApplicationCore::instance(),
+    SIGNAL(stateLoaded(vtkPVXMLElement*, vtkSMProxyLocator*)), this,
+    SLOT(configureStyles(vtkPVXMLElement*, vtkSMProxyLocator*)));
+  QObject::connect(pqApplicationCore::instance(), SIGNAL(stateSaved(vtkPVXMLElement*)), this,
+    SLOT(saveStylesConfiguration(vtkPVXMLElement*)));
+}
+
+//----------------------------------------------------------------------------
+pqVRQueueHandler::~pqVRQueueHandler()
+{
+  delete this->Internals;
+}
+
+//----------------------------------------------------------------------------
+void pqVRQueueHandler::add(vtkSMVRInteractorStyleProxy* style)
+{
+  if (!this->Internals->Styles->IsItemPresent(style))
+  {
+    this->Internals->Styles->AddItem(style);
+    Q_EMIT stylesChanged();
+    return;
+  }
+}
+
+//----------------------------------------------------------------------------
+void pqVRQueueHandler::remove(vtkSMVRInteractorStyleProxy* style)
+{
+  this->Internals->Styles->RemoveItem(style);
+  Q_EMIT stylesChanged();
+}
+
+//----------------------------------------------------------------------public
+void pqVRQueueHandler::clear()
+{
+  if (this->Internals->Styles->GetNumberOfItems() != 0)
+  {
+    this->Internals->Styles->RemoveAllItems();
+    Q_EMIT stylesChanged();
+  }
+}
+
+//----------------------------------------------------------------------public
+QList<vtkSMVRInteractorStyleProxy*> pqVRQueueHandler::styles()
+{
+  vtkSMVRInteractorStyleProxy* style;
+  QList<vtkSMVRInteractorStyleProxy*> result;
+  for (this->Internals->Styles->InitTraversal();
+       (style = vtkSMVRInteractorStyleProxy::SafeDownCast(
+          this->Internals->Styles->GetNextItemAsObject()));)
+  {
+    result << style;
+  }
+
+  return result;
+}
+
+//----------------------------------------------------------------------------
+void pqVRQueueHandler::start()
+{
+  this->Internals->Timer.start();
+}
+
+//----------------------------------------------------------------------------
+void pqVRQueueHandler::stop()
+{
+  this->Internals->Timer.stop();
+}
+
+//----------------------------------------------------------------------------
+void pqVRQueueHandler::processEvents()
+{
+  assert(this->Internals->Queue != nullptr);
+  std::queue<vtkVREvent> events;
+  this->Internals->Queue->TryDequeue(events);
+
+  // Loop through the event queue and pass events to InteractorStyles
+  while (!events.empty())
+  {
+    vtkVREvent event = events.front(); /* get first event on the queue */
+    events.pop();
+    vtkSMVRInteractorStyleProxy* style;
+    for (this->Internals->Styles->InitTraversal();
+         (style = vtkSMVRInteractorStyleProxy::SafeDownCast(
+            this->Internals->Styles->GetNextItemAsObject()));)
+    {
+      if (style->HandleEvent(event))
+      {
+        break;
+      }
+    }
+  }
+
+  // There should be an explicit update for each handler. Otherwise the server
+  // side updates will not happen
+  vtkSMVRInteractorStyleProxy* style;
+  for (this->Internals->Styles->InitTraversal();
+       (style = vtkSMVRInteractorStyleProxy::SafeDownCast(
+          this->Internals->Styles->GetNextItemAsObject()));)
+  {
+    if (style->Update())
+    {
+      break;
+    }
+  }
+
+  this->render();
+
+  // since timer is single-shot we start it again.
+  this->Internals->Timer.start();
+}
+
+//----------------------------------------------------------------------------
+void pqVRQueueHandler::render()
+{
+  vtkSMRenderViewProxy* proxy = 0;
+  pqView* view = 0;
+  view = pqActiveObjects::instance().activeView();
+  if (view)
+  {
+    proxy = vtkSMRenderViewProxy::SafeDownCast(view->getViewProxy());
+    if (proxy)
+    {
+      proxy->StillRender();
+    }
+  }
+}
+
+//----------------------------------------------------------------------------
+/* Sample PVVR <VRInteractorStyles> configuration:            */
+/*                                                            */
+/*   <VRInteractorStyles>                                     */
+/*      <Style class="vtkVRStyleGrabNRotateWorld">            */
+/*        <Button name="wiimote.A"/>                          */
+/*        <Tracker name="wiimote.tracker"/>                   */
+/*      </Style>                                              */
+/*      <Style class="vtkVRWandTrackingStyle">                */
+/*        <Event name="wiitracker.hand" type = "tracker"/>    */
+/*      </Style>                                              */
+/*   </VRInteractorStyles>                                    */
+/*                                                            */
+void pqVRQueueHandler::configureStyles(vtkPVXMLElement* xml, vtkSMProxyLocator* locator)
+{
+  if (!xml)
+  {
+    return;
+  }
+
+  if (xml->GetName() && strcmp(xml->GetName(), "VRInteractorStyles") == 0)
+  {
+    this->clear();
+    vtkVRInteractorStyleFactory* factory = vtkVRInteractorStyleFactory::GetInstance();
+    for (unsigned cc = 0; cc < xml->GetNumberOfNestedElements(); cc++)
+    {
+      vtkPVXMLElement* child = xml->GetNestedElement(cc);
+      if (child && child->GetName() && strcmp(child->GetName(), "Style") == 0)
+      {
+        const char* class_name = child->GetAttributeOrEmpty("class");
+        vtkSMVRInteractorStyleProxy* style = factory->NewInteractorStyleFromClassName(class_name);
+        if (style)
+        {
+          if (style->Configure(child, locator))
+          {
+            this->add(style);
+          }
+          style->Delete();
+        }
+        else
+        {
+          qWarning() << "Unknown interactor style: \"" << class_name << "\"";
+        }
+      }
+    }
+  }
+  else
+  {
+    this->configureStyles(xml->FindNestedElementByName("VRInteractorStyles"), locator);
+  }
+
+  Q_EMIT stylesChanged();
+}
+
+//----------------------------------------------------------------------------
+void pqVRQueueHandler::saveStylesConfiguration(vtkPVXMLElement* root)
+{
+  assert(root != nullptr);
+
+  vtkPVXMLElement* tempParent = vtkPVXMLElement::New();
+  tempParent->SetName("VRInteractorStyles");
+  vtkSMVRInteractorStyleProxy* style;
+  for (this->Internals->Styles->InitTraversal();
+       (style = vtkSMVRInteractorStyleProxy::SafeDownCast(
+          this->Internals->Styles->GetNextItemAsObject()));)
+  {
+    vtkPVXMLElement* child = style->SaveConfiguration();
+    if (child)
+    {
+      tempParent->AddNestedElement(child);
+      child->Delete();
+    }
+  }
+  root->AddNestedElement(tempParent);
+  tempParent->Delete();
+}

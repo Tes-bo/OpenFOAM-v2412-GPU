@@ -1,0 +1,354 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- SPDX-FileCopyrightText: Copyright (c) Kitware Inc. -->
+<!-- SPDX-License-Identifier: BSD-3-Clause -->
+<ui version="4.0">
+ <class>pqEditMenuBuilder</class>
+ <widget class="QMenu" name="pqEditMenuBuilder">
+  <property name="title">
+   <string>&amp;Edit</string>
+  </property>
+  <action name="actionEditUndo">
+   <property name="checkable">
+    <bool>false</bool>
+   </property>
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqUndo.svg</normaloff>:/pqWidgets/Icons/pqUndo.svg</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Undo</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Z</string>
+   </property>
+  </action>
+  <action name="actionEditRedo">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqRedo.svg</normaloff>:/pqWidgets/Icons/pqRedo.svg</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Redo</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Y</string>
+   </property>
+  </action>
+  <action name="actionEditCameraUndo">
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqUndoCamera.svg</normaloff>:/pqWidgets/Icons/pqUndoCamera.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Camera Undo</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+B</string>
+   </property>
+  </action>
+  <action name="actionEditCameraRedo">
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqRedoCamera.svg</normaloff>:/pqWidgets/Icons/pqRedoCamera.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Camera Redo</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+G</string>
+   </property>
+  </action>
+  <action name="actionChangeFile">
+   <property name="text">
+    <string>Change File...</string>
+   </property>
+   <property name="iconText">
+    <string>Change File...</string>
+   </property>
+   <property name="toolTip">
+    <string>Change File</string>
+   </property>
+   <property name="statusTip">
+    <string>Change File</string>
+   </property>
+  </action>
+  <action name="actionChangeInput">
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqChangeInput.svg</normaloff>:/pqWidgets/Icons/pqChangeInput.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Change &amp;Input...</string>
+   </property>
+   <property name="iconText">
+    <string>Change Input...</string>
+   </property>
+   <property name="toolTip">
+    <string>Change a Filter's Input</string>
+   </property>
+   <property name="statusTip">
+    <string>Change a Filter's Input</string>
+   </property>
+  </action>
+  <action name="actionRename">
+   <property name="text">
+    <string>Rename...</string>
+   </property>
+   <property name="iconText">
+    <string>Rename...</string>
+   </property>
+   <property name="toolTip">
+    <string>Rename selected source (or filter)</string>
+   </property>
+   <property name="statusTip">
+    <string>Rename selected source (or filter)</string>
+   </property>
+  </action>
+  <action name="actionCopyScreenshotToClipboard">
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqCaptureScreenshot.svg</normaloff>:/pqWidgets/Icons/pqCaptureScreenshot.svg</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Copy Screenshot to Clipboard</string>
+   </property>
+   <property name="statusTip">
+    <string>Copy Screenshot to Clipboard</string>
+   </property>
+  </action>
+  <action name="actionCopy">
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqCopy.svg</normaloff>:/pqWidgets/Icons/pqCopy.svg</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Copy</string>
+   </property>
+   <property name="statusTip">
+    <string>Copy properties</string>
+   </property>
+  </action>
+  <action name="actionPaste">
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqPaste.svg</normaloff>:/pqWidgets/Icons/pqPaste.svg</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Paste</string>
+   </property>
+   <property name="statusTip">
+    <string>Paste copied properties</string>
+   </property>
+  </action>
+  <action name="actionCopyPipeline">
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqCopy.svg</normaloff>:/pqWidgets/Icons/pqCopy.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Copy Pipeline</string>
+   </property>
+   <property name="statusTip">
+    <string>Copy Pipeline</string>
+   </property>
+  </action>
+  <action name="actionPastePipeline">
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqPaste.svg</normaloff>:/pqWidgets/Icons/pqPaste.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Paste Pipeline</string>
+   </property>
+   <property name="statusTip">
+    <string>Paste copied pipeline</string>
+   </property>
+  </action>
+  <action name="actionDelete">
+   <property name="icon">
+    <iconset resource="../../../Widgets/Resources/QtWidgets.qrc">
+     <normaloff>:/QtWidgets/Icons/pqDelete.svg</normaloff>:/QtWidgets/Icons/pqDelete.svg</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Delete</string>
+   </property>
+   <property name="statusTip">
+    <string>Delete</string>
+   </property>
+  </action>
+  <action name="actionDeleteTree">
+   <property name="icon">
+    <iconset resource="../../../Widgets/Resources/QtWidgets.qrc">
+     <normaloff>:/QtWidgets/Icons/pqDelete.svg</normaloff>:/QtWidgets/Icons/pqDelete.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Delete Downstream Pipeline</string>
+   </property>
+   <property name="statusTip">
+    <string>Delete selection and all downstream filters</string>
+   </property>
+  </action>
+  <action name="actionDelete_All">
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqResetSession.svg</normaloff>:/pqWidgets/Icons/pqResetSession.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Reset Session</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+R</string>
+   </property>
+  </action>
+  <action name="actionShow_All">
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqEyeball.svg</normaloff>:/pqWidgets/Icons/pqEyeball.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Show All</string>
+   </property>
+   <property name="toolTip">
+    <string>Show all sources in selected view</string>
+   </property>
+  </action>
+  <action name="actionHide_All">
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqEyeballClosed.svg</normaloff>:/pqWidgets/Icons/pqEyeballClosed.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Hide All</string>
+   </property>
+  </action>
+  <action name="actionIgnoreTime">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Ignore Time</string>
+   </property>
+   <property name="toolTip">
+    <string>Disregard this source/filter's time from animations</string>
+   </property>
+   <property name="statusTip">
+    <string>Disregard this source/filter's time from animations</string>
+   </property>
+  </action>
+  <action name="actionEditSettings">
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqSettings.svg</normaloff>:/pqWidgets/Icons/pqSettings.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Settings...</string>
+   </property>
+   <property name="iconText">
+    <string>Settings</string>
+   </property>
+   <property name="toolTip">
+    <string>Settings</string>
+   </property>
+  </action>
+  <action name="actionQuery">
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqFindData.svg</normaloff>:/pqWidgets/Icons/pqFindData.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Find Data...</string>
+   </property>
+   <property name="iconText">
+    <string>Find Data</string>
+   </property>
+   <property name="toolTip">
+    <string>Find data matching various criteria from the current source.</string>
+   </property>
+   <property name="shortcut">
+    <string>V</string>
+   </property>
+  </action>
+  <action name="actionSearch">
+   <property name="text">
+    <string>Search in item list</string>
+   </property>
+   <property name="iconText">
+    <string>Search in item list</string>
+   </property>
+   <property name="toolTip">
+    <string>Pops up a search dialog if focus is on an item list</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+F</string>
+   </property>
+  </action>
+  <action name="actionResetDefaultSettings">
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqResetSettings.svg</normaloff>:/pqWidgets/Icons/pqResetSettings.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Reset to Default Settings</string>
+   </property>
+   <property name="iconText">
+    <string>Reset to Default Settings</string>
+   </property>
+   <property name="toolTip">
+    <string>Reset user settings to default.</string>
+   </property>
+  </action>
+  <action name="actionSetMainWindowTitle">
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqRenameWindow.svg</normaloff>:/pqWidgets/Icons/pqRenameWindow.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Rename Window</string>
+   </property>
+   <property name="toolTip">
+    <string>Change the main window title</string>
+   </property>
+  </action>
+  <addaction name="actionEditUndo"/>
+  <addaction name="actionEditRedo"/>
+  <addaction name="separator"/>
+  <addaction name="actionEditCameraUndo"/>
+  <addaction name="actionEditCameraRedo"/>
+  <addaction name="separator"/>
+  <addaction name="actionCopyScreenshotToClipboard"/>
+  <addaction name="separator"/>
+  <addaction name="actionCopy"/>
+  <addaction name="actionPaste"/>
+  <addaction name="actionCopyPipeline"/>
+  <addaction name="actionPastePipeline"/>
+  <addaction name="separator"/>
+  <addaction name="actionDelete"/>
+  <addaction name="actionDeleteTree"/>
+  <addaction name="actionRename"/>
+  <addaction name="actionChangeInput"/>
+  <addaction name="actionIgnoreTime"/>
+  <addaction name="separator"/>
+  <addaction name="actionShow_All"/>
+  <addaction name="actionHide_All"/>
+  <addaction name="actionDelete_All"/>
+  <addaction name="separator"/>
+  <addaction name="actionQuery"/>
+  <addaction name="actionSearch"/>
+  <addaction name="separator"/>
+  <addaction name="actionEditSettings"/>
+  <addaction name="actionResetDefaultSettings"/>
+  <addaction name="separator"/>
+  <addaction name="actionSetMainWindowTitle"/>
+ </widget>
+ <resources>
+  <include location="../../../Components/Resources/pqComponents.qrc"/>
+  <include location="../../../Widgets/Resources/QtWidgets.qrc"/>
+ </resources>
+ <connections/>
+</ui>

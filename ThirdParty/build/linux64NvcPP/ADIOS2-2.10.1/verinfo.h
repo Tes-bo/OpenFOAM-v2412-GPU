@@ -1,0 +1,6 @@
+#define ADIOS_INFO_VER_GIT       ""
+#define ADIOS_INFO_COMPILER_ID   "NVHPC"
+#define ADIOS_INFO_COMPILER_VER  "24.11.0"
+#define ADIOS_INFO_COMPILER_WRAP ""
+#define ADIOS_INFO_SYSTEM        "Linux-4.18.0-553.6.1.el8.x86_64"
+#define ADIOS_INFO_ARCH          "x86_64"

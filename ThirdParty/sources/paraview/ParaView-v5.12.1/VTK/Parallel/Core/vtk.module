@@ -1,0 +1,23 @@
+NAME
+  VTK::ParallelCore
+LIBRARY_NAME
+  vtkParallelCore
+KIT
+  VTK::Parallel
+GROUPS
+  StandAlone
+SPDX_LICENSE_IDENTIFIER
+  BSD-3-Clause
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
+DEPENDS
+  VTK::CommonCore
+PRIVATE_DEPENDS
+  VTK::CommonDataModel
+  VTK::CommonSystem
+  VTK::IOLegacy
+  VTK::vtksys
+TEST_DEPENDS
+  VTK::CommonSystem
+  VTK::RenderingOpenGL2
+  VTK::TestingRendering

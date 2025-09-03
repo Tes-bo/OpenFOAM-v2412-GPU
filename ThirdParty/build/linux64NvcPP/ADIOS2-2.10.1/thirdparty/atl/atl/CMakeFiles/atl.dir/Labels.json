@@ -1,0 +1,25 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "/home/sibo/TesboCFD/ThirdParty-v2412/sources/adios/ADIOS2-2.10.1/thirdparty/atl/atl/atom.c"
+		},
+		{
+			"file" : "/home/sibo/TesboCFD/ThirdParty-v2412/sources/adios/ADIOS2-2.10.1/thirdparty/atl/atl/attr.c"
+		},
+		{
+			"file" : "/home/sibo/TesboCFD/ThirdParty-v2412/sources/adios/ADIOS2-2.10.1/thirdparty/atl/atl/lookup3.c"
+		},
+		{
+			"file" : "/home/sibo/TesboCFD/ThirdParty-v2412/sources/adios/ADIOS2-2.10.1/thirdparty/atl/atl/tclHash.c"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"ATL"
+		],
+		"name" : "atl"
+	}
+}

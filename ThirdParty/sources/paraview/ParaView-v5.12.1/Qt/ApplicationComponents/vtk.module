@@ -1,0 +1,44 @@
+NAME
+  ParaView::pqApplicationComponents
+LIBRARY_NAME
+  pqApplicationComponents
+SPDX_LICENSE_IDENTIFIER
+  BSD-3-Clause
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Kitware Inc.
+CONDITION
+  PARAVIEW_USE_QT
+GROUPS
+  PARAVIEW_CANONICAL
+DEPENDS
+  ParaView::pqComponents
+  ParaView::qttesting
+  ParaView::Versioning
+  VTK::GUISupportQt
+PRIVATE_DEPENDS
+  ParaView::RemotingAnimation
+  ParaView::RemotingApplication
+  ParaView::RemotingCore
+  ParaView::RemotingExport
+  ParaView::RemotingLive
+  ParaView::RemotingMisc
+  ParaView::RemotingSettings
+  ParaView::RemotingViews
+  ParaView::VTKExtensionsFiltersRendering
+  VTK::IOCore
+OPTIONAL_DEPENDS
+  ParaView::nvpipe
+  VTK::PythonInterpreter
+  VTK::RenderingRayTracing
+
+  # These affect the public API. Note that `VTKExtensionsShaderBall` is
+  # conditional via `paraview_use_materialeditor`, not via `VTK_MODULE_ENABLE_`
+  # checks.
+  ParaView::VTKExtensionsShaderBall
+  ParaView::pqPython
+TEST_OPTIONAL_DEPENDS
+  VTK::Python
+  ParaView::pqPython
+TEST_LABELS
+  ParaView
+EXCLUDE_WRAP

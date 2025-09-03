@@ -1,0 +1,86 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2021 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     etc/list-available
+#
+# Description
+#     List available unpacked source versions
+#
+#     checks:
+#     - ThirdParty/PACKAGE
+#     - ThirdParty/sources/PACKAGE
+#     - ThirdParty/sources/canonical/PACKAGE
+#
+# Example usage
+#     etc/list-available paraview
+#
+#------------------------------------------------------------------------------
+. "${WM_THIRD_PARTY_DIR:?}"/etc/tools/ThirdPartyFunctions
+
+#------------------------------------------------------------------------------
+printHelp() {
+    cat<<USAGE
+
+Usage: ${0##*/} [OPTION] [package1 .. [packageN]]
+Options:
+  -dirs    List with relative source directories
+  -names   List names only [default]
+  -full    List with absolute source directories
+  -help    Display usage help
+
+List available (unpacked) source packages.
+
+USAGE
+    exit 0  # Clean exit
+}
+#------------------------------------------------------------------------------
+optOutput="-names"
+
+# Process options/arguments
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    '') ;;      # Ignore empty
+    -h | -help*) printHelp;;
+
+    # Resolve with (relative) dirs
+    -dir*)
+        optOutput="-dirs"
+        ;;
+
+    # Resolve packages names only (without directory)
+    -name*)
+        optOutput="-names"
+        ;;
+
+    # Resolve with full (absolute) dirs
+    -full | -long)
+        optOutput="-long"
+        ;;
+
+    -*) echo "Ignore unknown option" 1>&2 ;;
+    *)  break ;;
+    esac
+    shift
+done
+
+if [ "$#" -gt 0 ]
+then
+    listPackageVersions $optOutput "$@"
+else
+    die "Did not specify any package(s)"
+fi
+
+
+#------------------------------------------------------------------------------

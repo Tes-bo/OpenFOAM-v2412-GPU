@@ -1,0 +1,40 @@
+NAME
+  ParaView::pqCore
+LIBRARY_NAME
+  pqCore
+SPDX_LICENSE_IDENTIFIER
+  BSD-3-Clause
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Kitware Inc.
+CONDITION
+  PARAVIEW_USE_QT
+GROUPS
+  PARAVIEW_CANONICAL
+DEPENDS
+  ParaView::pqWidgets
+  ParaView::qttesting
+  ParaView::RemotingServerManager
+  ParaView::Versioning
+  VTK::GUISupportQt
+PRIVATE_DEPENDS
+  ParaView::RemotingAnimation
+  ParaView::RemotingApplication
+  ParaView::RemotingCore
+  ParaView::RemotingMisc
+  ParaView::RemotingSettings
+  ParaView::RemotingViews
+  ParaView::VTKExtensionsFiltersRendering
+  VTK::cli11
+  VTK::CommonSystem
+  VTK::ImagingCore
+  VTK::IOImage
+  VTK::TestingRendering
+  VTK::vtksys
+OPTIONAL_DEPENDS
+  # fixme: affects public API
+  ParaView::RemotingViewsPython
+TEST_DEPENDS
+  ParaView::RemotingViews
+TEST_LABELS
+  ParaView
+EXCLUDE_WRAP

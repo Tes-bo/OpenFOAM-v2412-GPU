@@ -1,0 +1,23 @@
+NAME
+  ParaView::VTKExtensionsIOAMR
+LIBRARY_NAME
+  vtkPVVTKExtensionsIOAMR
+SPDX_LICENSE_IDENTIFIER
+  BSD-3-Clause
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Kitware Inc.
+GROUPS
+  PARAVIEW_CANONICAL
+CONDITION
+  PARAVIEW_ENABLE_NONESSENTIAL
+KIT
+  ParaView::CoreKit
+DEPENDS
+  ParaView::VTKExtensionsIOCore
+PRIVATE_DEPENDS
+  ParaView::RemotingClientServerStream
+  VTK::IOAMR
+  VTK::ParallelCore
+  VTK::vtksys
+TEST_LABELS
+  ParaView

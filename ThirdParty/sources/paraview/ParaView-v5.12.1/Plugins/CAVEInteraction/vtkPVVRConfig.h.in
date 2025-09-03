@@ -1,0 +1,11 @@
+// SPDX-FileCopyrightText: Copyright (c) Kitware Inc.
+// SPDX-License-Identifier: BSD-3-Clause
+
+#ifndef vtkPVVRConfig_h
+#define vtkPVVRConfig_h
+
+/* Set these "macros" to be defined as "0" or "1" throughout the plugin code */
+#cmakedefine01 PARAVIEW_PLUGIN_CAVEInteraction_USE_VRPN
+#cmakedefine01 PARAVIEW_PLUGIN_CAVEInteraction_USE_VRUI
+
+#endif // vtkPVVRConfig.h_h

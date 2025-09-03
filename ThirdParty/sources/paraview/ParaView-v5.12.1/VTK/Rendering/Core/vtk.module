@@ -1,0 +1,55 @@
+NAME
+  VTK::RenderingCore
+LIBRARY_NAME
+  vtkRenderingCore
+IMPLEMENTABLE
+KIT
+  VTK::Rendering
+GROUPS
+  Rendering
+SPDX_LICENSE_IDENTIFIER
+  LicenseRef-BSD-3-Clause-Sandia-USGov
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
+  Copyright Sandia Corporation
+SPDX_CUSTOM_LICENSE_FILE
+  LICENSE
+SPDX_CUSTOM_LICENSE_NAME
+  BSD-3-Clause-Sandia-USGov
+LICENSE_FILES
+  LICENSE
+DEPENDS
+  VTK::CommonCore
+  VTK::CommonDataModel
+  VTK::CommonExecutionModel
+  VTK::CommonMath
+  VTK::FiltersCore
+PRIVATE_DEPENDS
+  VTK::CommonColor
+  VTK::CommonComputationalGeometry
+  VTK::CommonSystem
+  VTK::CommonTransforms
+  VTK::FiltersGeneral
+  VTK::FiltersGeometry
+  VTK::FiltersSources
+  VTK::vtksys
+TEST_DEPENDS
+  VTK::CommonSystem
+  VTK::FiltersExtraction
+  VTK::FiltersGeneral
+  VTK::FiltersGeometry
+  VTK::FiltersProgrammable
+  VTK::FiltersSources
+  VTK::FiltersTexture
+  VTK::ImagingSources
+  VTK::InteractionStyle
+  VTK::IOImage
+  VTK::IOLegacy
+  VTK::IOParallel
+  VTK::IOXML
+  VTK::RenderingAnnotation
+  VTK::RenderingOpenGL2
+  # Enable for webgpu tests
+  # VTK::RenderingWebGPU
+  VTK::TestingCore
+  VTK::TestingRendering

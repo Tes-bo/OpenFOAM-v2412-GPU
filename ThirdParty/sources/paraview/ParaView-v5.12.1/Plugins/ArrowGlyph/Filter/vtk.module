@@ -1,0 +1,16 @@
+NAME
+  ArrowGlyph::ArrowGlyphFilter
+LIBRARY_NAME
+  vtkArrowGlyphFilter
+SPDX_LICENSE_IDENTIFIER
+  BSD-3-Clause
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Kitware Inc.
+DEPENDS
+  VTK::CommonExecutionModel
+  VTK::CommonCore
+PRIVATE_DEPENDS
+  ParaView::RemotingCore
+  VTK::CommonDataModel
+  VTK::FiltersCore
+  VTK::FiltersSources

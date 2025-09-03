@@ -1,0 +1,18 @@
+NAME
+  ParaView::AdaptorsPagosa
+LIBRARY_NAME
+  vtkPVAdaptorsPagosa
+SPDX_LICENSE_IDENTIFIER
+  BSD-3-Clause
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Kitware Inc.
+GROUPS
+  PARAVIEW_CANONICAL
+CONDITION
+  PARAVIEW_USE_FORTRAN AND PARAVIEW_USE_PYTHON
+DEPENDS
+  ParaView::Catalyst
+  VTK::CommonDataModel
+OPTIONAL_DEPENDS
+  ParaView::PythonCatalyst
+  VTK::ParallelMPI

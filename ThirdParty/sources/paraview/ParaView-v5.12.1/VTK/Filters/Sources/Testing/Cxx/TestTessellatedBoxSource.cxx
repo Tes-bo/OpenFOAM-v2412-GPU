@@ -1,0 +1,77 @@
+// SPDX-FileCopyrightText: Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
+// SPDX-License-Identifier: BSD-3-Clause
+#include "vtkTessellatedBoxSource.h"
+#include "vtkXMLPolyDataWriter.h"
+
+#include "vtkActor.h"
+#include "vtkCamera.h"
+#include "vtkCellData.h"
+#include "vtkCellDataToPointData.h"
+#include "vtkClipConvexPolyData.h"
+#include "vtkColorTransferFunction.h"
+#include "vtkContourFilter.h"
+#include "vtkHierarchicalBoxDataSet.h"
+#include "vtkLookupTable.h"
+#include "vtkOutlineFilter.h"
+#include "vtkPiecewiseFunction.h"
+#include "vtkPlane.h"
+#include "vtkPlaneCollection.h"
+#include "vtkPointData.h"
+#include "vtkPolyDataMapper.h"
+#include "vtkRegressionTestImage.h"
+#include "vtkRenderWindow.h"
+#include "vtkRenderWindowInteractor.h"
+#include "vtkRenderer.h"
+#include "vtkStructuredPoints.h"
+#include "vtkTestUtilities.h"
+#include "vtkTextActor.h"
+#include "vtkTextProperty.h"
+#include "vtkUniformGrid.h"
+#include "vtkVolume.h"
+#include "vtkVolumeProperty.h"
+#include "vtkXMLHierarchicalBoxDataReader.h"
+
+int TestTessellatedBoxSource(int vtkNotUsed(argc), char* vtkNotUsed(argv)[])
+{
+  vtkTessellatedBoxSource* boxSource = vtkTessellatedBoxSource::New();
+  boxSource->SetBounds(0, 1, 0, 1, 0, 1);
+  boxSource->QuadsOn();
+  boxSource->SetLevel(4);
+  boxSource->Update();
+  vtkXMLPolyDataWriter* writer = vtkXMLPolyDataWriter::New();
+  writer->SetInputConnection(boxSource->GetOutputPort());
+  boxSource->Delete();
+  writer->SetFileName("box.vtp");
+  writer->SetDataModeToAscii();
+  writer->Update();
+
+  vtkClipConvexPolyData* clip = vtkClipConvexPolyData::New();
+  clip->SetInputConnection(boxSource->GetOutputPort());
+
+  vtkPlaneCollection* planes = vtkPlaneCollection::New();
+  clip->SetPlanes(planes);
+  planes->Delete();
+
+  vtkPlane* p = vtkPlane::New();
+  planes->AddItem(p);
+  p->Delete();
+
+  double origin[3] = { 0.5, 0.5, 0.5 };
+  double direction[3] = { 0, 0, 1 };
+
+  p->SetOrigin(origin);
+  p->SetNormal(direction);
+  planes->AddItem(p);
+
+  vtkXMLPolyDataWriter* writer2 = vtkXMLPolyDataWriter::New();
+  writer2->SetInputConnection(clip->GetOutputPort());
+  clip->Delete();
+  writer2->SetFileName("clipbox.vtp");
+  writer2->SetDataModeToAscii();
+  writer2->Update();
+  writer2->Delete();
+
+  writer->Delete();
+
+  return 0; // 0==success.
+}

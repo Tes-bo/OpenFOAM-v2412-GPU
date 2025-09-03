@@ -1,0 +1,14 @@
+NAME
+  XRInterface::vtkXRInterfaceRepresentations
+SPDX_LICENSE_IDENTIFIER
+  BSD-3-Clause
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Kitware Inc.
+DEPENDS
+  ParaView::RemotingViews
+  VTK::RenderingVR
+  VTK::GUISupportQt
+OPTIONAL_DEPENDS
+  VTK::RenderingFFMPEGOpenGL2
+PRIVATE_DEPENDS
+  VTK::CommonCore

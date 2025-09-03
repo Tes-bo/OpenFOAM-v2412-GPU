@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- SPDX-FileCopyrightText: Copyright (c) Kitware Inc. -->
+<!-- SPDX-License-Identifier: BSD-3-Clause -->
+<ui version="4.0">
+ <class>pqMainControlsToolbar</class>
+ <widget class="QToolBar" name="pqMainControlsToolbar">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>464</width>
+    <height>39</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Main Controls</string>
+  </property>
+  <property name="orientation">
+   <enum>Qt::Horizontal</enum>
+  </property>
+  <action name="actionOpenData">
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqOpen.svg</normaloff>:/pqWidgets/Icons/pqOpen.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Open...</string>
+   </property>
+   <property name="statusTip">
+    <string>Open</string>
+   </property>
+   <property name="PV_MUST_BE_MASTER_TO_SHOW" stdset="0">
+    <bool>true</bool>
+   </property>
+  </action>
+  <action name="actionSaveData">
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqSave.svg</normaloff>:/pqWidgets/Icons/pqSave.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Save Data...</string>
+   </property>
+   <property name="PV_MUST_BE_MASTER_TO_SHOW" stdset="0">
+    <bool>true</bool>
+   </property>
+  </action>
+  <action name="actionServerConnect">
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqConnect.svg</normaloff>:/pqWidgets/Icons/pqConnect.svg</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Connect...</string>
+   </property>
+   <property name="statusTip">
+    <string>Connect</string>
+   </property>
+  </action>
+  <action name="actionServerDisconnect">
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqDisconnect.svg</normaloff>:/pqWidgets/Icons/pqDisconnect.svg</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Disconnect</string>
+   </property>
+   <property name="statusTip">
+    <string>Disconnect</string>
+   </property>
+  </action>
+  <action name="actionUndo">
+   <property name="icon">
+    <iconset>
+     <normaloff>:pqWidgets/Icons/pqUndo.svg</normaloff>:pqWidgets/Icons/pqUndo.svg</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Undo</string>
+   </property>
+  </action>
+  <action name="actionRedo">
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqRedo.svg</normaloff>:/pqWidgets/Icons/pqRedo.svg</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Redo</string>
+   </property>
+  </action>
+  <action name="actionAutoApply">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqAutoApply.svg</normaloff>:/pqWidgets/Icons/pqAutoApply.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Auto Apply</string>
+   </property>
+   <property name="toolTip">
+    <string>Apply changes to parameters automatically</string>
+   </property>
+  </action>
+  <action name="actionQuery">
+   <property name="checkable">
+    <bool>false</bool>
+   </property>
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqFindData.svg</normaloff>:/pqWidgets/Icons/pqFindData.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Find Data...</string>
+   </property>
+   <property name="toolTip">
+    <string>Find data matching various criteria from the current source (v)</string>
+   </property>
+  </action>
+  <action name="actionLoadPalette">
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqPalette.svg</normaloff>:/pqWidgets/Icons/pqPalette.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Load Palette</string>
+   </property>
+   <property name="toolTip">
+    <string>Load a color palette</string>
+   </property>
+  </action>
+  <action name="actionDelete">
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqResetSession.svg</normaloff>:/pqWidgets/Icons/pqResetSession.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Reset Session</string>
+   </property>
+   <property name="toolTip">
+    <string>Reset Session</string>
+   </property>
+   <property name="statusTip">
+    <string>Reset Session</string>
+   </property>
+  </action>
+  <action name="actionGenerateExtracts">
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqExportScene.svg</normaloff>:/pqWidgets/Icons/pqExportScene.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Save Extracts...</string>
+   </property>
+   <property name="toolTip">
+    <string>Save Extracts</string>
+   </property>
+  </action>
+  <action name="actionSaveState">
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqSaveState.svg</normaloff>:/pqWidgets/Icons/pqSaveState.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Save State...</string>
+   </property>
+   <property name="toolTip">
+    <string>Save State</string>
+   </property>
+  </action>
+  <action name="actionSaveCatalystState">
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqCatalyst.svg</normaloff>:/pqWidgets/Icons/pqCatalyst.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Save Catalyst State...</string>
+   </property>
+   <property name="toolTip">
+    <string>Save Catalyst State</string>
+   </property>
+  </action>
+  <addaction name="actionOpenData"/>
+  <addaction name="actionSaveData"/>
+  <addaction name="actionSaveState"/>
+  <addaction name="actionGenerateExtracts"/>
+  <addaction name="actionSaveCatalystState"/>
+  <addaction name="separator"/>
+  <addaction name="actionServerConnect"/>
+  <addaction name="actionServerDisconnect"/>
+  <addaction name="actionDelete"/>
+  <addaction name="separator"/>
+  <addaction name="actionUndo"/>
+  <addaction name="actionRedo"/>
+  <addaction name="separator"/>
+  <addaction name="actionAutoApply"/>
+  <addaction name="actionQuery"/>
+  <addaction name="actionLoadPalette"/>
+ </widget>
+ <resources>
+  <include location="../../../Components/Resources/pqComponents.qrc"/>
+ </resources>
+ <connections/>
+</ui>

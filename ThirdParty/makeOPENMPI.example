@@ -1,0 +1,14 @@
+#!/bin/sh
+# An example for building OPENMPI with particular settings
+
+openmpi=openmpi-1.10.6
+
+# InfiniBand support
+verbs="--with-verbs=/usr/local/ofed --with-verbs-lib=/usr/local/ofed/lib64"
+# unset verbs
+
+./makeOPENMPI $openmpi -- \
+    $verbs \
+    "$@"
+
+#------------------------------------------------------------------------------

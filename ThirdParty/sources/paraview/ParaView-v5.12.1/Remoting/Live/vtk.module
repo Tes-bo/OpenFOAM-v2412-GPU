@@ -1,0 +1,24 @@
+NAME
+  ParaView::RemotingLive
+LIBRARY_NAME
+  vtkRemotingLive
+SPDX_LICENSE_IDENTIFIER
+  BSD-3-Clause
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Kitware Inc.
+DESCRIPTION
+  Catalyst LIVE
+GROUPS
+  PARAVIEW_CANONICAL
+KIT
+  ParaView::ServerManagerKit
+DEPENDS
+  ParaView::RemotingServerManager
+  ParaView::VTKExtensionsExtraction
+PRIVATE_DEPENDS
+  VTK::CommonSystem
+TEST_DEPENDS
+  ParaView::RemotingApplication
+  VTK::TestingCore
+TEST_LABELS
+  ParaView

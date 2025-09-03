@@ -1,0 +1,17 @@
+NAME
+  ParaView::PythonInitializer
+LIBRARY_NAME
+  vtkUtilitiesPythonInitializer
+SPDX_LICENSE_IDENTIFIER
+  BSD-3-Clause
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Kitware Inc.
+CONDITION
+  PARAVIEW_USE_PYTHON
+GROUPS
+  PARAVIEW_CORE
+PRIVATE_DEPENDS
+  VTK::WrappingPythonCore
+  VTK::CommonCore
+  VTK::vtksys
+EXCLUDE_WRAP

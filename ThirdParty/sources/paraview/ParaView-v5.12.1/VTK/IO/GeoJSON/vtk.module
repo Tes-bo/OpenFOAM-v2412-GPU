@@ -1,0 +1,20 @@
+NAME
+  VTK::IOGeoJSON
+LIBRARY_NAME
+  vtkIOGeoJSON
+KIT
+  VTK::IO
+SPDX_LICENSE_IDENTIFIER
+  BSD-3-Clause
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
+DEPENDS
+  VTK::CommonDataModel
+  VTK::CommonExecutionModel
+  VTK::IOCore
+  VTK::jsoncpp
+PRIVATE_DEPENDS
+  VTK::CommonCore
+  VTK::FiltersCore
+TEST_DEPENDS
+  VTK::TestingCore

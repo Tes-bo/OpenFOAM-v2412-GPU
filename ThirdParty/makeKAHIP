@@ -1,0 +1,475 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2017-2021 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     makeKAHIP
+#
+# Description
+#     Build the KaHIP library (int32 only).
+#
+# ----------------------------------------------
+# NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
+#------------------------------------------------------------------------------
+# Dynamic library ending (default is .so)
+[ "$(uname -s)" = Darwin ] && EXT_SO=.dylib || EXT_SO=.so
+
+# Short-circuit test for an installation
+if [ "$1" = "-test" ]
+then
+    [ "$#" -eq 2 ] || { echo "${0##*/} -test : needs 1 argument"; exit 1; }
+    dir="${2%/}" # <- *_ARCH_PATH
+    [ -d "$dir/include" ] || exit 2
+
+    package="kahip"
+    libName="libkahip"
+    for lib in \
+        "$FOAM_EXT_LIBBIN/$libName$EXT_SO" \
+        "$dir/lib/$libName.a" \
+        "$dir/lib/$libName$EXT_SO" \
+        "$dir/lib$WM_COMPILER_LIB_ARCH/$libName.a" \
+        "$dir/lib$WM_COMPILER_LIB_ARCH/$libName$EXT_SO" \
+        ;
+    do
+        if [ -r "$lib" ]
+        then
+            echo "    $package include: $dir/include"
+            echo "    $package library: ${lib%/*}"
+            exit 0
+        fi
+    done
+    exit 2
+fi
+#------------------------------------------------------------------------------
+if :    # Run from third-party directory
+then
+    cd "${0%/*}" || exit
+    wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
+        echo "Error (${0##*/}) : not located in \$WM_THIRD_PARTY_DIR"
+        echo "    Check your OpenFOAM environment and installation"
+        exit 1
+    }
+fi
+. "${WM_THIRD_PARTY_DIR:?}"/etc/tools/ThirdPartyFunctions
+#------------------------------------------------------------------------------
+# Obtain version from OpenFOAM etc/config.sh file:
+_foamConfig kahip
+
+PACKAGE="${KAHIP_VERSION:-system}"
+targetType=libso
+
+# Hint for cmake findMPI
+if [ -d "$MPI_ARCH_PATH" ]
+then
+    export MPI_HOME="$MPI_ARCH_PATH"
+fi
+
+if nonStandardPlatforms  # Possibly unreliable inherited values
+then
+    unset KAHIP_ARCH_PATH
+fi
+
+#------------------------------------------------------------------------------
+printVersions() { listPackageVersions kahip; exit 0; }
+printHelp() {
+    /bin/cat<<USAGE
+
+Usage: ${0##*/} [OPTION] [lib|libso] [kahip-VERSION]
+options:
+  -gcc              Force use of gcc/g++
+  -force            Force build attempt (mingw)
+  -cmake PATH       With cmake from the given path
+  -bin              Create kahip binaries as well
+  -no-bin           Suppress creation of kahip binaries (default)
+  -mpi-home PATH    With hint for MPI_HOME
+  -no-mpi           Compile without MPI
+  -list             List available unpacked source versions
+  -help             Display usage help
+
+* Build kahip (int32_t only)
+      ${PACKAGE:-[unspecified]}
+
+USAGE
+    showDownloadHint kahip
+    exit 0  # Clean exit
+}
+#------------------------------------------------------------------------------
+exportCompiler minimal  # Minimal compiler info for CMake/configure
+
+unset optForce optNoExtlib
+optBinaries=false
+optWithMPI=true
+optLabelSize="${WM_LABEL_SIZE:-32}"
+
+# Parse options
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    '') ;;      # Ignore empty
+    -h | -help*) printHelp;;
+    -list)      printVersions;;
+    -gcc)       useGccWmake ;;
+    -force)     optForce=true ;;
+    -int32 | -int64) echo "ignoring $1" ;;
+    -bin)       optBinaries=true ;;
+    -no-bin)    optBinaries=false ;;
+    -no-mpi)    optWithMPI=false ;;
+    -no-extlib) optNoExtlib=true ;;  # Hidden option (experimental)
+
+    -cmake)
+        [ "$#" -ge 2 ] || die "'$1' option requires an argument"
+        CMAKE_PATH="${2%%/}"
+        shift
+        ;;
+    -mpi-home) # mpi with hint
+        [ "$#" -ge 2 ] || die "'$1' option requires an argument"
+        export MPI_HOME="${2%%/}"
+        case "${MPI_HOME:-none}" in (false|none) unset MPI_HOME;; esac
+        shift
+        ;;
+
+    lib|libso)
+        targetType="$1"
+        ;;
+
+    kahip/* | sources/kahip* | sources/KaHIP* |\
+    kahip-[0-9]* | kahip-git | KaHIP_* |  KaHIP-[0-9]*)
+        PACKAGE="${1%%/}"
+        unset KAHIP_ARCH_PATH  # Avoid inconsistency
+        ;;
+    *)
+        die "unknown option/argument: '$1'"
+        ;;
+    esac
+    shift
+done
+
+if [ -z "$PACKAGE" ]
+then
+    die "The KAHIP package/version not specified"
+elif _foamIsNone "$PACKAGE" || _foamIsSystem "$PACKAGE"
+then
+    echo "Using none/system (skip ThirdParty build of KAHIP)"
+    exit 0
+fi
+
+# Known build issues for mingw (uses some non-portable headers)
+case "$WM_COMPILER" in
+(Mingw*)
+    if [ "$optForce" = true ]
+    then
+        echo "Warning: kahip - known compilation issues with $WM_COMPILER"
+    else
+        echo "Skipping kahip - known compilation issues with $WM_COMPILER"
+        exit 0
+    fi
+    ;;
+esac
+
+if [ "$optNoExtlib" = true ]
+then
+    unset FOAM_EXT_LIBBIN
+else
+    requireExtLibBin
+fi
+
+#------------------------------------------------------------------------------
+#
+# Build KaHIP
+#
+#   KAHIP_ARCH_PATH : installation directory (as per config file)
+#
+#   *PACKAGE : name-version of the package
+#   *SOURCE  : location of original sources
+#   *PREFIX  : installation directory
+
+PKG_SOURCE="$(findSourceDir "$PACKAGE")"
+PACKAGE="$(basename "$PACKAGE")"
+# Future:  PKG_PREFIX="$installBASE$WM_SIZE_OPTIONS/$PACKAGE"
+PKG_PREFIX="$installBASE/$PACKAGE"
+export GIT_DIR="$PKG_SOURCE/.git"
+
+# Override as per config file (if any)
+[ -n "$KAHIP_ARCH_PATH" ] && PKG_PREFIX="$KAHIP_ARCH_PATH"
+
+[ -d "$PKG_SOURCE" ] || {
+    echo "Missing sources: '$PACKAGE'"
+    showDownloadHint kahip
+    exit 2
+}
+
+
+#------------------------------------------------------------------------------
+
+# - newer versions use CMake.
+# - intermediate versions (eg, kahip-2.11) had CMakeLists but didn't install
+#   include/ which means the scons workaround is probably better.
+# - very old versions only had scons.
+
+# NB: the flags for 64bit indices in the header seem to be missing.
+
+unset useWmakeWorkaround
+if [ -f "$PKG_SOURCE/SConstruct" ]
+then
+    # Use wmake for old scons builds
+    echo "Using wmake for the build..."
+    useWmakeWorkaround=true
+    requireWMakeToolchain
+fi
+
+
+#
+# Manual installation of serial libraries
+# from libdir to -> $FOAM_EXT_LIBBIN
+#
+install()
+{
+    local bindir="$PKG_PREFIX"/bin
+    local libdir_source="$1"
+    local libdir_serial="$FOAM_EXT_LIBBIN"
+    local libdir_parallel="$FOAM_EXT_LIBBIN/$FOAM_MPI"
+    local libname_suffix="-int$WM_LABEL_SIZE"
+
+    [ -n "$FOAM_EXT_LIBBIN" ] || unset libdir_serial libdir_parallel
+    [ -n "$WM_LABEL_SIZE" ] || unset libname_suffix
+
+    echo
+    echo "Adjusting installation"
+
+    if [ "$optBinaries" = false ]
+    then
+        echo "Removing binaries: $bindir"
+        rm -rf "$bindir" 2>/dev/null # Failed removal is uncritical
+    fi
+
+    if [ -z "$libdir_source" ]
+    then
+        libdir_source="$PKG_PREFIX/lib$WM_COMPILER_LIB_ARCH"
+        if [ ! -d "$libdir_source" ]
+        then
+            libdir_source="$PKG_PREFIX/lib"
+        fi
+    fi
+
+    # Before kahip-v3.12 built 'libinterface'. Rename this to 'libkahip'
+    (
+        cd "$libdir_source" || exit
+        libname="libkahip"
+
+        for name in libinterface
+        do
+            if [ -f "$name$EXT_SO" ]
+            then
+                rm -f "$libname$EXT_SO" "$libname$libname_suffix$EXT_SO"
+                mv "$name$EXT_SO" "$libname$EXT_SO"
+                echo "Renamed $name -> $libname"
+                break
+            fi
+        done
+    )
+
+    # Rename lib as xxx-intNN qualified library names (non-windows)
+    if [ -n "$libname_suffix" ] && [ "${EXT_SO:-.dll}" != ".dll" ]
+    then
+    (
+        cd "$libdir_source" || exit
+        echo "Tagging libraries with $libname_suffix"
+        for name in libkahip libparhip_interface
+        do
+            if [ -f "$name$EXT_SO" ]
+            then
+                mv "$name$EXT_SO" "$name$libname_suffix$EXT_SO"
+                ln -sf "$name$libname_suffix$EXT_SO" "$name$EXT_SO"
+            fi
+        done
+    )
+    fi
+
+    local libdir_target
+
+    # Serial
+    libdir_target="$libdir_serial"
+    if [ -n "$libdir_target" ]
+    then
+        # Remove old libraries/links
+        for name in libkahip libkahip_interface libparhip_interface
+        do
+            rm -f "$libdir_target/$name$EXT_SO"
+            rm -f "$libdir_target/$name$libname_suffix$EXT_SO"
+        done
+        mkdir -p "$libdir_target"
+        echo "Relocating serial libraries"
+
+        # echo "Installing: $libdir_target/libkahip$libname_suffix"
+        mv -f "$libdir_source"/libkahip*"$EXT_SO" "$libdir_target" 2>/dev/null
+    fi
+
+    # Parallel
+    libdir_target="$libdir_parallel"
+    if [ -n "$libdir_target" ]
+    then
+        # Remove old libraries/links
+        for name in libkahip libkahip_interface libparhip_interface
+        do
+            rm -f "$libdir_target/$name$EXT_SO"
+            rm -f "$libdir_target/$name$libname_suffix$EXT_SO"
+        done
+        mkdir -p "$libdir_target"
+        echo "Relocating parallel libraries"
+
+        # echo "Installing: $libdir_target/libparhip$libname_suffix"
+        mv -f "$libdir_source"/libparhip*"$EXT_SO" "$libdir_target" 2>/dev/null
+    fi
+
+    rmdir "$libdir_source" 2>/dev/null  # Failed rmdir is uncritical
+    return 0
+}
+
+
+#
+# Manual installation
+#
+install_wmake()
+{
+    local bindir="$PKG_PREFIX"/bin
+    local incdir="$PKG_PREFIX"/include
+    local libdir_source="$PKG_PREFIX/lib$WM_COMPILER_LIB_ARCH"
+    local libdir_target="$FOAM_EXT_LIBBIN"
+    local libname_suffix="-int$WM_LABEL_SIZE"
+
+    [ -n "$WM_LABEL_SIZE" ] || unset libname_suffix
+
+    # Leave static libraries in sub-directory
+    if [ "$targetType" = lib ] || [ -z "$FOAM_EXT_LIBBIN" ]
+    then
+        unset libdir_target
+    fi
+
+    # Remove build artifacts from the source directory
+    # (for a clean build next time)
+    wclean
+
+    echo
+    echo "Adjusting installation"
+    echo "Installing headers: $incdir"
+
+    mkdir -m 0755 -p "$incdir"
+    /bin/cp -pv \
+        "$PKG_SOURCE"/interface/kaHIP_interface.h \
+        "$incdir"
+
+    # Rename lib as xxx-intNN qualified library names (non-windows)
+    if [ -n "$libname_suffix" ] && [ "${EXT_SO:-.dll}" != ".dll" ]
+    then
+    (
+        cd "$libdir_source" || exit
+        echo "Tagging libraries with $libname_suffix"
+        for name in libkahip libparhip_interface
+        do
+            if [ -f "$name$EXT_SO" ]
+            then
+                mv "$name$EXT_SO" "$name$libname_suffix$EXT_SO"
+                ln -sf "$name$libname_suffix$EXT_SO" "$name$EXT_SO"
+            fi
+        done
+    )
+    fi
+
+    if [ -n "$libdir_target" ]
+    then
+        # Remove old libraries/links
+        for name in libkahip libkahip_interface libparhip_interface
+        do
+            rm -f "$libdir_target/$name$EXT_SO"
+            rm -f "$libdir_target/$name$libname_suffix$EXT_SO"
+        done
+        mkdir -p "$libdir_target"
+        echo "Relocating serial libraries"
+
+        # echo "Installing: $libdir_target/libkahip$libname_suffix"
+        mv -f "$libdir_source"/libkahip*"$EXT_SO" "$libdir_target" 2>/dev/null
+    fi
+
+    rmdir "$libdir_source" 2>/dev/null  # Failed rmdir is uncritical
+    return 0
+}
+
+if [ "${useWmakeWorkaround:-false}" = false ]
+then
+(
+    echo "Starting build: $PACKAGE using cmake"
+    echo
+
+    PKG_BUILD="$buildBASE/$PACKAGE"
+    cd "$PKG_SOURCE" || exit
+
+    # Remove any existing build folder and recreate
+    rm -rf "$PKG_PREFIX"
+    rm -rf "$PKG_BUILD"
+    mkdir -p "$PKG_BUILD"
+
+    unset buildOpt
+    if [ "$optWithMPI" = false ]
+    then
+        buildOpt="${buildOpt} -DPARHIP=OFF"
+    fi
+
+    cmake=$(findCMake)
+
+    cd "$PKG_BUILD" && set -x && \
+    ${cmake:?} \
+        -B "$PKG_BUILD" \
+        -S "$PKG_SOURCE" \
+        -DCMAKE_INSTALL_PREFIX="$PKG_PREFIX" \
+        -DCMAKE_BUILD_TYPE=Release \
+        $buildOpt \
+        ${WM_QUIET:+-DCMAKE_RULE_MESSAGES=OFF} \
+     && set +x \
+     && make -j $WM_NCOMPPROCS \
+     && make install \
+     && install \
+     && echo "Built: $PACKAGE"
+) || {
+    echo "Error building: $PACKAGE"
+    exit 1
+}
+elif true
+then
+(
+    echo "Starting build: $PACKAGE ($targetType) using wmake"
+    echo
+
+    cd "$PKG_SOURCE/lib" || exit
+
+    rm -rf "$PKG_PREFIX"
+    rm -f "$FOAM_EXT_LIBBIN/libkahip"*
+
+    export KAHIP_LIB_DIR="$PKG_PREFIX/lib$WM_COMPILER_LIB_ARCH"
+    mkdir -m 0755 -p "$KAHIP_LIB_DIR" 2>/dev/null
+
+    cpMakeFiles kahip 2>/dev/null
+
+    if [ -e ../interface ] && [ ! -e interface ]
+    then
+        ln -s ../interface interface
+    fi
+
+    wmake -j $WM_NCOMPPROCS -s $targetType \
+    && echo "Built: $PACKAGE" \
+    && install_wmake
+) || {
+    echo "Error building: $PACKAGE"
+    exit 1
+}
+fi
+
+#------------------------------------------------------------------------------

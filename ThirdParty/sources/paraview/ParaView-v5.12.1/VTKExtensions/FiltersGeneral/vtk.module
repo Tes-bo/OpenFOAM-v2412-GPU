@@ -1,0 +1,48 @@
+NAME
+  ParaView::VTKExtensionsFiltersGeneral
+LIBRARY_NAME
+  vtkPVVTKExtensionsFiltersGeneral
+SPDX_LICENSE_IDENTIFIER
+  LicenseRef-BSD-3-Clause-Sandia-USGov
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Kitware Inc.
+SPDX_CUSTOM_LICENSE_FILE
+  LICENSE
+SPDX_CUSTOM_LICENSE_NAME
+  BSD-3-Clause-Sandia-USGov
+LICENSE_FILES
+  LICENSE
+GROUPS
+  PARAVIEW_CANONICAL
+KIT
+  ParaView::CoreKit
+DEPENDS
+  VTK::CommonCore
+  VTK::CommonDataModel
+  VTK::CommonExecutionModel
+  VTK::FiltersGeneral
+  VTK::FiltersParallel
+  VTK::FiltersGeometryPreview
+  ParaView::Versioning
+PRIVATE_DEPENDS
+  ParaView::VTKExtensionsAMR
+  ParaView::VTKExtensionsCore
+  ParaView::VTKExtensionsFiltersRendering
+  ParaView::VTKExtensionsMisc
+  VTK::FiltersGeneral
+  VTK::FiltersGeneric
+  VTK::FiltersGeometry
+  VTK::FiltersHyperTree
+  VTK::ImagingCore
+  VTK::ImagingGeneral
+  VTK::ImagingSources
+  VTK::ParallelCore
+OPTIONAL_DEPENDS
+  VTK::FiltersParallelMPI
+TEST_DEPENDS
+  VTK::CommonSystem
+  VTK::TestingCore
+TEST_OPTIONAL_DEPENDS
+  VTK::IOCGNSReader
+TEST_LABELS
+  ParaView

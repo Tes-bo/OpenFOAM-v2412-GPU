@@ -1,0 +1,10 @@
+NAME
+  LagrangianParticleTracker
+DESCRIPTION
+  Highly customizable filter for particle tracking
+REQUIRES_MODULES
+  ParaView::RemotingServerManager
+  VTK::CommonCore
+  VTK::CommonDataModel
+  VTK::CommonExecutionModel
+  VTK::FiltersFlowPaths

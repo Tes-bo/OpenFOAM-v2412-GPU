@@ -1,0 +1,42 @@
+NAME
+  VTK::IOImage
+LIBRARY_NAME
+  vtkIOImage
+IMPLEMENTABLE
+KIT
+  VTK::IO
+GROUPS
+  StandAlone
+SPDX_LICENSE_IDENTIFIER
+  BSD-3-Clause
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
+DEPENDS
+  VTK::CommonCore
+  VTK::CommonExecutionModel
+  VTK::ImagingCore
+PRIVATE_DEPENDS
+  VTK::CommonDataModel
+  VTK::CommonMath
+  VTK::CommonMisc
+  VTK::CommonSystem
+  VTK::CommonTransforms
+  VTK::DICOMParser
+  VTK::jpeg
+  VTK::metaio
+  VTK::png
+  VTK::pugixml
+  VTK::tiff
+  VTK::vtksys
+  VTK::zlib
+TEST_DEPENDS
+  VTK::FiltersGeometry
+  VTK::ImagingMath
+  VTK::ImagingSources
+  VTK::InteractionImage
+  VTK::InteractionStyle
+  VTK::IOLegacy
+  VTK::RenderingContextOpenGL2
+  VTK::RenderingOpenGL2
+  VTK::TestingCore
+  VTK::TestingRendering

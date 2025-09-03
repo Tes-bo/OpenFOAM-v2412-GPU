@@ -1,0 +1,5 @@
+patching file src/libscotch/Makefile
+Hunk #1 succeeded at 58 with fuzz 2 (offset 7 lines).
+Hunk #2 succeeded at 461 (offset 17 lines).
+patching file src/Makefile
+Hunk #1 succeeded at 92 (offset 3 lines).

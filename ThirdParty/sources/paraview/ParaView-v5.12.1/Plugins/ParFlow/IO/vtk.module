@@ -1,0 +1,14 @@
+NAME
+  ParFlow::IO
+LIBRARY_NAME
+  vtkParFlowIO
+SPDX_LICENSE_IDENTIFIER
+  BSD-3-Clause
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Kitware Inc.
+DEPENDS
+  VTK::CommonCore
+  VTK::CommonMath
+  VTK::CommonDataModel
+  VTK::CommonExecutionModel
+  VTK::ParallelCore

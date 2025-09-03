@@ -1,0 +1,15 @@
+language: cpp
+
+compiler:
+  - gcc
+  - clang 
+
+before_script:
+  - sudo apt-get -qq update
+  - sudo apt-get install libopenmpi-dev
+
+script: 
+  - mkdir build
+  - cd build 
+  - cmake ../
+  - make  

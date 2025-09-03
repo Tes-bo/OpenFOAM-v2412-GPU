@@ -1,0 +1,10 @@
+/* NOTE: make any changes to this file in ThirdParty etc/wmakeFiles/ */
+
+EXE_INC = -I.
+LIB_LIBS =
+PROJECT_LIBS =
+
+/* failsafe location */
+ifeq (,$(strip $(CCMIO_LIB_DIR)))
+CCMIO_LIB_DIR = $(FOAM_EXT_LIBBIN)
+endif

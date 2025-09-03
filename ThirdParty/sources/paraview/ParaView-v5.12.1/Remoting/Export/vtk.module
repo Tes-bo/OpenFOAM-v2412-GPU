@@ -1,0 +1,28 @@
+NAME
+  ParaView::RemotingExport
+LIBRARY_NAME
+  vtkRemotingExport
+SPDX_LICENSE_IDENTIFIER
+  BSD-3-Clause
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Kitware Inc.
+CONDITION
+  PARAVIEW_ENABLE_RENDERING AND PARAVIEW_ENABLE_NONESSENTIAL
+GROUPS
+  PARAVIEW_CANONICAL
+KIT
+  ParaView::ServerManagerKit
+DEPENDS
+  ParaView::RemotingServerManager
+  VTK::IOExportGL2PS
+PRIVATE_DEPENDS
+  ParaView::VTKExtensionsFiltersRendering
+  ParaView::RemotingViews
+  VTK::ImagingCore
+OPTIONAL_DEPENDS
+  VTK::Python
+  VTK::PythonInterpreter
+  VTK::WebPython
+  VTK::WrappingPythonCore
+TEST_LABELS
+  ParaView

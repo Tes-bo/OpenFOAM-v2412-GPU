@@ -1,0 +1,18 @@
+NAME
+  ParaView::VTKExtensionsIOImage
+LIBRARY_NAME
+  vtkPVVTKExtensionsIOImage
+SPDX_LICENSE_IDENTIFIER
+  BSD-3-Clause
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Kitware Inc.
+GROUPS
+  PARAVIEW_CANONICAL
+KIT
+  ParaView::CoreKit
+DEPENDS
+  ParaView::VTKExtensionsIOCore
+PRIVATE_DEPENDS
+  VTK::IOImage
+TEST_LABELS
+  ParaView

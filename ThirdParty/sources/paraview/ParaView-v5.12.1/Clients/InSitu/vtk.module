@@ -1,0 +1,28 @@
+NAME
+  ParaView::InSitu
+LIBRARY_NAME
+  vtkPVInSitu
+SPDX_LICENSE_IDENTIFIER
+  BSD-3-Clause
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Kitware Inc.
+DEPENDS
+  VTK::CommonCore
+KIT
+  ParaView::ClientKit
+GROUPS
+  PARAVIEW_CORE
+PRIVATE_DEPENDS
+  ParaView::Catalyst
+  ParaView::RemotingApplication
+  ParaView::RemotingLive
+  ParaView::VTKExtensionsCore
+OPTIONAL_DEPENDS
+  ParaView::PythonCatalyst
+  ParaView::PythonInitializer
+  VTK::IOCatalystConduit
+  VTK::ParallelMPI
+  VTK::WrappingPythonCore
+ORDER_DEPENDS
+  VTK::IOFides
+  VTK::IOIOSS

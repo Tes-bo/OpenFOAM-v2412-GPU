@@ -1,0 +1,33 @@
+// SPDX-FileCopyrightText: Copyright (c) Kitware Inc.
+// SPDX-FileCopyrightText: Copyright (c) Sandia Corporation
+// SPDX-License-Identifier: BSD-3-Clause
+// Generated file.  Do not edit.
+
+
+#include "@_paraview_dock_window_CLASS_NAME@.h"
+#include "@_paraview_dock_window_CLASS_NAME@Implementation.h"
+
+#include <QDockWidget>
+#include <QWidget>
+
+@_paraview_dock_window_CLASS_NAME@Implementation::@_paraview_dock_window_CLASS_NAME@Implementation(QObject* p)
+  : QObject(p)
+{
+  this->MyDock = nullptr;
+  setObjectName("@_paraview_dock_window_CLASS_NAME@");
+}
+
+QString @_paraview_dock_window_CLASS_NAME@Implementation::dockArea() const
+{
+  return "@_paraview_dock_window_DOCK_AREA@";
+}
+
+QDockWidget* @_paraview_dock_window_CLASS_NAME@Implementation::dockWindow(QWidget* p)
+{
+  if(!this->MyDock)
+  {
+    this->MyDock = new @_paraview_dock_window_CLASS_NAME@(p);
+    this->MyDock->setObjectName("@_paraview_dock_window_CLASS_NAME@");
+  }
+  return this->MyDock;
+}

@@ -1,0 +1,14 @@
+NAME
+  DigitalRockPhysics::DigitalRocksFilters
+LIBRARY_NAME
+  vtkDigitalRocksFilters
+SPDX_LICENSE_IDENTIFIER
+  BSD-3-Clause
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Kitware Inc.
+DEPENDS
+  VTK::CommonExecutionModel
+PRIVATE_DEPENDS
+  VTK::CommonCore
+  VTK::CommonDataModel
+  VTK::ParallelCore

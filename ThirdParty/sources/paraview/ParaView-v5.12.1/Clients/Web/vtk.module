@@ -1,0 +1,27 @@
+NAME
+  ParaView::ClientsWeb
+LIBRARY_NAME
+  vtkPVClientWeb
+SPDX_LICENSE_IDENTIFIER
+  BSD-3-Clause
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Kitware Inc.
+CONDITION
+  PARAVIEW_ENABLE_WEB
+GROUPS
+  PARAVIEW_CANONICAL
+KIT
+  ParaView::ClientKit
+DEPENDS
+  VTK::WebCore
+  VTK::WebGLExporter
+PRIVATE_DEPENDS
+  ParaView::RemotingApplication
+  ParaView::RemotingViews
+  VTK::CommonSystem
+TEST_DEPENDS
+  VTK::ImagingSources
+  VTK::TestingCore
+TEST_LABELS
+  ParaView
+  ParaViewWeb

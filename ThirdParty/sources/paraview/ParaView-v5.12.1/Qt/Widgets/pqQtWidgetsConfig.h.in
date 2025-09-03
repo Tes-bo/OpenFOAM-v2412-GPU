@@ -1,0 +1,11 @@
+// SPDX-FileCopyrightText: Copyright (c) Kitware Inc.
+// SPDX-License-Identifier: BSD-3-Clause
+
+#ifndef pqQtWidgetsConfig_h
+#define pqQtWidgetsConfig_h
+
+#ifndef PARAVIEW_USE_QTWEBENGINE // XXX: This guard is only needed while `vtkPVConfig.h` exists
+#cmakedefine01 PARAVIEW_USE_QTWEBENGINE
+#endif
+
+#endif

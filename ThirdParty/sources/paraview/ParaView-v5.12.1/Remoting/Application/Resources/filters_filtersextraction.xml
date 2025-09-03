@@ -1,0 +1,579 @@
+<ServerManagerConfiguration>
+  <ProxyGroup name="filters">
+    <!-- ==================================================================== -->
+    <SourceProxy class="vtkExtractBlock"
+                 label="Extract Block (Legacy)"
+                 name="ExtractBlockLegacy">
+      <Documentation long_help="This filter extracts a range of blocks from a multiblock dataset."
+                     short_help="Extract block.">
+        This filter extracts a range of groups from a multiblock dataset
+      </Documentation>
+      <Deprecated deprecated_in="5.11" to_remove_in="5.13">
+        Extract Block (Legacy) has been deprecated. Please use ExtractBlock instead.
+      </Deprecated>
+      <InputProperty command="SetInputConnection"
+                     name="Input">
+        <ProxyGroupDomain name="groups">
+          <Group name="sources"/>
+          <Group name="filters"/>
+        </ProxyGroupDomain>
+        <DataTypeDomain name="input_type">
+          <DataType value="vtkMultiBlockDataSet"/>
+        </DataTypeDomain>
+        <Documentation>
+          This property specifies the input to the Extract Group filter.
+        </Documentation>
+      </InputProperty>
+      <IntVectorProperty clean_command="RemoveAllIndices"
+                         command="AddIndex"
+                         name="BlockIndices"
+                         number_of_elements_per_command="1"
+                         panel_visibility="default"
+                         repeat_command="1">
+        <Hints>
+          <WidgetHeight number_of_rows="20"/>
+        </Hints>
+        <Documentation>
+          This property lists the ids of the blocks to extract from the input multiblock dataset.
+        </Documentation>
+        <CompositeTreeDomain name="tree">
+          <RequiredProperties>
+            <Property function="Input" name="Input"/>
+          </RequiredProperties>
+        </CompositeTreeDomain>
+      </IntVectorProperty>
+      <IntVectorProperty command="SetPruneOutput"
+                         default_values="1"
+                         name="PruneOutput"
+                         number_of_elements="1">
+        <BooleanDomain name="bool"/>
+        <Documentation>
+          When set, the output multiblock dataset will be pruned to remove empty nodes. On by default.
+        </Documentation>
+      </IntVectorProperty>
+      <IntVectorProperty command="SetMaintainStructure"
+                         default_values="0"
+                         name="MaintainStructure"
+                         number_of_elements="1">
+        <BooleanDomain name="bool"/>
+        <Documentation>
+          This is used only when PruneOutput is ON. By default,
+          when pruning the output i.e. remove empty blocks, if node has only 1
+          non-null child block, then that node is removed. To preserve these
+          parent nodes, set this flag to true.
+        </Documentation>
+      </IntVectorProperty>
+      <!-- End ExtractBlockLegacy -->
+    </SourceProxy>
+
+    <!-- ==================================================================== -->
+    <SourceProxy name="ExtractBlock"
+                 label="Extract Block"
+                 class="vtkExtractBlockUsingDataAssembly">
+      <Documentation long_help="Extract chosen blocks from composite datasets"
+                     short_help="Extract block">
+        Extract selected blocks from a composite dataset.
+      </Documentation>
+      <InputProperty command="SetInputConnection"
+                     name="Input">
+        <DataTypeDomain name="input_type">
+          <DataType value="vtkMultiBlockDataSet"/>
+          <DataType value="vtkUniformGridAMR"/>
+          <DataType value="vtkPartitionedDataSetCollection"/>
+        </DataTypeDomain>
+        <Documentation>
+          Specify the input to this filter.
+        </Documentation>
+      </InputProperty>
+
+      <StringVectorProperty name="Assembly"
+                            command="SetAssemblyName"
+                            number_of_elements="1">
+        <DataAssemblyListDomain name="data_assembly_list">
+          <RequiredProperties>
+            <Property function="Input" name="Input"/>
+          </RequiredProperties>
+        </DataAssemblyListDomain>
+        <Documentation>
+          Select which assembly is used when specify selectors
+          to choose blocks to extract.
+        </Documentation>
+      </StringVectorProperty>
+
+      <StringVectorProperty name="Selectors"
+                            command="AddSelector"
+                            clean_command="ClearSelectors"
+                            repeat_command="1"
+                            number_of_elements_per_command="1">
+        <DataAssemblyDomain name="data_assembly">
+          <RequiredProperties>
+            <Property function="Input" name="Input"/>
+            <Property function="ActiveAssembly" name="Assembly"/>
+          </RequiredProperties>
+        </DataAssemblyDomain>
+        <Documentation>
+          Sepecify the selectors for the data assembly chosen using **Assembly**
+          to choose the blocks to extract from the input dataset.
+        </Documentation>
+      </StringVectorProperty>
+
+      <PropertyGroup label="Blocks" panel_widget="DataAssemblyEditor">
+        <Property name="Assembly" function="ActiveAssembly"/>
+        <Property name="Selectors" function="Selectors"/>
+      </PropertyGroup>
+
+      <!-- end of ExtractBlock -->
+    </SourceProxy>
+
+    <!-- ==================================================================== -->
+    <SourceProxy class="vtkExtractDataSets"
+                 label="Extract AMR Blocks"
+                 name="ExtractHierarchicalDataSets">
+      <Documentation long_help="This filter extracts a list of datasets from hierarchical datasets."
+                     short_help="Extract datasets.">
+        This filter extracts a list of datasets from hierarchical datasets.
+      </Documentation>
+      <InputProperty command="SetInputConnection"
+                     name="Input">
+        <ProxyGroupDomain name="groups">
+          <Group name="sources"/>
+          <Group name="filters"/>
+        </ProxyGroupDomain>
+        <DataTypeDomain name="input_type">
+          <DataType value="vtkUniformGridAMR"/>
+        </DataTypeDomain>
+        <Documentation>
+          This property specifies the input to the Extract Datasets filter.
+        </Documentation>
+      </InputProperty>
+      <IntVectorProperty clean_command="ClearDataSetList"
+                         command="AddDataSet"
+                         name="SelectedDataSets"
+                         number_of_elements_per_command="2"
+                         repeat_command="1">
+        <Documentation>
+          Specify a pair, level and dataset index, for every dataset
+          from the input AMR dataset to extract.
+        </Documentation>
+      </IntVectorProperty>
+      <!-- End ExtractDataSets -->
+    </SourceProxy>
+
+    <!-- ==================================================================== -->
+    <SourceProxy class="vtkExtractEdges"
+                 label="Extract Edges"
+                 name="ExtractEdges">
+      <Documentation long_help="Extract edges of 2D and 3D cells as lines."
+                     short_help="Covert data to wireframe.">The Extract Edges
+        filter produces a wireframe version of the input dataset
+        by extracting all the edges of the dataset's cells as
+        lines. This filter operates on any type of data set and
+        produces polygonal output.
+      </Documentation>
+      <InputProperty command="SetInputConnection"
+                     name="Input">
+        <ProxyGroupDomain name="groups">
+          <Group name="sources"/>
+          <Group name="filters"/>
+        </ProxyGroupDomain>
+        <DataTypeDomain name="input_type">
+          <DataType value="vtkDataSet"/>
+        </DataTypeDomain>
+        <Documentation>
+          This property specifies the input to the Extract Edges filter.
+        </Documentation>
+      </InputProperty>
+      <Hints>
+        <WarnOnCreate>
+          <DataTypeDomain name="input_type">
+            <DataType value="vtkImageData" />
+            <DataType value="vtkRectilinearGrid" />
+            <DataType value="vtkStructuredGrid" />
+          </DataTypeDomain>
+          <MemoryUsage relative="25" />
+          <Text title="Potentially running out of memory">
+            **Extract Edges** filter will create an unstructured grid output and
+            you may not have enough memory to create it.
+            Do you want to continue?
+          </Text>
+        </WarnOnCreate>
+      </Hints>
+      <!-- End ExtractEdges -->
+    </SourceProxy>
+
+    <!-- ==================================================================== -->
+    <SourceProxy class="vtkExtractGeometry"
+                 label="Extract Cells By Region"
+                 name="ExtractGeometry">
+      <Documentation long_help="This filter extracts cells that are inside/outside a region or at a region boundary."
+                     short_help="Extract cells that are inside/outside a region or at a region boundary.">
+        This filter extracts from its input dataset all cells that are either
+        completely inside or outside of a specified region (implicit function).
+        On output, the filter generates an unstructured grid. To use this filter
+        you must specify a region (implicit function). You must also specify
+        whether to extract cells lying inside or outside of the region. An
+        option exists to extract cells that are neither inside or outside (i.e.,
+        boundary).
+      </Documentation>
+      <InputProperty command="SetInputConnection"
+                     name="Input">
+        <ProxyGroupDomain name="groups">
+          <Group name="sources"/>
+          <Group name="filters"/>
+        </ProxyGroupDomain>
+        <DataTypeDomain name="input_type">
+          <DataType value="vtkDataSet"/>
+        </DataTypeDomain>
+        <Documentation>
+          This property specifies the input to the Slice filter.
+        </Documentation>
+      </InputProperty>
+      <ProxyProperty command="SetImplicitFunction"
+                     label="Intersect With"
+                     name="ImplicitFunction">
+        <ProxyListDomain name="proxy_list">
+          <Group name="extract_implicit_functions" default="Plane"/>
+        </ProxyListDomain>
+        <Documentation>
+          This property sets the region used to extract cells.
+        </Documentation>
+      </ProxyProperty>
+      <DoubleVectorProperty information_only="1"
+                            name="InputBounds">
+        <BoundsDomain name="bounds">
+          <RequiredProperties>
+            <Property function="Input"
+                      name="Input"/>
+          </RequiredProperties>
+        </BoundsDomain>
+      </DoubleVectorProperty>
+      <IntVectorProperty command="SetExtractInside"
+                         default_values="1"
+                         label="Extraction Side"
+                         name="ExtractInside"
+                         number_of_elements="1">
+        <EnumerationDomain name="enum">
+          <Entry text="outside"
+                 value="0"/>
+          <Entry text="inside"
+                 value="1"/>
+        </EnumerationDomain>
+        <Documentation>
+          This parameter controls whether to extract cells that are inside or outside the region.
+        </Documentation>
+      </IntVectorProperty>
+      <IntVectorProperty command="SetExtractOnlyBoundaryCells"
+                         default_values="0"
+                         name="Extract only intersected"
+                         number_of_elements="1">
+        <BooleanDomain name="bool"/>
+        <Documentation>
+          This parameter controls whether to extract only cells
+          that are on the boundary of the region. If this parameter is set, the
+          Extraction Side parameter is ignored. If Extract Intersected is off,
+          this parameter has no effect.
+        </Documentation>
+      </IntVectorProperty>
+      <IntVectorProperty command="SetExtractBoundaryCells"
+                         default_values="0"
+                         name="Extract intersected"
+                         number_of_elements="1">
+        <BooleanDomain name="bool"/>
+        <Documentation>
+          This parameter controls whether to extract cells that are on the boundary of the region.
+        </Documentation>
+      </IntVectorProperty>
+      <Hints>
+        <WarnOnCreate>
+          <DataTypeDomain name="input_type">
+            <DataType value="vtkImageData" />
+            <DataType value="vtkRectilinearGrid" />
+            <DataType value="vtkStructuredGrid" />
+          </DataTypeDomain>
+          <MemoryUsage relative="5" />
+          <Text title="Potentially running out of memory">
+            **Extract Cells By Region** filter will create an unstructured grid output
+            and you may not have enough memory to create it.
+            Do you want to continue?
+          </Text>
+        </WarnOnCreate>
+      </Hints>
+      <!-- End ExtractGeometry -->
+    </SourceProxy>
+
+    <!-- ==================================================================== -->
+    <SourceProxy class="vtkExtractLevel"
+                 label="Extract Level (Legacy)"
+                 name="ExtractHierarchicalLevel">
+      <Documentation long_help="This filter extracts a range of groups from a hierarchical dataset."
+                     short_help="Extract level.">This filter extracts a range
+        of levels from a hierarchical dataset
+      </Documentation>
+      <Deprecated deprecated_in="5.10" to_remove_in="5.12">
+        **Extract Level** has been deprecated. **Extract Block** now supports
+        extract levels from AMR datasets as well and hence this filter is unnecessary.
+      </Deprecated>
+      <InputProperty command="SetInputConnection"
+                     name="Input">
+        <ProxyGroupDomain name="groups">
+          <Group name="sources"/>
+          <Group name="filters"/>
+        </ProxyGroupDomain>
+        <DataTypeDomain name="input_type">
+          <DataType value="vtkUniformGridAMR"/>
+        </DataTypeDomain>
+        <Documentation>
+          This property specifies the input to the Extract Group filter.
+        </Documentation>
+      </InputProperty>
+      <IntVectorProperty clean_command="RemoveAllLevels"
+                         command="AddLevel"
+                         name="Levels"
+                         number_of_elements_per_command="1"
+                         panel_visibility="default"
+                         repeat_command="1">
+        <Documentation>
+          This property lists the levels to extract from the input hierarchical dataset.
+        </Documentation>
+      </IntVectorProperty>
+      <!-- End ExtractHierarchicalLevel -->
+    </SourceProxy>
+
+    <!-- ==================================================================== -->
+    <SourceProxy class="vtkExtractGhostCells"
+                 name="ExtractGhostCells"
+                 label="Extract Ghost Cells">
+      <Documentation short_help="Extract ghost cells so they can be visualized.">
+        This filter extracts the ghost cells from the input and displays them so
+        one can inspect them visually.
+      </Documentation>
+
+      <InputProperty command="SetInputConnection"
+                     name="Input">
+        <ProxyGroupDomain name="groups">
+          <Group name="sources"/>
+          <Group name="filters"/>
+        </ProxyGroupDomain>
+        <DataTypeDomain name="input_type">
+          <DataType value="vtkDataSet"/>
+          <DataType value="vtkCompositeDataSet"/>
+        </DataTypeDomain>
+      </InputProperty>
+      <StringVectorProperty name="ArrayName"
+                            command="SetOutputGhostArrayName"
+                            number_of_elements="1"
+                            default_values="GhostType">
+        <Documentation>
+          Name of the ghost cell array in the output.
+          It must be different to `vtkGhostType` in order for the cells to be displayed.
+        </Documentation>
+      </StringVectorProperty>
+    </SourceProxy>
+
+    <!-- ==================================================================== -->
+    <SourceProxy class="vtkExtractTimeSteps"
+                 name="ExtractTimeSteps"
+                 label="Extract Time Steps">
+      <Documentation short_help="Extract time steps from data.">
+        This filter extracts specified time steps from its input.
+      </Documentation>
+
+      <InputProperty command="SetInputConnection"
+                     name="Input">
+        <ProxyGroupDomain name="groups">
+          <Group name="sources"/>
+          <Group name="filters"/>
+        </ProxyGroupDomain>
+        <DataTypeDomain name="input_type">
+          <DataType value="vtkDataObject"/>
+        </DataTypeDomain>
+      </InputProperty>
+
+      <IntVectorProperty command="SetUseRange"
+                         name="SelectionMode"
+                         number_of_elements="1"
+                         default_values="0">
+        <EnumerationDomain name="enum">
+          <Entry text="Select Time Steps"
+                 value="0"/>
+          <Entry text="Select Time Range"
+                 value="1"/>
+        </EnumerationDomain>
+        <Documentation>
+          Extract time steps supports two ways to select the time steps to be extracted:
+
+          - **Select Time Steps**: Specify time steps to be extracted by their index
+
+          - **Select Time Range**: Specify the start and end time steps of a range by their index and optionally specify
+          a stride to optionally take every nth timestep in the range.
+        </Documentation>
+      </IntVectorProperty>
+      <IntVectorProperty animateable="1"
+                         command="AddTimeStepIndex"
+                         clean_command="ClearTimeStepIndices"
+                         label="Time Step Indices"
+                         name="TimeStepIndices"
+                         number_of_elements="0"
+                         number_of_elements_per_command="1"
+                         repeat_command="1">
+        <TimeStepIndexDomain name="timestep_index_range" default_mode="min">
+          <RequiredProperties>
+            <Property function="Input" name="Input"/>
+          </RequiredProperties>
+        </TimeStepIndexDomain>
+        <Documentation>
+          This property specifies the indices of the time steps to extract.
+        </Documentation>
+        <Hints>
+          <PropertyWidgetDecorator type="GenericDecorator" mode="visibility" property="SelectionMode" value="0">
+          </PropertyWidgetDecorator>
+        </Hints>
+      </IntVectorProperty>
+      <DoubleVectorProperty information_only="1"
+                            name="TimestepValues">
+        <TimeStepsInformationHelper/>
+      </DoubleVectorProperty>
+
+      <IntVectorProperty command="SetRange"
+                         name="TimeStepRange"
+                         number_of_elements="2"
+                         default_values="0 1">
+        <TimeStepIndexDomain name="timestep_index_range" default_mode="min">
+          <RequiredProperties>
+            <Property function="Input" name="Input"/>
+          </RequiredProperties>
+        </TimeStepIndexDomain>
+        <Hints>
+          <PropertyWidgetDecorator type="GenericDecorator" mode="visibility" property="SelectionMode" value="1">
+          </PropertyWidgetDecorator>
+        </Hints>
+        <Documentation>
+          Select the beginning and end indices of the range of timesteps to extract.
+        </Documentation>
+      </IntVectorProperty>
+
+      <IntVectorProperty command="SetTimeStepInterval"
+                         name="TimeStepInterval"
+                         number_of_elements="1"
+                         default_values="1">
+        <IntRangeDomain name="range" min="1"/>
+        <Hints>
+          <PropertyWidgetDecorator type="GenericDecorator" mode="visibility" property="SelectionMode" value="1">
+          </PropertyWidgetDecorator>
+        </Hints>
+        <Documentation>
+          Select the stride to use when extracting the range of time steps (the n in every nth timestep).
+        </Documentation>
+      </IntVectorProperty>
+
+      <PropertyGroup label="Time Step Indices">
+        <Property name="TimeStepIndices"/>
+      </PropertyGroup>
+
+      <IntVectorProperty command="SetTimeEstimationMode"
+                         name="ApproximationMode"
+                         number_of_elements="1"
+                         default_values="2"
+                         panel_visibility="advanced">
+        <EnumerationDomain name="enum">
+          <Entry text="Previous Time Step"
+                 value="0"/>
+          <Entry text="Next Time Step"
+                 value="1"/>
+          <Entry text="Nearest Time Step"
+                 value="2"/>
+        </EnumerationDomain>
+        <Documentation>
+          If the scene's time does not match the time in any of the timesteps selected (likely because something
+          else in the scene has time steps at different times) this setting controls which timestep should
+          be returned by the filter. The options are the previous time step, the nearest time step and the next
+          time step.
+        </Documentation>
+      </IntVectorProperty>
+      <!-- End ExtractTimeSteps -->
+    </SourceProxy>
+
+    <!-- ==================================================================== -->
+    <SourceProxy class="vtkExtractParticlesOverTime"
+                 name="ExtractParticlesOverTime"
+                 label="Extract Particles Over Time">
+      <Documentation short_help="Extract particles that pass through a volume over time.">
+        This filter extracts input particles passing through a volume by iterating over time.
+        The filter has two inputs: Particles and Volume.
+        The Particles input should contain points evolving over time and the Volume input is
+        expected to be a volumetric dataset.
+        The output is a subset of the particles from the input, still temporal.
+      </Documentation>
+
+      <InputProperty name="Particles"
+                     port_index="0"
+                     command="SetInputConnection">
+        <ProxyGroupDomain name="groups">
+          <Group name="sources"/>
+          <Group name="filters"/>
+        </ProxyGroupDomain>
+        <InputArrayDomain attribute_type="point"
+                          name="particles_point_arrays"
+                          number_of_components="1"
+                          optional="1"/>
+        <DataTypeDomain name="input_type" composite_data_supported="0">
+          <DataType value="vtkDataSet"/>
+        </DataTypeDomain>
+        <Documentation>
+          The moving particles. This input should be temporal vtkDataSet and should contain points evolving over time.
+        </Documentation>
+      </InputProperty>
+
+      <InputProperty name="Volume"
+                     port_index="1"
+                     command="SetInputConnection">
+        <ProxyGroupDomain name="groups">
+          <Group name="sources"/>
+          <Group name="filters"/>
+        </ProxyGroupDomain>
+        <DataTypeDomain name="input_type" composite_data_supported="0">
+          <DataType value="vtkDataSet"/>
+        </DataTypeDomain>
+        <Documentation>
+          The volumetric data to detect if particles pass through.
+          This dataset should contain volumetric cells like hexahedrons or tetrahedrons.
+        </Documentation>
+      </InputProperty>
+
+      <StringVectorProperty name="IdChannelArray"
+                            command="SetIdChannelArray"
+                            number_of_elements="1"
+                            default_values="Global or Local IDs"
+                            animateable="0">
+        <ArrayListDomain
+                name="array_list" attribute_type="Scalars" input_domain_name="particles_point_arrays"
+                none_string="Global or Local IDs">
+          <RequiredProperties>
+            <Property name="Particles" function="Input"/>
+          </RequiredProperties>
+        </ArrayListDomain>
+        <Documentation>
+          Specify the name of a scalar array which will be used to fetch
+          the index of each point. This is necessary only if the particles
+          change position (Id order) on each time step. The Id can be used
+          to identify particles at each step and hence track them properly.
+          If this array is set to "Global or Local IDs", the global point
+          ids are used if they exist. Otherwise, the point indices are used.
+        </Documentation>
+      </StringVectorProperty>
+
+      <Hints>
+        <WarnOnCreate>
+          <Text title="Potentially slow operation">
+            **Extract Particles Over Time** filter needs to process all timesteps
+            available in your dataset and can potentially take a long time to complete.
+            Do you want to continue?
+          </Text>
+        </WarnOnCreate>
+      </Hints>
+
+      <!-- End ExtractParticlesOverTime -->
+    </SourceProxy>
+
+  </ProxyGroup>
+</ServerManagerConfiguration>

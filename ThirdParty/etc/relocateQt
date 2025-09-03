@@ -1,0 +1,88 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2011 OpenFOAM Foundation
+#     Copyright (C) 2016-2021 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     etc/relocateQt
+#
+# Description
+#     Change prefix when relocating QT installation
+#
+# ----------------------------------------------
+# NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
+#------------------------------------------------------------------------------
+# Run from third-party directory only
+wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
+    echo "Error (${0##*/}) : current directory is not \$WM_THIRD_PARTY_DIR"
+    echo "    Check your OpenFOAM environment and installation"
+    exit 1
+}
+. "${WM_THIRD_PARTY_DIR:?}"/etc/tools/ThirdPartyFunctions
+. "${WM_THIRD_PARTY_DIR:?}"/etc/tools/QtFunctions
+#------------------------------------------------------------------------------
+printHelp() {
+    cat<<USAGE
+
+Usage: ${0##*/} [OPTION] [qt-VERSION]
+options:
+  -force            Create qt.conf and edit pkgconfig to use \${prefix}
+  -help
+
+Adjust prefix in qt.conf and pkgconfig files after relocating third-party
+with a QT installation.
+
+* adjust relocation prefix for $qtVERSION
+
+USAGE
+    exit 0 # Clean exit
+}
+#------------------------------------------------------------------------------
+unset optForce
+
+# Parse options
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    '') ;;      # Ignore empty
+    -h | -help*) printHelp;;
+
+    -f | -force)
+        optForce=true
+        ;;
+    -qt-[0-9]* | [0-9]* | qt-*)
+        # -qt-VERSION, VERSION, qt-VERSION, qt-everywhere-opensource-src-VERSION
+        qtVERSION="${1%%/}";
+        qtVERSION="${qtVERSION##*-}"
+        ;;
+    *)
+        die "unknown option/argument: '$1'"
+        ;;
+    esac
+    shift
+done
+
+#------------------------------------------------------------------------------
+
+PKG_PREFIX="$installBASE/qt-$qtVERSION"
+
+[ -n "$qtVERSION" ]  || die "No QT version specified"
+[ -d "$PKG_PREFIX" ] || die "No QT installation"
+
+if [ "${optForce:-false}" = true ]
+then
+    # Create qt.conf and adjust locations to use '${prefix}' internally
+    finalizeQt "$PKG_PREFIX"
+fi
+pkgconfigNewPrefix "$PKG_PREFIX"
+
+# -----------------------------------------------------------------------------

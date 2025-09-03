@@ -1,0 +1,18 @@
+NAME
+  ParaView::VTKExtensionsPoints
+LIBRARY_NAME
+  vtkPVVTKExtensionsPoints
+SPDX_LICENSE_IDENTIFIER
+  BSD-3-Clause
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Kitware Inc.
+KIT
+  ParaView::CoreKit
+GROUPS
+  PARAVIEW_CANONICAL
+DEPENDS
+  VTK::FiltersPoints
+PRIVATE_DEPENDS
+  VTK::FiltersCore
+TEST_LABELS
+  ParaView

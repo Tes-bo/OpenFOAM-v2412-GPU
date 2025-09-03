@@ -1,0 +1,7 @@
+# Directory labels
+ ATL
+# Source files and their labels
+/home/sibo/TesboCFD/ThirdParty-v2412/sources/adios/ADIOS2-2.10.1/thirdparty/atl/atl/atom.c
+/home/sibo/TesboCFD/ThirdParty-v2412/sources/adios/ADIOS2-2.10.1/thirdparty/atl/atl/attr.c
+/home/sibo/TesboCFD/ThirdParty-v2412/sources/adios/ADIOS2-2.10.1/thirdparty/atl/atl/lookup3.c
+/home/sibo/TesboCFD/ThirdParty-v2412/sources/adios/ADIOS2-2.10.1/thirdparty/atl/atl/tclHash.c

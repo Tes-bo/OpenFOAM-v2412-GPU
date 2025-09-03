@@ -1,0 +1,8 @@
+<!-- SPDX-FileCopyrightText: Copyright (c) Kitware Inc. -->
+<!-- SPDX-License-Identifier: BSD-3-Clause -->
+<RCC>
+  <qresource prefix="/pvblot">
+    <file>Icons/Solid.png</file>
+    <file>Icons/Wireframe.png</file>
+  </qresource>
+</RCC>

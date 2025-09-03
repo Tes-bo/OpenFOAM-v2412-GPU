@@ -1,0 +1,34 @@
+NAME
+  ParaView::VTKExtensionsCore
+LIBRARY_NAME
+  vtkPVVTKExtensionsCore
+SPDX_LICENSE_IDENTIFIER
+  BSD-3-Clause
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Kitware Inc.
+GROUPS
+  PARAVIEW_CORE
+KIT
+  ParaView::CoreKit
+DEPENDS
+  ParaView::Versioning
+  VTK::CommonCore
+  VTK::CommonDataModel
+  VTK::CommonExecutionModel
+  VTK::IOXML
+  VTK::cli11
+  VTK::fmt
+OPTIONAL_DEPENDS
+  VTK::FiltersCore
+PRIVATE_DEPENDS
+  VTK::IOCore
+  VTK::loguru
+  VTK::ParallelCore
+  VTK::pugixml
+  VTK::vtksys
+TEST_DEPENDS
+  VTK::FiltersCore
+  VTK::FiltersSources
+  VTK::TestingCore
+TEST_LABELS
+  ParaView

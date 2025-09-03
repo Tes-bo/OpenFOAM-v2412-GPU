@@ -1,0 +1,18 @@
+NAME
+  ParaView::AdaptorsCam
+LIBRARY_NAME
+  vtkPVAdaptorsCam
+SPDX_LICENSE_IDENTIFIER
+  BSD-3-Clause
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Kitware Inc.
+GROUPS
+  PARAVIEW_CANONICAL
+CONDITION
+  PARAVIEW_USE_FORTRAN AND PARAVIEW_USE_PYTHON
+DEPENDS
+  ParaView::Catalyst
+  ParaView::PythonCatalyst
+  VTK::CommonDataModel
+  VTK::CommonCore
+EXCLUDE_WRAP

@@ -1,0 +1,82 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "/home/sibo/TesboCFD/ThirdParty-v2412/sources/adios/ADIOS2-2.10.1/thirdparty/ffs/ffs/ffs/ffs.c"
+		},
+		{
+			"file" : "/home/sibo/TesboCFD/ThirdParty-v2412/sources/adios/ADIOS2-2.10.1/thirdparty/ffs/ffs/ffs/ffs_formats.c"
+		},
+		{
+			"file" : "/home/sibo/TesboCFD/ThirdParty-v2412/sources/adios/ADIOS2-2.10.1/thirdparty/ffs/ffs/ffs/ffs_conv.c"
+		},
+		{
+			"file" : "/home/sibo/TesboCFD/ThirdParty-v2412/sources/adios/ADIOS2-2.10.1/thirdparty/ffs/ffs/ffs/ffs_gen.c"
+		},
+		{
+			"file" : "/home/sibo/TesboCFD/ThirdParty-v2412/sources/adios/ADIOS2-2.10.1/thirdparty/ffs/ffs/ffs/ffs_file.c"
+		},
+		{
+			"file" : "/home/sibo/TesboCFD/ThirdParty-v2412/sources/adios/ADIOS2-2.10.1/thirdparty/ffs/ffs/ffs/evol.c"
+		},
+		{
+			"file" : "/home/sibo/TesboCFD/ThirdParty-v2412/sources/adios/ADIOS2-2.10.1/thirdparty/ffs/ffs/ffs/ffs_marshal.c"
+		},
+		{
+			"file" : "/home/sibo/TesboCFD/ThirdParty-v2412/sources/adios/ADIOS2-2.10.1/thirdparty/ffs/ffs/version.c"
+		},
+		{
+			"file" : "/home/sibo/TesboCFD/ThirdParty-v2412/sources/adios/ADIOS2-2.10.1/thirdparty/ffs/ffs/fm/fm_formats.c"
+		},
+		{
+			"file" : "/home/sibo/TesboCFD/ThirdParty-v2412/sources/adios/ADIOS2-2.10.1/thirdparty/ffs/ffs/fm/fm_dump.c"
+		},
+		{
+			"file" : "/home/sibo/TesboCFD/ThirdParty-v2412/sources/adios/ADIOS2-2.10.1/thirdparty/ffs/ffs/fm/lookup3.c"
+		},
+		{
+			"file" : "/home/sibo/TesboCFD/ThirdParty-v2412/sources/adios/ADIOS2-2.10.1/thirdparty/ffs/ffs/fm/string_conversion.c"
+		},
+		{
+			"file" : "/home/sibo/TesboCFD/ThirdParty-v2412/sources/adios/ADIOS2-2.10.1/thirdparty/ffs/ffs/fm/fm_get.c"
+		},
+		{
+			"file" : "/home/sibo/TesboCFD/ThirdParty-v2412/sources/adios/ADIOS2-2.10.1/thirdparty/ffs/ffs/fm/xml.c"
+		},
+		{
+			"file" : "/home/sibo/TesboCFD/ThirdParty-v2412/sources/adios/ADIOS2-2.10.1/thirdparty/ffs/ffs/fm/server_acts.c"
+		},
+		{
+			"file" : "/home/sibo/TesboCFD/ThirdParty-v2412/sources/adios/ADIOS2-2.10.1/thirdparty/ffs/ffs/fm/unix_io.c"
+		},
+		{
+			"file" : "/home/sibo/TesboCFD/ThirdParty-v2412/sources/adios/ADIOS2-2.10.1/thirdparty/ffs/ffs/cod/cg.c"
+		},
+		{
+			"file" : "/home/sibo/TesboCFD/ThirdParty-v2412/sources/adios/ADIOS2-2.10.1/thirdparty/ffs/ffs/cod/standard.c"
+		},
+		{
+			"file" : "/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/ADIOS2-2.10.1/thirdparty/ffs/ffs/cod.tab.c"
+		},
+		{
+			"file" : "/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/ADIOS2-2.10.1/thirdparty/ffs/ffs/cod_node.c"
+		},
+		{
+			"file" : "/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/ADIOS2-2.10.1/thirdparty/ffs/ffs/cod.tab.c.rule"
+		},
+		{
+			"file" : "/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/ADIOS2-2.10.1/thirdparty/ffs/ffs/cod_node.c.rule"
+		},
+		{
+			"file" : "/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/ADIOS2-2.10.1/thirdparty/ffs/ffs/lex.yy.c.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"FFS"
+		],
+		"name" : "ffs"
+	}
+}

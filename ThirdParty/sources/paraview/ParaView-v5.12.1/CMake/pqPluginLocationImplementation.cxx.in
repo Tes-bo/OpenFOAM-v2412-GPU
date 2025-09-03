@@ -1,0 +1,37 @@
+// SPDX-FileCopyrightText: Copyright (c) Kitware Inc.
+// SPDX-FileCopyrightText: Copyright (c) Sandia Corporation
+// SPDX-License-Identifier: BSD-3-Clause
+// Generated file.  Do not edit.
+
+
+#include "@_paraview_location_CLASS_NAME@.h"
+#include "@_paraview_location_CLASS_NAME@Implementation.h"
+
+#include <vtkPVPlugin.h>
+
+//-----------------------------------------------------------------------------
+@_paraview_location_CLASS_NAME@Implementation::@_paraview_location_CLASS_NAME@Implementation(QObject* p)
+  : QObject(p)
+{
+  this->UserImplementation = new @_paraview_location_CLASS_NAME@();
+  setObjectName("@_paraview_location_CLASS_NAME@");
+
+  vtkPVPlugin* plugin = dynamic_cast<vtkPVPlugin*>(p);
+  if (plugin != nullptr)
+  {
+    this->StoreLocation(plugin->GetFileName());
+  }
+}
+
+//-----------------------------------------------------------------------------
+@_paraview_location_CLASS_NAME@Implementation::~@_paraview_location_CLASS_NAME@Implementation()
+{
+  delete this->UserImplementation;
+  this->UserImplementation = nullptr;
+}
+
+//-----------------------------------------------------------------------------
+void @_paraview_location_CLASS_NAME@Implementation::StoreLocation(const char* location)
+{
+  this->UserImplementation->@_paraview_location_STORE@(location);
+}

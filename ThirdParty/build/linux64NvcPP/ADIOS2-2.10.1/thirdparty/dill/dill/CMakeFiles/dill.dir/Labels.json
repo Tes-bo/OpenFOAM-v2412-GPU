@@ -1,0 +1,55 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "/home/sibo/TesboCFD/ThirdParty-v2412/sources/adios/ADIOS2-2.10.1/thirdparty/dill/dill/dill_util.c"
+		},
+		{
+			"file" : "/home/sibo/TesboCFD/ThirdParty-v2412/sources/adios/ADIOS2-2.10.1/thirdparty/dill/dill/dill_pkg.c"
+		},
+		{
+			"file" : "/home/sibo/TesboCFD/ThirdParty-v2412/sources/adios/ADIOS2-2.10.1/thirdparty/dill/dill/dill_cplus.c"
+		},
+		{
+			"file" : "/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/ADIOS2-2.10.1/thirdparty/dill/dill/dill_virtual.c"
+		},
+		{
+			"file" : "/home/sibo/TesboCFD/ThirdParty-v2412/sources/adios/ADIOS2-2.10.1/thirdparty/dill/dill/virtual.c"
+		},
+		{
+			"file" : "/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/ADIOS2-2.10.1/thirdparty/dill/dill/dill.c"
+		},
+		{
+			"file" : "/home/sibo/TesboCFD/ThirdParty-v2412/sources/adios/ADIOS2-2.10.1/thirdparty/dill/dill/vm.c"
+		},
+		{
+			"file" : "/home/sibo/TesboCFD/ThirdParty-v2412/sources/adios/ADIOS2-2.10.1/thirdparty/dill/dill/x86_64_disassembler.c"
+		},
+		{
+			"file" : "/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/ADIOS2-2.10.1/thirdparty/dill/dill/dill_x86_64.c"
+		},
+		{
+			"file" : "/home/sibo/TesboCFD/ThirdParty-v2412/sources/adios/ADIOS2-2.10.1/thirdparty/dill/dill/x86_64.c"
+		},
+		{
+			"file" : "/home/sibo/TesboCFD/ThirdParty-v2412/sources/adios/ADIOS2-2.10.1/thirdparty/dill/dill/x86_64_rt.c"
+		},
+		{
+			"file" : "/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/ADIOS2-2.10.1/thirdparty/dill/dill/dill_virtual.c.rule"
+		},
+		{
+			"file" : "/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/ADIOS2-2.10.1/thirdparty/dill/dill/dill.h.rule"
+		},
+		{
+			"file" : "/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/ADIOS2-2.10.1/thirdparty/dill/dill/dill_x86_64.c.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"DILL"
+		],
+		"name" : "dill"
+	}
+}

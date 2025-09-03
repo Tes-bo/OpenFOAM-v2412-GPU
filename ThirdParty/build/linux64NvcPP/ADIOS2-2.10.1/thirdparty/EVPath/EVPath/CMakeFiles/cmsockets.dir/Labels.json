@@ -1,0 +1,19 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "/home/sibo/TesboCFD/ThirdParty-v2412/sources/adios/ADIOS2-2.10.1/thirdparty/EVPath/EVPath/cmsockets.c"
+		},
+		{
+			"file" : "/home/sibo/TesboCFD/ThirdParty-v2412/sources/adios/ADIOS2-2.10.1/thirdparty/EVPath/EVPath/ip_config.c"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"EVPath"
+		],
+		"name" : "cmsockets"
+	}
+}

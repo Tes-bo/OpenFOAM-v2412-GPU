@@ -1,0 +1,47 @@
+NAME
+  ParaView::RemotingCore
+LIBRARY_NAME
+  vtkRemotingCore
+SPDX_LICENSE_IDENTIFIER
+  LicenseRef-BSD-3-Clause-Sandia-USGov
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Kitware Inc.
+SPDX_CUSTOM_LICENSE_FILE
+  LICENSE
+SPDX_CUSTOM_LICENSE_NAME
+  BSD-3-Clause-Sandia-USGov
+LICENSE_FILES
+  LICENSE
+GROUPS
+  PARAVIEW_CORE
+KIT
+  ParaView::CoreKit
+DEPENDS
+  ParaView::RemotingClientServerStream
+  ParaView::Versioning
+  ParaView::VTKExtensionsCore
+  VTK::CommonCore
+  VTK::CommonMisc
+  VTK::ParallelCore
+PRIVATE_DEPENDS
+  VTK::CommonDataModel
+  VTK::CommonExecutionModel
+  VTK::CommonSystem
+  VTK::FiltersExtraction
+  VTK::IOLegacy # for vtkGraphReader/vtkGraphWriter
+  VTK::cli11
+  VTK::pugixml
+  VTK::vtksys
+OPTIONAL_DEPENDS
+  ParaView::icet
+  ParaView::nvpipe
+  VTK::AcceleratorsVTKmFilters
+  VTK::IOFFMPEG
+  VTK::ParallelMPI
+  VTK::PythonInterpreter
+  VTK::WrappingPythonCore
+TEST_DEPENDS
+  VTK::FiltersSources
+  VTK::TestingCore
+TEST_LABELS
+  ParaView

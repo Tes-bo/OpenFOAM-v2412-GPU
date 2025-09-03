@@ -1,0 +1,54 @@
+NAME
+  ParaView::VTKExtensionsFiltersRendering
+DESCRIPTION
+  Filters that are needed for rendering.
+LIBRARY_NAME
+  vtkPVVTKExtensionsFiltersRendering
+SPDX_LICENSE_IDENTIFIER
+  LicenseRef-BSD-3-Clause-Sandia-USGov
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Kitware Inc.
+SPDX_CUSTOM_LICENSE_FILE
+  LICENSE
+SPDX_CUSTOM_LICENSE_NAME
+  BSD-3-Clause-Sandia-USGov
+LICENSE_FILES
+  LICENSE
+GROUPS
+  PARAVIEW_CORE
+CONDITION
+  PARAVIEW_ENABLE_RENDERING OR PARAVIEW_BUILD_CANONICAL
+KIT
+  ParaView::CoreKit
+DEPENDS
+  ParaView::Versioning
+  VTK::CommonCore
+  VTK::CommonDataModel
+  VTK::CommonExecutionModel
+  VTK::FiltersGeneral
+PRIVATE_DEPENDS
+  ParaView::RemotingCore
+  ParaView::VTKExtensionsMisc
+  VTK::CommonSystem
+  VTK::FiltersGeneric
+  VTK::FiltersHyperTree
+  VTK::FiltersParallel
+  VTK::FiltersParallelDIY2
+  VTK::IOLegacy
+  VTK::lz4
+  VTK::ParallelCore
+  VTK::RenderingVolume
+  VTK::zlib
+  VTK::nlohmannjson
+  VTK::ChartsCore
+OPTIONAL_DEPENDS
+  VTK::IOImage
+TEST_DEPENDS
+  VTK::CommonSystem
+  VTK::IOImage
+  VTK::TestingCore
+  VTK::TestingRendering
+  ParaView::RemotingCore
+  ParaView::RemotingServerManager
+TEST_LABELS
+  ParaView

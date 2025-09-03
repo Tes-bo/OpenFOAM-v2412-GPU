@@ -1,0 +1,27 @@
+#/******************************************************************************
+# * SConscript
+# *
+# * Source of KaHIP -- Karlsruhe High Quality Partitioning.
+# *
+# *****************************************************************************/
+
+
+# The main SConscript file for the code.
+#
+# We simply import the main environment and then define the targets.  This
+# submodule contains a sequential matching and contraction code and tests for
+# the code.
+import platform
+import sys
+
+# Get the current platform.
+SYSTEM = platform.uname()[0]
+
+Import('env')
+
+if env['program'] == 'interfacetest':
+        env['CXX'] = 'mpicxx'
+        env.Append(CXXFLAGS = '-DMODE_KAFFPA')
+        env.Append(CCFLAGS  = '-DMODE_KAFFPA')
+        env.Program('interface_test', ['interface_test.cpp','../../../extern/argtable3-3.0.3/argtable3.c'], LIBS=['kahip', 'gomp'])
+

@@ -1,0 +1,18 @@
+NAME
+  BagPlotViewsAndFilters::BagPlotViewsAndFiltersBagPlot
+LIBRARY_NAME
+  vtkBagPlotViewsAndFiltersBagPlot
+SPDX_LICENSE_IDENTIFIER
+  BSD-3-Clause
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Kitware Inc.
+DEPENDS
+  ParaView::RemotingViews
+  VTK::CommonExecutionModel
+PRIVATE_DEPENDS
+  ParaView::VTKExtensionsFiltersRendering
+  ParaView::VTKExtensionsFiltersStatistics
+  ParaView::VTKExtensionsMisc
+  VTK::FiltersExtraction
+  VTK::FiltersStatistics
+  VTK::InfovisCore

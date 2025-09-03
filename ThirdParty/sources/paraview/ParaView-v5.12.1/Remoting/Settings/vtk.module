@@ -1,0 +1,26 @@
+NAME
+  ParaView::RemotingSettings
+GROUPS
+  PARAVIEW_CORE
+LIBRARY_NAME
+  vtkRemotingSettings
+SPDX_LICENSE_IDENTIFIER
+  BSD-3-Clause
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Kitware Inc.
+DEPENDS
+  VTK::CommonCore
+KIT
+  ParaView::ServerManagerKit
+DEPENDS
+  ParaView::Versioning
+PRIVATE_DEPENDS
+  ParaView::RemotingCore
+  ParaView::RemotingServerManager
+  VTK::vtksys
+OPTIONAL_DEPENDS
+  ParaView::RemotingAnimation
+  ParaView::RemotingViews
+  VTK::AcceleratorsVTKmFilters
+TEST_LABELS
+  ParaView

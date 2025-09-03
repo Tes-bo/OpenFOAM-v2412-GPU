@@ -1,0 +1,9 @@
+NAME
+  AnalyzeNIfTIReaderWriter
+DESCRIPTION
+  Reader/Writer for Analyze and NifTI files
+REQUIRES_MODULES
+  VTK::CommonCore
+  VTK::CommonDataModel
+  VTK::IOImage
+  VTK::zlib

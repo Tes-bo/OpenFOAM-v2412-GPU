@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- SPDX-FileCopyrightText: Copyright (c) Kitware Inc. -->
+<!-- SPDX-License-Identifier: BSD-3-Clause -->
+<ui version="4.0">
+ <class>pqCameraToolbar</class>
+ <widget class="QToolBar" name="pqCameraToolbar">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>336</width>
+    <height>42</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Camera Controls</string>
+  </property>
+  <property name="orientation">
+   <enum>Qt::Horizontal</enum>
+  </property>
+  <action name="actionResetCamera">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqResetCamera.svg</normaloff>:/pqWidgets/Icons/pqResetCamera.svg</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Reset</string>
+   </property>
+   <property name="iconText">
+    <string>Reset Camera</string>
+   </property>
+   <property name="statusTip">
+    <string>Reset Camera</string>
+   </property>
+  </action>
+  <action name="actionPositiveX">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqXPlus.svg</normaloff>:/pqWidgets/Icons/pqXPlus.svg</iconset>
+   </property>
+   <property name="text">
+    <string>+X</string>
+   </property>
+   <property name="toolTip">
+    <string>Set view direction to +X</string>
+   </property>
+   <property name="statusTip">
+    <string>Set view direction to +X</string>
+   </property>
+  </action>
+  <action name="actionNegativeX">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqXMinus.svg</normaloff>:/pqWidgets/Icons/pqXMinus.svg</iconset>
+   </property>
+   <property name="text">
+    <string>-X</string>
+   </property>
+   <property name="toolTip">
+    <string>Set view direction to -X</string>
+   </property>
+   <property name="statusTip">
+    <string>Set view direction to -X</string>
+   </property>
+  </action>
+  <action name="actionPositiveY">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqYPlus.svg</normaloff>:/pqWidgets/Icons/pqYPlus.svg</iconset>
+   </property>
+   <property name="text">
+    <string>+Y</string>
+   </property>
+   <property name="toolTip">
+    <string>Set view direction to +Y</string>
+   </property>
+   <property name="statusTip">
+    <string>Set view direction to +Y</string>
+   </property>
+  </action>
+  <action name="actionNegativeY">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqYMinus.svg</normaloff>:/pqWidgets/Icons/pqYMinus.svg</iconset>
+   </property>
+   <property name="text">
+    <string>-Y</string>
+   </property>
+   <property name="toolTip">
+    <string>Set view direction to -Y</string>
+   </property>
+   <property name="statusTip">
+    <string>Set view direction to -Y</string>
+   </property>
+  </action>
+  <action name="actionPositiveZ">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqZPlus.svg</normaloff>:/pqWidgets/Icons/pqZPlus.svg</iconset>
+   </property>
+   <property name="text">
+    <string>+Z</string>
+   </property>
+   <property name="toolTip">
+    <string>Set view direction to +Z</string>
+   </property>
+   <property name="statusTip">
+    <string>Set view direction to +Z</string>
+   </property>
+  </action>
+  <action name="actionNegativeZ">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqZMinus.svg</normaloff>:/pqWidgets/Icons/pqZMinus.svg</iconset>
+   </property>
+   <property name="text">
+    <string>-Z</string>
+   </property>
+   <property name="toolTip">
+    <string>Set view direction to -Z</string>
+   </property>
+   <property name="statusTip">
+    <string>Set view direction to -Z</string>
+   </property>
+  </action>
+  <action name="actionIsometricView">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqIsometricView.svg</normaloff>:/pqWidgets/Icons/pqIsometricView.svg</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Isometric</string>
+   </property>
+   <property name="toolTip">
+    <string>Apply isometric view</string>
+   </property>
+   <property name="statusTip">
+    <string>Apply isometric view</string>
+   </property>
+  </action>
+  <action name="actionRotate90degCW">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqRotateCameraCW.svg</normaloff>:/pqWidgets/Icons/pqRotateCameraCW.svg</iconset>
+   </property>
+   <property name="text">
+    <string></string>
+   </property>
+   <property name="toolTip">
+    <string>Rotate 90° clockwise</string>
+   </property>
+   <property name="statusTip">
+    <string>Rotate 90° clockwise</string>
+   </property>
+  </action>
+  <action name="actionRotate90degCCW">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqRotateCameraCCW.svg</normaloff>:/pqWidgets/Icons/pqRotateCameraCCW.svg</iconset>
+   </property>
+   <property name="text">
+    <string></string>
+   </property>
+   <property name="toolTip">
+    <string>Rotate 90° counterclockwise</string>
+   </property>
+   <property name="statusTip">
+    <string>Rotate 90° counterclockwise</string>
+   </property>
+  </action>
+  <action name="actionZoomToBox">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqZoomToSelection.svg</normaloff>:/pqWidgets/Icons/pqZoomToSelection.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Zoom to Box</string>
+   </property>
+   <property name="statusTip">
+    <string>Zoom to Box</string>
+   </property>
+  </action>
+  <action name="actionZoomToData">
+   <property name="text">
+    <string>ZTD</string>
+   </property>
+   <property name="toolTip">
+    <string>Zoom To Data</string>
+   </property>
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqZoomToData.svg</normaloff>:/pqWidgets/Icons/pqZoomToData.svg</iconset>
+   </property>
+  </action>
+  <action name="actionZoomClosestToData">
+   <property name="text">
+    <string>ZCTD</string>
+   </property>
+   <property name="toolTip">
+    <string>Zoom Closest To Data</string>
+   </property>
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqZoomClosestToData.svg</normaloff>:/pqWidgets/Icons/pqZoomClosestToData.svg</iconset>
+   </property>
+  </action>
+  <action name="actionResetCameraClosest">
+   <property name="text">
+    <string>RCC</string>
+   </property>
+   <property name="toolTip">
+    <string>Reset Camera Closest</string>
+   </property>
+   <property name="icon">
+    <iconset resource="../../../Components/Resources/pqComponents.qrc">
+     <normaloff>:/pqWidgets/Icons/pqResetCameraClosest.svg</normaloff>:/pqWidgets/Icons/pqResetCameraClosest.svg</iconset>
+   </property>
+  </action>
+  <addaction name="actionResetCamera"/>
+  <addaction name="actionZoomToData"/>
+  <addaction name="actionResetCameraClosest"/>
+  <addaction name="actionZoomClosestToData"/>
+  <addaction name="actionZoomToBox"/>
+  <addaction name="actionPositiveX"/>
+  <addaction name="actionNegativeX"/>
+  <addaction name="actionPositiveY"/>
+  <addaction name="actionNegativeY"/>
+  <addaction name="actionPositiveZ"/>
+  <addaction name="actionNegativeZ"/>
+  <addaction name="actionIsometricView"/>
+  <addaction name="actionRotate90degCW"/>
+  <addaction name="actionRotate90degCCW"/>
+ </widget>
+ <resources>
+  <include location="../../../Components/Resources/pqComponents.qrc"/>
+ </resources>
+ <connections/>
+</ui>

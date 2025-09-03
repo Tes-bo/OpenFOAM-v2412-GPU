@@ -1,0 +1,12 @@
+#!/bin/sh
+# An example for building mesa with llvm
+
+mesa=mesa-18.3.4
+llvm=llvm-4.0.1
+
+set -x
+./makeMesa \
+    $mesa $llvm
+    "$@"
+
+#------------------------------------------------------------------------------

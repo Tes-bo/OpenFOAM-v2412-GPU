@@ -1,0 +1,31 @@
+NAME
+  VTK::InfovisBoostGraphAlgorithms
+LIBRARY_NAME
+  vtkInfovisBoostGraphAlgorithms
+SPDX_LICENSE_IDENTIFIER
+  LicenseRef-BSD-3-Clause-Sandia-USGov
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
+  Copyright Sandia Corporation
+SPDX_CUSTOM_LICENSE_FILE
+  LICENSE
+SPDX_CUSTOM_LICENSE_NAME
+  BSD-3-Clause-Sandia-USGov
+LICENSE_FILES
+  LICENSE
+DEPENDS
+  VTK::CommonCore
+  VTK::CommonDataModel
+  VTK::CommonExecutionModel
+PRIVATE_DEPENDS
+  VTK::FiltersExtraction
+  VTK::InfovisCore
+TEST_DEPENDS
+  VTK::ChartsCore
+  VTK::CommonSystem
+  VTK::InteractionStyle
+  VTK::IOInfovis
+  VTK::RenderingContextOpenGL2
+  VTK::TestingRendering
+  VTK::ViewsContext2D
+  VTK::ViewsInfovis

@@ -1,0 +1,1 @@
+/home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/comm_libs/mpi/bin/mpicxx -std=c++17 -m64 -fPIC -fast -O3 -DNDEBUG -m64 CMakeFiles/bpls.dir/bpls/bpls.cpp.o CMakeFiles/bpls.dir/__/__/thirdparty/pugixml/pugixml/src/pugixml.cpp.o -o ../../bin/bpls  -Wl,-rpath,/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/ADIOS2-2.10.1/lib64: ../../lib64/libadios2_core.so.2.10.1 -ldl

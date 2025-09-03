@@ -1,0 +1,134 @@
+// SPDX-FileCopyrightText: Copyright (c) Kitware Inc.
+// SPDX-FileCopyrightText: Copyright (c) Sandia Corporation
+// SPDX-License-Identifier: BSD-3-Clause
+// Generated file.  Do not edit.
+#include <QApplication>
+#include <QLocale>
+#include <QStyleFactory>
+#include <QSurfaceFormat>
+
+#include "pq@_paraview_client_NAME@Initializer.h"
+#include "pqQtWidgetsConfig.h"
+
+#if PARAVIEW_USE_QTWEBENGINE
+#include <QWebEngineUrlScheme>
+#endif
+
+// See Applications/ParaView/CMakeLists.txt for why this is necessary.
+#cmakedefine01 _paraview_client_have_plugins
+#if _paraview_client_have_plugins
+@_paraview_client_plugins_includes@
+#endif
+
+#cmakedefine01 _paraview_client_DEFAULT_STYLE
+
+#include <vtksys/SystemTools.hxx>
+#include <vtksys/Encoding.hxx>
+#include <QVTKRenderWindowAdapter.h>
+
+#include <clocale>
+#include <cstdlib>
+
+#if !defined(__APPLE__) && !defined(_WIN32)
+#include <cstring>
+#endif
+
+int main(int argc, char* argv[])
+{
+#if defined(_WIN32)
+  auto converter = vtksys::Encoding::CommandLineArguments::Main(argc, nullptr);
+  const char* const* utf8data = converter.argv();
+  std::vector<char*> args;
+  for (int i = 0; i < argc; i++)
+  {
+    args.push_back(const_cast<char*>(utf8data[i]));
+  }
+  args.push_back(nullptr);
+  argv = args.data();
+#endif
+
+  // Workaround for issue 19751
+#if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
+  vtksys::SystemTools::PutEnv("QT_AUTO_SCREEN_SCALE_FACTOR=0");
+#endif
+
+#if _paraview_client_DEFAULT_STYLE
+  QApplication::setStyle(QStyleFactory::create("@_paraview_client_DEFAULT_STYLE@"));
+#endif
+
+  // When playing tests, disable all effects.
+  if (vtksys::SystemTools::HasEnv("DASHBOARD_TEST_FROM_CTEST"))
+  {
+    QApplication::setDesktopSettingsAware(false);
+    QApplication::setEffectEnabled(Qt::UI_AnimateMenu, false);
+    QApplication::setEffectEnabled(Qt::UI_FadeMenu, false);
+    QApplication::setEffectEnabled(Qt::UI_AnimateCombo, false);
+    QApplication::setEffectEnabled(Qt::UI_AnimateTooltip, false);
+    QApplication::setEffectEnabled(Qt::UI_FadeTooltip, false);
+  }
+
+  QApplication::setApplicationName("@_paraview_client_APPLICATION_NAME@");
+  QApplication::setApplicationVersion("@_paraview_client_VERSION@");
+  QApplication::setOrganizationName("@_paraview_client_ORGANIZATION@");
+
+  // supports HDPI
+  QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
+  QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+
+#if _paraview_client_have_plugins
+@_paraview_client_plugins_calls@
+#endif
+
+#if PARAVIEW_USE_QTWEBENGINE
+{
+  QWebEngineUrlScheme qtHelpScheme("qthelp");
+  qtHelpScheme.setFlags(
+    {QWebEngineUrlScheme::LocalScheme, QWebEngineUrlScheme::LocalAccessAllowed});
+  QWebEngineUrlScheme::registerScheme(qtHelpScheme);
+}
+#endif
+
+  // always request a non-stereo format; when using quadbuffer stereo, we
+  // request stereo capable format for the individual `QVTKOpenGLWindow`
+  // instance.
+  QSurfaceFormat::setDefaultFormat(QVTKRenderWindowAdapter::defaultFormat(/*stereo_capable=*/false));
+
+#if !defined(__APPLE__) && !defined(_WIN32)
+  // On non-Apple and non-Windows platforms, ParaView only works with X11, so
+  // prefer it to Wayland on those platforms.
+  std::string platform_args_data[] = { "-platform", "xcb" };
+  char* platform_args[] = {
+    // XXX(c++17): platform_args_data[n].data()
+    &platform_args_data[0].front(),
+    &platform_args_data[1].front(),
+  };
+  std::vector<char*> new_argc(argc + 2 + 1);
+  std::memcpy(new_argc.data(), argv, argc * sizeof(char*));
+  new_argc[argc] = platform_args[0];
+  new_argc[argc + 1] = platform_args[1];
+  new_argc[argc + 2] = nullptr;
+  argc += 2;
+  argv = new_argc.data();
+#endif
+  QApplication qtapp(argc, argv);
+  // QApplication docs suggest resetting to "C" after the QApplication is
+  // initialized.
+  setlocale(LC_NUMERIC, "C");
+
+  // However, this is needed to address BUG #17225, #17226.
+  QLocale::setDefault(QLocale::c());
+
+  using InitializerT = pq@_paraview_client_NAME@Initializer;
+
+  InitializerT pvInitializer;
+  InitializerT::Status status = pvInitializer.Initialize(argc, argv);
+  switch (status)
+  {
+    case InitializerT::ExitSuccess:
+      return EXIT_SUCCESS;
+    case InitializerT::ExitFailure:
+      return EXIT_FAILURE;
+    case InitializerT::RunApplication:
+      return QApplication::exec();
+  }
+}

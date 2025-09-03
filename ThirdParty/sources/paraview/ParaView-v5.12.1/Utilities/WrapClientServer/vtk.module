@@ -1,0 +1,13 @@
+NAME
+  ParaView::WrapClientServer
+LIBRARY_NAME
+  vtkWrapClientServer
+SPDX_LICENSE_IDENTIFIER
+  BSD-3-Clause
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Kitware Inc.
+GROUPS
+  PARAVIEW_CORE
+PRIVATE_DEPENDS
+  VTK::WrappingTools
+EXCLUDE_WRAP

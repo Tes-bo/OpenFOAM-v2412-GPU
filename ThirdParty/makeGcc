@@ -1,0 +1,431 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2011-2016 OpenFOAM Foundation
+#     Copyright (C) 2016-2021 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     makeGcc
+#
+# Description
+#     Build script gcc and gmp, mpfr, mpc.
+#
+#     To force building against the system gmp/mpfr/mpc libraries,
+#     use a corresponding '*-system' version. For example,
+#
+#         makeGcc gmp-system
+#
+#     or use the '-system' options to use system libraries everywhere.
+#
+#     The WM_COMPILER value can also be used specify a known gcc version.
+#     For example (also compiling against system gmp/mpfr/mpc),
+#
+#         WM_COMPILER=Gcc51 ./makeGcc -system
+#
+# ----------------------------------------------
+# NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
+#------------------------------------------------------------------------------
+if :    # Run from third-party directory
+then
+    cd "${0%/*}" || exit
+    wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
+        echo "Error (${0##*/}) : not located in \$WM_THIRD_PARTY_DIR"
+        echo "    Check your OpenFOAM environment and installation"
+        exit 1
+    }
+fi
+. "${WM_THIRD_PARTY_DIR:?}"/etc/tools/ThirdPartyFunctions
+#------------------------------------------------------------------------------
+unset GMP_ARCH_PATH MPFR_ARCH_PATH                                  # Purge old
+
+[ "${WM_COMPILER#Gcc}" = "$WM_COMPILER" ] && WM_COMPILER=Gcc        # Force gcc
+WM_COMPILER_TYPE=ThirdParty                # Ensure we get the correct settings
+
+# Default GCC, mpfr, gmp and mpc versions from OpenFOAM etc/config.sh file:
+_foamConfig compiler
+
+GMP_PACKAGE="${gmp_version:-gmp-system}"
+MPFR_PACKAGE="${mpfr_version:-mpfr-system}"
+MPC_PACKAGE="${mpc_version:-mpc-system}"
+GCC_PACKAGE="$gcc_version"
+
+#------------------------------------------------------------------------------
+printVersions() { listPackageVersions gcc gmp mpfr mpc; exit 0; }
+printHelp() {
+    cat<<USAGE
+
+Usage: ${0##*/} [OPTION] [gcc-VERSION] [gmp-VERSION] [mpfr-VERSION] [mpc-VERSION]
+options:
+  -clang            Force clang/clang++ for building
+  -m32 | -m64       32-bit or 64-bit (default) ABI
+  -multilib         for 64-bit systems with 32-bit support required
+  -no-multilib      for 64-bit systems without 32-bit support (DEFAULT)
+  -no-threadsafe    disable mpfr thread-safe (default is auto-detect)
+  -system           use system versions for gmp/mpfr/mpc
+  -list             List available unpacked source versions
+  -help             Display usage help
+
+* Build combinations of gmp, mpfr, mpc and gcc
+      ${GMP_PACKAGE:-[gmp unspecified]}
+      ${MPFR_PACKAGE:-[mpfr unspecified]}
+      ${MPC_PACKAGE:-[mpc unspecified]}
+      ${GCC_PACKAGE:-[gcc unspecified]}
+
+USAGE
+    showDownloadHint gcc
+    showDownloadHint gmp
+    showDownloadHint mpfr
+    showDownloadHint mpc
+    exit 0 # Clean exit
+}
+#------------------------------------------------------------------------------
+optArch=64      # Use 64-bit ABI
+
+# Build 32-bit libraries on 64-bit systems (normally not needed)
+optMultilib=disable
+unset optThreadSafe # unset=auto
+
+# Parse options
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    '') ;;      # Ignore empty
+    -h | -help*) printHelp;;
+    -list)      printVersions;;
+    -clang)     # Force use of clang/clang++ for building
+        export CC=clang
+        export CXX=clang++
+        ;;
+
+    -m32 | -m64)
+        optArch="${1#*m}"
+        ;;
+    -multi*)
+        optMultilib=enable
+        ;;
+    -no-multi*)
+        optMultilib=disable
+        ;;
+    -no-thread*)
+        optThreadSafe=disable
+        ;;
+    -sys*)
+        GMP_PACKAGE="gmp-system"
+        MPFR_PACKAGE="mpfr-system"
+        MPC_PACKAGE="mpc-system"
+        unset GMP_ARCH_PATH MPFR_ARCH_PATH
+        ;;
+
+    gmp/* | sources/gmp* |\
+    gmp-[0-9]* | gmp-system)
+        GMP_PACKAGE="${1%%/}"
+        unset GMP_ARCH_PATH
+        ;;
+
+    mpfr/* | sources/mpfr* |\
+    mpfr-[0-9]* | mpfr-system)
+        MPFR_PACKAGE="${1%%/}"
+        unset MPFR_ARCH_PATH
+        ;;
+
+    mpc/* | sources/mpc* |\
+    mpc-[0-9]* | mpc-system)
+        MPC_PACKAGE="${1%%/}"
+        ;;
+
+    gcc/* | sources/gcc* |\
+    gcc-[0-9]* | gcc-system)
+        GCC_PACKAGE="${1%%/}"
+        ;;
+    [0-9]*)
+        GCC_PACKAGE="gcc-${1%%/}"
+        ;;
+    *)
+        die "unknown option/argument: '$1'"
+        ;;
+    esac
+    shift
+done
+
+[ -n "$GCC_PACKAGE" ] || die "The gcc-VERSION was not specified"
+
+cat<<SUMMARY
+GCC configuration
+------------------
+    ABI     = $optArch
+    GCC     = $GCC_PACKAGE
+    GMP     = $GMP_PACKAGE
+    MPFR    = $MPFR_PACKAGE
+    MPC     = $MPC_PACKAGE
+------------------
+Using CC    = $CC $CFLAGS
+Using CXX   = $CXX $CXXFLAGS
+SUMMARY
+
+#------------------------------------------------------------------------------
+# !Build/install locations with arch name only (NO compiler name)!
+buildBASE="$(dirname "$buildBASE")/$WM_ARCH$WM_COMPILER_ARCH"
+installBASE="$(dirname "$installBASE")/$WM_ARCH$WM_COMPILER_ARCH"
+
+# gcc
+GCC_SOURCE="$(findSourceDir "$GCC_PACKAGE")"
+GCC_PACKAGE="$(basename "$GCC_PACKAGE")"
+GCC_PREFIX="$installBASE/$GCC_PACKAGE"
+
+# gmp
+GMP_SOURCE="$(findSourceDir "$GMP_PACKAGE")"
+GMP_PACKAGE="$(basename "$GMP_PACKAGE")"
+GMP_PREFIX="$installBASE/$GMP_PACKAGE"
+
+# mpc
+MPC_SOURCE="$(findSourceDir "$MPC_PACKAGE")"
+MPC_PACKAGE="$(basename "$MPC_PACKAGE")"
+MPC_PREFIX="$installBASE/$MPC_PACKAGE"
+
+# mpfr
+MPFR_SOURCE="$(findSourceDir "$MPFR_PACKAGE")"
+MPFR_PACKAGE="$(basename "$MPFR_PACKAGE")"
+MPFR_PREFIX="$installBASE/$MPFR_PACKAGE"
+
+
+# Override as per config file (if any)
+[ -n "$GMP_ARCH_PATH" ]  && GMP_PREFIX="$GMP_ARCH_PATH"
+[ -n "$MPFR_ARCH_PATH" ] && MPFR_PREFIX="$MPFR_ARCH_PATH"
+
+
+# Prefix <dir> to LD_LIBRARY_PATH, if it exists. 0 on success, 1 on failure
+addLib()
+{
+    if [ -d "$1" ]
+    then
+        export LD_LIBRARY_PATH="$1:$LD_LIBRARY_PATH"
+        return 0
+    else
+        return 1
+    fi
+}
+
+
+# ================
+# Build GMP
+# ================
+echo "---------------"
+if [ -d "$GMP_PREFIX" ]
+then
+    echo "Already built: $GMP_PREFIX"
+elif _foamIsSystem "$GMP_PREFIX"
+then
+    echo "Using system gmp"
+else
+    echo "Starting build: $GMP_PACKAGE"
+    echo
+(
+    PKG_SOURCE="$GMP_SOURCE"
+    PKG_PREFIX="$GMP_PREFIX"
+    PKG_BUILD="$buildBASE/$GMP_PACKAGE"
+    export GIT_DIR="$PKG_SOURCE/.git"
+
+    cd "$PKG_SOURCE" || exit
+    make distclean 2>/dev/null || true
+
+    rm -rf "$PKG_BUILD"
+    mkdir -p "$PKG_BUILD"
+
+    cd "$PKG_BUILD" && set -x && \
+    "$PKG_SOURCE"/configure ABI="$optArch" \
+        --prefix="$PKG_PREFIX" \
+        --libdir="$PKG_PREFIX/lib$WM_COMPILER_LIB_ARCH" \
+        --enable-cxx \
+    && set +x \
+    && make -j $WM_NCOMPPROCS \
+    && make install \
+    && echo "Built: $GMP_PACKAGE"
+) || {
+    echo "Error building: $GMP_PACKAGE"
+    exit 1
+}
+fi
+
+if addLib "$GMP_PREFIX/lib$WM_COMPILER_LIB_ARCH"
+then
+    configGMP=$(cat <<CONFIG_OPTIONS
+    --with-gmp-include=$GMP_PREFIX/include
+    --with-gmp-lib=$GMP_PREFIX/lib$WM_COMPILER_LIB_ARCH
+CONFIG_OPTIONS
+)
+else
+    unset configGMP
+fi
+
+
+# ================
+# Build MPFR
+# ================
+echo "---------------"
+if [ -d "$MPFR_PREFIX" ]
+then
+    echo "Already built: $MPFR_PACKAGE"
+elif _foamIsSystem "$MPFR_PREFIX"
+then
+    echo "Using system mpfr"
+else
+    echo "Starting build: $MPFR_PACKAGE"
+    echo
+(
+    PKG_SOURCE="$MPFR_SOURCE"
+    PKG_PREFIX="$MPFR_PREFIX"
+    PKG_BUILD="$buildBASE/$MPFR_PACKAGE"
+    export GIT_DIR="$PKG_SOURCE/.git"
+
+    cd "$PKG_SOURCE" || exit
+    make distclean 2>/dev/null || true
+
+    rm -rf "$PKG_BUILD"
+    mkdir -p "$PKG_BUILD"
+
+    unset configOpt
+    # explicitly enable/disable thread-safe
+    [ -n "$optThreadSafe" ] && configOpt="--${optThreadSafe}-thread-safe"
+
+    cd "$PKG_BUILD" && set -x && \
+    "$PKG_SOURCE"/configure ABI="$optArch" \
+        --prefix="$PKG_PREFIX" \
+        --libdir="$PKG_PREFIX/lib$WM_COMPILER_LIB_ARCH" \
+        $configGMP $configOpt \
+    && set +x \
+    && make -j $WM_NCOMPPROCS \
+    && make install \
+    && echo "Built: $MPFR_PACKAGE"
+) || {
+    echo "Error building: $MPFR_PACKAGE"
+    exit 1
+}
+fi
+
+if addLib "$MPFR_PREFIX/lib$WM_COMPILER_LIB_ARCH"
+then
+    configMPFR=$(cat <<CONFIG_OPTIONS
+    --with-mpfr-include=$MPFR_PREFIX/include \
+    --with-mpfr-lib=$MPFR_PREFIX/lib$WM_COMPILER_LIB_ARCH
+CONFIG_OPTIONS
+)
+else
+    unset configMPFR
+fi
+
+
+# ================
+# Build MPC
+# ================
+echo "---------------"
+if [ -d "$MPC_PREFIX" ]
+then
+    echo "Already built: $MPC_PACKAGE"
+elif _foamIsSystem "$MPC_PREFIX"
+then
+    echo "Using system mpc"
+else
+    echo "Starting build: $MPC_PACKAGE"
+    echo
+(
+    PKG_SOURCE="$MPC_SOURCE"
+    PKG_PREFIX="$MPC_PREFIX"
+    PKG_BUILD="$buildBASE/$MPC_PACKAGE"
+    export GIT_DIR="$PKG_SOURCE/.git"
+
+    cd "$PKG_SOURCE" || exit
+    make distclean 2>/dev/null || true
+
+    rm -rf "$PKG_BUILD"
+    mkdir -p "$PKG_BUILD"
+
+    cd "$PKG_BUILD" && set -x && \
+    "$PKG_SOURCE"/configure ABI="$optArch" \
+        --prefix="$PKG_PREFIX" \
+        --libdir="$PKG_PREFIX/lib$WM_COMPILER_LIB_ARCH" \
+        $configGMP $configMPFR \
+    && set +x \
+    && make -j $WM_NCOMPPROCS \
+    && make install \
+    && echo "Built: $MPC_PACKAGE"
+) || {
+    echo "Error building: $MPC_PACKAGE"
+    exit 1
+}
+fi
+
+if addLib "$MPC_PREFIX/lib$WM_COMPILER_LIB_ARCH"
+then
+    configMPC=$(cat <<CONFIG_OPTIONS
+    --with-mpc-include=$MPC_PREFIX/include \
+    --with-mpc-lib=$MPC_PREFIX/lib$WM_COMPILER_LIB_ARCH
+CONFIG_OPTIONS
+)
+else
+    unset configMPC
+fi
+
+
+# ================
+# Build GCC
+# ================
+# may need 32-bit glibc-devel headers to compile
+# E.g. on ubuntu install g++-multilib
+# or specify -no-multilib on the command-line
+#
+echo "---------------"
+if [ -d "$GCC_PREFIX" ]
+then
+    echo "Already built: $GCC_PACKAGE"
+elif _foamIsSystem "$GCC_PREFIX"
+then
+    echo "Using system gcc"
+else
+    echo "Starting build: $GCC_PACKAGE"
+    echo
+(
+    PKG_SOURCE="$GCC_SOURCE"
+    PKG_PREFIX="$GCC_PREFIX"
+    PKG_BUILD="$buildBASE/$GCC_PACKAGE"
+    export GIT_DIR="$PKG_SOURCE/.git"
+
+    cd "$PKG_SOURCE" || exit
+    make distclean 2>/dev/null || true
+
+    rm -rf "$PKG_BUILD"
+    mkdir -p "$PKG_BUILD"
+
+    unset configOpt
+    # with/without multi-lib (32-bit support on 64-bit systems)
+    [ -n "$optMultilib" ] && configOpt="--${optMultilib}-multilib"
+
+    cd "$PKG_BUILD" && set -x && \
+    "$PKG_SOURCE"/configure \
+        --prefix="$PKG_PREFIX" \
+        --with-pkgversion=www.openfoam.com \
+        --enable-languages=c,c++ \
+        --enable-__cxa_atexit \
+        --enable-libstdcxx-allocator=new \
+        --with-system-zlib \
+        $configGMP $configMPFR $configMPC $configOpt \
+        MAKEINFO=missing \
+    && set +x \
+    && make -j $WM_NCOMPPROCS \
+    && make install \
+    && echo "Built: $GCC_PACKAGE"
+) || {
+    echo "Error building: $GCC_PACKAGE"
+    exit 1
+}
+fi
+
+
+#------------------------------------------------------------------------------

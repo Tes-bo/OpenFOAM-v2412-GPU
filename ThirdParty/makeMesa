@@ -1,0 +1,354 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2016-2021 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     makeMesa
+#
+# Description
+#     Build script for MESA
+#
+# Note
+#     Building with mesa-12.x.x fails to create an include/GL directory and
+#     an "osmesa.h" file. Both make it fairly useless for off-screen VTK.
+#
+#     Building with mesa-11.x, mesa-13.x and mesa-17.x seems to be okay.
+#
+# Known dependencies (likely incomplete)
+#
+# openSUSE 15.2:
+#
+#     dri2proto-devel
+#     glproto-devel
+#     libxshmfence-devel
+#
+# ----------------------------------------------
+# NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
+#------------------------------------------------------------------------------
+if :    # Run from third-party directory
+then
+    cd "${0%/*}" || exit
+    wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
+        echo "Error (${0##*/}) : not located in \$WM_THIRD_PARTY_DIR"
+        echo "    Check your OpenFOAM environment and installation"
+        exit 1
+    }
+fi
+. "${WM_THIRD_PARTY_DIR:?}"/etc/tools/ThirdPartyFunctions
+#------------------------------------------------------------------------------
+# Obtain version from OpenFOAM etc/config.sh file:
+unset vtk_version mesa_version mesa_llvm    # Purge current values
+_foamConfig vtk
+
+PACKAGE="$mesa_version"
+
+#------------------------------------------------------------------------------
+printVersions() { listPackageVersions mesa; exit 0; }
+printHelp() {
+    cat<<USAGE
+
+Usage: ${0##*/} [OPTION] mesa-VERSION [-- configure-options]
+options:
+  -gcc          Force use of gcc/g++
+  -llvm VER     llvm version (in ThirdParty) or 'system' to use system
+  -list         List available unpacked source versions
+  -help         Display usage help
+
+* build MESA with
+      ${PACKAGE:-[unspecified]}
+
+USAGE
+    showDownloadHint mesa
+    exit 0  # Clean exit
+}
+#------------------------------------------------------------------------------
+exportCompiler          # Compiler info for CMake/configure
+unset withLLVM
+
+# Non-standard location for clang?
+case "$WM_COMPILER_TYPE-$WM_COMPILER" in
+(ThirdParty-Clang*)
+    withLLVM=true       # 'true' means find on path
+    ;;
+(system-Clang*)
+    withLLVM=system     # 'system' means find on path
+    ;;
+(*)
+    if _foamIsNone "$mesa_llvm"
+    then
+        withLLVM=false
+    elif _foamIsSystem "$mesa_llvm"
+    then
+        withLLVM=system     # 'system' means find on path
+    else
+        withLLVM="$mesa_llvm"  # Take value from mesa config
+    fi
+    ;;
+esac
+
+# Parse options
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    '') ;;      # Ignore empty
+    --) break;; # Extra configure options (leave on $@ for later detection)
+    -h | -help*) printHelp;;
+    -list)      printVersions;;
+    -gcc)
+        useGcc
+        unset withLLVM
+        ;;
+    -llvm)
+        [ "$#" -ge 2 ] || die "'$1' option requires an argument"
+        withLLVM="$2"
+        shift
+        ;;
+    llvm-*)
+        withLLVM="$1"
+        ;;
+
+    mesa/* | sources/mesa* |\
+    mesa-*)
+        PACKAGE="${1%%/}"
+        ;;
+    *)
+        die "unknown option/argument: '$1'"
+        ;;
+    esac
+    shift
+done
+
+if [ -z "$PACKAGE" ]
+then
+    die "The MESA package/version not specified"
+elif _foamIsNone "$PACKAGE" || _foamIsSystem "$PACKAGE"
+then
+    echo "Using none/system (skip ThirdParty build of MESA)"
+    exit 0
+fi
+
+#------------------------------------------------------------------------------
+# Locate third-party clang as required
+case "$withLLVM" in
+('' | none | false)
+    withLLVM=none
+    echo "Without llvm"
+    ;;
+
+(true | system)
+    LLVM_ARCH_PATH="$(command -v clang)" || {
+        echo "Error: could not properly locate llvm/clang"
+        exit 2
+    }
+
+    # Root installation directory
+    LLVM_ARCH_PATH="${LLVM_ARCH_PATH%/bin/clang}"
+
+    if [ -d "$LLVM_ARCH_PATH" ]
+    then
+        # Add to path (for llvm-config)
+        PATH="$LLVM_ARCH_PATH/bin:$PATH"
+    else
+        echo "Error: could not properly locate llvm/clang"
+        exit 2
+    fi
+    ;;
+
+(llvm-*)
+    echo "check llvm = $withLLVM"
+    LLVM_ARCH_PATH="$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH/$withLLVM"
+
+    if [ -d "$LLVM_ARCH_PATH" ]
+    then
+        # Add to path (for llvm-config)
+        PATH="$LLVM_ARCH_PATH/bin:$PATH"
+    else
+        echo "Error: could not properly locate llvm/clang"
+        exit 2
+    fi
+    ;;
+esac
+
+#------------------------------------------------------------------------------
+#
+# Build MESA
+#   *PACKAGE : name-version of the package
+#   *SOURCE  : location of original sources
+#   *PREFIX  : installation directory
+#
+# For 64-bit
+# - MESA itself will normally build into 'lib64' (depends on autoconfig).
+
+PKG_SOURCE="$(findSourceDir "$PACKAGE")"
+PACKAGE="$(basename "$PACKAGE")"
+PKG_PREFIX="$installBASE/$PACKAGE"
+export GIT_DIR="$PKG_SOURCE/.git"
+
+
+# Manual adjustments to mesa
+# - avoid GLES (GLES1) since <GLES/gl.h> may mask the <GL/gl.h> header
+adjustMESA()
+{
+    pkgconfigAdjust "$PKG_PREFIX"
+
+    rm -rf "$PKG_PREFIX"/include/GLES "$PKG_PREFIX"/include/GLES1
+    echo "removed all gles1 includes"
+}
+
+# Old MESA with autoconfig
+
+if [ -e "$PKG_SOURCE"/configure ]
+then
+(
+    # Configuration options:
+    unset configOpt compFlags
+
+    # Sometimes for LLVM issues
+    # compFlags="-D_GLIBCXX_USE_CXX11_ABI=0"
+
+    # Possibly for older mesa versions (see paraview wiki)
+    # compFlags="-O2 -DDEFAULT_SOFTWARE_DEPTH_BITS=31"
+
+    if [ -d "$LLVM_ARCH_PATH" ]
+    then
+        configOpt="$configOpt --with-llvm-prefix=$LLVM_ARCH_PATH"
+    fi
+
+    # Additional configure options
+    if [ "$1" = "--" ]
+    then
+        shift
+        configOpt="$configOpt $@"
+    fi
+
+    # End of configuration options
+    # ----------------------------
+    PKG_BUILD="$buildBASE/$PACKAGE"
+
+    cd "$PKG_SOURCE" || exit
+
+    echo "----"
+    echo "Building $PACKAGE (with autoconf)"
+    echo "    Source  : $PKG_SOURCE"
+    echo "    Target  : $PKG_PREFIX"
+    if [ -d "$LLVM_ARCH_PATH" ]
+    then
+        echo "    llvm    : $LLVM_ARCH_PATH"
+    fi
+    echo "----"
+
+    if [ -n "$compFlags" ]
+    then
+        CFLAGS="$CFLAGS $compFlags"
+        CXXFLAGS="$CXXFLAGS $compFlags"
+    fi
+
+    ## autoreconf -fi
+
+    rm -rf "$PKG_PREFIX"
+    rm -rf "$PKG_BUILD"
+    mkdir -p "$PKG_BUILD"
+
+    cd "$PKG_BUILD" && set -x && \
+    "$PKG_SOURCE"/configure \
+        --prefix="$PKG_PREFIX" \
+        --disable-xvmc \
+        --disable-glx \
+        --disable-dri \
+        --disable-gbm \
+        --disable-egl \
+        --disable-gles1 \
+        --enable-texture-float \
+        --enable-gallium-osmesa --with-gallium-drivers=swrast \
+        $configOpt \
+    && set +x \
+    && make -j $WM_NCOMPPROCS \
+    && make install \
+    && echo "Built $PACKAGE" \
+    && adjustMESA
+) || {
+    echo "Error building: MESA"
+    exit 1
+}
+
+elif [ -e "$PKG_SOURCE"/meson.build ]
+then
+(
+    # Configuration options:
+    unset configOpt compFlags
+
+    # Sometimes for LLVM issues
+    # compFlags="-D_GLIBCXX_USE_CXX11_ABI=0"
+
+    # Possibly for older mesa versions (see paraview wiki)
+    # compFlags="-O2 -DDEFAULT_SOFTWARE_DEPTH_BITS=31"
+
+    # Additional configure options
+    if [ "$1" = "--" ]
+    then
+        shift
+        configOpt="$configOpt $@"
+    fi
+
+    # End of configuration options
+    # ----------------------------
+    PKG_BUILD="$buildBASE/$PACKAGE"
+    cd "$PKG_SOURCE" || exit
+
+    echo "----"
+    echo "Building $PACKAGE (with meson)"
+    echo "    Source  : $PKG_SOURCE"
+    echo "    Target  : $PKG_PREFIX"
+    if [ -d "$LLVM_ARCH_PATH" ]
+    then
+        echo "    llvm    : $LLVM_ARCH_PATH"
+    fi
+    echo "----"
+
+    if [ -n "$compFlags" ]
+    then
+        CFLAGS="$CFLAGS $compFlags"
+        CXXFLAGS="$CXXFLAGS $compFlags"
+    fi
+
+    # Needs c++14 not c++11
+    CXXFLAGS="$(echo "$CXXFLAGS" | sed 's/c++11/c++14/')"
+
+    rm -rf "$PKG_PREFIX"
+    rm -rf "$PKG_BUILD"
+    mkdir -p "$PKG_BUILD"
+
+    cd "$PKG_SOURCE" && set -x && \
+    meson "$PKG_BUILD" \
+        --prefix="$PKG_PREFIX" \
+        -Dplatforms=x11 \
+        -Dosmesa=gallium \
+        -Dgallium-drivers=swrast \
+        -Ddri-drivers=[] \
+        -Dvulkan-drivers=[] \
+        $configOpt \
+    && set +x \
+    && ninja -j $WM_NCOMPPROCS -C "$PKG_BUILD" \
+    && ninja -C "$PKG_BUILD" install \
+    && echo "Built $PACKAGE" \
+    && adjustMESA
+) || {
+    echo "Error building: MESA"
+    exit 1
+}
+else
+    echo "Error building: MESA. Not autoconfig or meson?"
+    exit 1
+fi
+
+
+# -----------------------------------------------------------------------------

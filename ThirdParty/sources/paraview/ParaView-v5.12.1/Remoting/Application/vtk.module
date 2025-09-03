@@ -1,0 +1,101 @@
+NAME
+  ParaView::RemotingApplication
+GROUPS
+  PARAVIEW_CORE
+LIBRARY_NAME
+  vtkRemotingApplication
+SPDX_LICENSE_IDENTIFIER
+  BSD-3-Clause
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Kitware Inc.
+DEPENDS
+  ParaView::RemotingServerManager
+#KIT
+#  This module cannot be part of a kit because it links to ClientServer
+#  wrappings of all modules. This ends up with a cycle in a shared kit build.
+PRIVATE_DEPENDS
+  ParaView::RemotingCore
+  ParaView::RemotingSettings
+  VTK::vtksys
+OPTIONAL_DEPENDS
+  ParaView::RemotingViews
+  # These correspond to the optional XML files included when enabling certain
+  # features
+  ParaView::VTKExtensionsExtraction
+  ParaView::VTKExtensionsFiltersGeneral
+  ParaView::VTKExtensionsIOCGNSWriter
+  VTK::CommonComputationalGeometry
+  VTK::DomainsChemistry
+  VTK::FiltersAMR
+  VTK::FiltersCore
+  VTK::FiltersExtraction
+  VTK::FiltersFlowPaths
+  VTK::FiltersGeneral
+  VTK::FiltersGeneric
+  VTK::FiltersGeometry
+  VTK::FiltersHybrid
+  VTK::FiltersHyperTree
+  VTK::FiltersModeling
+  VTK::FiltersOpenTURNS
+  VTK::FiltersParallel
+  VTK::FiltersParallelDIY2
+  VTK::FiltersParallelGeometry
+  VTK::FiltersParallelMPI
+  VTK::FiltersParallelVerdict
+  VTK::FiltersSources
+  VTK::FiltersStatistics
+  VTK::FiltersTexture
+  VTK::FiltersVerdict
+  VTK::ImagingCore
+  VTK::ImagingFourier
+  VTK::ImagingGeneral
+  VTK::ImagingHybrid
+  VTK::ImagingSources
+  VTK::ImagingStatistics
+  VTK::InteractionWidgets
+  VTK::IOADIOS2
+  VTK::IOCGNSReader
+  VTK::IOFides
+  VTK::IOFLUENTCFF
+  VTK::IOCatalystConduit
+  VTK::IOChemistry
+  VTK::IOCityGML
+  VTK::IOGDAL
+  VTK::IOGeometry
+  VTK::IOH5part
+  VTK::IOH5Rage
+  VTK::IOInfovis
+  VTK::IOIOSS
+  VTK::IOLAS
+  VTK::IOLegacy
+  VTK::IOMotionFX
+  VTK::IONetCDF
+  VTK::IOOMF
+  VTK::IOOpenVDB
+  VTK::IOParallel
+  VTK::IOParallelLSDyna
+  VTK::IOParallelNetCDF
+  VTK::IOParallelXML
+  VTK::IOPDAL
+  VTK::IOPIO
+  VTK::IOPLY
+  VTK::IOHDF
+  VTK::IOSegY
+  VTK::IOTecplotTable
+  VTK::IOTRUCHAS
+  VTK::IOVeraOut
+  VTK::IOVPIC
+  VTK::IOXdmf2
+  VTK::IOXdmf3
+  VTK::IOXML
+  VTK::MomentInvariants
+  VTK::mpi
+  VTK::ParallelMomentInvariants
+  VTK::PythonInterpreter
+  VTK::RenderingFreeType
+TEST_DEPENDS
+  VTK::TestingCore
+TEST_OPTIONAL_DEPENDS
+  ParaView::RemotingMisc
+TEST_LABELS
+  ParaView

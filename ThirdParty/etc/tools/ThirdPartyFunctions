@@ -1,0 +1,1130 @@
+#---------------------------------*- sh -*-------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2011-2016 OpenFOAM Foundation
+#     Copyright (C) 2016-2021 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# File
+#     etc/tools/ThirdPartyFunctions
+#
+# Description
+#     Various functions used in building ThirdParty packages
+#
+#     Define the standard buildBASE and installBASE for the platform
+#     Define WM_NCOMPPROCS always.
+#
+#     Compiler and flags are managed via the 'wmake -show-c, -show-cflags, ..'
+#     but also with WM_CC, WM_CFLAGS,... env variables
+#
+# Files
+#     Uses OpenFOAM/etc/config.sh/cmake (if it exists) for the
+#     CMAKE_ARCH_PATH that may specify a possible cmake/bin directory.
+#
+#------------------------------------------------------------------------------
+umask 0022  # Created files to be readable by all
+
+# The normal locations for source, build and installation (prefix-dir)
+sourceBASE="$WM_THIRD_PARTY_DIR"
+buildBASE="$WM_THIRD_PARTY_DIR/build/$WM_ARCH$WM_COMPILER"
+installBASE="$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER"
+
+# Synthetic value combining precision and label size (Eg, DPInt32)
+WM_SIZE_OPTIONS="${WM_PRECISION_OPTION}Int${WM_LABEL_SIZE}"
+
+#------------------------------------------------------------------------------
+# Make adjustments for non-standard build locations
+
+# Specified a build-root
+if [ -n "$FOAM_THIRD_PARTY_BUILDROOT" ]
+then
+    if [ ! -d "$FOAM_THIRD_PARTY_BUILDROOT" ]
+    then
+        dir="$(dirname "$FOAM_THIRD_PARTY_BUILDROOT")"
+        if [ -d "$dir" ] && [ -w "$dir" ]
+        then
+            mkdir -m 0755 -p "$FOAM_THIRD_PARTY_BUILDROOT"
+        fi
+        # Also checks for failure of previous mkdir
+        if [ ! -d "$FOAM_THIRD_PARTY_BUILDROOT" ]
+        then
+            echo "Build-root: $FOAM_THIRD_PARTY_BUILDROOT" 1>&2
+            echo "Has invalid parent: $dir" 1>&2
+            exit 2
+        fi
+    fi
+    echo "Using build-root: $FOAM_THIRD_PARTY_BUILDROOT" 1>&2
+
+    # build/
+    _buildDir="${FOAM_THIRD_PARTY_BUILDROOT}/build"
+    mkdir -m 0755 -p "$_buildDir"
+
+    # Fully resolved
+    dir="$(cd "$_buildDir" 2>/dev/null && pwd -L)"
+    if [ -n "$dir" ]
+    then
+        buildBASE="$dir/$WM_ARCH$WM_COMPILER"
+        echo "Using build-dir: $dir" 1>&2
+    else
+        echo "Invalid build-dir: $_buildDir" 1>&2
+        exit 2
+    fi
+
+    # platforms/
+    _platformsDir="${FOAM_THIRD_PARTY_BUILDROOT}/platforms"
+    mkdir -m 0755 -p "$_platformsDir"
+
+    # Fully resolved
+    dir="$(cd "$_platformsDir" 2>/dev/null && pwd -L)"
+    if [ -n "$dir" ]
+    then
+        installBASE="$dir/$WM_ARCH$WM_COMPILER"
+        echo "Using platforms-dir: $dir" 1>&2
+    else
+        echo "Invalid platforms-dir: $_platformsDir" 1>&2
+        exit 2
+    fi
+
+    # Installation with non-standard platforms location
+    nonStandardPlatforms() { true; }
+else
+    # Installation with standard platforms location
+    nonStandardPlatforms() { false; }
+fi
+
+
+# sources/
+if [ -n "$FOAM_THIRD_PARTY_SOURCES" ]
+then
+    # Fully resolved
+    dir="$(cd "$FOAM_THIRD_PARTY_SOURCES" 2>/dev/null && pwd -L)"
+    if [ -n "$dir" ]
+    then
+        sourceBASE="$dir"
+        echo "Using sources-dir: $dir" 1>&2
+    else
+        echo "Invalid sources-dir: $FOAM_THIRD_PARTY_SOURCES" 1>&2
+        exit 2
+    fi
+fi
+
+
+#------------------------------------------------------------------------------
+
+# Dynamic library ending (default is .so)
+EXT_SO="$(wmake -show-ext-so 2>/dev/null)"
+if [ -z "$EXT_SO" ]
+then
+    EXT_SO=.so
+    case "$WM_OSTYPE" in
+    *windows)
+        EXT_SO=.dll
+        ;;
+    *)
+        [ Darwin = "$(uname -s 2>/dev/null)" ] && EXT_SO=.dylib
+        ;;
+    esac
+fi
+
+# True if OS is <darwin>.
+# Test EXT_SO for ".dylib" - avoid repeated uname system call
+isDarwin()
+{
+    [ "$EXT_SO" = .dylib ]
+}
+
+
+# Fallback values, needed for our scotch Makefile which uses
+# WM_CFLAGS and WM_LDFLAGS for arch information
+if [ -z "$WM_CFLAGS" ]
+then
+    export WM_CFLAGS="$(wmake -show-cflags 2>/dev/null)"
+fi
+
+if [ -z "$WM_LDFLAGS" ]
+then
+    export WM_LDFLAGS="$(wmake -show-cflags-arch 2>/dev/null)"
+fi
+
+unset BUILD_SUFFIX
+
+
+#------------------------------------------------------------------------------
+# Check for existence of shared library (without .so extension)
+#
+# $1 = The path and library stem
+#
+haveLibso()
+{
+    if [ -z "$1" ]
+    then
+        return 1
+    elif [ -r "$1$EXT_SO" ]
+    then
+        return 0
+    elif [ "$EXT_SO" = .dll ] && [ -r "$1.dll.a" ]
+    then
+        # Including cross-compiling
+        return 0
+    fi
+
+    return 2
+}
+
+
+#------------------------------------------------------------------------------
+# Service routine to strip out OpenFOAM-specific portions from the compiler
+# flags (ie, everything after and including "-DOPENFOAM=...")
+# while retaining '-fPIC'
+#
+# $1 = all flags concatenated as a single string
+#
+stripCompilerFlags()
+{
+    local flags="${1%-DOPENFOAM=*}"      # Strip out OpenFOAM-specific
+    flags="${flags## }"                  # Trim leading space
+    flags="${flags%% }"                  # Trim trailing space
+
+    # Retain -fPIC though
+    case "$flags" in
+    (*-fPIC*)
+        # -fPIC already included
+        ;;
+
+    (*)
+        case "$1" in
+        (*-fPIC*)
+            # Add -fPIC back in (was after -DOPENFOAM=... content)
+            flags="$flags${flags+ }-fPIC"
+            ;;
+        esac
+        ;;
+    esac
+
+    echo "$flags"
+}
+
+
+# Export compiler settings (and flags) for CMake/configure
+# based on the values from wmake -show-compile-*
+#
+# Since "wmake -show-XX" is only available after 1904, continue to support
+# the previous env variables method (WM_CC, WM_CFLAGS, WM_CXX, WM_CXXFLAGS)
+#
+# $1 = "basic|minimal|strip" (optional)
+#
+# If the option 'basic' is provided, the OpenFOAM-specific portions of
+# the flags are stripped out. Ie, everything after "-DOPENFOAM=..."
+# but retaining '-fPIC'
+#
+exportCompiler()
+{
+    local option="$1"
+    local comp flag
+
+    # C compiler and flags
+    if ! comp="$(wmake -show-c 2>/dev/null)" \
+    || ! flag="$(wmake -show-cflags 2>/dev/null)"
+    then
+        comp="$WM_CC"
+        flag="$WM_CFLAGS"
+    fi
+
+    if test -n "$comp" && command -v "$comp" >/dev/null
+    then
+        export CC="$comp"
+        if [ -n "$flag" ]
+        then
+            case "$option" in
+                (basic | minimal | strip)
+                    flag="$(stripCompilerFlags "$flag")"
+                    ;;
+            esac
+            export CFLAGS="$flag"
+        fi
+    fi
+
+    # C++ compiler and flags
+    if ! comp="$(wmake -show-cxx 2>/dev/null)" \
+    || ! flag="$(wmake -show-cxxflags 2>/dev/null)"
+    then
+        comp="$WM_CXX"
+        flag="$WM_CXXFLAGS"
+    fi
+
+    if test -n "$comp" && command -v "$comp" >/dev/null
+    then
+        export CXX="$comp"
+        if [ -n "$flag" ]
+        then
+            case "$option" in
+                (basic | minimal | strip)
+                    flag="$(stripCompilerFlags "$flag")"
+                    ;;
+            esac
+            export CXXFLAGS="$flag"
+        fi
+    fi
+}
+
+
+# Export linker settings for CMake/configure
+exportLinker()
+{
+    local flag
+
+    # Linker flags, actually just the machine arch
+    flag="$(wmake -show-cflags-arch 2>/dev/null)" || flag="$WM_LDFLAGS"
+
+    if test -n "$flag"
+    then
+        export LDFLAGS="$flag"
+    fi
+}
+
+
+# Force use of gcc/g++, but the values of CFLAGS, CXXFLAGS may be incorrect
+useGcc()
+{
+    export CC=gcc
+    export CXX=g++
+}
+
+
+# Force use of system gcc/g++ (wmake compilation) without changing the
+# WM_OPTIONS or output directories
+useGccWmake()
+{
+    export WM_COMPILER=Gcc
+    export WM_COMPILER_TYPE=system
+}
+
+
+# Scan arguments for a '-gcc' option, forcing gcc/g++ when found
+useGccFlag()
+{
+    for i
+    do
+        if [ "$i" = "-gcc" ]
+        then
+            useGcc
+            break
+        fi
+    done
+}
+
+# Return current value of $CC if set or obtain from 'wmake -show-c',
+# using $WM_CC (older env variable) as the first level fallback.
+# Final fallback is <gcc>
+whichCC()
+{
+    local fallback='gcc'
+    local comp="$CC"
+    local warn
+
+    if [ -z "$comp" ]
+    then
+        comp="$(wmake -show-c 2>/dev/null)" || comp="$WM_CC"
+        if [ -n "$comp" ]
+        then
+            if ! command -v "$comp" >/dev/null
+            then
+                warn="C compiler '$comp' not found in path."
+                unset comp
+            fi
+        else
+            warn="No C compiler found via wmake."
+        fi
+        if [ -n "$warn" ]
+        then
+            echo "${warn} Defaulting to '${fallback}'" 1>&2
+        fi
+    fi
+    echo "${comp:-$fallback}"
+}
+
+
+# Return current value of $CXX if set or obtain from 'wmake -show-cxx',
+# using $WM_CXX (older env variable) as the first level fallback.
+# Final fallback is <g++>
+whichCXX()
+{
+    local fallback='g++'
+    local comp="$CXX"
+    local warn
+
+    if [ -z "$comp" ]
+    then
+        comp="$(wmake -show-cxx 2>/dev/null)" || comp="$WM_CXX"
+        if [ -n "$comp" ]
+        then
+            if ! command -v "$comp" >/dev/null
+            then
+                warn="CXX compiler '$comp' not found in path."
+                unset comp
+            fi
+        else
+            warn="No CXX compiler found via wmake."
+        fi
+        if [ -n "$warn" ]
+        then
+            echo "${warn} Defaulting to '${fallback}'" 1>&2
+        fi
+    fi
+    echo "${comp:-$fallback}"
+}
+
+
+# Return
+#   <mpicc> by default
+#   <mpifcc> for FJMPI (if possible)
+#   <mpiicc> for INTELMPI (if possible)
+#
+# Cray doesn't have <mpicc>, but its <cc> manages mpi paths directly.
+# NOTE: could further refine based on "wmake -show-c", but not yet needed
+whichMpicc()
+{
+    local fallback='mpicc'
+    local comp="$(command -v $fallback)"
+    case "$WM_MPLIB" in
+    (FJMPI)
+        comp="$(command -v mpifcc)"     # Fujitsu <mpifcc> available?
+        ;;
+    (INTELMPI)
+        comp="$(command -v mpiicc)"     # Intel <mpiicc> available?
+        ;;
+    (CRAY-MPI*)
+        : "${comp:=cc}"                 # Cray <cc> if there is no <mpicc>
+        ;;
+    esac
+    echo "${comp:-$fallback}"
+}
+
+
+# Return
+#   <mpicxx> by default
+#   <mpiFCC> for FJMPI (if possible)
+#   <mpiicpc> for INTELMPI (if possible)
+#
+# Cray doesn't have <mpicxx>, but its <CC> manages mpi paths directly.
+# NOTE: could further refine based on "wmake -show-cxx", but not yet needed
+whichMpicxx()
+{
+    local fallback='mpicxx'
+    local comp="$(command -v $fallback)"
+    case "$WM_MPLIB" in
+    (FJMPI)
+        comp="$(command -v mpiFCC)"     # Fujitsu <mpiFCC> available?
+        ;;
+    (INTELMPI)
+        comp="$(command -v mpiicpc)"    # Intel <mpiicpc> available?
+        ;;
+    (CRAY-MPI*)
+        : "${comp:=CC}"                 # Cray <CC> if there is no <mpicxx>
+        ;;
+    esac
+    echo "${comp:-$fallback}"
+}
+
+# Require wmkdepend etc when building with wmake
+# before 2020-04-03: wmake/platforms/linux64Gcc
+# after  2020-04-03: platforms/tools/linux64Gcc
+requireWMakeToolchain()
+{
+    local archName="$WM_ARCH$WM_COMPILER"
+    local wmDir="${WM_DIR:-$WM_PROJECT_DIR/wmake}"
+    local archDir1="$wmDir/platforms/$archName"
+    local archDir2="$WM_PROJECT_DIR/platforms/tools/$archName"
+
+    if [ -x "$archDir1/wmkdepend" ] || [ -x "$archDir1/wmkdep" ] || \
+       [ -x "$archDir2/wmkdepend" ] || [ -x "$archDir2/wmkdep" ]
+    then
+        echo "Appear to have {wmkdepend,wmkdep} binary" 1>&2
+    else
+        echo "Warning: appear to be missing {wmkdepend,wmkdep} binary ... building" 1>&2
+        ( cd "$wmDir/src" && make -s )
+
+        [ -x "$archDir1/wmkdepend" ] || [ -x "$archDir1/wmkdep" ] || \
+        [ -x "$archDir2/wmkdepend" ] || [ -x "$archDir2/wmkdep" ] || {
+            exec 1>&2
+            echo
+            echo "Error: cannot use wmake build for '${0##*/}"
+            echo "    Missing {wmkdepend,wmkdep} binary"
+            echo "    Please run the top-level OpenFOAM Allwmake first"
+            echo "    or top-level wmake/src/Allmake"
+            echo
+            exit 1
+        }
+    fi
+}
+
+
+# Require FOAM_EXT_LIBBIN for some compilations
+requireExtLibBin()
+{
+    [ -n "$FOAM_EXT_LIBBIN" ] || {
+        exec 1>&2
+        echo
+        echo "Error: \$FOAM_EXT_LIBBIN not set for '${0##*/}"
+        echo "    Check your OpenFOAM environment and installation"
+        echo
+        exit 1
+    }
+}
+
+
+# grep for package http or ftp entries in BUILD.md
+# Should be of the form "[link xx]:  http://..."
+showDownloadHint()
+{
+    local package
+
+    if [ -f "$WM_THIRD_PARTY_DIR/BUILD.md" ]
+    then
+        for package in "$@"
+        do
+            echo "Possible download locations for $package :" 1>&2
+
+            if [ -f "$WM_THIRD_PARTY_DIR/BUILD.md" ]
+            then
+                grep -i "$package" "$WM_THIRD_PARTY_DIR/BUILD.md" | \
+                grep -E '(http|ftp)' | sed -ne 's/^ *\[.*\]: */    /p' | \
+                uniq
+            fi
+        done
+    else
+        echo "No BUILD.md available" 1>&2
+    fi
+}
+
+
+#
+# Resolve the appropriate source directory for the given PACKAGE
+#
+# checks:
+# - ThirdParty/PACKAGE
+# - ThirdParty/sources/PACKAGE
+# - ThirdParty/sources/canonical/PACKAGE
+#
+# Where the 'canonical' name is simply the lowercase version of PACKAGE
+# without any version information.
+# Eg, "ParaView-5.9.0" -> "paraview"
+# but also accept "0config-v1.2" -> "0config"
+#
+# Optional flags:
+#   -absolute : report absolute path [default]
+#   -relative : report path relative to sourceBASE (ThirdParty)
+#
+findSourceDir()
+{
+    local package subdir optRelative
+
+    case "$1" in
+    (-abs*)
+        optRelative=false
+        shift
+        ;;
+    (-rel*)
+        optRelative=true
+        shift
+        ;;
+    esac
+
+    for package in "$@"
+    do
+        subdir="$(basename "$package" | tr '[:upper:]' '[:lower:]' |\
+            sed -ne 's#^\([0-9]*[a-z]*\).*#\1#p')"
+
+        for check in \
+            "$package" \
+            "$subdir/$package" \
+            "sources/$package" \
+            "sources/$subdir/$package" \
+        ;
+        do
+            if [ -d "$sourceBASE/$check" ]
+            then
+                echo "Found sources: $check" 1>&2
+
+                if [ "${optRelative:-false}" = true ]
+                then
+                    echo "$check"
+                else
+                    echo "$sourceBASE/$check"
+                fi
+                return 0
+            fi
+        done
+    done
+
+    # Fallback. Report if missing (unless none or system)
+    case "${1##*-}" in
+    (none | system)
+        ;;
+    (*)
+        echo "Did not find ... $@" 1>&2
+    esac
+
+    echo "$sourceBASE/${1:-missing-package-name}"
+}
+
+
+# List available unpacked source versions
+#
+# checks:
+# - ThirdParty/PACKAGE
+# - ThirdParty/sources/PACKAGE
+# - ThirdParty/sources/canonical/PACKAGE
+#
+# Output style
+#  -dirs  : report the names with relative directory
+#  -names : report the names only (without directory)
+#  -long  : report the names with full (absolute) directory
+listPackageVersions()
+{
+    local package
+
+    local optOutput=short
+    case "$1" in
+    (-long | -full)
+        optOutput=long
+        shift
+        ;;
+    (-dirs | -short)
+        optOutput=dirs
+        shift
+        ;;
+    (-names)
+        optOutput=names
+        shift
+        ;;
+    esac
+
+    if [ "$#" -gt 0 ]
+    then
+    (
+        cd "$sourceBASE" 2>/dev/null || exit
+
+        for package in "$@"
+        do
+            # Canonical short name
+            package="$(basename "$package" | tr '[:upper:]' '[:lower:]' |\
+                sed -ne 's#^\([0-9]*[a-z]*\).*$#\1#p')"
+
+            [ -n "$package" ] || continue
+
+            for dir in . ./"$package" sources sources/"$package"
+            do
+                # Find package-version (ie, when it has separators)
+                find "$dir" -maxdepth 1 \
+                -iname "${package}*[-_]*" -type d 2>/dev/null | \
+                sed -e 's#^[./]*##' | sort
+            done | \
+            case "$optOutput" in
+            (long)
+                sed -e "s#^#$sourceBASE/#"  # Add source-dir prefix
+                ;;
+            (names)
+                # Basenames only. Squash out potential duplicates
+                sed -e 's#^.*/##' | sort | uniq
+                ;;
+            (*)
+                # Relative - no change
+                sed -e ''
+                ;;
+            esac
+        done
+    )
+    fi
+}
+
+
+#------------------------------------------------------------------------------
+# Some functions as per OpenFOAM etc/config.sh/functions
+
+unset -f _foamAddLib _foamAddLibAuto _foamAddMan _foamAddPath # Get settings only
+unset -f _foamClean _foamConfig
+
+if [ -x "$WM_PROJECT_DIR/bin/foamCleanPath" ]
+then
+    # Cleaning environment variables
+    _foamClean()
+    {
+         local var=$1
+         shift
+         eval $($WM_PROJECT_DIR/bin/foamCleanPath -sh-env=$var "$@")
+    }
+else
+    _foamClean() { echo "No foamCleanPath" 1>&2; }
+fi
+
+# Source an etc/config.sh file
+_foamConfig() { eval "$($WM_PROJECT_DIR/bin/foamEtcFile -sh -config $@)"; }
+
+# Source an etc file (as per OpenFOAM functions). Eg, for mpi setup.
+_foamEtc() { eval "$($WM_PROJECT_DIR/bin/foamEtcFile -sh $@)"; }
+
+#------------------------------------------------------------------------------
+
+#
+# Set a suffix for the build
+# - eg, for -mpi, or -mesa etc
+#
+setBuildSuffix()
+{
+    BUILD_SUFFIX="${1##-}"
+    if [ -n "$BUILD_SUFFIX" ]
+    then
+        BUILD_SUFFIX="-${BUILD_SUFFIX}"
+    else
+        unset BUILD_SUFFIX
+    fi
+}
+
+
+#
+# Mostly building without wmake
+# - disable wmakeScheduler variables
+# - use max number of cores for building, unless already defined
+#
+unset WM_HOSTS WM_SCHEDULER
+
+if [ -z "$WM_NCOMPPROCS" ]
+then
+    WM_NCOMPPROCS=$(getconf _NPROCESSORS_ONLN 2>/dev/null)
+    : "${WM_NCOMPPROCS:=1}"
+fi
+export WM_NCOMPPROCS
+
+
+#
+# If WM_CONTINUE_ON_ERROR not set activate the shell option "stop on error"
+#
+if [ -z "$WM_CONTINUE_ON_ERROR" ]
+then
+    set -e
+fi
+
+
+# Report error and exit
+die()
+{
+    exec 1>&2
+    echo
+    echo "Error: see '${0##*/} -help' for usage"
+    while [ "$#" -ge 1 ]; do echo "    $1"; shift; done
+    echo
+    exit 1
+}
+
+# Warn
+warnBuildIssues()
+{
+    echo
+    echo "    ---------------------------------------------------"
+    echo "    Optional component ($1) had build issues"
+    echo "    OpenFOAM will nonetheless remain largely functional"
+    echo "    ---------------------------------------------------"
+    echo
+}
+
+# Warn
+warnNotFound()
+{
+    echo "Optional component ($1) was not found"
+}
+
+
+# Test if it matches "*-none"
+_foamIsNone()
+{
+    test "${1##*-}" = none
+}
+
+# Test if it matches "*-system"
+_foamIsSystem()
+{
+    test "${1##*-}" = system
+}
+
+
+#
+# Try to locate cmake according to the CMAKE_PATH.
+#
+# On success: return the resolved value as output.
+# On failure: just report what is found in the path.
+#
+unset CMAKE_PATH # clear when first loaded
+findCMake()
+{
+    local config="config.sh/cmake"
+    local candidate foundExe
+
+    if [ -n "$CMAKE_PATH" ]
+    then
+        # Check as directory
+        if [ -d "$CMAKE_PATH" ]
+        then
+            for candidate in \
+                "$CMAKE_PATH"/cmake \
+                "$CMAKE_PATH"/bin/cmake \
+            ;
+            do
+                if [ -f "$candidate" ] && [ -x "$candidate" ]
+                then
+                    foundExe="$candidate"
+                    break
+                fi
+            done
+        fi
+
+        # Check as file, include ThirdParty installation in the search
+        if [ -z "$foundExe" ]
+        then
+            for candidate in \
+                "$CMAKE_PATH" \
+                "$installBASE/$CMAKE_PATH"/bin/cmake \
+                "$installBASE/cmake-$CMAKE_PATH"/bin/cmake \
+            ;
+            do
+                if [ -f "$candidate" ] && [ -x "$candidate" ]
+                then
+                    foundExe="$candidate"
+                    break
+                fi
+            done
+        fi
+
+        if [ -n "$foundExe" ]
+        then
+            # Use absolute path
+            if [ "${foundExe#/}" = "$foundExe" ]
+            then
+                foundExe="$(cd ${foundExe%/cmake} 2>/dev/null && pwd)/cmake"
+            fi
+            echo "Using cmake=$foundExe" 1>&2
+            echo "$foundExe"
+            return 0
+        else
+            cat << NOT_FOUND 1>&2
+'cmake' not found under specified CMAKE_PATH
+    CMAKE_PATH=$CMAKE_PATH
+reverting to using command from $config or from PATH
+NOT_FOUND
+        fi
+    fi
+
+    unset cmake_version CMAKE_ARCH_PATH
+    if candidate="$("$WM_PROJECT_DIR"/bin/foamEtcFile "$config" 2>/dev/null)"
+    then
+        . "$candidate"
+
+        for candidate in \
+            "$CMAKE_ARCH_PATH"/bin/cmake \
+            "$installBASE/$cmake_version"/bin/cmake \
+        ;
+        do
+            if [ -f "$candidate" ] && [ -x "$candidate" ]
+            then
+                echo "Using cmake=$candidate" 1>&2
+                echo "$candidate"
+                return 0
+            fi
+        done
+    fi
+
+    # Default to use the path, try resolving (so we know what we are using).
+    for candidate in cmake
+    do
+        foundExe="$(command -v "$candidate" 2>/dev/null)" && break
+    done
+    : "${foundExe:=false}"
+
+    echo "Using cmake=$foundExe" 1>&2
+    echo "$foundExe"
+}
+
+
+#
+# Try to locate qmake or qmake-qt5 according to the QMAKE_PATH
+#
+# On success: return the resolved value as output.
+# On failure: just report what is found in the path.
+#
+unset QMAKE_PATH # clear when first loaded
+findQMake()
+{
+    local candidate foundExe
+
+    if [ -n "$QMAKE_PATH" ]
+    then
+        # Check as directory
+        if [ -d "$QMAKE_PATH" ]
+        then
+            for candidate in \
+                "$QMAKE_PATH"/qmake \
+                "$QMAKE_PATH"/bin/qmake \
+            ;
+            do
+                if [ -f "$candidate" ] && [ -x "$candidate" ]
+                then
+                    foundExe="$candidate"
+                    break
+                fi
+            done
+        fi
+
+        # Check as file, include ThirdParty installation in the search
+        if [ -z "$foundExe" ]
+        then
+            for candidate in \
+                "$QMAKE_PATH" \
+                "$installBASE/$QMAKE_PATH"/bin/qmake \
+                "$installBASE/qt-$QMAKE_PATH"/bin/qmake \
+            ;
+            do
+                if [ -f "$candidate" ] && [ -x "$candidate" ]
+                then
+                    foundExe="$candidate"
+                    break
+                fi
+            done
+        fi
+
+        if [ -n "$foundExe" ]
+        then
+            # Use absolute path
+            if [ "${foundExe#/}" = "$foundExe" ]
+            then
+                foundExe="$(cd ${foundExe%/qmake} 2>/dev/null && pwd)/qmake"
+            fi
+            echo "Using qmake=$foundExe" 1>&2
+            echo "$foundExe"
+            return 0
+        else
+            cat << NOT_FOUND 1>&2
+'qmake' not found under specified QMAKE_PATH
+    QMAKE_PATH=$QMAKE_PATH
+reverting to using command from PATH
+NOT_FOUND
+        fi
+    fi
+
+    # Default to use the path, try resolving (so we know what we are using).
+    # Some systems have qmake-qt5 as well as qmake
+    for candidate in qmake-qt5 qmake
+    do
+        foundExe="$(command -v "$candidate" 2>/dev/null)" && break
+    done
+    : "${foundExe:=false}"
+
+    echo "Using qmake=$foundExe" 1>&2
+    echo $foundExe
+}
+
+
+#
+# Set a new prefix=... in pkgconfig files
+#
+pkgconfigNewPrefix()
+{
+    local dir="${1%%/}"
+
+    if [ -n "$dir" ] && [ -d "$dir" ]
+    then
+        # Require absolute path, but use logical (not physical) location
+        [ "${dir}" != "${dir#/}" ] || dir=$(cd $dir 2>/dev/null && /bin/pwd -L)
+        # Strip sub-level
+        case "$dir" in (*/pkgconfig) dir="${dir%/*}";; esac
+        # Strip a level
+        case "$dir" in (*/lib | */lib64 | */bin) dir="${dir%/*}";; esac
+    fi
+
+    # Verify that the prefix path is valid
+    # Warning (not an error) - thus no special return code
+    [ -n "$dir" -a -d "$dir" ] || {
+        echo "Warning: invalid prefix directory: $dir" 1>&2
+        return 0
+    }
+
+    echo "Set pkgconfig prefix : $dir"
+
+    local nfiles
+    for libdir in lib/pkgconfig lib64/pkgconfig
+    do
+        unset nfiles
+        [ -d "$dir/$libdir" ] || continue
+        for i in $dir/$libdir/*.pc
+        do
+            if [ -f "$i" ] && [ ! -L "$i" ]
+            then
+                nfiles="x$nfiles"
+                sed -i~ -e 's@^\(prefix=\).*$@\1'"$dir@" $i
+            fi
+        done
+        echo "    $libdir/*.pc  (edited ${#nfiles})"
+    done
+}
+
+
+#
+# Adjust pkgconfig information to use '${prefix} where possible instead
+# of directory paths.
+#
+# Adjusts includedir=, libdir=, -I/... and -L/... and
+# any *_location= entries (QT)
+#
+pkgconfigAdjust()
+{
+    local dir="${1%%/}"
+
+    if [ -n "$dir" ] && [ -d "$dir" ]
+    then
+        # Require absolute path, but use logical (not physical) location
+        [ "${dir}" != "${dir#/}" ] || dir=$(cd $dir 2>/dev/null && /bin/pwd -L)
+        # Strip sub-level
+        case "$dir" in (*/pkgconfig) dir="${dir%/*}";; esac
+        # Strip a level
+        case "$dir" in (*/lib | */lib64 | */bin) dir="${dir%/*}";; esac
+    fi
+
+    # Verify that the prefix path is valid
+    # Warning (not an error) - thus no special return code
+    [ -n "$dir" -a -d "$dir" ] || {
+        echo "Warning: invalid prefix directory: $dir" 1>&2
+        return 0
+    }
+
+    echo "Adjust pkgconfig locations : $dir"
+
+    local nfiles
+    for libdir in lib/pkgconfig lib64/pkgconfig
+    do
+        unset nfiles
+        [ -d "$dir/$libdir" ] || continue
+        for i in $dir/$libdir/*.pc
+        do
+            if [ -f "$i" ] && [ ! -L "$i" ]
+            then
+                nfiles="x$nfiles"
+                sed -i~ \
+                    -e 's@^\(includedir=\)'"$dir/"'@\1${prefix}/@' \
+                    -e 's@^\(libdir=\)'"$dir/"'@\1${prefix}/@'     \
+                    -e 's@\(_location=\)'"$dir/"'@\1${prefix}/@'   \
+                    -e 's@\(-[IL]\)'"$dir/"'@\1${prefix}/@g'       \
+                    $i
+            fi
+        done
+        echo "    $libdir/*.pc  (edited ${#nfiles})"
+    done
+}
+
+
+#
+# Download file $1 from url $2 into download/ directory
+#
+downloadFile()
+{
+    [ "$#" -eq 2 ] || {
+        echo "downloadFile called with incorrect number of arguments $@"
+        return 1
+    }
+
+    local file="$1"
+    local url="$2"
+
+    if [ ! -e download/$file ]
+    then
+        mkdir -p download
+        echo "downloading $tarFile from $url"
+        ( cd download && wget --no-check-certificate $url -O $file )
+    fi
+}
+
+
+#
+# Copy Make/{files,options} from etc/makeFiles/PACKAGE
+#
+# $1 = PACKAGE
+# $2 = TARGET DIRECTORY (optional)
+cpMakeFiles()
+{
+    [ "$#" -eq 1 ] || [ "$#" -eq 2 ] || {
+        echo "cpMakeFiles called with incorrect number of arguments $@"
+        return 1
+    }
+
+    local pkg="$1"
+    local dst="${2:-.}"
+    echo "cpMakeFiles" "$pkg" "$dst"
+
+    wmakeFiles="$WM_THIRD_PARTY_DIR/etc/makeFiles/$pkg"
+
+    for i in $(cd $wmakeFiles && find . -type f)
+    do
+        d="${i%/*}"   # dirname
+        b="${i##*/}"   # basename
+
+        mkdir -p "$dst/$d"/Make 2>/dev/null
+
+        # NOTE the behaviour of '-nt' can cause problems
+        #
+        # - bash, ksh, /usr/bin/test
+        #   True, if file1 exists and file2 does not
+        #
+        # - dash, zsh (and maybe others)
+        #   False, if file1 or file2 does not exist
+        #
+        if [ ! -e "$dst/$d/Make/$b" -o "$wmakeFiles/$i" -nt "$dst/$d/Make/$b" ]
+        then
+            cp "$wmakeFiles/$i" "$dst/$d/Make/$b"
+        fi
+    done
+}
+
+
+#
+# Apply source-code patch if possible.
+# Patches are taken from etc/patches/PACKAGE
+#
+# $1 = PACKAGE
+# $2 = TARGET DIRECTORY (optional)
+applyPatch()
+{
+    [ "$#" -eq 1 -o "$#" -eq 2 ] || {
+        echo "applyPatch called with incorrect number of arguments ($#): $@"
+        return 1
+    }
+
+    local pkg="$1"
+    local dst="${2:-.}"
+
+    local patch="$WM_THIRD_PARTY_DIR/etc/patches/$pkg"
+    local sentinel="PATCHED_DURING_OPENFOAM_BUILD"
+
+    if [ -r "$patch" ]
+    then
+    (
+        cd "$dst" || exit
+        if [ -f "$sentinel" ]
+        then
+            echo "patch for $pkg was already applied"
+        else
+            echo "apply patch for $pkg"
+            touch "$sentinel"
+            patch -b -l -p1 < $patch 2>&1 | tee $sentinel
+        fi
+    )
+    else
+        echo "no patch found for $pkg"
+    fi
+}
+
+
+#------------------------------------------------------------------------------

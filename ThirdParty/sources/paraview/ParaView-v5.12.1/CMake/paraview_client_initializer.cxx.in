@@ -1,0 +1,198 @@
+// SPDX-FileCopyrightText: Copyright (c) Kitware Inc.
+// SPDX-FileCopyrightText: Copyright (c) Sandia Corporation
+// SPDX-License-Identifier: BSD-3-Clause
+// Generated file.  Do not edit.
+#include "pq@_paraview_client_NAME@Initializer.h"
+
+#include <QApplication>
+#include <QBitmap>
+#include <QDir>
+#include <QLibraryInfo>
+#include <QProcessEnvironment>
+#include <QSplashScreen>
+#include <QTranslator>
+#include <QtDebug>
+
+#include "@_paraview_client_MAIN_WINDOW_INCLUDE@"
+
+#include "pqPVApplicationCore.h"
+#include "pqPluginManager.h"
+#include "pqQtDeprecated.h"
+#include "pqSettings.h"
+#include "vtkSmartPointer.h"
+#include "vtkRemotingCoreConfiguration.h"
+#include "vtkSMProxyManager.h"
+#include "vtkPVLogger.h"
+#include "vtkPVPluginLoader.h"
+#include "vtkPVPluginTracker.h"
+#include "vtksys/SystemTools.hxx"
+
+#cmakedefine01 _paraview_client_APPLICATION_XMLS
+#cmakedefine01 _paraview_client_SPLASH_IMAGE
+#cmakedefine01 _paraview_client_TITLE
+#cmakedefine01 _paraview_client_built_shared
+
+//-----------------------------------------------------------------------------
+pq@_paraview_client_NAME@Initializer::pq@_paraview_client_NAME@Initializer()
+{
+  this->PVApp = nullptr;
+  this->MainWindow = nullptr;
+  this->Splash = nullptr;
+}
+
+//-----------------------------------------------------------------------------
+pq@_paraview_client_NAME@Initializer::~pq@_paraview_client_NAME@Initializer()
+{
+  delete this->Splash;
+  this->Splash = nullptr;
+
+  delete this->MainWindow;
+  this->MainWindow = nullptr;
+
+  delete this->PVApp;
+  this->PVApp = nullptr;
+}
+
+//-----------------------------------------------------------------------------
+pq@_paraview_client_NAME@Initializer::Status pq@_paraview_client_NAME@Initializer::Initialize(int argc, char* argv[])
+{
+  try
+  {
+    vtkVLogScopeF(PARAVIEW_LOG_APPLICATION_VERBOSITY(), "initialize pqPVApplicationCore");
+    this->PVApp = new pqPVApplicationCore (argc, argv);
+  }
+  catch (const pqApplicationCoreExitCode& exitCode)
+  {
+    return exitCode.code() == EXIT_SUCCESS ? ExitSuccess : ExitFailure;
+  }
+
+
+  // Get locale from user settings or envvar
+  QString locale = this->PVApp->getInterfaceLanguage();
+  // Set the default language
+  QProcessEnvironment options = QProcessEnvironment::systemEnvironment();
+  if (!this->PVApp->settings()->contains("GeneralSettings.InterfaceLanguage"))
+  {
+    this->PVApp->settings()->setValue("GeneralSettings.InterfaceLanguage", locale);
+  }
+  // en is default ParaView language, so no need to load en translators
+  if (locale != "en")
+  {
+    // Load ParaView translations
+    QTranslator* UITranslator = this->PVApp->getQtTranslations("paraview", locale);
+    QCoreApplication::installTranslator(UITranslator);
+    // Load Qt translations
+    QTranslator* qtTranslator = this->PVApp->getQtTranslations("qt", locale);
+    QCoreApplication::installTranslator(qtTranslator);
+    QTranslator* qtbaseTranslator = this->PVApp->getQtTranslations("qtbase", locale);
+    QCoreApplication::installTranslator(qtbaseTranslator);
+  }
+  // Attach custom event filter
+  QApplication::instance()->installEventFilter(this->PVApp);
+
+#if !_paraview_client_built_shared
+@_paraview_client_resource_init@
+#endif
+
+#if _paraview_client_SPLASH_IMAGE
+  pqSettings *settings = this->PVApp->settings();
+  auto coreConfig = vtkRemotingCoreConfiguration::GetInstance();
+  if (!coreConfig->GetDisableRegistry() &&
+    settings->value("GeneralSettings.ShowSplashScreen", true).toBool())
+  {
+    // Create and show the splash screen as the main window is being created.
+    QPixmap pixmap("@_paraview_client_splash_resource@");
+    this->Splash = new QSplashScreen(pixmap, Qt::WindowStaysOnTopHint);
+    this->Splash->setMask(pixmap.createMaskFromColor(QColor(Qt::transparent)));
+    this->Splash->show();
+  }
+#endif
+
+  // Create main window.
+  vtkVLogStartScopeF(PARAVIEW_LOG_APPLICATION_VERBOSITY(), "create-window",
+      "creating main window `@_paraview_client_MAIN_WINDOW_CLASS@`");
+  this->MainWindow = new @_paraview_client_MAIN_WINDOW_CLASS@();
+  vtkLogEndScope("create-window");
+
+  // load distributed plugins configuration.
+  vtkVLogStartScopeF(PARAVIEW_LOG_PLUGIN_VERBOSITY(), "app-plugins", "load `@_paraview_client_NAME@` plugin conf");
+  vtkPVPluginTracker::GetInstance()->LoadPluginConfigurationXMLs("@_paraview_client_NAME@");
+  vtkLogEndScope("app-plugins");
+
+  vtkNew<vtkPVPluginLoader> loader;
+
+  // Load required application plugins.
+  vtkVLogStartScopeF(PARAVIEW_LOG_PLUGIN_VERBOSITY(), "req-plugins", "load required plugins: `@_paraview_client_REQUIRED_PLUGINS@`");
+  QString plugin_string = "@_paraview_client_REQUIRED_PLUGINS@";
+  QStringList plugin_list = plugin_string.split(';',PV_QT_SKIP_EMPTY_PARTS);
+  Q_FOREACH (const QString plugin_name, plugin_list)
+  {
+    if (!loader->LoadPluginByName(plugin_name.toUtf8().data()))
+    {
+      std::cerr << "warning: failed to load required plugin "
+        << plugin_name.toUtf8().data() << std::endl;
+    }
+  }
+  vtkLogEndScope("req-plugins");
+
+  // Load optional plugins.
+  vtkVLogStartScopeF(PARAVIEW_LOG_PLUGIN_VERBOSITY(), "opt-plugins", "load optional plugins: `@_paraview_client_OPTIONAL_PLUGINS@`");
+  plugin_string = "@_paraview_client_OPTIONAL_PLUGINS@";
+  plugin_list = plugin_string.split(';', PV_QT_SKIP_EMPTY_PARTS);
+  Q_FOREACH (const QString plugin_name, plugin_list)
+  {
+    if (!loader->LoadPluginByName(plugin_name.toUtf8().data()))
+    {
+      std::cerr << "info: failed to load optional plugin "
+        << plugin_name.toUtf8().data() << std::endl;
+    }
+  }
+  vtkLogEndScope("opt-plugins");
+
+  // now load plugins based on user-preferences.
+  vtkVLogStartScopeF(PARAVIEW_LOG_PLUGIN_VERBOSITY(), "ini-plugins", "load plugins from settings");
+  this->PVApp->getPluginManager()->loadPluginsFromSettings();
+  vtkLogEndScope("ini-plugins");
+
+#if _paraview_client_APPLICATION_XMLS
+  // Load configuration xmls after all components have been instantiated.
+  // This configuration part is something that needs to be cleaned up, I haven't
+  // given this too much thought.
+  QDir dir2(":/@_paraview_client_NAME@/Configuration");
+  QStringList files = dir2.entryList(QDir::Files);
+  Q_FOREACH (QString file, files)
+  {
+    this->PVApp->loadConfiguration(QString(":/@_paraview_client_NAME@/Configuration/") + file);
+  }
+#else
+  // NO XMLS provided, Reader and Writers still needs to be updated
+  this->PVApp->updateAvailableReadersAndWriters();
+#endif
+
+#if _paraview_client_TITLE
+  this->MainWindow->setWindowTitle("@_paraview_client_TITLE@");
+#endif
+
+  // the user can specify a different window title by setting the PARAVIEW_WINDOW_TITLE
+  // environment variable. This helps when using multiple PV GUIs simultaneously
+  // and context switching quickly between them.
+  if (const char* newWindowTitle = vtksys::SystemTools::GetEnv("PARAVIEW_WINDOW_TITLE"))
+  {
+    this->MainWindow->setWindowTitle(newWindowTitle);
+  }
+
+  // Fire the signal that the initialization is complete.
+  this->PVApp->_paraview_client_environment_complete();
+
+  // We used to call processEvents() here. We removed it, since that results in
+  // timers (esp. pqCommandLineOptionsBehavior::playTests(), or
+  // pqServer::processServerNotification()) timers could timeout here and that
+  // causes test failures. Any case, the UI will update when the main event loop
+  // resumes hence these processEvents are fairly useless.
+  this->MainWindow->show();
+  if (this->Splash)
+  {
+    this->Splash->finish(this->MainWindow);
+  }
+  return RunApplication;
+}

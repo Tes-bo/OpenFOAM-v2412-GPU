@@ -1,0 +1,62 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2021 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     etc/list-download
+#
+# Description
+#     List known download hints. Required BUILD.md
+#
+# Example usage
+#     etc/list-download paraview
+#
+#------------------------------------------------------------------------------
+. "${WM_THIRD_PARTY_DIR:?}"/etc/tools/ThirdPartyFunctions
+
+#------------------------------------------------------------------------------
+printHelp() {
+    cat<<USAGE
+
+Usage: ${0##*/} [OPTION] [package1 .. [packageN]]
+Options:
+  -help    Display usage help
+
+List known download hints.
+
+USAGE
+    exit 0  # Clean exit
+}
+#------------------------------------------------------------------------------
+
+# Process options/arguments
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    '') ;;      # Ignore empty
+    -h | -help*) printHelp;;
+
+    -*) echo "Ignore unknown option" 1>&2 ;;
+    *)  break ;;
+    esac
+    shift
+done
+
+if [ "$#" -gt 0 ]
+then
+    showDownloadHint "$@"
+else
+    die "Did not specify any package(s)"
+fi
+
+
+#------------------------------------------------------------------------------

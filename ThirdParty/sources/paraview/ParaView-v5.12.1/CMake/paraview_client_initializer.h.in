@@ -1,0 +1,33 @@
+// SPDX-FileCopyrightText: Copyright (c) Kitware Inc.
+// SPDX-FileCopyrightText: Copyright (c) Sandia Corporation
+// SPDX-License-Identifier: BSD-3-Clause
+// Generated file.  Do not edit.
+#ifndef pq@_paraview_client_NAME@Initializer_h
+#define pq@_paraview_client_NAME@Initializer_h
+
+class QMainWindow;
+class pqPVApplicationCore;
+class QSplashScreen;
+
+class pq@_paraview_client_NAME@Initializer
+{
+public:
+  enum Status
+  {
+    ExitSuccess,
+    ExitFailure,
+    RunApplication
+  };
+
+  pq@_paraview_client_NAME@Initializer();
+  ~pq@_paraview_client_NAME@Initializer();
+
+  /// Initialize ParaView. It returns false if the initialization failed.
+  Status Initialize(int argc, char* argv[]);
+private:
+  pqPVApplicationCore* PVApp;
+  QMainWindow* MainWindow;
+  QSplashScreen* Splash;
+};
+
+#endif

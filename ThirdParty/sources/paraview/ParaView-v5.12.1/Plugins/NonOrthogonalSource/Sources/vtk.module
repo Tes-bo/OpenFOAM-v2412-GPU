@@ -1,0 +1,18 @@
+NAME
+  NonOrthogonalSource::vtkNonOrthogonalSources
+LIBRARY_NAME
+  vtkNonOrthogonalSources
+SPDX_LICENSE_IDENTIFIER
+  BSD-3-Clause
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Kitware Inc.
+DEPENDS
+  VTK::CommonExecutionModel
+PRIVATE_DEPENDS
+  ParaView::VTKExtensionsMisc
+  VTK::CommonCore
+  VTK::CommonDataModel
+  VTK::CommonMath
+  VTK::CommonTransforms
+  VTK::FiltersGeneral
+  VTK::ImagingCore

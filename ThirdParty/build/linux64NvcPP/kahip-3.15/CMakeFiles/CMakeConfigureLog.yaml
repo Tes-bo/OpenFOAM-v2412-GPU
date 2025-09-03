@@ -1,0 +1,914 @@
+
+---
+events:
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/usr/local/share/cmake-3.31/Modules/CMakeDetermineSystem.cmake:205 (message)"
+      - "CMakeLists.txt:13 (project)"
+    message: |
+      The system is: Linux - 4.18.0-553.6.1.el8.x86_64 - x86_64
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/usr/local/share/cmake-3.31/Modules/CMakeDetermineCompilerId.cmake:17 (message)"
+      - "/usr/local/share/cmake-3.31/Modules/CMakeDetermineCompilerId.cmake:64 (__determine_compiler_id_test)"
+      - "/usr/local/share/cmake-3.31/Modules/CMakeDetermineCCompiler.cmake:123 (CMAKE_DETERMINE_COMPILER_ID)"
+      - "CMakeLists.txt:13 (project)"
+    message: |
+      Compiling the C compiler identification source file "CMakeCCompilerId.c" succeeded.
+      Compiler: /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/bin/nvc 
+      Build flags: -m64;-fPIC
+      Id flags:  
+      
+      The output was:
+      0
+      
+      
+      Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "a.out"
+      
+      The C compiler identification is NVHPC, found in:
+        /home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/3.31.6/CompilerIdC/a.out
+      
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/usr/local/share/cmake-3.31/Modules/CMakeDetermineCompilerId.cmake:17 (message)"
+      - "/usr/local/share/cmake-3.31/Modules/CMakeDetermineCompilerId.cmake:64 (__determine_compiler_id_test)"
+      - "/usr/local/share/cmake-3.31/Modules/CMakeDetermineCXXCompiler.cmake:126 (CMAKE_DETERMINE_COMPILER_ID)"
+      - "CMakeLists.txt:13 (project)"
+    message: |
+      Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" succeeded.
+      Compiler: /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/bin/nvc++ 
+      Build flags: -std=c++17;-m64;-fPIC
+      Id flags:  
+      
+      The output was:
+      0
+      
+      
+      Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "a.out"
+      
+      The CXX compiler identification is NVHPC, found in:
+        /home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/3.31.6/CompilerIdCXX/a.out
+      
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/local/share/cmake-3.31/Modules/CMakeDetermineCompilerABI.cmake:74 (try_compile)"
+      - "/usr/local/share/cmake-3.31/Modules/CMakeTestCCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:13 (project)"
+    checks:
+      - "Detecting C compiler ABI info"
+    directories:
+      source: "/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-Zy1wRt"
+      binary: "/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-Zy1wRt"
+    cmakeVariables:
+      CMAKE_C_FLAGS: "-m64 -fPIC"
+      CMAKE_C_FLAGS_DEBUG: "-g -O0"
+      CMAKE_EXE_LINKER_FLAGS: "-m64"
+      CMAKE_MODULE_PATH: "/home/sibo/TesboCFD/ThirdParty-v2412/sources/kahip/kahip-3.15/cmake"
+    buildResult:
+      variable: "CMAKE_C_ABI_COMPILED"
+      cached: true
+      stdout: |
+        Change Dir: '/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-Zy1wRt'
+        
+        Run Build Command(s): /usr/local/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_19b94/fast
+        /usr/bin/gmake  -f CMakeFiles/cmTC_19b94.dir/build.make CMakeFiles/cmTC_19b94.dir/build
+        gmake[1]: Entering directory '/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-Zy1wRt'
+        Building C object CMakeFiles/cmTC_19b94.dir/CMakeCCompilerABI.c.o
+        /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/bin/nvc   -m64 -fPIC    -v -MD -MT CMakeFiles/cmTC_19b94.dir/CMakeCCompilerABI.c.o -MF CMakeFiles/cmTC_19b94.dir/CMakeCCompilerABI.c.o.d -o CMakeFiles/cmTC_19b94.dir/CMakeCCompilerABI.c.o -c /usr/local/share/cmake-3.31/Modules/CMakeCCompilerABI.c
+        Export NVCOMPILER=/home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11
+        Export PGI=/home/sibo/Music/nvidia-hpc-sdk
+        Create file CMakeFiles/cmTC_19b94.dir/CMakeCCompilerABI.c.o.d
+        
+        /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/bin/tools/nvcpfe -- --llalign -D__GNUC__=8 -D__GNUC_MINOR__=5 -D__GNUC_PATCHLEVEL__=0 -D__unix -D__unix__ -Dunix -Dlinux -D__linux -D__linux__ -D__ELF__ -D__NO_MATH_INLINES -D__LP64__ -D__x86_64 -D__x86_64__ -D__LONG_MAX__=9223372036854775807L '-D__SIZE_TYPE__=unsigned long int' '-D__PTRDIFF_TYPE__=long int' -D__amd64 -D__amd64__ -D__k8 -D__k8__ -D__MMX__ -D__SSE_MATH__ -D__MMX_WITH_SSE__ -D__SSE__ -D__SSE2__ -D__SSE2_MATH__ -D__SSE3__ -D__SSSE3__ -D__SSE4_1__ -D__SSE4_2__ -D__ABM__ -D__ADX__ -D__AES__ -D__AMX_BF16__ -D__AMX_INT8__ -D__AMX_TILE__ -D__AVX__ -D__AVX2__ -D__AVX512BF16__ -D__AVX512BITALG__ -D__AVX512BW__ -D__AVX512CD__ -D__AVX512DQ__ -D__AVX512F__ -D__AVX512FP16__ -D__AVX512IFMA__ -D__AVX512VBMI__ -D__AVX512VBMI2__ -D__AVX512VL__ -D__AVX512VNNI__ -D__AVX512VPOPCNTDQ__ -D__AVXVNNI__ -D__BMI__ -D__BMI2__ -D__CLDEMOTE__ -D__CLFLUSHOPT__ -D__CLWB__ -D__CX16__ -D__ENQCMD__ -D__F16C__ -D__FMA__ -D__FSGSBASE__ -D__FXSR__ -D__GFNI__ -D__LZCNT__ -D__MOVBE__ -D__MOVDIR64B__ -D__MOVDIRI__ -D__PCLMUL__ -D__PCONFIG__ -D__PKU__ -D__POPCNT__ -D__PRFCHW__ -D__PTWRITE__ -D__RDPID__ -D__RDRND__ -D__RDSEED__ -D__LAHF_SAHF__ -D__SERIALIZE__ -D__SGX__ -D__SHA__ -D__SHSTK__ -D__TSXLDTRK__ -D__UINTR__ -D__VAES__ -D__VPCLMULQDQ__ -D__WAITPKG__ -D__WBNOINVD__ -D__XSAVE__ -D__XSAVEC__ -D__XSAVEOPT__ -D__XSAVES__ -D__PGI -D__NVCOMPILER -D_PGCG_SOURCE --c -I- --sys_include /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/include --sys_include /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/include-stdexec --sys_include /usr/lib/gcc/x86_64-redhat-linux/8/include --sys_include /usr/local/include --sys_include /usr/include -D__PGLLVM__ -D__NVCOMPILER_LLVM__ -D__extension__= -D__PIC__ --preinclude _cplus_preinclude.h --preinclude_macros _cplus_macros.h --gnu_version=80500 -D__pgnu_vsn=80500 --no_fixed_bp --dependencies_target_to_stdout CMakeFiles/cmTC_19b94.dir/CMakeCCompilerABI.c.o --dependencies_to_file CMakeFiles/cmTC_19b94.dir/CMakeCCompilerABI.c.o.d -q -o /tmp/nvcXi8vit71wkdX4.il /usr/local/share/cmake-3.31/Modules/CMakeCCompilerABI.c -- /usr/local/share/cmake-3.31/Modules/CMakeCCompilerABI.c -opt 1 -x 119 0xa10000 -x 122 0x40 -x 123 0x1000 -x 127 4 -x 127 17 -x 19 0x400000 -x 28 0x40000 -x 120 0x10000000 -x 70 0x8000 -x 122 1 -x 125 0x20000 -quad -x 59 4 -tp sapphirerapids -x 120 0x1000 -astype 0 -x 121 1 -fn /usr/local/share/cmake-3.31/Modules/CMakeCCompilerABI.c -il /tmp/nvcXi8vit71wkdX4.il -x 123 0x80000000 -x 123 4 -x 2 0x400 -x 209 0x10 -x 119 0x20 -def __pgnu_vsn=80500 -x 70 0x40000000 -x 183 4 -x 121 0x800 -x 6 0x20000 -x 122 0x400000 -y 125 0x100000 -x 249 170 -x 120 0x200000 -x 70 0x40000000 -x 8 0x40000000 -x 164 0x800000 -x 71 0x2000 -x 71 0x4000 -x 34 0x40000000 -x 120 0x1000000 -x 73 0x04 -x 231 0x800 -x 68 0x1 -x 39 4 -x 56 0x10 -x 26 0x10 -x 26 1 -x 56 0x4000 -x 197 0 -x 175 0 -x 203 0 -x 204 0 -x 227 0xFFFF -y 163 0xc0000000 -x 189 0x10 -y 189 0x4000000 -x 60 512 -x 62 8 -gnuvsn 80500 -x 69 0x200 -mach 0 -nomach 0 -x 123 0x400 -cmdline '+nvc /usr/local/share/cmake-3.31/Modules/CMakeCCompilerABI.c -m64 -fPIC -v -MD -MT CMakeFiles/cmTC_19b94.dir/CMakeCCompilerABI.c.o -MF CMakeFiles/cmTC_19b94.dir/CMakeCCompilerABI.c.o.d -o CMakeFiles/cmTC_19b94.dir/CMakeCCompilerABI.c.o -c' -asm /tmp/nvcbi8viddq7t7aJ.ll
+        NVC++/x86-64 Linux 24.11-0: compilation successful
+        
+        /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/share/llvm/bin/llc /tmp/nvcbi8viddq7t7aJ.ll -march=x86-64 -mcpu=native -mattr=+mmx -mattr=+sse -mattr=+sse2 -mattr=+sse3 -mattr=+ssse3 -mattr=+sse4.1 -mattr=+sse4.2 -mattr=+avx -mattr=+avx2 -mattr=+avx512f -mattr=+avx512cd -mattr=+avx512vl -mattr=+avx512bw -mattr=+avx512dq -mattr=+avx512ifma -mattr=+avx512vbmi -mattr=+avx512vbmi2 -mattr=+avx512bitalg -mattr=+avx512vpopcntdq -mattr=+avx512vnni -mattr=+f16c -mattr=+fma -mattr=+xsave -mattr=+xsaveopt -mattr=+xsavec -mattr=+xsaves -mattr=+popcnt -mattr=+sha -mattr=+aes -mattr=+pclmul -mattr=+clflushopt -mattr=+fsgsbase -mattr=+rdrnd -mattr=+bmi -mattr=+bmi2 -mattr=+lzcnt -mattr=+fxsr -mattr=+pku -mattr=+gfni -mattr=+vaes -mattr=+vpclmulqdq -mattr=+movdiri -mattr=+movdir64b -mattr=+adx -mattr=+amx-bf16 -mattr=+amx-int8 -mattr=+amx-tile -mattr=+avx512bf16 -mattr=+avx512fp16 -mattr=+avxvnni -mattr=+cldemote -mattr=+clwb -mattr=+cx16 -mattr=+enqcmd -mattr=+movbe -mattr=+pconfig -mattr=+prfchw -mattr=+ptwrite -mattr=+rdpid -mattr=+rdseed -mattr=+sahf -mattr=+serialize -mattr=+sgx -mattr=+shstk -mattr=+tsxldtrk -mattr=+uintr -mattr=+waitpkg -mattr=+wbnoinvd -O1 -x86-cmov-converter=0 -dwarf-directory=false -non-global-value-max-name-size=4294967295 --align-all-functions=6 -nvhpc-memzero -relocation-model=pic -filetype=obj --frame-pointer=none -o CMakeFiles/cmTC_19b94.dir/CMakeCCompilerABI.c.o
+        Unlinking /tmp/nvcXi8vit71wkdX4.il
+        Unlinking /tmp/nvc5i8viRvfkdZG4.s
+        Unlinking /tmp/nvcbi8viddq7t7aJ.ll
+        Unlinking /tmp/nvcji8viBBW5KtHL.llvm
+        Linking C executable cmTC_19b94
+        /usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTC_19b94.dir/link.txt --verbose=1
+        Export NVCOMPILER=/home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11
+        Export PGI=/home/sibo/Music/nvidia-hpc-sdk
+        
+        /usr/bin/ld /usr/lib64/crt1.o /usr/lib64/crti.o /usr/lib/gcc/x86_64-redhat-linux/8//crtbegin.o --eh-frame-hdr -m elf_x86_64 -dynamic-linker /lib64/ld-linux-x86-64.so.2 -T /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/lib/nvhpc.ld -L/home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/lib -L/usr/lib64 -L/usr/lib/gcc/x86_64-redhat-linux/8/ CMakeFiles/cmTC_19b94.dir/CMakeCCompilerABI.c.o -rpath /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/lib -o cmTC_19b94 -L/usr/lib/gcc/x86_64-redhat-linux/8//../../../../lib64 -lnvomp -ldl --as-needed -lnvhpcatm --no-as-needed -lpthread -lnvcpumath -lnsnvc -lnvc -lgcc -lc -lgcc_s -lm /usr/lib/gcc/x86_64-redhat-linux/8//crtend.o /usr/lib64/crtn.o
+        /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/bin/nvc -m64 -fPIC  -m64 -v CMakeFiles/cmTC_19b94.dir/CMakeCCompilerABI.c.o -o cmTC_19b94
+        gmake[1]: Leaving directory '/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-Zy1wRt'
+        
+      exitCode: 0
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/usr/local/share/cmake-3.31/Modules/CMakeDetermineCompilerABI.cmake:182 (message)"
+      - "/usr/local/share/cmake-3.31/Modules/CMakeTestCCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:13 (project)"
+    message: |
+      Parsed C implicit include dir info: rv=start
+        warn: unable to parse implicit include dirs!
+      
+      
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/usr/local/share/cmake-3.31/Modules/CMakeDetermineCompilerABI.cmake:218 (message)"
+      - "/usr/local/share/cmake-3.31/Modules/CMakeTestCCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:13 (project)"
+    message: |
+      Parsed C implicit link information:
+        link line regex: [^( *|.*[/\\])(ld[0-9]*(\\.[a-z]+)?|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\\]+-)?ld|collect2)[^/\\]*( |$)]
+        linker tool regex: [^[ 	]*(->|")?[ 	]*(([^"]*[/\\])?(ld[0-9]*(\\.[a-z]+)?))("|,| |$)]
+        ignore line: [Change Dir: '/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-Zy1wRt']
+        ignore line: []
+        ignore line: [Run Build Command(s): /usr/local/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_19b94/fast]
+        ignore line: [/usr/bin/gmake  -f CMakeFiles/cmTC_19b94.dir/build.make CMakeFiles/cmTC_19b94.dir/build]
+        ignore line: [gmake[1]: Entering directory '/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-Zy1wRt']
+        ignore line: [Building C object CMakeFiles/cmTC_19b94.dir/CMakeCCompilerABI.c.o]
+        ignore line: [/home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/bin/nvc   -m64 -fPIC    -v -MD -MT CMakeFiles/cmTC_19b94.dir/CMakeCCompilerABI.c.o -MF CMakeFiles/cmTC_19b94.dir/CMakeCCompilerABI.c.o.d -o CMakeFiles/cmTC_19b94.dir/CMakeCCompilerABI.c.o -c /usr/local/share/cmake-3.31/Modules/CMakeCCompilerABI.c]
+        ignore line: [Export NVCOMPILER=/home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11]
+        ignore line: [Export PGI=/home/sibo/Music/nvidia-hpc-sdk]
+        ignore line: [Create file CMakeFiles/cmTC_19b94.dir/CMakeCCompilerABI.c.o.d]
+        ignore line: []
+        ignore line: [/home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/bin/tools/nvcpfe -- --llalign -D__GNUC__=8 -D__GNUC_MINOR__=5 -D__GNUC_PATCHLEVEL__=0 -D__unix -D__unix__ -Dunix -Dlinux -D__linux -D__linux__ -D__ELF__ -D__NO_MATH_INLINES -D__LP64__ -D__x86_64 -D__x86_64__ -D__LONG_MAX__=9223372036854775807L '-D__SIZE_TYPE__=unsigned long int' '-D__PTRDIFF_TYPE__=long int' -D__amd64 -D__amd64__ -D__k8 -D__k8__ -D__MMX__ -D__SSE_MATH__ -D__MMX_WITH_SSE__ -D__SSE__ -D__SSE2__ -D__SSE2_MATH__ -D__SSE3__ -D__SSSE3__ -D__SSE4_1__ -D__SSE4_2__ -D__ABM__ -D__ADX__ -D__AES__ -D__AMX_BF16__ -D__AMX_INT8__ -D__AMX_TILE__ -D__AVX__ -D__AVX2__ -D__AVX512BF16__ -D__AVX512BITALG__ -D__AVX512BW__ -D__AVX512CD__ -D__AVX512DQ__ -D__AVX512F__ -D__AVX512FP16__ -D__AVX512IFMA__ -D__AVX512VBMI__ -D__AVX512VBMI2__ -D__AVX512VL__ -D__AVX512VNNI__ -D__AVX512VPOPCNTDQ__ -D__AVXVNNI__ -D__BMI__ -D__BMI2__ -D__CLDEMOTE__ -D__CLFLUSHOPT__ -D__CLWB__ -D__CX16__ -D__ENQCMD__ -D__F16C__ -D__FMA__ -D__FSGSBASE__ -D__FXSR__ -D__GFNI__ -D__LZCNT__ -D__MOVBE__ -D__MOVDIR64B__ -D__MOVDIRI__ -D__PCLMUL__ -D__PCONFIG__ -D__PKU__ -D__POPCNT__ -D__PRFCHW__ -D__PTWRITE__ -D__RDPID__ -D__RDRND__ -D__RDSEED__ -D__LAHF_SAHF__ -D__SERIALIZE__ -D__SGX__ -D__SHA__ -D__SHSTK__ -D__TSXLDTRK__ -D__UINTR__ -D__VAES__ -D__VPCLMULQDQ__ -D__WAITPKG__ -D__WBNOINVD__ -D__XSAVE__ -D__XSAVEC__ -D__XSAVEOPT__ -D__XSAVES__ -D__PGI -D__NVCOMPILER -D_PGCG_SOURCE --c -I- --sys_include /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/include --sys_include /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/include-stdexec --sys_include /usr/lib/gcc/x86_64-redhat-linux/8/include --sys_include /usr/local/include --sys_include /usr/include -D__PGLLVM__ -D__NVCOMPILER_LLVM__ -D__extension__= -D__PIC__ --preinclude _cplus_preinclude.h --preinclude_macros _cplus_macros.h --gnu_version=80500 -D__pgnu_vsn=80500 --no_fixed_bp --dependencies_target_to_stdout CMakeFiles/cmTC_19b94.dir/CMakeCCompilerABI.c.o --dependencies_to_file CMakeFiles/cmTC_19b94.dir/CMakeCCompilerABI.c.o.d -q -o /tmp/nvcXi8vit71wkdX4.il /usr/local/share/cmake-3.31/Modules/CMakeCCompilerABI.c -- /usr/local/share/cmake-3.31/Modules/CMakeCCompilerABI.c -opt 1 -x 119 0xa10000 -x 122 0x40 -x 123 0x1000 -x 127 4 -x 127 17 -x 19 0x400000 -x 28 0x40000 -x 120 0x10000000 -x 70 0x8000 -x 122 1 -x 125 0x20000 -quad -x 59 4 -tp sapphirerapids -x 120 0x1000 -astype 0 -x 121 1 -fn /usr/local/share/cmake-3.31/Modules/CMakeCCompilerABI.c -il /tmp/nvcXi8vit71wkdX4.il -x 123 0x80000000 -x 123 4 -x 2 0x400 -x 209 0x10 -x 119 0x20 -def __pgnu_vsn=80500 -x 70 0x40000000 -x 183 4 -x 121 0x800 -x 6 0x20000 -x 122 0x400000 -y 125 0x100000 -x 249 170 -x 120 0x200000 -x 70 0x40000000 -x 8 0x40000000 -x 164 0x800000 -x 71 0x2000 -x 71 0x4000 -x 34 0x40000000 -x 120 0x1000000 -x 73 0x04 -x 231 0x800 -x 68 0x1 -x 39 4 -x 56 0x10 -x 26 0x10 -x 26 1 -x 56 0x4000 -x 197 0 -x 175 0 -x 203 0 -x 204 0 -x 227 0xFFFF -y 163 0xc0000000 -x 189 0x10 -y 189 0x4000000 -x 60 512 -x 62 8 -gnuvsn 80500 -x 69 0x200 -mach 0 -nomach 0 -x 123 0x400 -cmdline '+nvc /usr/local/share/cmake-3.31/Modules/CMakeCCompilerABI.c -m64 -fPIC -v -MD -MT CMakeFiles/cmTC_19b94.dir/CMakeCCompilerABI.c.o -MF CMakeFiles/cmTC_19b94.dir/CMakeCCompilerABI.c.o.d -o CMakeFiles/cmTC_19b94.dir/CMakeCCompilerABI.c.o -c' -asm /tmp/nvcbi8viddq7t7aJ.ll]
+        ignore line: [NVC++/x86-64 Linux 24.11-0: compilation successful]
+        ignore line: []
+        ignore line: [/home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/share/llvm/bin/llc /tmp/nvcbi8viddq7t7aJ.ll -march=x86-64 -mcpu=native -mattr=+mmx -mattr=+sse -mattr=+sse2 -mattr=+sse3 -mattr=+ssse3 -mattr=+sse4.1 -mattr=+sse4.2 -mattr=+avx -mattr=+avx2 -mattr=+avx512f -mattr=+avx512cd -mattr=+avx512vl -mattr=+avx512bw -mattr=+avx512dq -mattr=+avx512ifma -mattr=+avx512vbmi -mattr=+avx512vbmi2 -mattr=+avx512bitalg -mattr=+avx512vpopcntdq -mattr=+avx512vnni -mattr=+f16c -mattr=+fma -mattr=+xsave -mattr=+xsaveopt -mattr=+xsavec -mattr=+xsaves -mattr=+popcnt -mattr=+sha -mattr=+aes -mattr=+pclmul -mattr=+clflushopt -mattr=+fsgsbase -mattr=+rdrnd -mattr=+bmi -mattr=+bmi2 -mattr=+lzcnt -mattr=+fxsr -mattr=+pku -mattr=+gfni -mattr=+vaes -mattr=+vpclmulqdq -mattr=+movdiri -mattr=+movdir64b -mattr=+adx -mattr=+amx-bf16 -mattr=+amx-int8 -mattr=+amx-tile -mattr=+avx512bf16 -mattr=+avx512fp16 -mattr=+avxvnni -mattr=+cldemote -mattr=+clwb -mattr=+cx16 -mattr=+enqcmd -mattr=+movbe -mattr=+pconfig -mattr=+prfchw -mattr=+ptwrite -mattr=+rdpid -mattr=+rdseed -mattr=+sahf -mattr=+serialize -mattr=+sgx -mattr=+shstk -mattr=+tsxldtrk -mattr=+uintr -mattr=+waitpkg -mattr=+wbnoinvd -O1 -x86-cmov-converter=0 -dwarf-directory=false -non-global-value-max-name-size=4294967295 --align-all-functions=6 -nvhpc-memzero -relocation-model=pic -filetype=obj --frame-pointer=none -o CMakeFiles/cmTC_19b94.dir/CMakeCCompilerABI.c.o]
+        ignore line: [Unlinking /tmp/nvcXi8vit71wkdX4.il]
+        ignore line: [Unlinking /tmp/nvc5i8viRvfkdZG4.s]
+        ignore line: [Unlinking /tmp/nvcbi8viddq7t7aJ.ll]
+        ignore line: [Unlinking /tmp/nvcji8viBBW5KtHL.llvm]
+        ignore line: [Linking C executable cmTC_19b94]
+        ignore line: [/usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTC_19b94.dir/link.txt --verbose=1]
+        ignore line: [Export NVCOMPILER=/home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11]
+        ignore line: [Export PGI=/home/sibo/Music/nvidia-hpc-sdk]
+        ignore line: []
+        link line: [/usr/bin/ld /usr/lib64/crt1.o /usr/lib64/crti.o /usr/lib/gcc/x86_64-redhat-linux/8//crtbegin.o --eh-frame-hdr -m elf_x86_64 -dynamic-linker /lib64/ld-linux-x86-64.so.2 -T /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/lib/nvhpc.ld -L/home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/lib -L/usr/lib64 -L/usr/lib/gcc/x86_64-redhat-linux/8/ CMakeFiles/cmTC_19b94.dir/CMakeCCompilerABI.c.o -rpath /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/lib -o cmTC_19b94 -L/usr/lib/gcc/x86_64-redhat-linux/8//../../../../lib64 -lnvomp -ldl --as-needed -lnvhpcatm --no-as-needed -lpthread -lnvcpumath -lnsnvc -lnvc -lgcc -lc -lgcc_s -lm /usr/lib/gcc/x86_64-redhat-linux/8//crtend.o /usr/lib64/crtn.o]
+          arg [/usr/bin/ld] ==> ignore
+          arg [/usr/lib64/crt1.o] ==> obj [/usr/lib64/crt1.o]
+          arg [/usr/lib64/crti.o] ==> obj [/usr/lib64/crti.o]
+          arg [/usr/lib/gcc/x86_64-redhat-linux/8//crtbegin.o] ==> obj [/usr/lib/gcc/x86_64-redhat-linux/8//crtbegin.o]
+          arg [--eh-frame-hdr] ==> ignore
+          arg [-m] ==> ignore
+          arg [elf_x86_64] ==> ignore
+          arg [-dynamic-linker] ==> ignore
+          arg [/lib64/ld-linux-x86-64.so.2] ==> ignore
+          arg [-T] ==> ignore
+          arg [/home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/lib/nvhpc.ld] ==> ignore
+          arg [-L/home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/lib] ==> dir [/home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/lib]
+          arg [-L/usr/lib64] ==> dir [/usr/lib64]
+          arg [-L/usr/lib/gcc/x86_64-redhat-linux/8/] ==> dir [/usr/lib/gcc/x86_64-redhat-linux/8/]
+          arg [CMakeFiles/cmTC_19b94.dir/CMakeCCompilerABI.c.o] ==> ignore
+          arg [-rpath] ==> ignore
+          arg [/home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/lib] ==> ignore
+          arg [-o] ==> ignore
+          arg [cmTC_19b94] ==> ignore
+          arg [-L/usr/lib/gcc/x86_64-redhat-linux/8//../../../../lib64] ==> dir [/usr/lib/gcc/x86_64-redhat-linux/8//../../../../lib64]
+          arg [-lnvomp] ==> lib [nvomp]
+          arg [-ldl] ==> lib [dl]
+          arg [--as-needed] ==> ignore
+          arg [-lnvhpcatm] ==> lib [nvhpcatm]
+          arg [--no-as-needed] ==> ignore
+          arg [-lpthread] ==> lib [pthread]
+          arg [-lnvcpumath] ==> lib [nvcpumath]
+          arg [-lnsnvc] ==> lib [nsnvc]
+          arg [-lnvc] ==> lib [nvc]
+          arg [-lgcc] ==> lib [gcc]
+          arg [-lc] ==> lib [c]
+          arg [-lgcc_s] ==> lib [gcc_s]
+          arg [-lm] ==> lib [m]
+          arg [/usr/lib/gcc/x86_64-redhat-linux/8//crtend.o] ==> obj [/usr/lib/gcc/x86_64-redhat-linux/8//crtend.o]
+          arg [/usr/lib64/crtn.o] ==> obj [/usr/lib64/crtn.o]
+        linker tool for 'C': /usr/bin/ld
+        collapse obj [/usr/lib/gcc/x86_64-redhat-linux/8//crtbegin.o] ==> [/usr/lib/gcc/x86_64-redhat-linux/8/crtbegin.o]
+        collapse obj [/usr/lib/gcc/x86_64-redhat-linux/8//crtend.o] ==> [/usr/lib/gcc/x86_64-redhat-linux/8/crtend.o]
+        collapse library dir [/home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/lib] ==> [/home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/lib]
+        collapse library dir [/usr/lib64] ==> [/usr/lib64]
+        collapse library dir [/usr/lib/gcc/x86_64-redhat-linux/8/] ==> [/usr/lib/gcc/x86_64-redhat-linux/8]
+        collapse library dir [/usr/lib/gcc/x86_64-redhat-linux/8//../../../../lib64] ==> [/usr/lib64]
+        implicit libs: [nvomp;dl;nvhpcatm;pthread;nvcpumath;nsnvc;nvc;gcc;c;gcc_s;m]
+        implicit objs: [/usr/lib64/crt1.o;/usr/lib64/crti.o;/usr/lib/gcc/x86_64-redhat-linux/8/crtbegin.o;/usr/lib/gcc/x86_64-redhat-linux/8/crtend.o;/usr/lib64/crtn.o]
+        implicit dirs: [/home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/lib;/usr/lib64;/usr/lib/gcc/x86_64-redhat-linux/8]
+        implicit fwks: []
+      
+      
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/usr/local/share/cmake-3.31/Modules/Internal/CMakeDetermineLinkerId.cmake:40 (message)"
+      - "/usr/local/share/cmake-3.31/Modules/CMakeDetermineCompilerABI.cmake:255 (cmake_determine_linker_id)"
+      - "/usr/local/share/cmake-3.31/Modules/CMakeTestCCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:13 (project)"
+    message: |
+      Running the C compiler's linker: "/usr/bin/ld" "-v"
+      GNU ld version 2.30-123.el8
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/local/share/cmake-3.31/Modules/CMakeDetermineCompilerABI.cmake:74 (try_compile)"
+      - "/usr/local/share/cmake-3.31/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:13 (project)"
+    checks:
+      - "Detecting CXX compiler ABI info"
+    directories:
+      source: "/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-CzGHD8"
+      binary: "/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-CzGHD8"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: "-std=c++17 -m64 -fPIC"
+      CMAKE_CXX_FLAGS_DEBUG: "-g -O0"
+      CMAKE_CXX_SCAN_FOR_MODULES: "OFF"
+      CMAKE_EXE_LINKER_FLAGS: "-m64"
+      CMAKE_MODULE_PATH: "/home/sibo/TesboCFD/ThirdParty-v2412/sources/kahip/kahip-3.15/cmake"
+    buildResult:
+      variable: "CMAKE_CXX_ABI_COMPILED"
+      cached: true
+      stdout: |
+        Change Dir: '/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-CzGHD8'
+        
+        Run Build Command(s): /usr/local/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_e7bda/fast
+        /usr/bin/gmake  -f CMakeFiles/cmTC_e7bda.dir/build.make CMakeFiles/cmTC_e7bda.dir/build
+        gmake[1]: Entering directory '/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-CzGHD8'
+        Building CXX object CMakeFiles/cmTC_e7bda.dir/CMakeCXXCompilerABI.cpp.o
+        /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/bin/nvc++   -std=c++17 -m64 -fPIC    -v -MD -MT CMakeFiles/cmTC_e7bda.dir/CMakeCXXCompilerABI.cpp.o -MF CMakeFiles/cmTC_e7bda.dir/CMakeCXXCompilerABI.cpp.o.d -o CMakeFiles/cmTC_e7bda.dir/CMakeCXXCompilerABI.cpp.o -c /usr/local/share/cmake-3.31/Modules/CMakeCXXCompilerABI.cpp
+        Export NVCOMPILER=/home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11
+        Export PGI=/home/sibo/Music/nvidia-hpc-sdk
+        Create file CMakeFiles/cmTC_e7bda.dir/CMakeCXXCompilerABI.cpp.o.d
+        
+        /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/bin/tools/nvcpfe -- --llalign -D__GNUC__=8 -D__GNUC_MINOR__=5 -D__GNUC_PATCHLEVEL__=0 -D__unix -D__unix__ -D__linux -D__linux__ -D__ELF__ -D__NO_MATH_INLINES -D__LP64__ -D__x86_64 -D__x86_64__ -D__LONG_MAX__=9223372036854775807L '-D__SIZE_TYPE__=unsigned long int' '-D__PTRDIFF_TYPE__=long int' -D__amd64 -D__amd64__ -D__k8 -D__k8__ -D__MMX__ -D__SSE_MATH__ -D__MMX_WITH_SSE__ -D__SSE__ -D__SSE2__ -D__SSE2_MATH__ -D__SSE3__ -D__SSSE3__ -D__SSE4_1__ -D__SSE4_2__ -D__ABM__ -D__ADX__ -D__AES__ -D__AMX_BF16__ -D__AMX_INT8__ -D__AMX_TILE__ -D__AVX__ -D__AVX2__ -D__AVX512BF16__ -D__AVX512BITALG__ -D__AVX512BW__ -D__AVX512CD__ -D__AVX512DQ__ -D__AVX512F__ -D__AVX512FP16__ -D__AVX512IFMA__ -D__AVX512VBMI__ -D__AVX512VBMI2__ -D__AVX512VL__ -D__AVX512VNNI__ -D__AVX512VPOPCNTDQ__ -D__AVXVNNI__ -D__BMI__ -D__BMI2__ -D__CLDEMOTE__ -D__CLFLUSHOPT__ -D__CLWB__ -D__CX16__ -D__ENQCMD__ -D__F16C__ -D__FMA__ -D__FSGSBASE__ -D__FXSR__ -D__GFNI__ -D__LZCNT__ -D__MOVBE__ -D__MOVDIR64B__ -D__MOVDIRI__ -D__PCLMUL__ -D__PCONFIG__ -D__PKU__ -D__POPCNT__ -D__PRFCHW__ -D__PTWRITE__ -D__RDPID__ -D__RDRND__ -D__RDSEED__ -D__LAHF_SAHF__ -D__SERIALIZE__ -D__SGX__ -D__SHA__ -D__SHSTK__ -D__TSXLDTRK__ -D__UINTR__ -D__VAES__ -D__VPCLMULQDQ__ -D__WAITPKG__ -D__WBNOINVD__ -D__XSAVE__ -D__XSAVEC__ -D__XSAVEOPT__ -D__XSAVES__ -D__PGI -D__NVCOMPILER -D_GNU_SOURCE -D_PGCG_SOURCE --c++17 -I- --sys_include /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/include --sys_include /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/include-stdexec --sys_include /usr/lib/gcc/x86_64-redhat-linux/8/../../../../include/c++/8 --sys_include /usr/lib/gcc/x86_64-redhat-linux/8/../../../../include/c++/8/x86_64-redhat-linux --sys_include /usr/lib/gcc/x86_64-redhat-linux/8/../../../../include/c++/8/backward --sys_include /usr/lib/gcc/x86_64-redhat-linux/8/include --sys_include /usr/local/include --sys_include /usr/include -D__PGLLVM__ -D__NVCOMPILER_LLVM__ -D__extension__= -D__PIC__ --preinclude _cplus_preinclude.h --preinclude_macros _cplus_macros.h --gnu_version=80500 -D__pgnu_vsn=80500 --no_fixed_bp --dependencies_target_to_stdout CMakeFiles/cmTC_e7bda.dir/CMakeCXXCompilerABI.cpp.o --dependencies_to_file CMakeFiles/cmTC_e7bda.dir/CMakeCXXCompilerABI.cpp.o.d -q -o /tmp/nvc++Iy8viMecm72uP.il /usr/local/share/cmake-3.31/Modules/CMakeCXXCompilerABI.cpp -- /usr/local/share/cmake-3.31/Modules/CMakeCXXCompilerABI.cpp -opt 1 -x 119 0xa10000 -x 122 0x40 -x 123 0x1000 -x 127 4 -x 127 17 -x 19 0x400000 -x 28 0x40000 -x 120 0x10000000 -x 70 0x8000 -x 122 1 -x 125 0x20000 -quad -x 59 4 -tp sapphirerapids -x 120 0x1000 -astype 0 -x 121 1 -fn /usr/local/share/cmake-3.31/Modules/CMakeCXXCompilerABI.cpp -il /tmp/nvc++Iy8viMecm72uP.il -x 117 0x200 -x 123 0x80000000 -x 123 4 -x 2 0x400 -x 209 0x10 -x 119 0x20 -def __pgnu_vsn=80500 -x 70 0x40000000 -x 183 4 -x 121 0x800 -x 6 0x20000 -x 249 170 -x 120 0x200000 -x 70 0x40000000 -x 8 0x40000000 -x 164 0x800000 -x 71 0x2000 -x 71 0x4000 -x 34 0x40000000 -x 120 0x1000000 -x 73 0x04 -x 231 0x800 -x 68 0x1 -x 39 4 -x 56 0x10 -x 26 0x10 -x 26 1 -x 56 0x4000 -x 197 0 -x 175 0 -x 203 0 -x 204 0 -x 227 0xFFFF -y 163 0xc0000000 -x 189 0x10 -y 189 0x4000000 -x 60 512 -x 62 8 -gnuvsn 80500 -x 69 0x200 -mach 0 -nomach 0 -x 123 0x400 -cmdline '+nvc++ /usr/local/share/cmake-3.31/Modules/CMakeCXXCompilerABI.cpp -std=c++17 -m64 -fPIC -v -MD -MT CMakeFiles/cmTC_e7bda.dir/CMakeCXXCompilerABI.cpp.o -MF CMakeFiles/cmTC_e7bda.dir/CMakeCXXCompilerABI.cpp.o.d -o CMakeFiles/cmTC_e7bda.dir/CMakeCXXCompilerABI.cpp.o -c' -asm /tmp/nvc++cy8vig0NqdNL3.ll
+        NVC++/x86-64 Linux 24.11-0: compilation successful
+        
+        /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/share/llvm/bin/llc /tmp/nvc++cy8vig0NqdNL3.ll -march=x86-64 -mcpu=native -mattr=+mmx -mattr=+sse -mattr=+sse2 -mattr=+sse3 -mattr=+ssse3 -mattr=+sse4.1 -mattr=+sse4.2 -mattr=+avx -mattr=+avx2 -mattr=+avx512f -mattr=+avx512cd -mattr=+avx512vl -mattr=+avx512bw -mattr=+avx512dq -mattr=+avx512ifma -mattr=+avx512vbmi -mattr=+avx512vbmi2 -mattr=+avx512bitalg -mattr=+avx512vpopcntdq -mattr=+avx512vnni -mattr=+f16c -mattr=+fma -mattr=+xsave -mattr=+xsaveopt -mattr=+xsavec -mattr=+xsaves -mattr=+popcnt -mattr=+sha -mattr=+aes -mattr=+pclmul -mattr=+clflushopt -mattr=+fsgsbase -mattr=+rdrnd -mattr=+bmi -mattr=+bmi2 -mattr=+lzcnt -mattr=+fxsr -mattr=+pku -mattr=+gfni -mattr=+vaes -mattr=+vpclmulqdq -mattr=+movdiri -mattr=+movdir64b -mattr=+adx -mattr=+amx-bf16 -mattr=+amx-int8 -mattr=+amx-tile -mattr=+avx512bf16 -mattr=+avx512fp16 -mattr=+avxvnni -mattr=+cldemote -mattr=+clwb -mattr=+cx16 -mattr=+enqcmd -mattr=+movbe -mattr=+pconfig -mattr=+prfchw -mattr=+ptwrite -mattr=+rdpid -mattr=+rdseed -mattr=+sahf -mattr=+serialize -mattr=+sgx -mattr=+shstk -mattr=+tsxldtrk -mattr=+uintr -mattr=+waitpkg -mattr=+wbnoinvd -O1 -x86-cmov-converter=0 -dwarf-directory=false -non-global-value-max-name-size=4294967295 --align-all-functions=6 -nvhpc-memzero -relocation-model=pic -filetype=obj --frame-pointer=none -o CMakeFiles/cmTC_e7bda.dir/CMakeCXXCompilerABI.cpp.o
+        Unlinking /tmp/nvc++Iy8viMecm72uP.il
+        Unlinking /tmp/nvc++Yy8viwPsLBhLb.s
+        Unlinking /tmp/nvc++cy8vig0NqdNL3.ll
+        Unlinking /tmp/nvc++sy8vi2uMEl1GT.llvm
+        Linking CXX executable cmTC_e7bda
+        /usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTC_e7bda.dir/link.txt --verbose=1
+        Export NVCOMPILER=/home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11
+        Export PGI=/home/sibo/Music/nvidia-hpc-sdk
+        
+        /usr/bin/ld /usr/lib64/crt1.o /usr/lib64/crti.o /usr/lib/gcc/x86_64-redhat-linux/8//crtbegin.o --eh-frame-hdr -m elf_x86_64 -dynamic-linker /lib64/ld-linux-x86-64.so.2 -T /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/lib/nvhpc.ld -L/home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/lib -L/usr/lib64 -L/usr/lib/gcc/x86_64-redhat-linux/8/ CMakeFiles/cmTC_e7bda.dir/CMakeCXXCompilerABI.cpp.o -rpath /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/lib -o cmTC_e7bda -L/usr/lib/gcc/x86_64-redhat-linux/8//../../../../lib64 -lnvhpcatm -lstdc++ -lnvomp -ldl --as-needed -lnvhpcatm --no-as-needed -lpthread -lnvcpumath -lnsnvc -lnvc -lgcc -lc -lgcc_s -lm /usr/lib/gcc/x86_64-redhat-linux/8//crtend.o /usr/lib64/crtn.o
+        /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/bin/nvc++ -std=c++17 -m64 -fPIC  -m64 -v CMakeFiles/cmTC_e7bda.dir/CMakeCXXCompilerABI.cpp.o -o cmTC_e7bda
+        gmake[1]: Leaving directory '/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-CzGHD8'
+        
+      exitCode: 0
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/usr/local/share/cmake-3.31/Modules/CMakeDetermineCompilerABI.cmake:182 (message)"
+      - "/usr/local/share/cmake-3.31/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:13 (project)"
+    message: |
+      Parsed CXX implicit include dir info: rv=start
+        warn: unable to parse implicit include dirs!
+      
+      
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/usr/local/share/cmake-3.31/Modules/CMakeDetermineCompilerABI.cmake:218 (message)"
+      - "/usr/local/share/cmake-3.31/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:13 (project)"
+    message: |
+      Parsed CXX implicit link information:
+        link line regex: [^( *|.*[/\\])(ld[0-9]*(\\.[a-z]+)?|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\\]+-)?ld|collect2)[^/\\]*( |$)]
+        linker tool regex: [^[ 	]*(->|")?[ 	]*(([^"]*[/\\])?(ld[0-9]*(\\.[a-z]+)?))("|,| |$)]
+        ignore line: [Change Dir: '/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-CzGHD8']
+        ignore line: []
+        ignore line: [Run Build Command(s): /usr/local/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_e7bda/fast]
+        ignore line: [/usr/bin/gmake  -f CMakeFiles/cmTC_e7bda.dir/build.make CMakeFiles/cmTC_e7bda.dir/build]
+        ignore line: [gmake[1]: Entering directory '/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-CzGHD8']
+        ignore line: [Building CXX object CMakeFiles/cmTC_e7bda.dir/CMakeCXXCompilerABI.cpp.o]
+        ignore line: [/home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/bin/nvc++   -std=c++17 -m64 -fPIC    -v -MD -MT CMakeFiles/cmTC_e7bda.dir/CMakeCXXCompilerABI.cpp.o -MF CMakeFiles/cmTC_e7bda.dir/CMakeCXXCompilerABI.cpp.o.d -o CMakeFiles/cmTC_e7bda.dir/CMakeCXXCompilerABI.cpp.o -c /usr/local/share/cmake-3.31/Modules/CMakeCXXCompilerABI.cpp]
+        ignore line: [Export NVCOMPILER=/home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11]
+        ignore line: [Export PGI=/home/sibo/Music/nvidia-hpc-sdk]
+        ignore line: [Create file CMakeFiles/cmTC_e7bda.dir/CMakeCXXCompilerABI.cpp.o.d]
+        ignore line: []
+        ignore line: [/home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/bin/tools/nvcpfe -- --llalign -D__GNUC__=8 -D__GNUC_MINOR__=5 -D__GNUC_PATCHLEVEL__=0 -D__unix -D__unix__ -D__linux -D__linux__ -D__ELF__ -D__NO_MATH_INLINES -D__LP64__ -D__x86_64 -D__x86_64__ -D__LONG_MAX__=9223372036854775807L '-D__SIZE_TYPE__=unsigned long int' '-D__PTRDIFF_TYPE__=long int' -D__amd64 -D__amd64__ -D__k8 -D__k8__ -D__MMX__ -D__SSE_MATH__ -D__MMX_WITH_SSE__ -D__SSE__ -D__SSE2__ -D__SSE2_MATH__ -D__SSE3__ -D__SSSE3__ -D__SSE4_1__ -D__SSE4_2__ -D__ABM__ -D__ADX__ -D__AES__ -D__AMX_BF16__ -D__AMX_INT8__ -D__AMX_TILE__ -D__AVX__ -D__AVX2__ -D__AVX512BF16__ -D__AVX512BITALG__ -D__AVX512BW__ -D__AVX512CD__ -D__AVX512DQ__ -D__AVX512F__ -D__AVX512FP16__ -D__AVX512IFMA__ -D__AVX512VBMI__ -D__AVX512VBMI2__ -D__AVX512VL__ -D__AVX512VNNI__ -D__AVX512VPOPCNTDQ__ -D__AVXVNNI__ -D__BMI__ -D__BMI2__ -D__CLDEMOTE__ -D__CLFLUSHOPT__ -D__CLWB__ -D__CX16__ -D__ENQCMD__ -D__F16C__ -D__FMA__ -D__FSGSBASE__ -D__FXSR__ -D__GFNI__ -D__LZCNT__ -D__MOVBE__ -D__MOVDIR64B__ -D__MOVDIRI__ -D__PCLMUL__ -D__PCONFIG__ -D__PKU__ -D__POPCNT__ -D__PRFCHW__ -D__PTWRITE__ -D__RDPID__ -D__RDRND__ -D__RDSEED__ -D__LAHF_SAHF__ -D__SERIALIZE__ -D__SGX__ -D__SHA__ -D__SHSTK__ -D__TSXLDTRK__ -D__UINTR__ -D__VAES__ -D__VPCLMULQDQ__ -D__WAITPKG__ -D__WBNOINVD__ -D__XSAVE__ -D__XSAVEC__ -D__XSAVEOPT__ -D__XSAVES__ -D__PGI -D__NVCOMPILER -D_GNU_SOURCE -D_PGCG_SOURCE --c++17 -I- --sys_include /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/include --sys_include /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/include-stdexec --sys_include /usr/lib/gcc/x86_64-redhat-linux/8/../../../../include/c++/8 --sys_include /usr/lib/gcc/x86_64-redhat-linux/8/../../../../include/c++/8/x86_64-redhat-linux --sys_include /usr/lib/gcc/x86_64-redhat-linux/8/../../../../include/c++/8/backward --sys_include /usr/lib/gcc/x86_64-redhat-linux/8/include --sys_include /usr/local/include --sys_include /usr/include -D__PGLLVM__ -D__NVCOMPILER_LLVM__ -D__extension__= -D__PIC__ --preinclude _cplus_preinclude.h --preinclude_macros _cplus_macros.h --gnu_version=80500 -D__pgnu_vsn=80500 --no_fixed_bp --dependencies_target_to_stdout CMakeFiles/cmTC_e7bda.dir/CMakeCXXCompilerABI.cpp.o --dependencies_to_file CMakeFiles/cmTC_e7bda.dir/CMakeCXXCompilerABI.cpp.o.d -q -o /tmp/nvc++Iy8viMecm72uP.il /usr/local/share/cmake-3.31/Modules/CMakeCXXCompilerABI.cpp -- /usr/local/share/cmake-3.31/Modules/CMakeCXXCompilerABI.cpp -opt 1 -x 119 0xa10000 -x 122 0x40 -x 123 0x1000 -x 127 4 -x 127 17 -x 19 0x400000 -x 28 0x40000 -x 120 0x10000000 -x 70 0x8000 -x 122 1 -x 125 0x20000 -quad -x 59 4 -tp sapphirerapids -x 120 0x1000 -astype 0 -x 121 1 -fn /usr/local/share/cmake-3.31/Modules/CMakeCXXCompilerABI.cpp -il /tmp/nvc++Iy8viMecm72uP.il -x 117 0x200 -x 123 0x80000000 -x 123 4 -x 2 0x400 -x 209 0x10 -x 119 0x20 -def __pgnu_vsn=80500 -x 70 0x40000000 -x 183 4 -x 121 0x800 -x 6 0x20000 -x 249 170 -x 120 0x200000 -x 70 0x40000000 -x 8 0x40000000 -x 164 0x800000 -x 71 0x2000 -x 71 0x4000 -x 34 0x40000000 -x 120 0x1000000 -x 73 0x04 -x 231 0x800 -x 68 0x1 -x 39 4 -x 56 0x10 -x 26 0x10 -x 26 1 -x 56 0x4000 -x 197 0 -x 175 0 -x 203 0 -x 204 0 -x 227 0xFFFF -y 163 0xc0000000 -x 189 0x10 -y 189 0x4000000 -x 60 512 -x 62 8 -gnuvsn 80500 -x 69 0x200 -mach 0 -nomach 0 -x 123 0x400 -cmdline '+nvc++ /usr/local/share/cmake-3.31/Modules/CMakeCXXCompilerABI.cpp -std=c++17 -m64 -fPIC -v -MD -MT CMakeFiles/cmTC_e7bda.dir/CMakeCXXCompilerABI.cpp.o -MF CMakeFiles/cmTC_e7bda.dir/CMakeCXXCompilerABI.cpp.o.d -o CMakeFiles/cmTC_e7bda.dir/CMakeCXXCompilerABI.cpp.o -c' -asm /tmp/nvc++cy8vig0NqdNL3.ll]
+        ignore line: [NVC++/x86-64 Linux 24.11-0: compilation successful]
+        ignore line: []
+        ignore line: [/home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/share/llvm/bin/llc /tmp/nvc++cy8vig0NqdNL3.ll -march=x86-64 -mcpu=native -mattr=+mmx -mattr=+sse -mattr=+sse2 -mattr=+sse3 -mattr=+ssse3 -mattr=+sse4.1 -mattr=+sse4.2 -mattr=+avx -mattr=+avx2 -mattr=+avx512f -mattr=+avx512cd -mattr=+avx512vl -mattr=+avx512bw -mattr=+avx512dq -mattr=+avx512ifma -mattr=+avx512vbmi -mattr=+avx512vbmi2 -mattr=+avx512bitalg -mattr=+avx512vpopcntdq -mattr=+avx512vnni -mattr=+f16c -mattr=+fma -mattr=+xsave -mattr=+xsaveopt -mattr=+xsavec -mattr=+xsaves -mattr=+popcnt -mattr=+sha -mattr=+aes -mattr=+pclmul -mattr=+clflushopt -mattr=+fsgsbase -mattr=+rdrnd -mattr=+bmi -mattr=+bmi2 -mattr=+lzcnt -mattr=+fxsr -mattr=+pku -mattr=+gfni -mattr=+vaes -mattr=+vpclmulqdq -mattr=+movdiri -mattr=+movdir64b -mattr=+adx -mattr=+amx-bf16 -mattr=+amx-int8 -mattr=+amx-tile -mattr=+avx512bf16 -mattr=+avx512fp16 -mattr=+avxvnni -mattr=+cldemote -mattr=+clwb -mattr=+cx16 -mattr=+enqcmd -mattr=+movbe -mattr=+pconfig -mattr=+prfchw -mattr=+ptwrite -mattr=+rdpid -mattr=+rdseed -mattr=+sahf -mattr=+serialize -mattr=+sgx -mattr=+shstk -mattr=+tsxldtrk -mattr=+uintr -mattr=+waitpkg -mattr=+wbnoinvd -O1 -x86-cmov-converter=0 -dwarf-directory=false -non-global-value-max-name-size=4294967295 --align-all-functions=6 -nvhpc-memzero -relocation-model=pic -filetype=obj --frame-pointer=none -o CMakeFiles/cmTC_e7bda.dir/CMakeCXXCompilerABI.cpp.o]
+        ignore line: [Unlinking /tmp/nvc++Iy8viMecm72uP.il]
+        ignore line: [Unlinking /tmp/nvc++Yy8viwPsLBhLb.s]
+        ignore line: [Unlinking /tmp/nvc++cy8vig0NqdNL3.ll]
+        ignore line: [Unlinking /tmp/nvc++sy8vi2uMEl1GT.llvm]
+        ignore line: [Linking CXX executable cmTC_e7bda]
+        ignore line: [/usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTC_e7bda.dir/link.txt --verbose=1]
+        ignore line: [Export NVCOMPILER=/home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11]
+        ignore line: [Export PGI=/home/sibo/Music/nvidia-hpc-sdk]
+        ignore line: []
+        link line: [/usr/bin/ld /usr/lib64/crt1.o /usr/lib64/crti.o /usr/lib/gcc/x86_64-redhat-linux/8//crtbegin.o --eh-frame-hdr -m elf_x86_64 -dynamic-linker /lib64/ld-linux-x86-64.so.2 -T /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/lib/nvhpc.ld -L/home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/lib -L/usr/lib64 -L/usr/lib/gcc/x86_64-redhat-linux/8/ CMakeFiles/cmTC_e7bda.dir/CMakeCXXCompilerABI.cpp.o -rpath /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/lib -o cmTC_e7bda -L/usr/lib/gcc/x86_64-redhat-linux/8//../../../../lib64 -lnvhpcatm -lstdc++ -lnvomp -ldl --as-needed -lnvhpcatm --no-as-needed -lpthread -lnvcpumath -lnsnvc -lnvc -lgcc -lc -lgcc_s -lm /usr/lib/gcc/x86_64-redhat-linux/8//crtend.o /usr/lib64/crtn.o]
+          arg [/usr/bin/ld] ==> ignore
+          arg [/usr/lib64/crt1.o] ==> obj [/usr/lib64/crt1.o]
+          arg [/usr/lib64/crti.o] ==> obj [/usr/lib64/crti.o]
+          arg [/usr/lib/gcc/x86_64-redhat-linux/8//crtbegin.o] ==> obj [/usr/lib/gcc/x86_64-redhat-linux/8//crtbegin.o]
+          arg [--eh-frame-hdr] ==> ignore
+          arg [-m] ==> ignore
+          arg [elf_x86_64] ==> ignore
+          arg [-dynamic-linker] ==> ignore
+          arg [/lib64/ld-linux-x86-64.so.2] ==> ignore
+          arg [-T] ==> ignore
+          arg [/home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/lib/nvhpc.ld] ==> ignore
+          arg [-L/home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/lib] ==> dir [/home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/lib]
+          arg [-L/usr/lib64] ==> dir [/usr/lib64]
+          arg [-L/usr/lib/gcc/x86_64-redhat-linux/8/] ==> dir [/usr/lib/gcc/x86_64-redhat-linux/8/]
+          arg [CMakeFiles/cmTC_e7bda.dir/CMakeCXXCompilerABI.cpp.o] ==> ignore
+          arg [-rpath] ==> ignore
+          arg [/home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/lib] ==> ignore
+          arg [-o] ==> ignore
+          arg [cmTC_e7bda] ==> ignore
+          arg [-L/usr/lib/gcc/x86_64-redhat-linux/8//../../../../lib64] ==> dir [/usr/lib/gcc/x86_64-redhat-linux/8//../../../../lib64]
+          arg [-lnvhpcatm] ==> lib [nvhpcatm]
+          arg [-lstdc++] ==> lib [stdc++]
+          arg [-lnvomp] ==> lib [nvomp]
+          arg [-ldl] ==> lib [dl]
+          arg [--as-needed] ==> ignore
+          arg [-lnvhpcatm] ==> lib [nvhpcatm]
+          arg [--no-as-needed] ==> ignore
+          arg [-lpthread] ==> lib [pthread]
+          arg [-lnvcpumath] ==> lib [nvcpumath]
+          arg [-lnsnvc] ==> lib [nsnvc]
+          arg [-lnvc] ==> lib [nvc]
+          arg [-lgcc] ==> lib [gcc]
+          arg [-lc] ==> lib [c]
+          arg [-lgcc_s] ==> lib [gcc_s]
+          arg [-lm] ==> lib [m]
+          arg [/usr/lib/gcc/x86_64-redhat-linux/8//crtend.o] ==> obj [/usr/lib/gcc/x86_64-redhat-linux/8//crtend.o]
+          arg [/usr/lib64/crtn.o] ==> obj [/usr/lib64/crtn.o]
+        linker tool for 'CXX': /usr/bin/ld
+        collapse obj [/usr/lib/gcc/x86_64-redhat-linux/8//crtbegin.o] ==> [/usr/lib/gcc/x86_64-redhat-linux/8/crtbegin.o]
+        collapse obj [/usr/lib/gcc/x86_64-redhat-linux/8//crtend.o] ==> [/usr/lib/gcc/x86_64-redhat-linux/8/crtend.o]
+        collapse library dir [/home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/lib] ==> [/home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/lib]
+        collapse library dir [/usr/lib64] ==> [/usr/lib64]
+        collapse library dir [/usr/lib/gcc/x86_64-redhat-linux/8/] ==> [/usr/lib/gcc/x86_64-redhat-linux/8]
+        collapse library dir [/usr/lib/gcc/x86_64-redhat-linux/8//../../../../lib64] ==> [/usr/lib64]
+        implicit libs: [nvhpcatm;stdc++;nvomp;dl;nvhpcatm;pthread;nvcpumath;nsnvc;nvc;gcc;c;gcc_s;m]
+        implicit objs: [/usr/lib64/crt1.o;/usr/lib64/crti.o;/usr/lib/gcc/x86_64-redhat-linux/8/crtbegin.o;/usr/lib/gcc/x86_64-redhat-linux/8/crtend.o;/usr/lib64/crtn.o]
+        implicit dirs: [/home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/lib;/usr/lib64;/usr/lib/gcc/x86_64-redhat-linux/8]
+        implicit fwks: []
+      
+      
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/usr/local/share/cmake-3.31/Modules/Internal/CMakeDetermineLinkerId.cmake:40 (message)"
+      - "/usr/local/share/cmake-3.31/Modules/CMakeDetermineCompilerABI.cmake:255 (cmake_determine_linker_id)"
+      - "/usr/local/share/cmake-3.31/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:13 (project)"
+    message: |
+      Running the CXX compiler's linker: "/usr/bin/ld" "-v"
+      GNU ld version 2.30-123.el8
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/local/share/cmake-3.31/Modules/Internal/CheckSourceCompiles.cmake:108 (try_compile)"
+      - "/usr/local/share/cmake-3.31/Modules/Internal/CheckCompilerFlag.cmake:18 (cmake_check_source_compiles)"
+      - "/usr/local/share/cmake-3.31/Modules/CheckCXXCompilerFlag.cmake:55 (cmake_check_compiler_flag)"
+      - "CMakeLists.txt:31 (CHECK_CXX_COMPILER_FLAG)"
+    checks:
+      - "Performing Test COMPILER_SUPPORTS_FUNROLL_LOOPS"
+    directories:
+      source: "/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-6WiBU7"
+      binary: "/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-6WiBU7"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: "-std=c++17 -m64 -fPIC"
+      CMAKE_CXX_FLAGS_DEBUG: "-g -O0"
+      CMAKE_EXE_LINKER_FLAGS: "-m64"
+      CMAKE_MODULE_PATH: "/home/sibo/TesboCFD/ThirdParty-v2412/sources/kahip/kahip-3.15/cmake"
+      CMAKE_POSITION_INDEPENDENT_CODE: "ON"
+    buildResult:
+      variable: "COMPILER_SUPPORTS_FUNROLL_LOOPS"
+      cached: true
+      stdout: |
+        Change Dir: '/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-6WiBU7'
+        
+        Run Build Command(s): /usr/local/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_65044/fast
+        /usr/bin/gmake  -f CMakeFiles/cmTC_65044.dir/build.make CMakeFiles/cmTC_65044.dir/build
+        gmake[1]: Entering directory '/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-6WiBU7'
+        Building CXX object CMakeFiles/cmTC_65044.dir/src.cxx.o
+        /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/bin/nvc++ -DCOMPILER_SUPPORTS_FUNROLL_LOOPS  -std=c++17 -m64 -fPIC  --c++11 -fPIE   -funroll-loops -MD -MT CMakeFiles/cmTC_65044.dir/src.cxx.o -MF CMakeFiles/cmTC_65044.dir/src.cxx.o.d -o CMakeFiles/cmTC_65044.dir/src.cxx.o -c /home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-6WiBU7/src.cxx
+        nvc++-Error-Unknown switch: -funroll-loops
+        gmake[1]: *** [CMakeFiles/cmTC_65044.dir/build.make:82: CMakeFiles/cmTC_65044.dir/src.cxx.o] Error 1
+        gmake[1]: Leaving directory '/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-6WiBU7'
+        gmake: *** [Makefile:134: cmTC_65044/fast] Error 2
+        
+      exitCode: 2
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/local/share/cmake-3.31/Modules/Internal/CheckSourceCompiles.cmake:108 (try_compile)"
+      - "/usr/local/share/cmake-3.31/Modules/Internal/CheckCompilerFlag.cmake:18 (cmake_check_source_compiles)"
+      - "/usr/local/share/cmake-3.31/Modules/CheckCXXCompilerFlag.cmake:55 (cmake_check_compiler_flag)"
+      - "CMakeLists.txt:35 (CHECK_CXX_COMPILER_FLAG)"
+    checks:
+      - "Performing Test COMPILER_SUPPORTS_FNOSTACKLIMITS"
+    directories:
+      source: "/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-rwZTdK"
+      binary: "/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-rwZTdK"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: "-std=c++17 -m64 -fPIC"
+      CMAKE_CXX_FLAGS_DEBUG: "-g -O0"
+      CMAKE_EXE_LINKER_FLAGS: "-m64"
+      CMAKE_MODULE_PATH: "/home/sibo/TesboCFD/ThirdParty-v2412/sources/kahip/kahip-3.15/cmake"
+      CMAKE_POSITION_INDEPENDENT_CODE: "ON"
+    buildResult:
+      variable: "COMPILER_SUPPORTS_FNOSTACKLIMITS"
+      cached: true
+      stdout: |
+        Change Dir: '/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-rwZTdK'
+        
+        Run Build Command(s): /usr/local/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_bca50/fast
+        /usr/bin/gmake  -f CMakeFiles/cmTC_bca50.dir/build.make CMakeFiles/cmTC_bca50.dir/build
+        gmake[1]: Entering directory '/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-rwZTdK'
+        Building CXX object CMakeFiles/cmTC_bca50.dir/src.cxx.o
+        /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/bin/nvc++ -DCOMPILER_SUPPORTS_FNOSTACKLIMITS  -std=c++17 -m64 -fPIC  --c++11 -fPIE   -fno-stack-limit -MD -MT CMakeFiles/cmTC_bca50.dir/src.cxx.o -MF CMakeFiles/cmTC_bca50.dir/src.cxx.o.d -o CMakeFiles/cmTC_bca50.dir/src.cxx.o -c /home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-rwZTdK/src.cxx
+        nvc++-Error-Unknown switch: -fno-stack-limit
+        gmake[1]: *** [CMakeFiles/cmTC_bca50.dir/build.make:82: CMakeFiles/cmTC_bca50.dir/src.cxx.o] Error 1
+        gmake[1]: Leaving directory '/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-rwZTdK'
+        gmake: *** [Makefile:134: cmTC_bca50/fast] Error 2
+        
+      exitCode: 2
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/local/share/cmake-3.31/Modules/Internal/CheckSourceCompiles.cmake:108 (try_compile)"
+      - "/usr/local/share/cmake-3.31/Modules/Internal/CheckCompilerFlag.cmake:18 (cmake_check_source_compiles)"
+      - "/usr/local/share/cmake-3.31/Modules/CheckCXXCompilerFlag.cmake:55 (cmake_check_compiler_flag)"
+      - "CMakeLists.txt:39 (CHECK_CXX_COMPILER_FLAG)"
+    checks:
+      - "Performing Test COMPILER_SUPPORTS_WALL"
+    directories:
+      source: "/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-DVqivB"
+      binary: "/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-DVqivB"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: "-std=c++17 -m64 -fPIC"
+      CMAKE_CXX_FLAGS_DEBUG: "-g -O0"
+      CMAKE_EXE_LINKER_FLAGS: "-m64"
+      CMAKE_MODULE_PATH: "/home/sibo/TesboCFD/ThirdParty-v2412/sources/kahip/kahip-3.15/cmake"
+      CMAKE_POSITION_INDEPENDENT_CODE: "ON"
+    buildResult:
+      variable: "COMPILER_SUPPORTS_WALL"
+      cached: true
+      stdout: |
+        Change Dir: '/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-DVqivB'
+        
+        Run Build Command(s): /usr/local/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_e2b3e/fast
+        /usr/bin/gmake  -f CMakeFiles/cmTC_e2b3e.dir/build.make CMakeFiles/cmTC_e2b3e.dir/build
+        gmake[1]: Entering directory '/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-DVqivB'
+        Building CXX object CMakeFiles/cmTC_e2b3e.dir/src.cxx.o
+        /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/bin/nvc++ -DCOMPILER_SUPPORTS_WALL  -std=c++17 -m64 -fPIC  --c++11 -fPIE   -Wall -MD -MT CMakeFiles/cmTC_e2b3e.dir/src.cxx.o -MF CMakeFiles/cmTC_e2b3e.dir/src.cxx.o.d -o CMakeFiles/cmTC_e2b3e.dir/src.cxx.o -c /home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-DVqivB/src.cxx
+        Linking CXX executable cmTC_e2b3e
+        /usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTC_e2b3e.dir/link.txt --verbose=1
+        /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/bin/nvc++ -std=c++17 -m64 -fPIC  -m64  CMakeFiles/cmTC_e2b3e.dir/src.cxx.o -o cmTC_e2b3e
+        gmake[1]: Leaving directory '/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-DVqivB'
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/local/share/cmake-3.31/Modules/Internal/CheckSourceCompiles.cmake:108 (try_compile)"
+      - "/usr/local/share/cmake-3.31/Modules/Internal/CheckCompilerFlag.cmake:18 (cmake_check_source_compiles)"
+      - "/usr/local/share/cmake-3.31/Modules/CheckCXXCompilerFlag.cmake:55 (cmake_check_compiler_flag)"
+      - "CMakeLists.txt:43 (CHECK_CXX_COMPILER_FLAG)"
+    checks:
+      - "Performing Test COMPILER_SUPPORTS_MARCH_NATIVE"
+    directories:
+      source: "/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-EjdQBD"
+      binary: "/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-EjdQBD"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: "-std=c++17 -m64 -fPIC"
+      CMAKE_CXX_FLAGS_DEBUG: "-g -O0"
+      CMAKE_EXE_LINKER_FLAGS: "-m64"
+      CMAKE_MODULE_PATH: "/home/sibo/TesboCFD/ThirdParty-v2412/sources/kahip/kahip-3.15/cmake"
+      CMAKE_POSITION_INDEPENDENT_CODE: "ON"
+    buildResult:
+      variable: "COMPILER_SUPPORTS_MARCH_NATIVE"
+      cached: true
+      stdout: |
+        Change Dir: '/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-EjdQBD'
+        
+        Run Build Command(s): /usr/local/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_b9943/fast
+        /usr/bin/gmake  -f CMakeFiles/cmTC_b9943.dir/build.make CMakeFiles/cmTC_b9943.dir/build
+        gmake[1]: Entering directory '/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-EjdQBD'
+        Building CXX object CMakeFiles/cmTC_b9943.dir/src.cxx.o
+        /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/bin/nvc++ -DCOMPILER_SUPPORTS_MARCH_NATIVE  -std=c++17 -m64 -fPIC  --c++11 -fPIE   -march=native -MD -MT CMakeFiles/cmTC_b9943.dir/src.cxx.o -MF CMakeFiles/cmTC_b9943.dir/src.cxx.o.d -o CMakeFiles/cmTC_b9943.dir/src.cxx.o -c /home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-EjdQBD/src.cxx
+        Linking CXX executable cmTC_b9943
+        /usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTC_b9943.dir/link.txt --verbose=1
+        /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/bin/nvc++ -std=c++17 -m64 -fPIC  -m64  CMakeFiles/cmTC_b9943.dir/src.cxx.o -o cmTC_b9943
+        gmake[1]: Leaving directory '/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-EjdQBD'
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/local/share/cmake-3.31/Modules/Internal/CheckSourceCompiles.cmake:108 (try_compile)"
+      - "/usr/local/share/cmake-3.31/Modules/Internal/CheckCompilerFlag.cmake:18 (cmake_check_source_compiles)"
+      - "/usr/local/share/cmake-3.31/Modules/CheckCXXCompilerFlag.cmake:55 (cmake_check_compiler_flag)"
+      - "CMakeLists.txt:49 (CHECK_CXX_COMPILER_FLAG)"
+    checks:
+      - "Performing Test COMPILER_SUPPORTS_FPERMISSIVE"
+    directories:
+      source: "/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-zQ4TPR"
+      binary: "/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-zQ4TPR"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: "-std=c++17 -m64 -fPIC"
+      CMAKE_CXX_FLAGS_DEBUG: "-g -O0"
+      CMAKE_EXE_LINKER_FLAGS: "-m64"
+      CMAKE_MODULE_PATH: "/home/sibo/TesboCFD/ThirdParty-v2412/sources/kahip/kahip-3.15/cmake"
+      CMAKE_POSITION_INDEPENDENT_CODE: "ON"
+    buildResult:
+      variable: "COMPILER_SUPPORTS_FPERMISSIVE"
+      cached: true
+      stdout: |
+        Change Dir: '/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-zQ4TPR'
+        
+        Run Build Command(s): /usr/local/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_e5b4c/fast
+        /usr/bin/gmake  -f CMakeFiles/cmTC_e5b4c.dir/build.make CMakeFiles/cmTC_e5b4c.dir/build
+        gmake[1]: Entering directory '/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-zQ4TPR'
+        Building CXX object CMakeFiles/cmTC_e5b4c.dir/src.cxx.o
+        /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/bin/nvc++ -DCOMPILER_SUPPORTS_FPERMISSIVE  -std=c++17 -m64 -fPIC  --c++11 -fPIE   -fpermissive -MD -MT CMakeFiles/cmTC_e5b4c.dir/src.cxx.o -MF CMakeFiles/cmTC_e5b4c.dir/src.cxx.o.d -o CMakeFiles/cmTC_e5b4c.dir/src.cxx.o -c /home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-zQ4TPR/src.cxx
+        Linking CXX executable cmTC_e5b4c
+        /usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTC_e5b4c.dir/link.txt --verbose=1
+        /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/bin/nvc++ -std=c++17 -m64 -fPIC  -m64  CMakeFiles/cmTC_e5b4c.dir/src.cxx.o -o cmTC_e5b4c
+        gmake[1]: Leaving directory '/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-zQ4TPR'
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/local/share/cmake-3.31/Modules/Internal/CheckSourceCompiles.cmake:108 (try_compile)"
+      - "/usr/local/share/cmake-3.31/Modules/Internal/CheckCompilerFlag.cmake:18 (cmake_check_source_compiles)"
+      - "/usr/local/share/cmake-3.31/Modules/CheckCXXCompilerFlag.cmake:55 (cmake_check_compiler_flag)"
+      - "CMakeLists.txt:53 (CHECK_CXX_COMPILER_FLAG)"
+    checks:
+      - "Performing Test COMPILER_SUPPORTS_UNUSED"
+    directories:
+      source: "/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-ZOYiqK"
+      binary: "/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-ZOYiqK"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: "-std=c++17 -m64 -fPIC -fpermissive"
+      CMAKE_CXX_FLAGS_DEBUG: "-g -O0"
+      CMAKE_EXE_LINKER_FLAGS: "-m64"
+      CMAKE_MODULE_PATH: "/home/sibo/TesboCFD/ThirdParty-v2412/sources/kahip/kahip-3.15/cmake"
+      CMAKE_POSITION_INDEPENDENT_CODE: "ON"
+    buildResult:
+      variable: "COMPILER_SUPPORTS_UNUSED"
+      cached: true
+      stdout: |
+        Change Dir: '/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-ZOYiqK'
+        
+        Run Build Command(s): /usr/local/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_97af0/fast
+        /usr/bin/gmake  -f CMakeFiles/cmTC_97af0.dir/build.make CMakeFiles/cmTC_97af0.dir/build
+        gmake[1]: Entering directory '/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-ZOYiqK'
+        Building CXX object CMakeFiles/cmTC_97af0.dir/src.cxx.o
+        /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/bin/nvc++ -DCOMPILER_SUPPORTS_UNUSED  -std=c++17 -m64 -fPIC -fpermissive  --c++11 -fPIE   -Wno-unused-result -MD -MT CMakeFiles/cmTC_97af0.dir/src.cxx.o -MF CMakeFiles/cmTC_97af0.dir/src.cxx.o.d -o CMakeFiles/cmTC_97af0.dir/src.cxx.o -c /home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-ZOYiqK/src.cxx
+        nvc++-Error-Unknown switch: -Wno-unused-result
+        gmake[1]: *** [CMakeFiles/cmTC_97af0.dir/build.make:82: CMakeFiles/cmTC_97af0.dir/src.cxx.o] Error 1
+        gmake[1]: Leaving directory '/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-ZOYiqK'
+        gmake: *** [Makefile:134: cmTC_97af0/fast] Error 2
+        
+      exitCode: 2
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/local/share/cmake-3.31/Modules/Internal/CheckSourceCompiles.cmake:108 (try_compile)"
+      - "/usr/local/share/cmake-3.31/Modules/Internal/CheckCompilerFlag.cmake:18 (cmake_check_source_compiles)"
+      - "/usr/local/share/cmake-3.31/Modules/CheckCXXCompilerFlag.cmake:55 (cmake_check_compiler_flag)"
+      - "CMakeLists.txt:57 (CHECK_CXX_COMPILER_FLAG)"
+    checks:
+      - "Performing Test COMPILER_SUPPORTS_NOSIGNCOMP"
+    directories:
+      source: "/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-NTI50Z"
+      binary: "/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-NTI50Z"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: "-std=c++17 -m64 -fPIC -fpermissive"
+      CMAKE_CXX_FLAGS_DEBUG: "-g -O0"
+      CMAKE_EXE_LINKER_FLAGS: "-m64"
+      CMAKE_MODULE_PATH: "/home/sibo/TesboCFD/ThirdParty-v2412/sources/kahip/kahip-3.15/cmake"
+      CMAKE_POSITION_INDEPENDENT_CODE: "ON"
+    buildResult:
+      variable: "COMPILER_SUPPORTS_NOSIGNCOMP"
+      cached: true
+      stdout: |
+        Change Dir: '/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-NTI50Z'
+        
+        Run Build Command(s): /usr/local/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_8c126/fast
+        /usr/bin/gmake  -f CMakeFiles/cmTC_8c126.dir/build.make CMakeFiles/cmTC_8c126.dir/build
+        gmake[1]: Entering directory '/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-NTI50Z'
+        Building CXX object CMakeFiles/cmTC_8c126.dir/src.cxx.o
+        /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/bin/nvc++ -DCOMPILER_SUPPORTS_NOSIGNCOMP  -std=c++17 -m64 -fPIC -fpermissive  --c++11 -fPIE   -Wno-sign-compare -MD -MT CMakeFiles/cmTC_8c126.dir/src.cxx.o -MF CMakeFiles/cmTC_8c126.dir/src.cxx.o.d -o CMakeFiles/cmTC_8c126.dir/src.cxx.o -c /home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-NTI50Z/src.cxx
+        Linking CXX executable cmTC_8c126
+        /usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTC_8c126.dir/link.txt --verbose=1
+        /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/bin/nvc++ -std=c++17 -m64 -fPIC -fpermissive  -m64  CMakeFiles/cmTC_8c126.dir/src.cxx.o -o cmTC_8c126
+        gmake[1]: Leaving directory '/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-NTI50Z'
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/local/share/cmake-3.31/Modules/FindOpenMP.cmake:252 (try_compile)"
+      - "/usr/local/share/cmake-3.31/Modules/FindOpenMP.cmake:522 (_OPENMP_GET_FLAGS)"
+      - "CMakeLists.txt:64 (find_package)"
+    description: "Detecting C OpenMP compiler info"
+    directories:
+      source: "/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-llGSlF"
+      binary: "/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-llGSlF"
+    cmakeVariables:
+      CMAKE_C_FLAGS: "-m64 -fPIC"
+      CMAKE_C_FLAGS_DEBUG: "-g -O0"
+      CMAKE_EXE_LINKER_FLAGS: "-m64"
+      CMAKE_MODULE_PATH: "/home/sibo/TesboCFD/ThirdParty-v2412/sources/kahip/kahip-3.15/cmake"
+      CMAKE_POSITION_INDEPENDENT_CODE: "ON"
+    buildResult:
+      variable: "OpenMP_COMPILE_RESULT_C_mp"
+      cached: true
+      stdout: |
+        Change Dir: '/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-llGSlF'
+        
+        Run Build Command(s): /usr/local/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_c0cfd/fast
+        /usr/bin/gmake  -f CMakeFiles/cmTC_c0cfd.dir/build.make CMakeFiles/cmTC_c0cfd.dir/build
+        gmake[1]: Entering directory '/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-llGSlF'
+        Building C object CMakeFiles/cmTC_c0cfd.dir/OpenMPTryFlag.c.o
+        /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/bin/nvc   -m64 -fPIC -mp -fPIE -MD -MT CMakeFiles/cmTC_c0cfd.dir/OpenMPTryFlag.c.o -MF CMakeFiles/cmTC_c0cfd.dir/OpenMPTryFlag.c.o.d -o CMakeFiles/cmTC_c0cfd.dir/OpenMPTryFlag.c.o -c /home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-llGSlF/OpenMPTryFlag.c
+        Linking C executable cmTC_c0cfd
+        /usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTC_c0cfd.dir/link.txt --verbose=1
+        Export NVCOMPILER=/home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11
+        Export PGI=/home/sibo/Music/nvidia-hpc-sdk
+        
+        /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/bin/tools/acclnk /usr/bin/ld /usr/lib64/crt1.o /usr/lib64/crti.o /usr/lib/gcc/x86_64-redhat-linux/8//crtbegin.o --eh-frame-hdr -m elf_x86_64 -dynamic-linker /lib64/ld-linux-x86-64.so.2 -T /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/lib/nvhpc.ld -L/home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/lib -L/usr/lib64 -L/usr/lib/gcc/x86_64-redhat-linux/8/ CMakeFiles/cmTC_c0cfd.dir/OpenMPTryFlag.c.o -rpath /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/lib -o cmTC_c0cfd -L/usr/lib/gcc/x86_64-redhat-linux/8//../../../../lib64 -lacchost -ldl -lnvomp -ldl --as-needed -lnvhpcatm --no-as-needed -lpthread -lnvcpumath -lnsnvc -lnvc -lgcc -lc -lgcc_s -lm /usr/lib/gcc/x86_64-redhat-linux/8//crtend.o /usr/lib64/crtn.o
+        /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/bin/nvc -m64 -fPIC -mp -m64  -v CMakeFiles/cmTC_c0cfd.dir/OpenMPTryFlag.c.o -o cmTC_c0cfd
+        gmake[1]: Leaving directory '/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-llGSlF'
+        
+      exitCode: 0
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/usr/local/share/cmake-3.31/Modules/FindOpenMP.cmake:296 (message)"
+      - "/usr/local/share/cmake-3.31/Modules/FindOpenMP.cmake:522 (_OPENMP_GET_FLAGS)"
+      - "CMakeLists.txt:64 (find_package)"
+    message: |
+      Parsed C OpenMP implicit link information from above output:
+        link line regex: [^( *|.*[/\\])(ld[0-9]*(\\.[a-z]+)?|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\\]+-)?ld|collect2)[^/\\]*( |$)]
+        ignore line: [Change Dir: '/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-llGSlF']
+        ignore line: []
+        ignore line: [Run Build Command(s): /usr/local/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_c0cfd/fast]
+        ignore line: [/usr/bin/gmake  -f CMakeFiles/cmTC_c0cfd.dir/build.make CMakeFiles/cmTC_c0cfd.dir/build]
+        ignore line: [gmake[1]: Entering directory '/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-llGSlF']
+        ignore line: [Building C object CMakeFiles/cmTC_c0cfd.dir/OpenMPTryFlag.c.o]
+        ignore line: [/home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/bin/nvc   -m64 -fPIC -mp -fPIE -MD -MT CMakeFiles/cmTC_c0cfd.dir/OpenMPTryFlag.c.o -MF CMakeFiles/cmTC_c0cfd.dir/OpenMPTryFlag.c.o.d -o CMakeFiles/cmTC_c0cfd.dir/OpenMPTryFlag.c.o -c /home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-llGSlF/OpenMPTryFlag.c]
+        ignore line: [Linking C executable cmTC_c0cfd]
+        ignore line: [/usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTC_c0cfd.dir/link.txt --verbose=1]
+        ignore line: [Export NVCOMPILER=/home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11]
+        ignore line: [Export PGI=/home/sibo/Music/nvidia-hpc-sdk]
+        ignore line: []
+        ignore line: [/home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/bin/tools/acclnk /usr/bin/ld /usr/lib64/crt1.o /usr/lib64/crti.o /usr/lib/gcc/x86_64-redhat-linux/8//crtbegin.o --eh-frame-hdr -m elf_x86_64 -dynamic-linker /lib64/ld-linux-x86-64.so.2 -T /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/lib/nvhpc.ld -L/home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/lib -L/usr/lib64 -L/usr/lib/gcc/x86_64-redhat-linux/8/ CMakeFiles/cmTC_c0cfd.dir/OpenMPTryFlag.c.o -rpath /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/lib -o cmTC_c0cfd -L/usr/lib/gcc/x86_64-redhat-linux/8//../../../../lib64 -lacchost -ldl -lnvomp -ldl --as-needed -lnvhpcatm --no-as-needed -lpthread -lnvcpumath -lnsnvc -lnvc -lgcc -lc -lgcc_s -lm /usr/lib/gcc/x86_64-redhat-linux/8//crtend.o /usr/lib64/crtn.o]
+        ignore line: [/home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/bin/nvc -m64 -fPIC -mp -m64  -v CMakeFiles/cmTC_c0cfd.dir/OpenMPTryFlag.c.o -o cmTC_c0cfd]
+        ignore line: [gmake[1]: Leaving directory '/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-llGSlF']
+        ignore line: []
+        ignore line: []
+        implicit libs: []
+        implicit objs: []
+        implicit dirs: []
+        implicit fwks: []
+      
+      
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/local/share/cmake-3.31/Modules/FindOpenMP.cmake:252 (try_compile)"
+      - "/usr/local/share/cmake-3.31/Modules/FindOpenMP.cmake:522 (_OPENMP_GET_FLAGS)"
+      - "CMakeLists.txt:64 (find_package)"
+    description: "Detecting CXX OpenMP compiler info"
+    directories:
+      source: "/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-ZGxmTk"
+      binary: "/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-ZGxmTk"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: "-std=c++17 -m64 -fPIC -fpermissive"
+      CMAKE_CXX_FLAGS_DEBUG: "-g -O0"
+      CMAKE_EXE_LINKER_FLAGS: "-m64"
+      CMAKE_MODULE_PATH: "/home/sibo/TesboCFD/ThirdParty-v2412/sources/kahip/kahip-3.15/cmake"
+      CMAKE_POSITION_INDEPENDENT_CODE: "ON"
+    buildResult:
+      variable: "OpenMP_COMPILE_RESULT_CXX_mp"
+      cached: true
+      stdout: |
+        Change Dir: '/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-ZGxmTk'
+        
+        Run Build Command(s): /usr/local/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_5782f/fast
+        /usr/bin/gmake  -f CMakeFiles/cmTC_5782f.dir/build.make CMakeFiles/cmTC_5782f.dir/build
+        gmake[1]: Entering directory '/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-ZGxmTk'
+        Building CXX object CMakeFiles/cmTC_5782f.dir/OpenMPTryFlag.cpp.o
+        /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/bin/nvc++   -std=c++17 -m64 -fPIC -fpermissive -mp --c++11 -fPIE -MD -MT CMakeFiles/cmTC_5782f.dir/OpenMPTryFlag.cpp.o -MF CMakeFiles/cmTC_5782f.dir/OpenMPTryFlag.cpp.o.d -o CMakeFiles/cmTC_5782f.dir/OpenMPTryFlag.cpp.o -c /home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-ZGxmTk/OpenMPTryFlag.cpp
+        Linking CXX executable cmTC_5782f
+        /usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTC_5782f.dir/link.txt --verbose=1
+        Export NVCOMPILER=/home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11
+        Export PGI=/home/sibo/Music/nvidia-hpc-sdk
+        
+        /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/bin/tools/acclnk /usr/bin/ld /usr/lib64/crt1.o /usr/lib64/crti.o /usr/lib/gcc/x86_64-redhat-linux/8//crtbegin.o --eh-frame-hdr -m elf_x86_64 -dynamic-linker /lib64/ld-linux-x86-64.so.2 -T /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/lib/nvhpc.ld -L/home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/lib -L/usr/lib64 -L/usr/lib/gcc/x86_64-redhat-linux/8/ CMakeFiles/cmTC_5782f.dir/OpenMPTryFlag.cpp.o -rpath /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/lib -o cmTC_5782f -L/usr/lib/gcc/x86_64-redhat-linux/8//../../../../lib64 -lacchost -ldl -lnvhpcatm -lstdc++ -lnvomp -ldl --as-needed -lnvhpcatm --no-as-needed -lpthread -lnvcpumath -lnsnvc -lnvc -lgcc -lc -lgcc_s -lm /usr/lib/gcc/x86_64-redhat-linux/8//crtend.o /usr/lib64/crtn.o
+        /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/bin/nvc++ -std=c++17 -m64 -fPIC -fpermissive -mp -m64  -v CMakeFiles/cmTC_5782f.dir/OpenMPTryFlag.cpp.o -o cmTC_5782f
+        gmake[1]: Leaving directory '/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-ZGxmTk'
+        
+      exitCode: 0
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/usr/local/share/cmake-3.31/Modules/FindOpenMP.cmake:296 (message)"
+      - "/usr/local/share/cmake-3.31/Modules/FindOpenMP.cmake:522 (_OPENMP_GET_FLAGS)"
+      - "CMakeLists.txt:64 (find_package)"
+    message: |
+      Parsed CXX OpenMP implicit link information from above output:
+        link line regex: [^( *|.*[/\\])(ld[0-9]*(\\.[a-z]+)?|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\\]+-)?ld|collect2)[^/\\]*( |$)]
+        ignore line: [Change Dir: '/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-ZGxmTk']
+        ignore line: []
+        ignore line: [Run Build Command(s): /usr/local/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_5782f/fast]
+        ignore line: [/usr/bin/gmake  -f CMakeFiles/cmTC_5782f.dir/build.make CMakeFiles/cmTC_5782f.dir/build]
+        ignore line: [gmake[1]: Entering directory '/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-ZGxmTk']
+        ignore line: [Building CXX object CMakeFiles/cmTC_5782f.dir/OpenMPTryFlag.cpp.o]
+        ignore line: [/home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/bin/nvc++   -std=c++17 -m64 -fPIC -fpermissive -mp --c++11 -fPIE -MD -MT CMakeFiles/cmTC_5782f.dir/OpenMPTryFlag.cpp.o -MF CMakeFiles/cmTC_5782f.dir/OpenMPTryFlag.cpp.o.d -o CMakeFiles/cmTC_5782f.dir/OpenMPTryFlag.cpp.o -c /home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-ZGxmTk/OpenMPTryFlag.cpp]
+        ignore line: [Linking CXX executable cmTC_5782f]
+        ignore line: [/usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTC_5782f.dir/link.txt --verbose=1]
+        ignore line: [Export NVCOMPILER=/home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11]
+        ignore line: [Export PGI=/home/sibo/Music/nvidia-hpc-sdk]
+        ignore line: []
+        ignore line: [/home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/bin/tools/acclnk /usr/bin/ld /usr/lib64/crt1.o /usr/lib64/crti.o /usr/lib/gcc/x86_64-redhat-linux/8//crtbegin.o --eh-frame-hdr -m elf_x86_64 -dynamic-linker /lib64/ld-linux-x86-64.so.2 -T /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/lib/nvhpc.ld -L/home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/lib -L/usr/lib64 -L/usr/lib/gcc/x86_64-redhat-linux/8/ CMakeFiles/cmTC_5782f.dir/OpenMPTryFlag.cpp.o -rpath /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/lib -o cmTC_5782f -L/usr/lib/gcc/x86_64-redhat-linux/8//../../../../lib64 -lacchost -ldl -lnvhpcatm -lstdc++ -lnvomp -ldl --as-needed -lnvhpcatm --no-as-needed -lpthread -lnvcpumath -lnsnvc -lnvc -lgcc -lc -lgcc_s -lm /usr/lib/gcc/x86_64-redhat-linux/8//crtend.o /usr/lib64/crtn.o]
+        ignore line: [/home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/bin/nvc++ -std=c++17 -m64 -fPIC -fpermissive -mp -m64  -v CMakeFiles/cmTC_5782f.dir/OpenMPTryFlag.cpp.o -o cmTC_5782f]
+        ignore line: [gmake[1]: Leaving directory '/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-ZGxmTk']
+        ignore line: []
+        ignore line: []
+        implicit libs: []
+        implicit objs: []
+        implicit dirs: []
+        implicit fwks: []
+      
+      
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/local/share/cmake-3.31/Modules/FindOpenMP.cmake:456 (try_compile)"
+      - "/usr/local/share/cmake-3.31/Modules/FindOpenMP.cmake:596 (_OPENMP_GET_SPEC_DATE)"
+      - "CMakeLists.txt:64 (find_package)"
+    description: "Detecting C OpenMP version"
+    directories:
+      source: "/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-0IkEtN"
+      binary: "/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-0IkEtN"
+    cmakeVariables:
+      CMAKE_C_FLAGS: "-m64 -fPIC"
+      CMAKE_C_FLAGS_DEBUG: "-g -O0"
+      CMAKE_EXE_LINKER_FLAGS: "-m64"
+      CMAKE_MODULE_PATH: "/home/sibo/TesboCFD/ThirdParty-v2412/sources/kahip/kahip-3.15/cmake"
+      CMAKE_POSITION_INDEPENDENT_CODE: "ON"
+    buildResult:
+      variable: "OpenMP_SPECTEST_C_"
+      cached: true
+      stdout: |
+        Change Dir: '/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-0IkEtN'
+        
+        Run Build Command(s): /usr/local/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_ac18a/fast
+        /usr/bin/gmake  -f CMakeFiles/cmTC_ac18a.dir/build.make CMakeFiles/cmTC_ac18a.dir/build
+        gmake[1]: Entering directory '/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-0IkEtN'
+        Building C object CMakeFiles/cmTC_ac18a.dir/OpenMPCheckVersion.c.o
+        /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/bin/nvc   -m64 -fPIC -mp -fPIE -MD -MT CMakeFiles/cmTC_ac18a.dir/OpenMPCheckVersion.c.o -MF CMakeFiles/cmTC_ac18a.dir/OpenMPCheckVersion.c.o.d -o CMakeFiles/cmTC_ac18a.dir/OpenMPCheckVersion.c.o -c /home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-0IkEtN/OpenMPCheckVersion.c
+        Linking C executable cmTC_ac18a
+        /usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTC_ac18a.dir/link.txt --verbose=1
+        /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/bin/nvc -m64 -fPIC -mp -m64  CMakeFiles/cmTC_ac18a.dir/OpenMPCheckVersion.c.o -o cmTC_ac18a
+        gmake[1]: Leaving directory '/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-0IkEtN'
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/local/share/cmake-3.31/Modules/FindOpenMP.cmake:456 (try_compile)"
+      - "/usr/local/share/cmake-3.31/Modules/FindOpenMP.cmake:596 (_OPENMP_GET_SPEC_DATE)"
+      - "CMakeLists.txt:64 (find_package)"
+    description: "Detecting CXX OpenMP version"
+    directories:
+      source: "/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-kkb47M"
+      binary: "/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-kkb47M"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: "-std=c++17 -m64 -fPIC -fpermissive"
+      CMAKE_CXX_FLAGS_DEBUG: "-g -O0"
+      CMAKE_EXE_LINKER_FLAGS: "-m64"
+      CMAKE_MODULE_PATH: "/home/sibo/TesboCFD/ThirdParty-v2412/sources/kahip/kahip-3.15/cmake"
+      CMAKE_POSITION_INDEPENDENT_CODE: "ON"
+    buildResult:
+      variable: "OpenMP_SPECTEST_CXX_"
+      cached: true
+      stdout: |
+        Change Dir: '/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-kkb47M'
+        
+        Run Build Command(s): /usr/local/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_8e1a8/fast
+        /usr/bin/gmake  -f CMakeFiles/cmTC_8e1a8.dir/build.make CMakeFiles/cmTC_8e1a8.dir/build
+        gmake[1]: Entering directory '/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-kkb47M'
+        Building CXX object CMakeFiles/cmTC_8e1a8.dir/OpenMPCheckVersion.cpp.o
+        /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/bin/nvc++   -std=c++17 -m64 -fPIC -fpermissive -mp --c++11 -fPIE -MD -MT CMakeFiles/cmTC_8e1a8.dir/OpenMPCheckVersion.cpp.o -MF CMakeFiles/cmTC_8e1a8.dir/OpenMPCheckVersion.cpp.o.d -o CMakeFiles/cmTC_8e1a8.dir/OpenMPCheckVersion.cpp.o -c /home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-kkb47M/OpenMPCheckVersion.cpp
+        Linking CXX executable cmTC_8e1a8
+        /usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTC_8e1a8.dir/link.txt --verbose=1
+        /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/bin/nvc++ -std=c++17 -m64 -fPIC -fpermissive -mp -m64  CMakeFiles/cmTC_8e1a8.dir/OpenMPCheckVersion.cpp.o -o cmTC_8e1a8
+        gmake[1]: Leaving directory '/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-kkb47M'
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/local/share/cmake-3.31/Modules/FindMPI.cmake:1283 (try_compile)"
+      - "/usr/local/share/cmake-3.31/Modules/FindMPI.cmake:1327 (_MPI_try_staged_settings)"
+      - "/usr/local/share/cmake-3.31/Modules/FindMPI.cmake:1650 (_MPI_check_lang_works)"
+      - "CMakeLists.txt:109 (find_package)"
+    description: "The MPI test test_mpi for C in mode normal"
+    directories:
+      source: "/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-oGN7yE"
+      binary: "/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-oGN7yE"
+    cmakeVariables:
+      CMAKE_C_FLAGS: "-m64 -fPIC"
+      CMAKE_C_FLAGS_DEBUG: "-g -O0"
+      CMAKE_EXE_LINKER_FLAGS: "-m64"
+      CMAKE_MODULE_PATH: "/home/sibo/TesboCFD/ThirdParty-v2412/sources/kahip/kahip-3.15/cmake"
+      CMAKE_POSITION_INDEPENDENT_CODE: "ON"
+    buildResult:
+      variable: "MPI_RESULT_C_test_mpi_normal"
+      cached: true
+      stdout: |
+        Change Dir: '/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-oGN7yE'
+        
+        Run Build Command(s): /usr/local/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_7c88a/fast
+        /usr/bin/gmake  -f CMakeFiles/cmTC_7c88a.dir/build.make CMakeFiles/cmTC_7c88a.dir/build
+        gmake[1]: Entering directory '/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-oGN7yE'
+        Building C object CMakeFiles/cmTC_7c88a.dir/test_mpi.c.o
+        /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/bin/nvc  -isystem /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/comm_libs/12.6/hpcx/hpcx-2.20/ompi/include -isystem /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/comm_libs/12.6/hpcx/hpcx-2.20/ompi/include/openmpi -isystem /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/comm_libs/12.6/hpcx/hpcx-2.20/ompi/include/openmpi/opal/mca/hwloc/hwloc201/hwloc/include -isystem /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/comm_libs/12.6/hpcx/hpcx-2.20/ompi/include/openmpi/opal/mca/event/libevent2022/libevent -isystem /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/comm_libs/12.6/hpcx/hpcx-2.20/ompi/include/openmpi/opal/mca/event/libevent2022/libevent/include -m64 -fPIC  -fPIE -pthread -MD -MT CMakeFiles/cmTC_7c88a.dir/test_mpi.c.o -MF CMakeFiles/cmTC_7c88a.dir/test_mpi.c.o.d -o CMakeFiles/cmTC_7c88a.dir/test_mpi.c.o -c /home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-oGN7yE/test_mpi.c
+        Linking C executable cmTC_7c88a
+        /usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTC_7c88a.dir/link.txt --verbose=1
+        /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/bin/nvc -m64 -fPIC  -m64  -Wl,-rpath -Wl,/home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/comm_libs/12.6/hpcx/hpcx-2.20/ompi/lib -Wl,--enable-new-dtags -pthread CMakeFiles/cmTC_7c88a.dir/test_mpi.c.o -o cmTC_7c88a  -Wl,-rpath,/home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/comm_libs/12.6/hpcx/hpcx-2.20/ompi/lib /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/comm_libs/12.6/hpcx/hpcx-2.20/ompi/lib/libmpi.so
+        gmake[1]: Leaving directory '/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-oGN7yE'
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/local/share/cmake-3.31/Modules/FindMPI.cmake:1283 (try_compile)"
+      - "/usr/local/share/cmake-3.31/Modules/FindMPI.cmake:1327 (_MPI_try_staged_settings)"
+      - "/usr/local/share/cmake-3.31/Modules/FindMPI.cmake:1650 (_MPI_check_lang_works)"
+      - "CMakeLists.txt:109 (find_package)"
+    description: "The MPI test test_mpi for CXX in mode normal"
+    directories:
+      source: "/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-frHDg7"
+      binary: "/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-frHDg7"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: "-std=c++17 -m64 -fPIC -fpermissive"
+      CMAKE_CXX_FLAGS_DEBUG: "-g -O0"
+      CMAKE_EXE_LINKER_FLAGS: "-m64"
+      CMAKE_MODULE_PATH: "/home/sibo/TesboCFD/ThirdParty-v2412/sources/kahip/kahip-3.15/cmake"
+      CMAKE_POSITION_INDEPENDENT_CODE: "ON"
+    buildResult:
+      variable: "MPI_RESULT_CXX_test_mpi_normal"
+      cached: true
+      stdout: |
+        Change Dir: '/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-frHDg7'
+        
+        Run Build Command(s): /usr/local/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_47449/fast
+        /usr/bin/gmake  -f CMakeFiles/cmTC_47449.dir/build.make CMakeFiles/cmTC_47449.dir/build
+        gmake[1]: Entering directory '/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-frHDg7'
+        Building CXX object CMakeFiles/cmTC_47449.dir/test_mpi.cpp.o
+        /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/bin/nvc++  -isystem /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/comm_libs/12.6/hpcx/hpcx-2.20/ompi/include -isystem /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/comm_libs/12.6/hpcx/hpcx-2.20/ompi/include/openmpi -isystem /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/comm_libs/12.6/hpcx/hpcx-2.20/ompi/include/openmpi/opal/mca/hwloc/hwloc201/hwloc/include -isystem /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/comm_libs/12.6/hpcx/hpcx-2.20/ompi/include/openmpi/opal/mca/event/libevent2022/libevent -isystem /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/comm_libs/12.6/hpcx/hpcx-2.20/ompi/include/openmpi/opal/mca/event/libevent2022/libevent/include -std=c++17 -m64 -fPIC -fpermissive  --c++11 -fPIE -pthread -MD -MT CMakeFiles/cmTC_47449.dir/test_mpi.cpp.o -MF CMakeFiles/cmTC_47449.dir/test_mpi.cpp.o.d -o CMakeFiles/cmTC_47449.dir/test_mpi.cpp.o -c /home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-frHDg7/test_mpi.cpp
+        Linking CXX executable cmTC_47449
+        /usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTC_47449.dir/link.txt --verbose=1
+        /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/bin/nvc++ -std=c++17 -m64 -fPIC -fpermissive  -m64  -Wl,-rpath -Wl,/home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/comm_libs/12.6/hpcx/hpcx-2.20/ompi/lib -Wl,--enable-new-dtags -pthread CMakeFiles/cmTC_47449.dir/test_mpi.cpp.o -o cmTC_47449  -Wl,-rpath,/home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/comm_libs/12.6/hpcx/hpcx-2.20/ompi/lib /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/comm_libs/12.6/hpcx/hpcx-2.20/ompi/lib/libmpi.so
+        gmake[1]: Leaving directory '/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-frHDg7'
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/usr/local/share/cmake-3.31/Modules/FindMPI.cmake:1283 (try_compile)"
+      - "/usr/local/share/cmake-3.31/Modules/FindMPI.cmake:1677 (_MPI_try_staged_settings)"
+      - "CMakeLists.txt:109 (find_package)"
+    description: "The MPI test test_mpi for CXX in mode MPICXX"
+    directories:
+      source: "/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-xtSxQR"
+      binary: "/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-xtSxQR"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: "-std=c++17 -m64 -fPIC -fpermissive"
+      CMAKE_CXX_FLAGS_DEBUG: "-g -O0"
+      CMAKE_EXE_LINKER_FLAGS: "-m64"
+      CMAKE_MODULE_PATH: "/home/sibo/TesboCFD/ThirdParty-v2412/sources/kahip/kahip-3.15/cmake"
+      CMAKE_POSITION_INDEPENDENT_CODE: "ON"
+    buildResult:
+      variable: "MPI_RESULT_CXX_test_mpi_MPICXX"
+      cached: true
+      stdout: |
+        Change Dir: '/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-xtSxQR'
+        
+        Run Build Command(s): /usr/local/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_93328/fast
+        /usr/bin/gmake  -f CMakeFiles/cmTC_93328.dir/build.make CMakeFiles/cmTC_93328.dir/build
+        gmake[1]: Entering directory '/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-xtSxQR'
+        Building CXX object CMakeFiles/cmTC_93328.dir/test_mpi.cpp.o
+        /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/bin/nvc++  -isystem /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/comm_libs/12.6/hpcx/hpcx-2.20/ompi/include -isystem /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/comm_libs/12.6/hpcx/hpcx-2.20/ompi/include/openmpi -isystem /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/comm_libs/12.6/hpcx/hpcx-2.20/ompi/include/openmpi/opal/mca/hwloc/hwloc201/hwloc/include -isystem /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/comm_libs/12.6/hpcx/hpcx-2.20/ompi/include/openmpi/opal/mca/event/libevent2022/libevent -isystem /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/comm_libs/12.6/hpcx/hpcx-2.20/ompi/include/openmpi/opal/mca/event/libevent2022/libevent/include -std=c++17 -m64 -fPIC -fpermissive  --c++11 -fPIE -pthread -MD -MT CMakeFiles/cmTC_93328.dir/test_mpi.cpp.o -MF CMakeFiles/cmTC_93328.dir/test_mpi.cpp.o.d -o CMakeFiles/cmTC_93328.dir/test_mpi.cpp.o -c /home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-xtSxQR/test_mpi.cpp
+        Linking CXX executable cmTC_93328
+        /usr/local/bin/cmake -E cmake_link_script CMakeFiles/cmTC_93328.dir/link.txt --verbose=1
+        /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/compilers/bin/nvc++ -std=c++17 -m64 -fPIC -fpermissive  -m64  -Wl,-rpath -Wl,/home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/comm_libs/12.6/hpcx/hpcx-2.20/ompi/lib -Wl,--enable-new-dtags -pthread CMakeFiles/cmTC_93328.dir/test_mpi.cpp.o -o cmTC_93328  -Wl,-rpath,/home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/comm_libs/12.6/hpcx/hpcx-2.20/ompi/lib /home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/comm_libs/12.6/hpcx/hpcx-2.20/ompi/lib/libmpi.so
+        gmake[1]: Leaving directory '/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/kahip-3.15/CMakeFiles/CMakeScratch/TryCompile-xtSxQR'
+        
+      exitCode: 0
+...

@@ -1,0 +1,8 @@
+# Directory labels
+ FFS
+# Source files and their labels
+/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/ADIOS2-2.10.1/thirdparty/ffs/ffs/CMakeFiles/generated
+/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/ADIOS2-2.10.1/thirdparty/ffs/ffs/CMakeFiles/generated.rule
+/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/ADIOS2-2.10.1/thirdparty/ffs/ffs/cod.tab.c.rule
+/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/ADIOS2-2.10.1/thirdparty/ffs/ffs/cod_node.c.rule
+/home/sibo/TesboCFD/ThirdParty-v2412/build/linux64NvcPP/ADIOS2-2.10.1/thirdparty/ffs/ffs/lex.yy.c.rule

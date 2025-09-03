@@ -1,0 +1,53 @@
+<ParaViewPlugin>
+  <ServerManagerConfiguration>
+    <ProxyGroup name="views">
+      <ContextViewProxy base_proxygroup="internal_views"
+                        base_proxyname="XYChartViewBase4Axes"
+                        class="vtkPVXYChartView"
+                        name="MyXYChartView"
+                        label="My Titled Line Chart View"
+                        processes="client|renderserver|dataserver"
+                        representation_name="XYChartRepresentation"
+                        post_creation="SetChartTypeToLine" >
+        <Documentation>This is the proxy for my own Titled XY line chart
+        view.</Documentation>
+        <StringVectorProperty command="SetTitle"
+                              name="ChartTitle"
+                              number_of_elements="1"
+                              override="1"
+                              default_values="My Very Own Title">
+          <Documentation>
+            An overriden title property with its very own default value
+          </Documentation>
+        </StringVectorProperty>
+        <StringVectorProperty name="DummyProperty"
+                              number_of_elements="1"
+                              default_values="in the same group">
+          <Documentation>
+           A dummy property that shows how to add properties in existing property group
+          </Documentation>
+        </StringVectorProperty>
+        <PropertyGroup label="Title">
+          <Property name="DummyProperty"/>
+        </PropertyGroup>
+      </ContextViewProxy>
+    </ProxyGroup>
+    <ProxyGroup name="filters">
+     <SourceProxy name="MySliceFilter" label="MySlice"
+                  class="vtkPVMetaSliceDataSet"
+                  base_proxygroup="filters"
+                  base_proxyname="Cut">
+        <ProxyProperty command="SetDataSetCutFunction"
+                       label="Slice Type"
+                       override="1"
+                       name="CutFunction">
+          <ProxyListDomain name="proxy_list">
+              <Group name="slice_implicit_functions" default="Box" />
+          </ProxyListDomain>
+          <Documentation>This property sets the parameters of the slice
+          function.</Documentation>
+        </ProxyProperty>
+     </SourceProxy>
+   </ProxyGroup>
+  </ServerManagerConfiguration>
+</ParaViewPlugin>

@@ -1,0 +1,490 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- SPDX-FileCopyrightText: Copyright (c) Kitware Inc. -->
+<!-- SPDX-License-Identifier: BSD-3-Clause -->
+<ui version="4.0">
+ <class>ColorOpacityEditorWidget</class>
+ <widget class="QWidget" name="ColorOpacityEditorWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>472</width>
+    <height>925</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>0</width>
+    <height>80</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QVBoxLayout" name="mainLayout">
+   <property name="spacing">
+    <number>6</number>
+   </property>
+   <item>
+    <widget class="QCheckBox" name="ShowDataHistogram">
+     <property name="toolTip">
+      <string>When checked, a data histogram will be shown below the opacity function. Please update it by clicking on its dedicated button when needed.</string>
+     </property>
+     <property name="text">
+      <string>Display Data Histogram</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QCheckBox" name="AutomaticDataHistogramComputation">
+     <property name="toolTip">
+      <string>When checked, the data histogram will be automatically recomputed when needed instead of needing to click on the compute data histogram button.</string>
+     </property>
+     <property name="text">
+      <string>Automatically recompute data histogram</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout1" stretch="0,1">
+     <item>
+      <widget class="QLabel" name="NumBinsLabel">
+       <property name="text">
+        <string>Number of Bins:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="pqIntRangeWidget" name="DataHistogramNumberOfBins">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimum" stdset="0">
+        <number>1</number>
+       </property>
+       <property name="maximum" stdset="0">
+        <number>256</number>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="Line" name="line_2">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QComboBox" name="DefaultPresetsComboBox">
+     <property name="toolTip">
+      <string>Select a color map from default presets</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,1">
+     <item>
+      <widget class="QLabel" name="CurrentDataLabel">
+       <property name="text">
+        <string>Data:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="pqDoubleLineEdit" name="CurrentDataValue">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="toolTip">
+        <string>Set the data value for the selected control point</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="1,0">
+     <property name="spacing">
+      <number>0</number>
+     </property>
+     <property name="sizeConstraint">
+      <enum>QLayout::SetDefaultConstraint</enum>
+     </property>
+     <item>
+      <layout class="QVBoxLayout" name="verticalLayout" stretch="1,0,0,0,0,0,1,0,0,0,1">
+       <property name="spacing">
+        <number>0</number>
+       </property>
+       <property name="sizeConstraint">
+        <enum>QLayout::SetMinimumSize</enum>
+       </property>
+       <item>
+        <widget class="pqTransferFunctionWidget" name="OpacityEditor" native="true">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>240</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="UseOpacityControlPointsFreehandDrawing">
+         <property name="toolTip">
+          <string>When checked, the control point of the opacity transfer fonction can be &quot;drawn&quot; instead of being placed one by one.</string>
+         </property>
+         <property name="text">
+          <string>Enable Freehand Drawing Of Opacity Transfer Function</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="EnableOpacityMapping">
+         <property name="text">
+          <string>Enable Opacity Mapping For Surfaces</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="UseLogScaleOpacity">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="text">
+          <string>Use Log Scale When Mapping Data To Opacity</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="OpacityLabel">
+         <property name="text">
+          <string>Opacity transfer function values</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="pqExpandableTableView" name="OpacityTable">
+         <property name="editTriggers">
+          <set>QAbstractItemView::DoubleClicked</set>
+         </property>
+         <property name="alternatingRowColors">
+          <bool>true</bool>
+         </property>
+         <property name="selectionBehavior">
+          <enum>QAbstractItemView::SelectRows</enum>
+         </property>
+         <property name="maximumRowCountBeforeScrolling" stdset="0">
+          <number>10</number>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="pqTransferFunctionWidget" name="ColorEditor" native="true">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>40</width>
+           <height>40</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>40</height>
+          </size>
+         </property>
+         <property name="toolTip">
+          <string>Select control point and press "Enter" or "Return" to change colors</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="UseLogScale">
+         <property name="toolTip">
+          <string>When checked, the mapping from data to colors is done using a log-scale. Note that this does not affect the mapping of data to opacity.</string>
+         </property>
+         <property name="text">
+          <string>Use Log Scale When Mapping Data To Colors</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="ColorLabel">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>Color transfer function values</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="pqExpandableTableView" name="ColorTable">
+         <property name="editTriggers">
+          <set>QAbstractItemView::DoubleClicked</set>
+         </property>
+         <property name="alternatingRowColors">
+          <bool>true</bool>
+         </property>
+         <property name="selectionBehavior">
+          <enum>QAbstractItemView::SelectRows</enum>
+         </property>
+         <property name="maximumRowCountBeforeScrolling" stdset="0">
+          <number>10</number>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="pqTransferFunction2DWidget" name="Transfer2DEditor" native="true">
+         <property name="minimumSize">
+          <size>
+           <width>100</width>
+           <height>400</height>
+          </size>
+         </property>
+         <property name="visible">
+          <bool>false</bool>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">gridline-color: rgb(46, 95, 255);
+background-image: url(:/pqWidgets/Icons/pqEdgeCenterData.svg);</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <property name="spacing">
+        <number>1</number>
+       </property>
+       <item>
+        <widget class="QToolButton" name="ResetRangeToData">
+         <property name="toolTip">
+          <string>Rescale to data range</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset resource="../../../Components/Resources/pqComponents.qrc">
+           <normaloff>:/pqWidgets/Icons/pqResetRange.svg</normaloff>:/pqWidgets/Icons/pqResetRange.svg</iconset>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="ResetRangeToCustom">
+         <property name="toolTip">
+          <string>Rescale to custom range</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset resource="../../../Components/Resources/pqComponents.qrc">
+           <normaloff>:/pqWidgets/Icons/pqResetRangeCustom.svg</normaloff>:/pqWidgets/Icons/pqResetRangeCustom.svg</iconset>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="ResetRangeToDataOverTime">
+         <property name="toolTip">
+          <string>Rescale to data range over all timesteps</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset resource="../../../Components/Resources/pqComponents.qrc">
+           <normaloff>:/pqWidgets/Icons/pqResetRangeTemporal.svg</normaloff>:/pqWidgets/Icons/pqResetRangeTemporal.svg</iconset>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="ResetRangeToVisibleData">
+         <property name="toolTip">
+          <string>Rescale to visible range</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset resource="../../../Components/Resources/pqComponents.qrc">
+           <normaloff>:/pqWidgets/Icons/pqResetToVisibleRange.svg</normaloff>:/pqWidgets/Icons/pqResetToVisibleRange.svg</iconset>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="InvertTransferFunctions">
+         <property name="toolTip">
+          <string>Invert the transfer functions</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset resource="../../../Components/Resources/pqComponents.qrc">
+           <normaloff>:/pqWidgets/Icons/pqInvert.svg</normaloff>:/pqWidgets/Icons/pqInvert.svg</iconset>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="ChoosePreset">
+         <property name="toolTip">
+          <string>Choose preset</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset resource="../../../Components/Resources/pqComponents.qrc">
+           <normaloff>:/pqWidgets/Icons/pqFavorites.svg</normaloff>:/pqWidgets/Icons/pqFavorites.svg</iconset>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="SaveAsPreset">
+         <property name="toolTip">
+          <string>Save to preset</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset resource="../../../Components/Resources/pqComponents.qrc">
+           <normaloff>:/pqWidgets/Icons/pqSave.svg</normaloff>:/pqWidgets/Icons/pqSave.svg</iconset>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="ChooseBoxColor">
+         <property name="toolTip">
+          <string>Choose box color and alpha</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset resource="../../../Components/Resources/pqComponents.qrc">
+           <normaloff>:/pqWidgets/Icons/pqBoxColorAlpha.svg</normaloff>:/pqWidgets/Icons/pqBoxColorAlpha.svg</iconset>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="pqHighlightableToolButton" name="ComputeDataHistogram">
+         <property name="toolTip">
+          <string>Compute data histogram</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset resource="../../../Components/Resources/pqComponents.qrc">
+           <normaloff>:/pqWidgets/Icons/pqHistogramReload24.png</normaloff>:/pqWidgets/Icons/pqHistogramReload24.png</iconset>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="Line" name="line_3">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>pqExpandableTableView</class>
+   <extends>QTableView</extends>
+   <header>pqExpandableTableView.h</header>
+  </customwidget>
+  <customwidget>
+   <class>pqTransferFunctionWidget</class>
+   <extends>QWidget</extends>
+   <header>pqTransferFunctionWidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>pqDoubleLineEdit</class>
+   <extends>QLineEdit</extends>
+   <header>pqDoubleLineEdit.h</header>
+  </customwidget>
+  <customwidget>
+   <class>pqIntRangeWidget</class>
+   <extends>QLineEdit</extends>
+   <header>pqIntRangeWidget.h</header>
+  </customwidget>
+  <customwidget>
+   <class>pqHighlightableToolButton</class>
+   <extends>QToolButton</extends>
+   <header>pqHighlightableToolButton.h</header>
+  </customwidget>
+  <customwidget>
+   <class>pqTransferFunction2DWidget</class>
+   <extends>QWidget</extends>
+   <header>pqTransferFunction2DWidget.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources>
+  <include location="../../../Components/Resources/pqComponents.qrc"/>
+ </resources>
+ <connections/>
+ <designerdata>
+  <property name="gridDeltaX">
+   <number>10</number>
+  </property>
+  <property name="gridDeltaY">
+   <number>10</number>
+  </property>
+  <property name="gridSnapX">
+   <bool>true</bool>
+  </property>
+  <property name="gridSnapY">
+   <bool>true</bool>
+  </property>
+  <property name="gridVisible">
+   <bool>true</bool>
+  </property>
+ </designerdata>
+</ui>

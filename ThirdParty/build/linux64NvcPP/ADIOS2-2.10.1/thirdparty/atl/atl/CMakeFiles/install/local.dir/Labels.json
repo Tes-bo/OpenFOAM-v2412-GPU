@@ -1,0 +1,11 @@
+{
+	"sources" : [],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"ATL"
+		],
+		"name" : "install/local"
+	}
+}

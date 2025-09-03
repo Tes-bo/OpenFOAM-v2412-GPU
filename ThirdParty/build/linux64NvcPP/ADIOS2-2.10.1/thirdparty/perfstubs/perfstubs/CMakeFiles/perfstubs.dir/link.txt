@@ -1,0 +1,1 @@
+/home/sibo/Music/nvidia-hpc-sdk/Linux_x86_64/24.11/comm_libs/mpi/bin/mpicc -fPIC -m64 -fPIC -O3 -w -fast -O3 -DNDEBUG -m64 -shared -Wl,-soname,libadios2_perfstubs.so.2.10 -o ../../../lib64/libadios2_perfstubs.so.2.10.1 CMakeFiles/perfstubs.dir/perfstubs_api/timer.c.o  -Wl,-rpath,::::::::::::::::

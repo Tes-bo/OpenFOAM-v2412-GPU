@@ -1,0 +1,14 @@
+vtk_add_test_python(
+  extractBlocks.py,NO_RT,NO_VALID
+  ExtractEdgesQuadraticCells.py
+  extractGlobalTemporalVariables.py,NO_RT,NO_VALID
+  extractPolyData.py
+  extractRectGrid.py
+  ExtractTensors.py
+  extractUGrid.py
+  extractVectors.py
+  TestExtractCellsByType.py,NO_RT,NO_VALID
+  ../../../Core/Testing/Python/TestExtractCells.py
+  TestExtractEdges.py
+  TestExtractEdges2.py
+  )

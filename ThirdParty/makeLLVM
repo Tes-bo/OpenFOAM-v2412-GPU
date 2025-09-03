@@ -1,0 +1,209 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2011-2016 OpenFOAM Foundation
+#     Copyright (C) 2016-2021 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     makeLLVM
+#
+# Description
+#     Build script for llvm, clang etc.
+#
+# Note
+#    - Ensure that you always use matching versions between llvm and clang.
+#    - LLVM components such as clang reside in the LLVM tools/ subdirectory
+#
+#    For example, when building from tar files (version 4.0.0)
+#
+#    1) Unpack LLVM:
+#        tar -xJf llvm-4.0.1.src.tar.xz
+#        mv llvm-4.0.1.src  llvm-4.0.1
+#
+#    2) Unpack Clang (also know as cfe):
+#        tar -xJf cfe-4.0.1.src.tar.xz
+#        mv cfe-4.0.1.src  llvm-4.0.1/tools/clang
+#
+#    3) Unpack openmp (optional):
+#        tar -xJf openmp-4.0.1.src.tar.xz
+#        mv openmp-4.0.1.src  llvm-4.0.1/tools/openmp
+#
+# ----------------------------------------------
+# NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
+#------------------------------------------------------------------------------
+if :    # Run from third-party directory
+then
+    cd "${0%/*}" || exit
+    wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
+        echo "Error (${0##*/}) : not located in \$WM_THIRD_PARTY_DIR"
+        echo "    Check your OpenFOAM environment and installation"
+        exit 1
+    }
+fi
+. "${WM_THIRD_PARTY_DIR:?}"/etc/tools/ThirdPartyFunctions
+#------------------------------------------------------------------------------
+
+[ "${WM_COMPILER#Clang}" = "$WM_COMPILER" ] && WM_COMPILER=Clang  # Force clang
+WM_COMPILER_TYPE=ThirdParty                # Ensure we get the correct settings
+
+# LLVM/Clang version from OpenFOAM etc/config.sh file:
+_foamConfig compiler
+
+PACKAGE="$clang_version"
+
+#------------------------------------------------------------------------------
+printVersions() { listPackageVersions llvm; exit 0; }
+printHelp() {
+    cat<<USAGE
+
+Usage: ${0##*/} [OPTION] [llvm-VERSION]
+options:
+  -gcc          Force use of gcc/g++
+  -cmake PATH   with cmake from the given path
+  -list         List available unpacked source versions
+  -help         Display usage help
+
+* Build llvm/clang
+      ${PACKAGE:-[unspecified]}
+
+USAGE
+    showDownloadHint llvm
+    exit 0  # Clean exit
+}
+#------------------------------------------------------------------------------
+exportCompiler          # Compiler info for CMake/configure
+
+# Parse options
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    '') ;;      # Ignore empty
+    -h | -help*) printHelp;;
+    -list)      printVersions;;
+    -gcc)       useGcc  ;;
+
+    -cmake)
+        [ "$#" -ge 2 ] || die "'$1' option requires an argument"
+        CMAKE_PATH="${2%%/}"
+        shift
+        ;;
+
+    llvm/* | sources/llvm* |\
+    llvm-[0-9]* | llvm-svn*)
+        PACKAGE="${1%%/}"
+        ;;
+    [0-9]*)
+        PACKAGE="llvm-${1%%/}"
+        ;;
+    *)
+        die "unknown option/argument: '$1'"
+        ;;
+    esac
+    shift
+done
+
+if [ -z "$PACKAGE" ]
+then
+    die "The LLVM package/version not specified"
+fi
+
+#------------------------------------------------------------------------------
+# !Build/install locations with arch name only (NO compiler name)!
+buildBASE="$(dirname "$buildBASE")/$WM_ARCH$WM_COMPILER_ARCH"
+installBASE="$(dirname "$installBASE")/$WM_ARCH$WM_COMPILER_ARCH"
+
+# Build LLVM (clang)
+#   *PACKAGE   : name-version of the package
+#   *SOURCEDIR : location of original sources
+#   *PREFIXDIR : installation directory
+# Note: strip trailing '.src' from package name
+
+PKG_SOURCE="$(findSourceDir "$PACKAGE")"
+PACKAGE="$(basename "$PACKAGE" .src)"   # Strip of trailing .src
+PKG_PREFIX="$installBASE/$PACKAGE"
+export GIT_DIR="$PKG_SOURCE/.git"    # Avoid seeing our own git-repo
+
+
+# Building...
+echo "---------------"
+if [ -d "$PKG_PREFIX" ]
+then
+    echo "Already built: $PACKAGE"
+elif [ -z "$CMAKE_PATH" ] && "$PKG_SOURCE"/configure -help >/dev/null 2>&1
+then
+    # configure can be used prior to 3.9.0
+    # but use cmake if someone explicitly mentioned -cmake on the command-line
+
+    echo "Starting build: $PACKAGE (using configure)"
+    echo
+    (
+        PKG_BUILD="$buildBASE/$PACKAGE"
+        cd "$PKG_SOURCE" || exit
+        make distclean 2>/dev/null || true
+
+        rm -rf "$PKG_BUILD"
+        mkdir -p "$PKG_BUILD"
+
+        cd "$PKG_BUILD" && set -x && \
+        "$PKG_SOURCE"/configure \
+            --prefix="$PKG_PREFIX" \
+            --with-gcc-toolchain="$(command -v gcc | sed 's%/bin/gcc%%')" \
+            --enable-optimized \
+            --enable-shared \
+        && set +x \
+        && make -j $WM_NCOMPPROCS \
+        && make install \
+        && echo "Built: $PACKAGE"
+    ) || {
+        echo "Error building: $PACKAGE"
+        exit 1
+    }
+
+else
+    # CMake used with 3.9.0 and later
+
+    echo "Starting build: $PACKAGE (using cmake)"
+    echo
+    (
+        PKG_BUILD="$buildBASE/$PACKAGE"
+        cd "$PKG_SOURCE" || exit
+
+        # Configuration options:
+        unset configOpt
+        if [ -f tools/openmp/CMakeLists.txt ]
+        then
+            configOpt="$configOpt -DLLVM_TOOL_OPENMP_BUILD=ON"
+        fi
+
+        rm -rf "$PKG_BUILD"
+        mkdir -p "$PKG_BUILD"
+
+        cmake=$(findCMake)
+
+        cd "$PKG_BUILD" && set -x && \
+        ${cmake:?} \
+            -DCMAKE_INSTALL_PREFIX="$PKG_PREFIX" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DBUILD_SHARED_LIBS=ON \
+            $configOpt \
+            "$PKG_SOURCE" \
+        && set +x \
+        && make -j $WM_NCOMPPROCS \
+        && make install \
+        && echo "Built: $PACKAGE"
+    ) || {
+        echo "Error building: $PACKAGE"
+        exit 1
+    }
+
+fi
+
+#------------------------------------------------------------------------------

@@ -1,0 +1,16 @@
+<ServerManagerConfiguration>
+  <ProxyGroup name="sources">
+    <SourceProxy name="VisItMiliReader" class="vtkVisItMiliReader"
+      base_proxygroup="internal_readers" base_proxyname="VisItReaderBase">
+      <Documentation
+       long_help="LLNL engineering format reader">
+       Note this reader is automatically generated from wrapping a third party reader. For more information on the reader see https://wci.llnl.gov/codes/visit
+       The default file extensions are .m, and .mili
+      </Documentation>
+     <Hints>
+       <ReaderFactory extensions="m mili"
+                      file_description="Mili Files" />
+     </Hints>
+    </SourceProxy>
+  </ProxyGroup>
+</ServerManagerConfiguration>

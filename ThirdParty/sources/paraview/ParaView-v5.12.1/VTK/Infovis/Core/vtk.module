@@ -1,0 +1,40 @@
+NAME
+  VTK::InfovisCore
+LIBRARY_NAME
+  vtkInfovisCore
+GROUPS
+  StandAlone
+SPDX_LICENSE_IDENTIFIER
+  LicenseRef-BSD-3-Clause-Sandia-USGov
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
+  Copyright Sandia Corporation
+SPDX_CUSTOM_LICENSE_FILE
+  LICENSE
+SPDX_CUSTOM_LICENSE_NAME
+  BSD-3-Clause-Sandia-USGov
+LICENSE_FILES
+  LICENSE
+DEPENDS
+  VTK::CommonCore
+  VTK::CommonDataModel
+  VTK::CommonExecutionModel
+  VTK::CommonColor
+  VTK::IOImage
+  VTK::ImagingCore
+  VTK::ImagingSources
+  VTK::RenderingFreeType
+PRIVATE_DEPENDS
+  VTK::FiltersExtraction
+  VTK::FiltersGeneral
+TEST_DEPENDS
+  VTK::FiltersSources
+  VTK::IOImage
+  VTK::IOInfovis
+  VTK::InfovisLayout
+  VTK::InteractionImage
+  VTK::InteractionStyle
+  VTK::RenderingLabel
+  VTK::RenderingOpenGL2
+  VTK::TestingRendering
+  VTK::ViewsCore

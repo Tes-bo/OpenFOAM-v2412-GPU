@@ -1,0 +1,35 @@
+NAME
+  VTK::IOImport
+LIBRARY_NAME
+  vtkIOImport
+GROUPS
+  StandAlone
+SPDX_LICENSE_IDENTIFIER
+  BSD-3-Clause
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
+DEPENDS
+  VTK::CommonCore
+  VTK::CommonExecutionModel
+  VTK::CommonMisc
+  VTK::RenderingCore
+  VTK::vtksys
+PRIVATE_DEPENDS
+  VTK::CommonDataModel
+  VTK::CommonTransforms
+  VTK::FiltersCore
+  VTK::FiltersSources
+  VTK::ImagingCore
+  VTK::IOGeometry
+  VTK::IOImage
+TEST_DEPENDS
+  VTK::CommonColor
+  VTK::IOExport
+  VTK::IOImage
+  VTK::IOXML
+  VTK::ImagingCore
+  VTK::ImagingSources
+  VTK::InteractionStyle
+  VTK::RenderingOpenGL2
+  VTK::TestingRendering
+  VTK::opengl

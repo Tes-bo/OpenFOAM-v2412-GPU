@@ -1,0 +1,212 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | www.openfoam.com
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2016-2021 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
+#
+# Script
+#     makeFFTW
+#
+# Description
+#     Build script for FFTW
+#
+# ----------------------------------------------
+# NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
+#------------------------------------------------------------------------------
+# Dynamic library ending (default is .so)
+[ "$(uname -s)" = Darwin ] && EXT_SO=.dylib || EXT_SO=.so
+
+# Short-circuit test for an installation
+if [ "$1" = "-test" ]
+then
+    [ "$#" -eq 2 ] || { echo "${0##*/} -test : needs 1 argument"; exit 1; }
+    dir="${2%/}" # <- *_ARCH_PATH
+    [ -d "$dir/include" ] || exit 2
+
+    package="fftw"
+    libName="libfftw3"
+    for lib in \
+        "$dir/lib/$libName$EXT_SO" \
+        "$dir/lib$WM_COMPILER_LIB_ARCH/$libName$EXT_SO" \
+        ;
+    do
+        if [ -r "$lib" ]
+        then
+            echo "    $package include: $dir/include"
+            echo "    $package library: ${lib%/*}"
+            exit 0
+        fi
+    done
+    exit 2
+fi
+#------------------------------------------------------------------------------
+if :    # Run from third-party directory
+then
+    cd "${0%/*}" || exit
+    wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
+        echo "Error (${0##*/}) : not located in \$WM_THIRD_PARTY_DIR"
+        echo "    Check your OpenFOAM environment and installation"
+        exit 1
+    }
+fi
+. "${WM_THIRD_PARTY_DIR:?}"/etc/tools/ThirdPartyFunctions
+#------------------------------------------------------------------------------
+# Obtain version from OpenFOAM etc/config.sh file:
+_foamConfig FFTW
+
+PACKAGE="${fftw_version:-none}"
+
+#------------------------------------------------------------------------------
+printVersions() { listPackageVersions fftw; exit 0; }
+printHelp() {
+    cat<<USAGE
+
+Usage: ${0##*/} [OPTION] [fftw-VERSION] [-- configure-options]
+options:
+  -force        Force compilation, even if include/library already exists
+  -gcc          Force use of gcc/g++
+  -list         List available unpacked source versions
+  -help         Display usage help
+
+* build FFTW with
+      ${PACKAGE:-[unspecified]}
+
+USAGE
+    showDownloadHint fftw
+    exit 0  # Clean exit
+}
+#------------------------------------------------------------------------------
+exportCompiler          # Compiler info for CMake/configure
+
+unset optForce
+
+# Parse options
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    '') ;;      # Ignore empty
+    --) break;; # Extra configure options (leave on $@ for later detection)
+    -h | -help*) printHelp;;
+    -list)      printVersions;;
+    -gcc)       useGcc  ;;
+    -force)     optForce=true ;;
+
+    fftw/* | sources/fftw* | \
+    fftw-[0-9]* | fftw_[0-9]* | fftw-system )
+        PACKAGE="${1%%/}"
+        ;;
+    *)
+        die "unknown option/argument: '$1'"
+        ;;
+    esac
+    shift
+done
+
+if [ -z "$PACKAGE" ]
+then
+    die "The FFTW package/version not specified"
+elif _foamIsNone "$PACKAGE" || _foamIsSystem "$PACKAGE"
+then
+    echo "Using none/system (skip ThirdParty build of FFTW)"
+    exit 0
+fi
+
+#------------------------------------------------------------------------------
+#
+# Build FFTW
+#   *PACKAGE : name-version of the package
+#   *SOURCE  : location of original sources
+#   *PREFIX  : installation directory
+#
+# For 64-bit
+# - FFTW itself will normally build into 'lib64',
+
+PKG_SOURCE="$(findSourceDir "$PACKAGE")"
+PACKAGE="$(basename "$PKG_SOURCE")"
+PKG_PREFIX="$installBASE/$PACKAGE"
+export GIT_DIR="$PKG_SOURCE/.git"
+
+if [ -z "$optForce" ] \
+&& {
+    [ -r "$PKG_PREFIX/lib/libfftw3$EXT_SO" ] \
+ || [ -r "$PKG_PREFIX/lib$WM_COMPILER_LIB_ARCH/libfftw3$EXT_SO" ] \
+ || [ -r "$PKG_PREFIX/bin/libfftw3-3$EXT_SO" ]  # Windows
+}
+then
+    echo "FFTW already built : $PKG_PREFIX"
+else
+    echo "Starting build: FFTW ($PACKAGE)"
+    echo
+
+    (
+        # Configuration options:
+        unset configOpt
+
+        # Compiler-specific adjustments
+        case "$WM_COMPILER" in
+        (Mingw*)
+            # Cross-compiling
+            # See http://www.fftw.org/install/windows.html
+            configOpt="
+  --host=x86_64-w64-mingw32
+  --with-our-malloc
+  --enable-threads --with-combined-threads
+  --enable-sse2
+  --with-incoming-stack-boundary=2
+"
+            ;;
+        esac
+
+        # Additional configure options
+        if [ "$1" = "--" ]
+        then
+            shift
+            configOpt="$configOpt $@"
+        fi
+
+        # End of configuration options
+        # ----------------------------
+        PKG_BUILD="$buildBASE/$PACKAGE"
+        cd "$PKG_SOURCE" || exit
+
+        rm -rf "$PKG_PREFIX"
+        rm -rf "$PKG_BUILD"
+        mkdir -p "$PKG_BUILD"
+
+        cd "$PKG_BUILD" && set -x && \
+        "$PKG_SOURCE"/configure \
+            --prefix="$PKG_PREFIX" \
+            --enable-shared --disable-static \
+            --disable-fortran \
+            $configOpt \
+        && set +x \
+        && make -j $WM_NCOMPPROCS \
+        && make install \
+        && echo "Built: $PACKAGE" \
+        && pkgconfigAdjust "$PKG_PREFIX"
+    ) || {
+        echo "Error building: $PACKAGE"
+        exit 1
+    }
+
+    # Unneeded generated files
+    for dir in share/doc share/info share/man
+    do
+        if [ -d "$PKG_PREFIX/$dir" ]
+        then
+            echo "Discard $dir files to save space: $PACKAGE"
+            rm -rf "$PKG_PREFIX/$dir"
+        fi
+    done
+    rmdir "$PKG_PREFIX"/share 2>/dev/null || true
+
+fi
+
+#------------------------------------------------------------------------------

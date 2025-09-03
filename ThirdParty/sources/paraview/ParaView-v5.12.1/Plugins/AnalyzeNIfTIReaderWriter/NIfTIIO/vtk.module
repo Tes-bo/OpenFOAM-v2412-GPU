@@ -1,0 +1,19 @@
+NAME
+  AnalyzeNIfTIIO::NIfTIIO
+LIBRARY_NAME
+  vtkAnalyzeNIfTIIO
+SPDX_LICENSE_IDENTIFIER
+  BSD-3-Clause AND LicenseRef-PublicDomain-nifti
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Kitware Inc.
+  Copyright (c) Joseph Hennessey
+SPDX_CUSTOM_LICENSE_FILE
+  ThirdParty/LICENSE
+SPDX_CUSTOM_LICENSE_NAME
+  PublicDomain-nifti
+DEPENDS
+  VTK::IOImage
+PRIVATE_DEPENDS
+  VTK::CommonCore
+  VTK::CommonDataModel
+  VTK::zlib

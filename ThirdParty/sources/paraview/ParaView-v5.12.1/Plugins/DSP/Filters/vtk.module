@@ -1,0 +1,24 @@
+NAME
+  DigitalSignalProcessing::DSPFiltersPlugin
+LIBRARY_NAME
+  vtkDSPFiltersPlugin
+SPDX_LICENSE_IDENTIFIER
+  BSD-3-Clause
+SPDX_COPYRIGHT_TEXT
+  Copyright (c) Kitware Inc.
+DEPENDS
+  VTK::CommonCore
+  VTK::CommonDataModel
+  VTK::CommonExecutionModel
+  VTK::FiltersGeneral
+PRIVATE_DEPENDS
+  DigitalSignalProcessing::DSPDataModel
+  VTK::FiltersCore
+  VTK::FiltersExtraction
+  VTK::ParallelCore
+TEST_DEPENDS
+  DigitalSignalProcessing::DSPDataModel
+  VTK::FiltersSources
+  VTK::IOExodus
+  VTK::IOHDF
+  VTK::TestingCore
