@@ -1,0 +1,13 @@
+#!/bin/sh
+cd "${0%/*}" || exit                        # Run from this directory
+. ${WM_PROJECT_DIR:?}/wmake/scripts/sysFunctions
+
+#------------------------------------------------------------------------------
+
+if isDarwin
+then
+    echo "==> Darwin-specific utilities"
+    wmake addr2line
+fi
+
+#------------------------------------------------------------------------------

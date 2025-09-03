@@ -1,0 +1,25 @@
+MarchingCubes = fastdualoctree_sgp
+
+include $(GENERAL_RULES)/cgal
+
+EXE_INC = \
+    -DUNIX \
+    -Wno-old-style-cast \
+    /* -IMarchingCubes */ \
+    -I$(FASTDUALOCTREE_SRC_PATH) \
+    -I../conformalVoronoiMesh/lnInclude \
+    -I$(LIB_SRC)/mesh/snappyHexMesh/lnInclude \
+    -I$(LIB_SRC)/fileFormats/lnInclude \
+    -I$(LIB_SRC)/surfMesh/lnInclude \
+    -I$(LIB_SRC)/meshTools/lnInclude
+
+EXE_LIBS = \
+    $(CGAL_LIBS) \
+    -L$(FASTDUALOCTREE_SRC_PATH) -lperf_main \
+    -lGL \
+    -lconformalVoronoiMesh \
+    -ldecompositionMethods \
+    -L$(FOAM_LIBBIN)/dummy \
+    -lkahipDecomp -lmetisDecomp -lscotchDecomp \
+    -lmeshTools \
+    -ldynamicMesh

@@ -1,0 +1,3 @@
+fireToFoam.C
+
+EXE = $(FOAM_APPBIN)/fireToFoam

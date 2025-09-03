@@ -1,0 +1,7 @@
+method = .
+$(method)/surfaceFeaturesExtraction.C
+$(method)/extractFromFile.C
+$(method)/extractFromNone.C
+$(method)/extractFromSurface.C
+
+LIB = $(FOAM_LIBBIN)/libsurfaceFeatureExtract

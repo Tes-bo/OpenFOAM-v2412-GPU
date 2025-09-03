@@ -1,0 +1,12 @@
+raySearchEngine/raySearchEngine/raySearchEngine.C
+raySearchEngine/raySearchEngine/raySearchEngineNew.C
+raySearchEngine/voxel/voxelRaySearchEngine.C
+/* raySearchEngine/nonUniformVoxel/nonUniformVoxelRaySearchEngine.C */
+/* raySearchEngine/allToAll/allToAllRaySearchEngine.C */
+viewFactorModel/viewFactorModel/viewFactorModel.C
+viewFactorModel/viewFactorModel/viewFactorModelNew.C
+viewFactorModel/viewFactor2AI/viewFactor2AI.C
+viewFactorModel/viewFactor2LI/viewFactor2LI.C
+viewFactorModel/viewFactorHottel/viewFactorHottel.C
+
+LIB = $(FOAM_LIBBIN)/libviewFactorModels

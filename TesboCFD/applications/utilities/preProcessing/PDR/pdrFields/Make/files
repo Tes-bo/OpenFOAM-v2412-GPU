@@ -1,0 +1,17 @@
+PDRarrays.C
+PDRarraysAnalyse.C
+PDRarraysCalc.C
+PDRmeshArrays.C
+PDRparams.C
+PDRpatchDef.C
+PDRlegacyMeshSpec.C
+PDRutilsIntersect.C
+PDRutilsOverlap.C
+
+obstacles/PDRobstacle.C
+obstacles/PDRobstacleIO.C
+obstacles/PDRobstacleTypes.C
+obstacles/PDRobstacleLegacyIO.C
+obstacles/PDRobstacleLegacyRead.C
+
+LIB = $(FOAM_LIBBIN)/libpdrFields

@@ -1,0 +1,24 @@
+EXE_INC = \
+    -I$(LIB_SRC)/finiteVolume/lnInclude \
+    -I$(LIB_SRC)/fileFormats/lnInclude \
+    -I$(LIB_SRC)/surfMesh/lnInclude \
+    -I$(LIB_SRC)/meshTools/lnInclude \
+    -I$(LIB_SRC)/dynamicMesh/lnInclude \
+    -I$(LIB_SRC)/parallel/decompose/decompositionMethods/lnInclude \
+    -I$(LIB_SRC)/mesh/snappyHexMesh/lnInclude \
+    -I$(LIB_SRC)/parallel/decompose/decompose/lnInclude \
+    -I$(LIB_SRC)/parallel/reconstruct/reconstruct/lnInclude \
+
+EXE_LIBS = \
+    -lfiniteVolume \
+    -lfileFormats \
+    -lsurfMesh \
+    -lmeshTools \
+    -ldynamicMesh \
+    -lfvMotionSolvers \
+    -ldecompositionMethods \
+    -L$(FOAM_LIBBIN)/dummy \
+    -lkahipDecomp -lmetisDecomp -lptscotchDecomp -lscotchDecomp \
+    -ldecompose \
+    -lreconstruct \
+    -lsnappyHexMesh

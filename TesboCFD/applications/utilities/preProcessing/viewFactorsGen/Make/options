@@ -1,0 +1,18 @@
+include $(GENERAL_RULES)/cgal-header-only
+
+EXE_INC = \
+    -Wno-old-style-cast \
+    $(COMP_FLAGS) \
+    ${CGAL_INC} \
+    -I$(LIB_SRC)/finiteVolume/lnInclude \
+    -I$(LIB_SRC)/surfMesh/lnInclude \
+    -I$(LIB_SRC)/meshTools/lnInclude \
+    -I$(LIB_SRC)/parallel/distributed/lnInclude
+
+
+EXE_LIBS = \
+    -lfiniteVolume \
+    -lsurfMesh \
+    -lmeshTools \
+    -ldistributed \
+    -lradiationModels

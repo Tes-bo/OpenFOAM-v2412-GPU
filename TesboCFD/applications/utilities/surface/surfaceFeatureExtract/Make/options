@@ -1,0 +1,11 @@
+EXE_INC = \
+    -IextractionMethod/lnInclude \
+    -I$(LIB_SRC)/fileFormats/lnInclude \
+    -I$(LIB_SRC)/surfMesh/lnInclude \
+    -I$(LIB_SRC)/meshTools/lnInclude
+
+EXE_LIBS = \
+    -lfileFormats \
+    -lsurfMesh \
+    -lmeshTools \
+    -lsurfaceFeatureExtract

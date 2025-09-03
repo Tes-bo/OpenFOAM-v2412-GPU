@@ -1,0 +1,3 @@
+setTurbulenceFields.C
+
+EXE = $(FOAM_APPBIN)/setTurbulenceFields

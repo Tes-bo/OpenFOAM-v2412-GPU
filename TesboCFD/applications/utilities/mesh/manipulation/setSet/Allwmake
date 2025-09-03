@@ -1,0 +1,19 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/wmake/scripts/AllwmakeParseArguments # (error catching)
+. ${WM_PROJECT_DIR:?}/wmake/scripts/have_readline
+
+#------------------------------------------------------------------------------
+unset COMP_FLAGS LINK_FLAGS
+
+# Use readline if available
+if have_readline
+then
+    echo "    readline detected - enabling readline support."
+    export COMP_FLAGS="-DHAVE_LIBREADLINE -I$READLINE_INC_DIR"
+    export LINK_FLAGS="-L$READLINE_LIB_DIR -lreadline"
+fi
+
+wmake $targetType
+
+#------------------------------------------------------------------------------

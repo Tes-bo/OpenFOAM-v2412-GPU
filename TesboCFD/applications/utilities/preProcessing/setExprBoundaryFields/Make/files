@@ -1,0 +1,3 @@
+setExprBoundaryFields.C
+
+EXE = $(FOAM_APPBIN)/setExprBoundaryFields

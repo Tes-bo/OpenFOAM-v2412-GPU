@@ -1,0 +1,11 @@
+EXE_INC = \
+    -I$(LIB_SRC)/finiteVolume/lnInclude
+
+LIB_LIBS = \
+    -lfiniteVolume \
+    -lturbulenceModels \
+    -lincompressibleTurbulenceModels \
+    -lcompressibleTurbulenceModels \
+    -lthermoTools \
+    -lradiationModels \
+    -lfluidThermophysicalModels

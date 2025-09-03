@@ -1,0 +1,3 @@
+profilingSummary.C
+
+EXE = $(FOAM_APPBIN)/profilingSummary

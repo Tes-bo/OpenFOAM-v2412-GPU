@@ -1,0 +1,3 @@
+PDRsetFields.C
+
+EXE = $(FOAM_APPBIN)/PDRsetFields
