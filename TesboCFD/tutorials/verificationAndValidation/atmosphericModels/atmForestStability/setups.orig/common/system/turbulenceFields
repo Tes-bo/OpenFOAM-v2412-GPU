@@ -1,9 +1,0 @@
-// -*- C++ -*-
-
-type            turbulenceFields;
-libs            (fieldFunctionObjects);
-field           R;
-writeControl    writeTime;
-
-
-// *********************************************************************** //
