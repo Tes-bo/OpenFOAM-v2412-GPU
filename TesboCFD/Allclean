@@ -1,0 +1,164 @@
+#!/bin/sh
+#/*--------------------------------------------------------------------------*\
+#  ████████╗███████╗███████╗██████╗  ██████╗        ██████╗███████╗██████╗ 
+#  ╚══██╔══╝██╔════╝██╔════╝██╔══██╗██╔═══██╗      ██╔════╝██╔════╝██╔══██╗
+#     ██║   █████╗  ███████╗██████╔╝██║   ██║█████╗██║     █████╗  ██║  ██║
+#     ██║   ██╔══╝  ╚════██║██╔══██╗██║   ██║╚════╝██║     ██╔══╝  ██║  ██║
+#     ██║   ███████╗███████║██████╔╝╚██████╔╝      ╚██████╗██║     ██████╔╝
+#     ╚═╝   ╚══════╝╚══════╝╚═════╝  ╚═════╝        ╚═════╝╚═╝     ╚═════╝ 
+#    Tesbo-CFD | Open Source CFD & HPC
+#    Author: Tesbo (aka seeeeeeeeeeer) | GitHub: https://github.com/Tes-bo
+#    Email:  cotsqa@qq.com
+#------------------------------------------------------------------------------
+#   Copyright (C) 2024-2025 Tesbo-CFD
+#   Copyright (C) 2011-2016 OpenFOAM Foundation
+#   Copyright (C) 2017-2023 OpenCFD Ltd.
+#------------------------------------------------------------------------------
+#License
+#    This file is part of the Tesbo-CFD/Software projects.
+#
+#    This software is free: you can redistribute it and/or modify it
+#    under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License,
+#    or (at your option) any later version.
+#
+#    This software is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#    See the GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this software.
+#    If not, see <http://www.gnu.org/licenses/>.
+#
+#File
+#    Allclean
+#
+#Description
+#    Clean all build outputs, object files, logs, and temporary files
+#    for the TesboCFD project
+#
+#Usage:
+#    ./Allclean
+#
+#\*--------------------------------------------------------------------------*/
+
+cd "${0%/*}" || exit                                # Run from this directory
+. "${WM_PROJECT_DIR:?}"/bin/tools/LogFunctions      # Tutorial log-file functions
+
+echo "========================================"
+echo "Cleaning TesboCFD project"
+echo "========================================"
+
+# Remove log files
+removeLogs
+
+echo "Cleaning build output directories..."
+
+# Clean build directory
+if [ -d "build" ]
+then
+    echo "  Removing build/ directory"
+    rm -rf build
+fi
+
+# Clean platforms directory
+if [ -d "platforms" ]
+then
+    echo "  Removing platforms/ directory"
+    rm -rf platforms
+fi
+
+# Clean documentation build outputs
+if [ -d "doc/Doxygen/html" ]
+then
+    echo "  Removing doc/Doxygen/html/ directory"
+    rm -rf doc/Doxygen/html
+fi
+
+if [ -d "doc/Doxygen/latex" ]
+then
+    echo "  Removing doc/Doxygen/latex/ directory"
+    rm -rf doc/Doxygen/latex
+fi
+
+if [ -d "doc/Doxygen/man" ]
+then
+    echo "  Removing doc/Doxygen/man/ directory"
+    rm -rf doc/Doxygen/man
+fi
+
+echo "Cleaning source directories..."
+
+# Use wclean to clean each component
+echo "  Cleaning src/"
+if [ -d "src" ]
+then
+    (cd src && wclean -all)
+fi
+
+echo "  Cleaning applications/"
+if [ -d "applications" ]
+then
+    (cd applications && wclean -all)
+fi
+
+echo "  Cleaning modules/"
+if [ -d "modules" ]
+then
+    (cd modules && wclean -all)
+fi
+
+echo "  Cleaning plugins/"
+if [ -d "plugins" ]
+then
+    (cd plugins && wclean -all)
+fi
+
+echo "  Cleaning doc/"
+if [ -d "doc" ]
+then
+    (cd doc && wclean -all)
+fi
+
+#echo "Cleaning tutorials..."
+#if [ -d "tutorials" ]
+#then
+#    (cd tutorials && ./Allclean)
+#fi
+
+echo "Cleaning temporary files and directories..."
+
+# Clean various temporary files and directories
+find . -name "lnInclude" -type d -exec rm -rf {} + 2>/dev/null || true
+find . -name "Make" -type d -exec sh -c 'cd "$1" && rm -rf linux* darwin* solaris* windows*' _ {} \; 2>/dev/null || true
+
+# Clean editor temporary files
+find . -name "*~" -delete 2>/dev/null || true
+find . -name ".*~" -delete 2>/dev/null || true
+find . -name ".#*" -delete 2>/dev/null || true
+find . -name "#*#" -delete 2>/dev/null || true
+
+# Clean compilation-related temporary files
+find . -name "*.o" -delete 2>/dev/null || true
+find . -name "*.so" -delete 2>/dev/null || true
+find . -name "*.a" -delete 2>/dev/null || true
+find . -name "*.dep" -delete 2>/dev/null || true
+
+# Clean log and output files
+rm -f log.* log-* logSummary.*
+rm -f *.log *.out *.err
+rm -f make.log wmake.log
+
+# Clean git-related temporary files (if they exist)
+rm -f .git/hooks/pre-commit.backup 2>/dev/null || true
+
+echo "Cleaning empty directories..."
+# Clean empty directories (may be created by cleanup operations)
+find . -type d -empty -delete 2>/dev/null || true
+
+echo "========================================"
+echo "TesboCFD project cleanup completed!"
+echo "========================================"
+
+#------------------------------------------------------------------------------
