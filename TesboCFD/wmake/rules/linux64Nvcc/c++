@@ -51,13 +51,12 @@ c++FLAGS    = $(c++ARCH) $(GFLAGS) $(c++WARN) $(c++OPT) $(c++DBUG) $(ptFLAGS) \
 # Note: Don't filter -fPIC here since our wrapper will handle it
 FILTER_NVCC_FLAGS = $(filter-out -pthread,$1)
 
-# Standard C++ compilation without CUDA flags  
-Ctoo        = $(WM_SCHEDULER) $(CC) -x c++ $(call FILTER_NVCC_FLAGS,$(c++FLAGS)) -c $< -o $@
+# All files now use CUDA flags to ensure proper Thrust library support
+Ctoo        = $(WM_SCHEDULER) $(CC) $(call FILTER_NVCC_FLAGS,$(c++FLAGS)) $(cuFLAGS) -c $< -o $@
 cxxtoo      = $(Ctoo)
 cctoo       = $(Ctoo)
 cpptoo      = $(Ctoo)
-# Only .cu files get CUDA flags
-cutoo       = $(WM_SCHEDULER) $(CC) $(call FILTER_NVCC_FLAGS,$(c++FLAGS)) $(cuFLAGS) -c $< -o $@
+cutoo       = $(Ctoo)
 
 LINK_LIBS   = $(c++DBUG)
 
